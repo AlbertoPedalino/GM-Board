@@ -2608,8 +2608,8 @@
     }
 
     /* ── Combat ── */
-    function avvia() {
-      saveEncounter();
+    function avvia(skipSave = false) {
+      if (!skipSave) saveEncounter();
       buildCombat();
       document.getElementById('tab-c').disabled = false;
       setView('combat'); renderCombat();
@@ -3270,7 +3270,7 @@
       // party.level = saved.partyLevel;
 
       renderEnc();
-      avvia();
+      avvia(true);
     }
 
     function renderLibrary() {
