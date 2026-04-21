@@ -184,7 +184,7 @@
 
     .bgrid {
       display: grid;
-      grid-template-columns: 1fr 380px;
+      grid-template-columns: 1fr 440px;
       gap: 1.25rem;
       align-items: start
     }
@@ -1028,6 +1028,28 @@
       cursor: pointer
     }
 
+    .combat-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      min-width: 30px;
+      line-height: 1;
+      gap: 1px;
+    }
+
+    .combat-label .lbl-shape {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .combat-label .lbl-letter {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
     .c-nm.click:hover {
       color: var(--gold2);
       text-decoration: underline dotted
@@ -1338,9 +1360,109 @@
       transition: opacity .12s;
     }
 
-    .sbaddbtn:hover {
-      opacity: .84;
+    .sb-rollable {
+      color: var(--sbtxt2);
+      cursor: pointer;
+      border-bottom: 1px dashed rgba(88,24,13,.45);
+      transition: opacity .15s;
+      white-space: nowrap;
     }
+
+    .sb-rollable:hover {
+      opacity: .6;
+    }
+
+    .aba.clickable {
+      cursor: pointer;
+    }
+
+    .aba.clickable:hover {
+      background: rgba(88,24,13,.07);
+    }
+
+    /* ── LOG TIRI ── */
+    #log-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 9998;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1px solid var(--bdr2);
+      background: var(--bg2);
+      color: var(--text2);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+    }
+    #log-toggle:hover { border-color: var(--gold); color: var(--gold2); background: var(--bg3); }
+    #log-badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      background: var(--gold);
+      color: var(--bg);
+      font-family: 'Cinzel', serif;
+      font-size: 9px; font-weight: 700;
+      min-width: 16px; height: 16px;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+    }
+    #log-panel {
+      position: fixed;
+      bottom: 76px; left: 20px;
+      z-index: 9997;
+      width: 300px; max-height: 420px;
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--rl);
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      transform: translateY(12px); opacity: 0; pointer-events: none;
+      transition: transform .2s cubic-bezier(.25,.8,.25,1), opacity .2s;
+    }
+    #log-panel.open { transform: translateY(0); opacity: 1; pointer-events: all; }
+    .log-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 13px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--bdr);
+      flex-shrink: 0;
+    }
+    .log-title { font-family:'Cinzel',serif; font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); }
+    .log-clear { font-size:11px; color:var(--text3); background:none; border:none; cursor:pointer; padding:2px 6px; border-radius:3px; transition:color .12s; }
+    .log-clear:hover { color:var(--red2); }
+    .log-entries { overflow-y:auto; flex:1; padding:6px 0; }
+    .log-entries::-webkit-scrollbar { width:3px; }
+    .log-entries::-webkit-scrollbar-thumb { background:var(--bdr2); border-radius:2px; }
+    .log-empty { text-align:center; padding:2rem 1rem; color:var(--text3); font-size:13px; font-style:italic; }
+    .log-entry {
+      display: grid; grid-template-columns: 42px 1fr;
+      gap: 0 10px; padding: 7px 13px;
+      border-bottom: 1px solid var(--bdr);
+      align-items: center; transition: background .1s;
+    }
+    .log-entry:last-child { border-bottom:none; }
+    .log-entry:hover { background:var(--bg3); }
+    .log-result { font-family:'Cinzel',serif; font-size:24px; font-weight:700; text-align:center; line-height:1; }
+    .log-result.nat20 { color:#f1c40f; text-shadow:0 0 8px rgba(241,196,15,.5); }
+    .log-result.nat1  { color:var(--red2); }
+    .log-result.high  { color:var(--green); }
+    .log-result.mid   { color:var(--gold2); }
+    .log-result.low   { color:var(--text2); }
+    .log-info { min-width:0; }
+    .log-actor { font-family:'Cinzel',serif; font-size:10px; color:var(--gold); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .log-type  { font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .log-math  { font-size:10px; color:var(--text3); font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .log-time  { font-size:9px; color:var(--text3); margin-top:1px; }
 
     footer {
       margin-top: 3rem;
@@ -1393,18 +1515,17 @@
       right: 20px;
       z-index: 9999;
       background: var(--bg2);
-      border: 1px solid var(--gold);
-      border-radius: var(--rl);
-      padding: 15px 20px;
-      color: var(--text);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
-      transform: translateY(100px);
+      border: 1px solid var(--bdr2);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--r);
+      padding: 11px 16px 11px 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.65);
+      transform: translateY(16px);
       opacity: 0;
       pointer-events: none;
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 16px;
-      min-width: 200px;
+      transition: transform .25s cubic-bezier(.25,.8,.25,1), opacity .25s;
+      min-width: 210px;
+      max-width: 270px;
     }
 
     #dice-toast.show {
@@ -1412,28 +1533,57 @@
       opacity: 1;
     }
 
-    .dt-title {
-      font-family: 'Cinzel', serif;
-      font-size: 12px;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 5px;
+    .dt-inner {
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      gap: 0 12px;
+      align-items: center;
     }
 
     .dt-result {
       font-family: 'Cinzel', serif;
-      font-size: 32px;
+      font-size: 40px;
       font-weight: 700;
-      color: var(--gold2);
       text-align: center;
+      line-height: 1;
+    }
+
+    .dt-result.nat20 { color: #f1c40f; text-shadow: 0 0 10px rgba(241,196,15,.45); }
+    .dt-result.nat1  { color: var(--red2); }
+    .dt-result.high  { color: var(--green); }
+    .dt-result.mid   { color: var(--gold2); }
+    .dt-result.low   { color: var(--text2); }
+
+    .dt-right { min-width: 0; }
+
+    .dt-actor {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: .05em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .dt-title {
+      font-size: 13px;
+      color: var(--text);
+      font-family: 'EB Garamond', serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
     }
 
     .dt-math {
-      font-size: 13px;
-      color: var(--text2);
-      text-align: center;
+      font-size: 11px;
+      color: var(--text3);
       font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Icone Mostri */
@@ -1463,7 +1613,160 @@
       margin-bottom: 10px;
     }
 
-    /* ── Rinforzi: trigger ── */
+    /* ── LIBRERIA ── */
+    .lib-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text3);
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .lib-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .lib-card {
+      background: var(--bg3);
+      border: 1px solid var(--bdr);
+      border-left: 3px solid var(--bdr2);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      transition: border-color .15s;
+    }
+
+    .lib-card:hover {
+      border-color: var(--gold);
+      border-left-color: var(--gold);
+    }
+
+    .lib-card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .lib-card-name {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold2);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lib-card-meta {
+      font-size: 11px;
+      color: var(--text3);
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .lib-card-xp {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 11px;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    .lib-card-monsters {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 10px;
+      line-height: 1.4;
+      font-style: italic;
+    }
+
+    .lib-card-actions {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .lib-card-date {
+      font-size: 10px;
+      color: var(--text3);
+      margin-left: auto;
+    }
+
+    /* Form salvataggio incontro */
+    .save-enc-form {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .save-enc-btns {
+      display: flex;
+      gap: 7px;
+    }
+
+    .btn-save-enc {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--gold);
+      border-radius: var(--r);
+      background: var(--gdim);
+      color: var(--gold2);
+      font-size: 13px;
+      font-family: 'Cinzel', Georgia, serif;
+      font-weight: 600;
+      letter-spacing: .05em;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-save-enc:hover:not(:disabled) {
+      background: rgba(200,168,75,.22);
+    }
+
+    .btn-save-enc:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      border-color: var(--bdr);
+      color: var(--text3);
+      background: transparent;
+    }
+
+    .btn-launch-now {
+      padding: 10px 14px;
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      background: transparent;
+      color: var(--text2);
+      font-size: 13px;
+      font-family: 'Cinzel', Georgia, serif;
+      cursor: pointer;
+      letter-spacing: .04em;
+      transition: all .12s;
+      white-space: nowrap;
+    }
+
+    .btn-launch-now:hover:not(:disabled) {
+      border-color: var(--bdr2);
+      color: var(--text);
+    }
+
+    .btn-launch-now:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+
+    .save-confirm {
+      font-size: 12px;
+      color: var(--green);
+      text-align: center;
+      font-style: italic;
+      min-height: 16px;
+    }
     .collapsible-trigger {
       width: 100%;
       background: var(--bg3);
@@ -1601,6 +1904,7 @@
 
     <div class="tabs">
       <button class="tab on" id="tab-b" onclick="setView('builder')">Costruttore</button>
+      <button class="tab" id="tab-l" onclick="setView('library')">Libreria</button>
       <button class="tab" id="tab-c" onclick="setView('combat')" disabled>Incontro</button>
     </div>
 
@@ -1718,11 +2022,33 @@
                 </div>
                 <div class="tgrid" id="tgrid"></div>
               </div>
-              <button class="btn-avvia" id="btn-avvia" onclick="avvia()" disabled>⚔ Avvia Incontro</button>
+              <div class="save-enc-form">
+                <input type="text" id="enc-name" placeholder="Nome incontro (es. Imboscata nella foresta)…" />
+                <div class="save-enc-btns">
+                  <button class="btn-save-enc" id="btn-salva" onclick="saveEncounter()" disabled>📋 Salva Incontro</button>
+                  <button class="btn-launch-now" id="btn-avvia" onclick="avvia()" disabled title="Avvia senza salvare">⚔ Avvia</button>
+                </div>
+                <div class="save-confirm" id="save-confirm"></div>
+              </div>
             </div>
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ══ LIBRERIA ══ -->
+    <div id="library-view" style="display:none">
+      <div class="panel">
+        <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+          <span class="pt">Incontri Preparati</span>
+          <button class="btn-sec danger" onclick="clearAllEncounters()" style="font-size:11px;padding:4px 10px">🗑 Svuota tutto</button>
+        </div>
+        <div class="pb">
+          <div id="lib-list">
+            <div class="lib-empty">Nessun incontro salvato.<br>Costruisci un incontro e premi <em>Salva</em>.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1748,7 +2074,22 @@
     </footer>
   </div>
 
-  <!-- Stat block modal -->
+  <!-- Log tiri -->
+  <button id="log-toggle" onclick="toggleLog()" title="Log tiri dadi">
+    🎲
+    <span id="log-badge"></span>
+  </button>
+  <div id="log-panel">
+    <div class="log-header">
+      <span class="log-title">📜 Log Tiri</span>
+      <button class="log-clear" onclick="clearLog()">Svuota</button>
+    </div>
+    <div class="log-entries" id="log-entries">
+      <div class="log-empty">Nessun tiro ancora.<br>Clicca su dadi, attacchi o abilità.</div>
+    </div>
+  </div>
+
+</div>
   <div class="overlay" id="overlay">
     <div class="mwrap">
       <div class="sb" id="sbcontent"></div>
@@ -1798,6 +2139,25 @@
     let pid = 0, pg = 0;
     const PS = 50;
     let sources = {}, activeSrcs = new Set(), selMon = null;
+
+    // Sistema etichette combat (simbolo+lettera per tipo di mostro)
+    const SHAPES      = ['■','●','⬟','⬢','▲','◆','★','◉','▼','◈'];
+    const SHAPE_CLRS  = ['#3498db','#e74c3c','#f1c40f','#27ae60','#9b59b6','#e67e22','#1abc9c','#e91e63','#00bcd4','#ff5722'];
+    const LETTERS     = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let monsterLabelMap = {};   // nome → { shapeIdx, clr, count }
+    let shapeCtr = 0;
+
+    function assignLabel(name) {
+      if (!monsterLabelMap[name]) {
+        const idx = shapeCtr % SHAPES.length;
+        monsterLabelMap[name] = { shapeIdx: idx, clr: SHAPE_CLRS[idx], count: 0 };
+        shapeCtr++;
+      }
+      const e = monsterLabelMap[name];
+      const letter = LETTERS[e.count % 26];
+      e.count++;
+      return { letter, shape: SHAPES[e.shapeIdx], clr: e.clr };
+    }
     // --- SISTEMA DI SALVATAGGIO GIOCATORI ---
     let party = { count: 4, level: 5 };
     let players = [];
@@ -1950,10 +2310,13 @@
     }
 
     function setView(v) {
-      document.getElementById('builder-view').style.display = v === 'builder' ? 'block' : 'none';
-      document.getElementById('combat-view').style.display = v === 'combat' ? 'block' : 'none';
+      document.getElementById('builder-view').style.display  = v === 'builder'  ? 'block' : 'none';
+      document.getElementById('library-view').style.display  = v === 'library'  ? 'block' : 'none';
+      document.getElementById('combat-view').style.display   = v === 'combat'   ? 'block' : 'none';
       document.getElementById('tab-b').classList.toggle('on', v === 'builder');
+      document.getElementById('tab-l').classList.toggle('on', v === 'library');
       document.getElementById('tab-c').classList.toggle('on', v === 'combat');
+      if (v === 'library') renderLibrary();
     }
 
     async function loadIndex() {
@@ -2025,10 +2388,23 @@
     }
 
     /* ── Stat block ── */
-    function showStat(i) { selMon = filtM[i]; renderSB(selMon, true); document.getElementById('overlay').classList.add('open'); }
+    let selCombatant = null; // combattente che ha aperto la scheda (per etichetta nel log/toast)
+
+    function showStat(i) {
+      selMon = filtM[i]; selCombatant = null;
+      renderSB(selMon, true);
+      document.getElementById('overlay').classList.add('open');
+    }
     function showStatCombat(cid) {
       const c = combatants.find(x => x.id === cid);
-      if (c && c.monsterData) { selMon = c.monsterData; renderSB(c.monsterData, false); document.getElementById('overlay').classList.add('open'); }
+      if (!c || !c.monsterData) return;
+      selMon = c.monsterData; selCombatant = c;
+      renderSB(selMon, false);
+      document.getElementById('overlay').classList.add('open');
+    }
+    function closeOverlay() {
+      document.getElementById('overlay').classList.remove('open');
+      selCombatant = null;
     }
 
     function renderSB(m, showAdd) {
@@ -2038,8 +2414,16 @@
       const sub = typeof m.type === 'object' && m.type.tags ? ` (${m.type.tags.join(', ')})` : ' ';
       const align = Array.isArray(m.alignment) ? m.alignment.join(' ') : m.alignment || '';
       const spd = m.speed ? Object.entries(m.speed).filter(([, v]) => v).map(([k, v]) => k === 'walk' ? v + ' ft.' : k + ' ' + v + ' ft.').join(', ') : '—';
-      const saves = m.save ? Object.entries(m.save).map(([k, v]) => k.toUpperCase() + ' ' + v).join(', ') : '';
-      const skills = m.skill ? Object.entries(m.skill).map(([k, v]) => k.charAt(0).toUpperCase() + k.slice(1) + ' ' + v).join(', ') : '';
+      const saves = m.save ? Object.entries(m.save).map(([k, v]) =>
+        `<span class="sb-rollable" onclick="rollDice('${v}','TS ${k.toUpperCase()}')" title="Tira Tiro Salvezza ${k.toUpperCase()}">${k.toUpperCase()} ${v}</span>`
+      ).join(', ') : '';
+      const skills = m.skill ? Object.entries(m.skill).map(([k, v]) => {
+        const name = k.charAt(0).toUpperCase() + k.slice(1);
+        return `<span class="sb-rollable" onclick="rollDice('${v}','${name}')" title="Tira ${name}">${name} ${v}</span>`;
+      }).join(', ') : '';
+      const hpFormula = m.hp && m.hp.formula
+        ? `<span class="sb-rollable" onclick="rollDice('${m.hp.formula.replace(/'/g,"\\'")}','PF')" title="Tira PF">${esc(m.hp.formula)}</span>`
+        : '';
       const senses = [...(m.senses || [])]; if (m.passive != null) senses.push('passive Perception ' + m.passive);
       const langs = Array.isArray(m.languages) ? m.languages.join(', ') : m.languages || '—';
       const imm = Array.isArray(m.immune) ? m.immune.map(x => typeof x === 'string' ? x : x.immune ? x.immune.join(', ') : '').join(', ') : (m.immune || '');
@@ -2048,7 +2432,7 @@
       const cimm = Array.isArray(m.conditionImmune) ? m.conditionImmune.join(', ') : (m.conditionImmune || '');
 
       let h = `<div class="sbbar"></div>
-    <button class="sbclose" onclick="document.getElementById('overlay').classList.remove('open')">✕</button>
+    <button class="sbclose" onclick="closeOverlay()">✕</button>
     <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; padding:0 10px">
       <img src="${getMonIcon(m)}" style="width:70px; height:70px; border-radius:50%; border:2px solid var(--gold); background:var(--bg3); object-fit:contain" onerror="this.src='https://5etools-mirror-3.github.io/5etools-img/token/mm/skeleton.webp';">
       <div>
@@ -2058,16 +2442,20 @@
     </div>
     <div class="sbdiv"></div>
     <div class="sbprop"><span class="sbkey">Armor Class</span> ${getAC(m.ac)}${esc(getACDesc(m.ac))}</div>
-    <div class="sbprop"><span class="sbkey">Hit Points</span> ${getHP(m.hp)} (${m.hp && m.hp.formula ? esc(m.hp.formula) : ''})</div>
+    <div class="sbprop"><span class="sbkey">Hit Points</span> ${getHP(m.hp)} ${hpFormula ? '(' + hpFormula + ')' : ''}</div>
     <div class="sbprop"><span class="sbkey">Speed</span> ${esc(spd)}</div>
     <div class="sbabs">
-      ${[['str', 'STR'], ['dex', 'DEX'], ['con', 'CON'], ['int', 'INT'], ['wis', 'WIS'], ['cha', 'CHA']].map(([k, lab]) => `
-        <div class="aba"><div class="abn">${lab}</div><div class="abv">${m[k]} (${mstr(m[k])})</div></div>
-      `).join('')}
+      ${[['str', 'STR'], ['dex', 'DEX'], ['con', 'CON'], ['int', 'INT'], ['wis', 'WIS'], ['cha', 'CHA']].map(([k, lab]) => {
+        const mod = mstr(m[k]);
+        return `<div class="aba clickable" onclick="rollDice('${mod}','Controllo ${lab}')" title="Tira controllo ${lab}">
+          <div class="abn">${lab}</div>
+          <div class="abv sb-rollable">${m[k]} (${mod})</div>
+        </div>`;
+      }).join('')}
     </div>`;
 
-      if (saves) h += `<div class="sbprop"><span class="sbkey">Saving Throws</span> ${esc(saves)}</div>`;
-      if (skills) h += `<div class="sbprop"><span class="sbkey">Skills</span> ${esc(skills)}</div>`;
+      if (saves) h += `<div class="sbprop"><span class="sbkey">Saving Throws</span> ${saves}</div>`;
+      if (skills) h += `<div class="sbprop"><span class="sbkey">Skills</span> ${skills}</div>`;
       if (vul) h += `<div class="sbprop"><span class="sbkey">Damage Vulnerabilities</span> ${esc(clean(vul))}</div>`;
       if (res) h += `<div class="sbprop"><span class="sbkey">Damage Resistances</span> ${esc(clean(res))}</div>`;
       if (imm) h += `<div class="sbprop"><span class="sbkey">Damage Immunities</span> ${esc(clean(imm))}</div>`;
@@ -2117,7 +2505,7 @@
       document.getElementById('sbcontent').innerHTML = h;
     }
 
-    function addFromModal() { if (selMon) { addMonObj(selMon); document.getElementById('overlay').classList.remove('open'); } }
+    function addFromModal() { if (selMon) { addMonObj(selMon); closeOverlay(); } }
 
     /* ── Encounter ── */
     function addMon(i) { addMonObj(filtM[i]); }
@@ -2141,7 +2529,7 @@
       const el = document.getElementById('elist');
       if (!encounter.length) {
         el.innerHTML = '<div class="phmsg" style="padding:.75rem 0">Aggiungi mostri dall\'elenco</div>';
-        resetDiff(); document.getElementById('btn-avvia').disabled = true; return;
+        resetDiff(); document.getElementById('btn-avvia').disabled = true; document.getElementById('btn-salva').disabled = true; return;
       }
       el.innerHTML = encounter.map(e =>
         `<div class="erow">
@@ -2154,7 +2542,9 @@
       </div>
     </div>`
       ).join('');
-      calcDiff(); document.getElementById('btn-avvia').disabled = false;
+      calcDiff();
+      document.getElementById('btn-avvia').disabled = false;
+      document.getElementById('btn-salva').disabled = false;
     }
     function resetDiff() {
       ['txp'].forEach(id => document.getElementById(id).textContent = '—');
@@ -2216,20 +2606,25 @@
 
     /* ── Combat ── */
     function avvia() {
+      saveEncounter();
       buildCombat();
       document.getElementById('tab-c').disabled = false;
       setView('combat'); renderCombat();
     }
     function buildCombat() {
       combatants = []; let cid = 0;
+      monsterLabelMap = {}; shapeCtr = 0;  // reset etichette a ogni nuovo incontro
       encounter.forEach(e => {
         const m = e.monsterData;
         const dexMod = Math.floor(((m.dex || 10) - 10) / 2);
         const ac = getAC(m.ac), hp = getHP(m.hp);
         for (let i = 0; i < e.qty; i++) {
+          const lbl = assignLabel(m.name);
           combatants.push({
-            id: cid++, name: e.qty > 1 ? `${m.name} #${i + 1}` : m.name, type: 'monster',
-            initiative: d20() + dexMod, initMod: dexMod, ac, hpMax: hp, hpCurrent: hp, monsterData: m, isDead: false
+            id: cid++, name: m.name, type: 'monster',
+            initiative: d20() + dexMod, initMod: dexMod, ac, hpMax: hp, hpCurrent: hp,
+            monsterData: m, isDead: false,
+            label: lbl.letter, shape: lbl.shape, shapeClr: lbl.clr
           });
         }
       });
@@ -2238,7 +2633,7 @@
           id: cid++, name: p.name || 'PG', type: 'player',
           initiative: d20() + p.initMod, initMod: p.initMod, ac: p.ac || 10,
           hpMax: p.hpMax || 10, hpCurrent: p.hpMax || 10, deathSaves: { s: 0, f: 0 },
-          monsterData: null, isDead: false
+          monsterData: null, isDead: false, label: null, shape: null, shapeClr: null
         });
       });
       combatants.sort((a, b) => b.initiative - a.initiative);
@@ -2390,7 +2785,8 @@
         <div class="c-init-col"><input type="number" value="${c.initiative}" onchange="setInit(${c.id},this.value)"></div>
         <div class="c-name-col">
           ${mon && c.monsterData ? `<img src="${getMonIcon(c.monsterData)}" class="mon-icon" onerror="this.src='https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/bestiary/tokens/MM/Skeleton.webp';">` : `<div class="mon-icon" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold)">PG</div>`}
-          <span class="c-nm">${esc(c.name)}</span>
+          ${c.shape ? `<span class="combat-label" style="color:${c.shapeClr}" title="${esc(c.name)} ${c.label}"><span class="lbl-shape">${c.shape}</span><span class="lbl-letter">${c.label}</span></span>` : ''}
+          <span class="c-nm${mon && c.monsterData ? ' click' : ''}" ${mon && c.monsterData ? `onclick="showStatCombat(${c.id})"` : ''}>${esc(c.name)}</span>
         </div>
         <div class="c-ac-col">${c.ac}<small>CA</small></div>
         <div class="crow-hp">
@@ -2494,17 +2890,16 @@
       const currentActor = combatants[currentTurn];
       const hp = getHP(found.hp);
 
+      const lbl = assignLabel(found.name);
       const newUnit = {
         id: Date.now(),
         name: found.name,
-        initiative: Math.floor(Math.random() * 20) + 1, // Iniziativa casuale o chiedi
-        hpCurrent: hp,
-        hpMax: hp,
+        initiative: Math.floor(Math.random() * 20) + 1,
+        hpCurrent: hp, hpMax: hp,
         ac: getAC(found.ac),
-        type: 'monster',
-        deathSaves: { s: 0, f: 0 },
-        isDead: false,
-        monsterData: found
+        type: 'monster', deathSaves: { s: 0, f: 0 }, isDead: false,
+        monsterData: found,
+        label: lbl.letter, shape: lbl.shape, shapeClr: lbl.clr
       };
 
       combatants.push(newUnit);
@@ -2521,13 +2916,14 @@
       const currentActor = combatants[currentTurn];
       const hp = parseInt(document.getElementById('qManualHp').value) || 10;
 
+      const lbl2 = assignLabel(name);
       combatants.push({
-        id: Date.now(),
-        name: name,
+        id: Date.now(), name,
         initiative: parseInt(document.getElementById('qManualInit').value) || 0,
         hpCurrent: hp, hpMax: hp,
         ac: parseInt(document.getElementById('qManualAc').value) || 10,
-        type: 'monster', deathSaves: { s: 0, f: 0 }, isDead: false, monsterData: null
+        type: 'monster', deathSaves: { s: 0, f: 0 }, isDead: false, monsterData: null,
+        label: lbl2.letter, shape: lbl2.shape, shapeClr: lbl2.clr
       });
 
       combatants.sort((a, b) => b.initiative - a.initiative);
@@ -2611,15 +3007,96 @@
     document.getElementById('search').addEventListener('input', () => { clearTimeout(st); st = setTimeout(applyF, 220); });
     document.getElementById('crf').addEventListener('change', applyF);
     document.getElementById('tyf').addEventListener('change', applyF);
-    document.getElementById('overlay').addEventListener('click', e => { if (e.target === document.getElementById('overlay')) document.getElementById('overlay').classList.remove('open'); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open'); });
+    document.getElementById('overlay').addEventListener('click', e => { if (e.target === document.getElementById('overlay')) closeOverlay(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay(); });
 
     renderPlayers();
     loadIndex().then(() => {
       loadAllManuals();
     });
+    renderLibrary();
+    /* ── LOG TIRI ── */
+    const rollLog = [];
+    const LOG_MAX = 60;
+
+    function getActor() {
+      // Scheda aperta da combat → usa il combattente con simbolo+lettera
+      if (document.getElementById('overlay')?.classList.contains('open')) {
+        if (selCombatant && selCombatant.shape)
+          return `${selCombatant.name} ${selCombatant.shape}${selCombatant.label}`;
+        if (selMon) return selMon.name;
+      }
+      // In combat senza scheda → combattente attivo con etichetta
+      if (document.getElementById('combat-view')?.style.display !== 'none' && combatants.length) {
+        const cur = combatants[currentTurn];
+        if (!cur) return null;
+        return cur.shape ? `${cur.name} ${cur.shape}${cur.label}` : cur.name;
+      }
+      return null;
+    }
+
+    function resultClass(result, faces) {
+      // Colora in base al massimo naturale (solo d20 rilevante)
+      if (faces === 20) {
+        if (result === 20) return 'nat20';
+        if (result === 1)  return 'nat1';
+      }
+      // Generico: percentuale rispetto al max possibile
+      return result >= faces * .75 ? 'high' : result >= faces * .4 ? 'mid' : 'low';
+    }
+
+    function addToLog(type, result, mathStr, maxFace) {
+      const actor = getActor();
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      rollLog.unshift({ actor, type, result, mathStr, timeStr, cls: resultClass(result, maxFace) });
+      if (rollLog.length > LOG_MAX) rollLog.pop();
+      renderLog();
+      // Mostra badge se pannello chiuso
+      const panel = document.getElementById('log-panel');
+      if (!panel.classList.contains('open')) {
+        const badge = document.getElementById('log-badge');
+        badge.textContent = rollLog.length > 99 ? '99+' : rollLog.length;
+        badge.style.display = 'flex';
+      }
+    }
+
+    function renderLog() {
+      const el = document.getElementById('log-entries');
+      if (!el) return;
+      if (!rollLog.length) {
+        el.innerHTML = '<div class="log-empty">Nessun tiro ancora.<br>Clicca su dadi, attacchi o abilità.</div>';
+        return;
+      }
+      el.innerHTML = rollLog.map(e => `
+        <div class="log-entry">
+          <div class="log-result ${e.cls}">${e.result}</div>
+          <div class="log-info">
+            ${e.actor ? `<div class="log-actor">${esc(e.actor)}</div>` : ''}
+            <div class="log-type">${esc(e.type)}</div>
+            <div class="log-math">${esc(e.mathStr)}</div>
+            <div class="log-time">${e.timeStr}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    function toggleLog() {
+      const panel = document.getElementById('log-panel');
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) {
+        const badge = document.getElementById('log-badge');
+        badge.style.display = 'none';
+        renderLog();
+      }
+    }
+
+    function clearLog() {
+      rollLog.length = 0;
+      renderLog();
+      document.getElementById('log-badge').style.display = 'none';
+    }
+
     /* ── SISTEMA DI LANCIO DADI ── */
-    // Crea il contenitore della notifica se non esiste
     const toast = document.createElement('div');
     toast.id = 'dice-toast';
     document.body.appendChild(toast);
@@ -2629,43 +3106,47 @@
       let result = 0;
       let formula = notation.replace(/\s+/g, '').toLowerCase();
       let mathStr = '';
+      let maxFace = 20;
 
-      // Caso 1: È un modificatore puro (es. "+5"), quindi tiriamo 1d20
       if (formula.startsWith('+') || formula.startsWith('-') || !formula.includes('d')) {
         let mod = parseInt(formula) || 0;
         let d20 = Math.floor(Math.random() * 20) + 1;
         result = d20 + mod;
         mathStr = `1d20 (${d20}) ${mod >= 0 ? '+' + mod : mod}`;
-      }
-      // Caso 2: È una formula completa (es. "2d6+3")
-      else {
+        maxFace = 20;
+      } else {
         let match = formula.match(/(\d+)d(\d+)([+-]\d+)?/);
         if (match) {
-          let num = parseInt(match[1]);
-          let faces = parseInt(match[2]);
-          let mod = match[3] ? parseInt(match[3]) : 0;
-          let rolls = [];
-
+          let num    = parseInt(match[1]);
+          let faces  = parseInt(match[2]);
+          let mod    = match[3] ? parseInt(match[3]) : 0;
+          let rolls  = [];
+          maxFace = faces;
           for (let i = 0; i < num; i++) {
             let r = Math.floor(Math.random() * faces) + 1;
-            result += r;
-            rolls.push(r);
+            result += r; rolls.push(r);
           }
           result += mod;
-          mathStr = `[${rolls.join(', ')}] ${mod !== 0 ? (mod > 0 ? '+' + mod : mod) : ''}`;
+          mathStr = `[${rolls.join(', ')}]${mod !== 0 ? (mod > 0 ? ' +' + mod : ' ' + mod) : ''}`;
         }
       }
 
-      // Mostra la notifica a schermo
+      const cls = resultClass(result, maxFace);
+      const actor = getActor();
       toast.innerHTML = `
-    <div class="dt-title">${type}</div>
-    <div class="dt-result">${result}</div>
-    <div class="dt-math">${mathStr}</div>
-  `;
-
+        <div class="dt-inner">
+          <div class="dt-result ${cls}">${result}</div>
+          <div class="dt-right">
+            ${actor ? `<div class="dt-actor">${esc(actor)}</div>` : ''}
+            <div class="dt-title">${esc(type)}</div>
+            <div class="dt-math">${mathStr}</div>
+          </div>
+        </div>`;
       clearTimeout(toastTimer);
       toast.classList.add('show');
-      toastTimer = setTimeout(() => toast.classList.remove('show'), 3500); // Scompare dopo 3.5 secondi
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+
+      addToLog(type, result, mathStr, maxFace);
     }
     async function loadAllManuals() {
       const ml = document.getElementById('qMlist');
@@ -2705,6 +3186,125 @@
       applyF();
       applyQuickF();
     }
+    /* ── LIBRERIA INCONTRI ── */
+    const LIB_KEY = '5e_saved_encounters';
+
+    function getSavedEncounters() {
+      try { return JSON.parse(localStorage.getItem(LIB_KEY) || '[]'); }
+      catch { return []; }
+    }
+
+    function saveEncounter() {
+      if (!encounter.length) return;
+
+      const nameInput = document.getElementById('enc-name');
+      const name = nameInput.value.trim() ||
+        `Incontro ${new Date().toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
+
+      // Calcola difficoltà attuale
+      const txp = encounter.reduce((s, e) => s + e.xp * e.qty, 0);
+      const thr = XT[Math.min(party.level - 1, 19)].map(t => t * party.count);
+      let di = -1;
+      for (let i = 3; i >= 0; i--) { if (txp >= thr[i]) { di = i; break; } }
+
+      const entry = {
+        id: Date.now(),
+        name,
+        createdAt: new Date().toISOString(),
+        partyCount: party.count,
+        partyLevel: party.level,
+        totalXp: txp,
+        diffLabel: di < 0 ? 'Trivial' : DLABS[di],
+        diffClass: di < 0 ? 'bnone' : DCLS[di],
+        // Salva solo dati leggeri (no monsterData completo → evita limite localStorage)
+        encounter: encounter.map(e => ({
+          name: e.name,
+          source: e.monsterData?.source || '',
+          cr: e.cr,
+          xp: e.xp,
+          qty: e.qty
+        }))
+      };
+
+      const list = getSavedEncounters();
+      list.unshift(entry); // più recente in cima
+      localStorage.setItem(LIB_KEY, JSON.stringify(list));
+
+      nameInput.value = '';
+      const confirm = document.getElementById('save-confirm');
+      confirm.textContent = `✓ "${name}" salvato nella Libreria`;
+      setTimeout(() => { confirm.textContent = ''; }, 3000);
+    }
+
+    function deleteEncounter(id) {
+      if (!confirm('Eliminare questo incontro dalla libreria?')) return;
+      const list = getSavedEncounters().filter(e => e.id !== id);
+      localStorage.setItem(LIB_KEY, JSON.stringify(list));
+      renderLibrary();
+    }
+
+    function clearAllEncounters() {
+      const list = getSavedEncounters();
+      if (!list.length) return;
+      if (!confirm(`Eliminare tutti i ${list.length} incontri salvati?`)) return;
+      localStorage.removeItem(LIB_KEY);
+      renderLibrary();
+    }
+
+    function launchEncounter(id) {
+      const saved = getSavedEncounters().find(e => e.id === id);
+      if (!saved) return;
+
+      // Ricostruisce l'encounter con monsterData dal DB
+      encounter = saved.encounter.map(e => {
+        const db = fullMonsterDb.length > 0 ? fullMonsterDb : allM;
+        const mon = db.find(m => m.name === e.name && (m.source === e.source || !e.source));
+        return { id: pid++, name: e.name, cr: e.cr, xp: e.xp, qty: e.qty, monsterData: mon || null };
+      });
+
+      // Ripristina party (opzionale — non sovrascrive quello corrente)
+      // party.count = saved.partyCount;  // decommentare se si vuole ripristinare
+      // party.level = saved.partyLevel;
+
+      renderEnc();
+      avvia();
+    }
+
+    function renderLibrary() {
+      const list = getSavedEncounters();
+      const el = document.getElementById('lib-list');
+      if (!el) return;
+
+      if (!list.length) {
+        el.innerHTML = '<div class="lib-empty">Nessun incontro salvato.<br>Costruisci un incontro e premi <em>Salva</em>.</div>';
+        return;
+      }
+
+      el.innerHTML = '<div class="lib-grid">' + list.map(e => {
+        const dateStr = new Date(e.createdAt).toLocaleString('it-IT', {
+          day: '2-digit', month: '2-digit', year: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        });
+        const monsStr = e.encounter.map(m => `${esc(m.name)}${m.qty > 1 ? ' ×' + m.qty : ''}`).join(', ');
+        const totalMons = e.encounter.reduce((s, m) => s + m.qty, 0);
+        return `
+        <div class="lib-card">
+          <div class="lib-card-top">
+            <div class="lib-card-name">${esc(e.name)}</div>
+            <span class="dbadge ${e.diffClass}" style="font-size:11px">${esc(e.diffLabel)}</span>
+            <span class="lib-card-xp">${fmt(e.totalXp)} XP</span>
+            <span class="lib-card-meta">${totalMons} mostri · Liv ${e.partyLevel} · ${e.partyCount} PG</span>
+          </div>
+          <div class="lib-card-monsters">${monsStr}</div>
+          <div class="lib-card-actions">
+            <button class="btn-avvia" onclick="launchEncounter(${e.id})" style="flex:1;padding:8px;font-size:13px">⚔ Avvia</button>
+            <button class="btn-sec danger" onclick="deleteEncounter(${e.id})" style="font-size:12px">🗑</button>
+            <span class="lib-card-date">${dateStr}</span>
+          </div>
+        </div>`;
+      }).join('') + '</div>';
+    }
+
   </script>
 </body>
 
