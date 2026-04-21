@@ -1770,15 +1770,9 @@
 
     function getMonIcon(m) {
       if (!m || !m.name || !m.source) return '';
-
-      // Convertiamo la sorgente in minuscolo (es: MM, vgm)
       const src = m.source.toLowerCase();
-
-      // Puliamo il nome dai caratteri speciali
       const name = m.name.replace(/["'’]/g, "");
-
-      // USIAMO IL MIRROR DI GITHUB INVECE DEL SITO UFFICIALE
-      // Questo dominio è molto più "gentile" con le richieste esterne
+      // Usiamo il mirror stabile con codifica corretta
       return `https://5etools-mirror-3.github.io/5etools-img/token/${src}/${encodeURIComponent(name)}.webp`;
     }
 
@@ -2087,14 +2081,11 @@
     function renderPlayers() {
       document.getElementById('pv').textContent = party.count;
       document.getElementById('lv').textContent = party.level;
-
       document.getElementById('plist').innerHTML = players.map((p, i) =>
         `<div class="prow-item">
       <div class="p-name"><input type="text" value="${esc(p.name)}" placeholder="Giocatore ${i + 1}" oninput="updatePName(${i}, this.value)"/></div>
-      <div class="p-ac">
-        <span>CA</span>
-        <input type="number" value="${p.ac || 10}" onchange="updatePAC(${i}, this.value)"/>
-      </div>
+      <div class="p-hp"><span>HP Max</span><input type="number" value="${p.hpMax}" onchange="updatePHP(${i}, this.value)"/></div>
+      <div class="p-ac"><span>CA</span><input type="number" value="${p.ac}" onchange="updatePAC(${i}, this.value)"/></div>
       <span class="pmlab">Init</span>
       <div class="pmctl">
         <button class="cbtn" onclick="adjMod(${i},-1)">−</button>
@@ -2192,38 +2183,21 @@
         const pct = c.hpMax ? Math.max(0, Math.round(c.hpCurrent / c.hpMax * 100)) : 100;
         const hpClr = pct > 50 ? '#27ae60' : pct > 25 ? '#f39c12' : '#c0392b';
 
-        let hpContent = '';
-        if (c.hpCurrent === 0 && !mon) {
-          hpContent = `
-        <div class="death-saves">
-          <span style="color:var(--text3);font-size:10px;text-transform:uppercase;margin-right:4px">Morte</span>
-          <div class="ds-group">
-            ${[1, 2, 3].map(n => `<div class="ds-box s ${c.deathSaves.s >= n ? 'on' : ''}" onclick="setDS(${c.id},'s',${n})"></div>`).join('')}
-          </div>
-          <div class="ds-group" style="margin-left:6px">
-            ${[1, 2, 3].map(n => `<div class="ds-box f ${c.deathSaves.f >= n ? 'on' : ''}" onclick="setDS(${c.id},'f',${n})"></div>`).join('')}
-          </div>
-        </div>`;
-        } else {
-          hpContent = `
-        <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpClr}"></div></div>
-        <div class="hp-nums">
-          <input type="number" value="${c.hpCurrent}" min="0" max="${c.hpMax}" onchange="setHP(${c.id},this.value)"/>
-          <span class="hp-max">/${c.hpMax}</span>
-        </div>`;
-        }
+        let hpContent = (c.hpCurrent === 0 && !mon) ?
+          `<div class="death-saves">
+        <span style="color:var(--text3);font-size:10px;text-transform:uppercase;margin-right:4px">Morte</span>
+        <div class="ds-group">${[1, 2, 3].map(n => `<div class="ds-box s ${c.deathSaves.s >= n ? 'on' : ''}" onclick="setDS(${c.id},'s',${n})"></div>`).join('')}</div>
+        <div class="ds-group" style="margin-left:6px">${[1, 2, 3].map(n => `<div class="ds-box f ${c.deathSaves.f >= n ? 'on' : ''}" onclick="setDS(${c.id},'f',${n})"></div>`).join('')}</div>
+      </div>` :
+          `<div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpClr}"></div></div>
+      <div class="hp-nums"><input type="number" value="${c.hpCurrent}" min="0" max="${c.hpMax}" onchange="setHP(${c.id},this.value)"/><span class="hp-max">/${c.hpMax}</span></div>`;
 
         return `<div class="crow${isAct ? ' active' : ''}${c.isDead ? ' dead' : ''}">
       <div class="c-arr">${isAct ? '▶' : ''}</div>
       <div class="c-init-col"><input type="number" value="${c.initiative}" onchange="setInit(${c.id},this.value)"/></div>
       <div class="c-name-col" style="display:flex; align-items:center; gap:8px">
-        ${mon && c.monsterData ?
-            `<img src="${getMonIcon(c.monsterData)}" loading="lazy" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--gold2); background:var(--bg3); object-fit:contain" onerror="this.src='https://5etools-mirror-3.github.io/5etools-img/token/mm/skeleton.webp';">`
-            : `<div style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:var(--bg3); border-radius:50%; border:1px solid var(--bdr); font-size:9px; color:var(--gold); font-weight:bold">PG</div>`
-          }
-        <span class="c-nm${mon ? ' click' : ''}"${mon ? ` onclick="showStatCombat(${c.id})" title="Clicca per scheda"` : ''}>
-          ${esc(c.name)}${c.isDead ? ' 💀' : ''}
-        </span>
+        ${mon && c.monsterData ? `<img src="${getMonIcon(c.monsterData)}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--gold2); background:var(--bg3); object-fit:contain" onerror="this.src='https://5etools-mirror-3.github.io/5etools-img/token/mm/skeleton.webp';">` : `<div style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:var(--bg3); border-radius:50%; border:1px solid var(--bdr); font-size:9px; color:var(--gold); font-weight:bold">PG</div>`}
+        <span class="c-nm${mon ? ' click' : ''}"${mon ? ` onclick="showStatCombat(${c.id})" title="Scheda"` : ''}>${esc(c.name)}${c.isDead ? ' 💀' : ''}</span>
       </div>
       <div class="c-ac-col">${c.ac}<small>CA</small></div>
       <div class="crow-hp">${hpContent}</div>
