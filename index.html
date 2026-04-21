@@ -1585,8 +1585,6 @@
               <div class="slbl">Difficoltà stimata</div>
               <div class="dbox">
                 <div class="drow"><span class="dlbl">XP totali</span><span class="dxp" id="txp">—</span></div>
-                <div class="drow" style="margin-bottom:7px"><span class="dlbl">XP aggiustati</span><span class="dxp2"
-                    id="axp">—</span></div>
                 <div class="drow"><span class="dlbl">Difficoltà</span><span class="dbadge bnone" id="dbadge">—</span>
                 </div>
                 <div class="xtrack">
@@ -1634,8 +1632,29 @@
   <script>
     const BASE = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/bestiary/';
     const CR_XP = { '0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900, '9': 5000, '10': 5900, '11': 7200, '12': 8400, '13': 10000, '14': 11500, '15': 13000, '16': 15000, '17': 18000, '18': 20000, '19': 22000, '20': 25000, '21': 33000, '22': 41000, '23': 50000, '24': 62000, '25': 75000, '26': 90000, '27': 105000, '28': 120000, '29': 135000, '30': 155000 };
-    const XT = [[25, 50, 75, 100], [50, 100, 150, 200], [75, 150, 225, 400], [125, 250, 375, 500], [250, 500, 750, 1100], [300, 600, 900, 1400], [350, 750, 1100, 1700], [450, 900, 1400, 2100], [550, 1100, 1600, 2400], [600, 1200, 1900, 2800], [800, 1600, 2400, 3600], [1000, 2000, 3000, 4500], [1100, 2200, 3400, 5100], [1250, 2500, 3800, 5700], [1400, 2800, 4300, 6400], [1600, 3200, 4800, 7200], [2000, 3900, 5900, 8800], [2100, 4200, 6300, 9500], [2400, 4900, 7300, 10900], [2800, 5700, 8500, 12700]];
-    const DLABS = ['Bassa', 'Media', 'Alta', 'Mortale'], DCLS = ['beasy', 'bmed', 'bhard', 'bdead'], TCLS = ['teasy', 'tmed', 'thard', 'tdead'], BARCLR = ['#27ae60', '#f39c12', '#e67e22', '#c0392b'];
+    const XT = [
+      [50, 75, 100, 150],       // Liv 1
+      [100, 150, 200, 300],     // Liv 2
+      [150, 225, 400, 600],     // Liv 3
+      [250, 375, 500, 750],     // Liv 4
+      [500, 750, 1100, 1600],   // Liv 5
+      [600, 1000, 1400, 2100],  // Liv 6
+      [750, 1300, 1700, 2500],  // Liv 7
+      [1000, 1700, 2100, 3100], // Liv 8
+      [1300, 2000, 2600, 3900], // Liv 9
+      [1600, 2300, 3100, 4600], // Liv 10
+      [1900, 2900, 4100, 6100], // Liv 11
+      [2200, 3700, 4700, 7000], // Liv 12
+      [2600, 4200, 5400, 8100], // Liv 13
+      [2900, 4900, 6200, 9300], // Liv 14
+      [3300, 5400, 7800, 11700], // Liv 15
+      [3800, 6100, 9800, 14700], // Liv 16
+      [4500, 7200, 11700, 17500], // Liv 17
+      [5000, 8700, 14200, 21300], // Liv 18
+      [5500, 10700, 17200, 25800], // Liv 19
+      [6400, 13200, 22000, 33000]  // Liv 20
+    ];
+    const DLABS = ['Low', 'Moderate', 'High', 'Deadly']; DCLS = ['beasy', 'bmed', 'bhard', 'bdead'], TCLS = ['teasy', 'tmed', 'thard', 'tdead'], BARCLR = ['#27ae60', '#f39c12', '#e67e22', '#c0392b'];
     const SIZES = { T: 'Tiny', S: 'Small', M: 'Medium', L: 'Large', H: 'Huge', G: 'Gargantuan' };
     const PREF = ['XMM', 'XDMG', 'XPHB', 'FRAiF', 'FRHoF', 'EFA'];
 
@@ -1751,12 +1770,16 @@
 
     function getMonIcon(m) {
       if (!m || !m.name || !m.source) return '';
-      // 1. Sorgente in minuscolo per i server 5etools
+
+      // Convertiamo la sorgente in minuscolo (es: MM, vgm)
       const src = m.source.toLowerCase();
-      // 2. Pulizia nome (rimuove virgolette e apostrofi)
+
+      // Puliamo il nome dai caratteri speciali
       const name = m.name.replace(/["'’]/g, "");
-      // 3. Dominio principale di 5etools
-      return `https://5e.tools/img/token/${src}/${encodeURIComponent(name)}.webp`;
+
+      // USIAMO IL MIRROR DI GITHUB INVECE DEL SITO UFFICIALE
+      // Questo dominio è molto più "gentile" con le richieste esterne
+      return `https://5etools-mirror-3.github.io/5etools-img/token/${src}/${encodeURIComponent(name)}.webp`;
     }
 
     function renderE(entries) {
@@ -2003,22 +2026,39 @@
       document.getElementById('xfill').style.width = '0'; document.getElementById('tgrid').innerHTML = '';
     }
     function calcDiff() {
+      // 1. Somma XP reali dei mostri (Regola 2024: Niente moltiplicatori)
       const txp = encounter.reduce((s, e) => s + e.xp * e.qty, 0);
-      const cnt = encounter.reduce((s, e) => s + e.qty, 0);
-      const m = multXP(cnt), axp = Math.round(txp * m);
+
+      // Visualizza il totale
       document.getElementById('txp').textContent = fmt(txp) + ' XP';
-      document.getElementById('axp').textContent = fmt(axp) + ' XP (×' + m + ')';
+
+      // 2. Calcola il budget totale del gruppo in base al numero di PG
       const thr = XT[Math.min(party.level - 1, 19)].map(t => t * party.count);
-      let di = -1; for (let i = 3; i >= 0; i--) { if (axp >= thr[i]) { di = i; break; } }
+
+      // 3. Determina la fascia di difficoltà
+      let di = -1;
+      for (let i = 3; i >= 0; i--) {
+        if (txp >= thr[i]) { di = i; break; }
+      }
+
       const b = document.getElementById('dbadge');
-      b.textContent = di < 0 ? 'Triviale' : DLABS[di]; b.className = 'dbadge ' + (di < 0 ? 'bnone' : DCLS[di]);
-      const pct = thr[3] > 0 ? Math.min(100, Math.round(axp / thr[3] * 100)) : 0;
-      const xf = document.getElementById('xfill'); xf.style.width = pct + '%'; xf.style.backgroundColor = di < 0 ? BARCLR[0] : BARCLR[di];
+      b.textContent = di < 0 ? 'Trivial' : DLABS[di];
+      b.className = 'dbadge ' + (di < 0 ? 'bnone' : DCLS[di]);
+
+      // 4. Barra colorata
+      const pct = thr[3] > 0 ? Math.min(100, Math.round(txp / thr[3] * 100)) : 0;
+      const xf = document.getElementById('xfill');
+      xf.style.width = pct + '%';
+      xf.style.backgroundColor = di < 0 ? BARCLR[0] : BARCLR[di];
+
+      // 5. Tabella delle soglie aggiornata con i nuovi valori
       document.getElementById('tgrid').innerHTML = DLABS.map((lab, i) =>
-        `<div class="tcell ${TCLS[i]}${di === i ? ' hi' : ''}"><div class="tnm">${lab}</div><div class="txpv">${fmt(thr[i])}</div></div>`
+        `<div class="tcell ${TCLS[i]}${di === i ? ' hi' : ''}">
+      <div class="tnm">${lab}</div>
+      <div class="txpv">${fmt(thr[i])}</div>
+    </div>`
       ).join('');
     }
-
     /* ── Party ── */
     function adjP(d) {
       party.count = Math.max(1, Math.min(10, party.count + d));
