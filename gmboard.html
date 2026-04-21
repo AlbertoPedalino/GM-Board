@@ -206,31 +206,11 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 .meteo-effect{font-size:.8rem;color:var(--text-dim);margin-top:2px;}
 .meteo-timer{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.12em;color:var(--text-dim);white-space:nowrap;text-align:right;}
 
-/* TRACKER */
-.tracker-notes{width:100%;min-height:120px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Crimson Text',serif;font-size:.95rem;padding:10px 12px;border-radius:3px;resize:vertical;line-height:1.6;}
-.tracker-notes:focus{outline:none;border-color:var(--gold);}
-.tracker-notes::placeholder{color:var(--text-dim);font-style:italic;}
-.quest-track-card{background:var(--card);border:1px solid var(--border);border-radius:4px;margin-bottom:10px;overflow:hidden;}
-.quest-track-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);gap:8px;}
-.quest-track-title{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.12em;color:var(--gold-light);flex:1;}
-.quest-track-meta{font-size:.68rem;color:var(--text-dim);}
-.remove-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Cinzel',serif;font-size:.7rem;padding:3px 10px;border-radius:3px;cursor:pointer;transition:all .18s;white-space:nowrap;}
-.remove-btn:hover{border-color:var(--red);color:#e06050;}
-.rename-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Cinzel',serif;font-size:.7rem;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .18s;white-space:nowrap;}
-.rename-btn:hover{border-color:var(--gold);color:var(--gold);}
-.rename-input{background:var(--surface);border:1px solid var(--gold);color:var(--text-bright);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;padding:2px 8px;border-radius:3px;flex:1;min-width:0;}
-.rename-input:focus{outline:none;}
-.flash-group{animation:flashRed .6s ease 2;}
-@keyframes flashRed{0%,100%{opacity:1;}50%{opacity:.4;}}
-.quest-track-body{padding:10px 12px;}
-.add-quest-btn{background:rgba(74,128,64,.15);border:1px solid #4a8040;color:#7ab870;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all .18s;white-space:nowrap;margin-left:auto;}
-.add-quest-btn:hover{background:rgba(74,128,64,.3);border-color:#6ab060;color:#a0d890;}
-.tracker-empty{font-style:italic;font-size:.88rem;color:var(--text-dim);padding:12px 0;text-align:center;}
-
 /* TOAST */
 .toast{display:none;position:fixed;bottom:20px;right:20px;z-index:999;background:rgba(60,100,55,.95);border:1px solid #4a8040;color:#b8e0a8;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.14em;padding:9px 15px;border-radius:3px;}
+.flash-group{animation:flashRed .6s ease 2;}
+@keyframes flashRed{0%,100%{opacity:1;}50%{opacity:.4;}}
 
-/* RIFERIMENTO TAB */
 .ref-section{margin-bottom:6px;}
 .ref-section-title{
   font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;
@@ -280,9 +260,7 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <button class="tab-btn active no-select" onclick="switchTab('hex')">⬡ HEXcrawl</button>
   <button class="tab-btn no-select" onclick="switchTab('dungeon')">🏰 Dungeon</button>
   <button class="tab-btn no-select" onclick="switchTab('quest')">📜 Quest</button>
-  <button class="tab-btn no-select" onclick="switchTab('tracker')">📝 Tracker</button>
   <button class="tab-btn no-select" onclick="switchTab('editor')">📋 Tabelle</button>
-  <button class="tab-btn no-select" onclick="switchTab('ref')">📚 Riferimento</button>
   <button class="tab-btn no-select" onclick="switchTab('guide')">📖 Guida</button>
 </div>
 
@@ -480,23 +458,6 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   </div>
 
   <div id="quest-results"></div>
-</div>
-
-<div id="tab-tracker" class="tab-panel">
-  <div class="section-header"><h2>📝 Tracker</h2><div class="sub">Note & Quest Tracciate</div></div>
-
-  <div class="card">
-    <div class="section-label">Note di Sessione</div>
-    <textarea class="tracker-notes" id="tracker-notes" placeholder="Scrivi qui note libere sulla sessione, PNG incontrati, luoghi visitati…" oninput="saveNotes()"></textarea>
-  </div>
-
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <div class="section-label" style="margin:0">Quest Tracciate</div>
-      <button class="small-btn no-select" onclick="clearTrackedQuests()">✕ Cancella tutte</button>
-    </div>
-    <div id="tracked-quests-area"><div class="tracker-empty">Nessuna quest tracciata. Genera quest e premi + per aggiungerle.</div></div>
-  </div>
 </div>
 
 <div id="tab-editor" class="tab-panel">
@@ -724,175 +685,8 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
     <p style="font-size:.9rem;color:var(--text);line-height:1.65;">Il campo <strong>type</strong> nella Complication Table usa: <code>Encounter</code> · <code>Environment Damage</code> · <code>Environment</code> · <code>Niente</code> (maiuscola importante).</p>
   </div>
 
-</div><div id="tab-ref" class="tab-panel">
-  <div class="section-header"><h2>📚 Riferimento</h2><div class="sub">Tabelle di Gioco</div></div>
-
-  <!-- ═══ HEXPLORATION ═══ -->
-  <div class="card">
-    <div class="ref-section-title">⬡ HEXploration</div>
-
-    <div class="ref-full">
-      <div class="ref-card">
-        <div class="ref-card-header">Population Table <span class="roll-badge">Roll 1d6</span></div>
-        <table class="ref-table">
-          <thead><tr><th>Zona</th><th>Trigger</th><th>Prob.</th><th>Esempio</th></tr></thead>
-          <tbody>
-            <tr><td><strong>Inesplorata</strong></td><td>Solo 1</td><td>16.7%</td><td>Foreste remote, montagne, paludi</td></tr>
-            <tr><td><strong>Periferica</strong></td><td>1–2</td><td>33.3%</td><td>Colline, pianure di frontiera</td></tr>
-            <tr><td><strong>Popolata</strong></td><td>1–3</td><td>50%</td><td>Strade commerciali, campagne</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="ref-grid">
-      <div class="ref-card">
-        <div class="ref-card-header">Random Individual Treasure</div>
-        <table class="ref-table">
-          <thead><tr><th>CR</th><th>Tesoro</th></tr></thead>
-          <tbody>
-            <tr><td>0–4</td><td>3d6 (10) GP</td></tr>
-            <tr><td>5–10</td><td>2d8 × 10 (90) GP</td></tr>
-            <tr><td>11–16</td><td>2d10 × 10 (110) PP</td></tr>
-            <tr><td>17+</td><td>2d8 × 100 (900) PP</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="ref-card">
-        <div class="ref-card-header">Random Treasure Hoard</div>
-        <table class="ref-table">
-          <thead><tr><th>CR</th><th>Tesoro Monetario</th><th>Oggetti Magici</th></tr></thead>
-          <tbody>
-            <tr><td>0–4</td><td>2d4 × 100 (500) GP</td><td>1d4–1</td></tr>
-            <tr><td>5–10</td><td>8d10 × 100 (4.400) GP</td><td>1d3</td></tr>
-            <tr><td>11–16</td><td>8d8 × 1.000 (36.000) GP</td><td>1d4</td></tr>
-            <tr><td>17+</td><td>6d10 × 10.000 (330.000) GP</td><td>1d6</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ COMPLICATIONS ═══ -->
-  <div class="card">
-    <div class="ref-section-title">⚙️ Complications</div>
-    <div class="ref-grid">
-      <div class="ref-card">
-        <div class="ref-card-header">Encounter Difficulty <span class="roll-badge">Roll 1d8 + 1d12</span></div>
-        <table class="ref-table">
-          <thead><tr><th>Risultato</th><th>Difficoltà</th></tr></thead>
-          <tbody>
-            <tr><td>2–4</td><td><span class="diff-high">High</span></td></tr>
-            <tr><td>5–7</td><td><span class="diff-mod">Moderate</span></td></tr>
-            <tr><td>8–13</td><td><span class="diff-low">Low</span></td></tr>
-            <tr><td>14–16</td><td><span class="diff-mod">Moderate</span></td></tr>
-            <tr><td>17–20</td><td><span class="diff-high">High</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="ref-card">
-        <div class="ref-card-header">XP Budget per Character</div>
-        <table class="ref-table">
-          <thead><tr><th>Liv.</th><th><span class="diff-low">Low</span></th><th><span class="diff-mod">Moderate</span></th><th><span class="diff-high">High</span></th></tr></thead>
-          <tbody>
-            <tr><td>1</td><td>50</td><td>75</td><td>100</td></tr>
-            <tr><td>2</td><td>100</td><td>150</td><td>200</td></tr>
-            <tr><td>3</td><td>150</td><td>225</td><td>400</td></tr>
-            <tr><td>4</td><td>250</td><td>375</td><td>500</td></tr>
-            <tr><td>5</td><td>500</td><td>750</td><td>1.100</td></tr>
-            <tr><td>6</td><td>600</td><td>1.000</td><td>1.400</td></tr>
-            <tr><td>7</td><td>750</td><td>1.300</td><td>1.700</td></tr>
-            <tr><td>8</td><td>1.000</td><td>1.700</td><td>2.100</td></tr>
-            <tr><td>9</td><td>1.300</td><td>2.000</td><td>2.600</td></tr>
-            <tr><td>10</td><td>1.600</td><td>2.300</td><td>3.100</td></tr>
-            <tr><td>11</td><td>1.900</td><td>2.900</td><td>4.100</td></tr>
-            <tr><td>12</td><td>2.200</td><td>3.700</td><td>4.700</td></tr>
-            <tr><td>13</td><td>2.600</td><td>4.200</td><td>5.400</td></tr>
-            <tr><td>14</td><td>2.900</td><td>4.900</td><td>6.200</td></tr>
-            <tr><td>15</td><td>3.300</td><td>5.400</td><td>7.800</td></tr>
-            <tr><td>16</td><td>3.800</td><td>6.100</td><td>9.800</td></tr>
-            <tr><td>17</td><td>4.500</td><td>7.200</td><td>11.700</td></tr>
-            <tr><td>18</td><td>5.000</td><td>8.700</td><td>14.200</td></tr>
-            <tr><td>19</td><td>5.500</td><td>10.700</td><td>17.200</td></tr>
-            <tr><td>20</td><td>6.400</td><td>13.200</td><td>22.000</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ TRAPPOLE ═══ -->
-  <div class="card">
-    <div class="ref-section-title">🪤 Trappole</div>
-    <div class="ref-grid">
-      <div class="ref-card">
-        <div class="ref-card-header">Trap Table <span class="roll-badge">Roll 1d8 + 1d12</span></div>
-        <table class="ref-table">
-          <thead><tr><th>Risultato</th><th>Tipo</th></tr></thead>
-          <tbody>
-            <tr><td>2–4</td><td><span class="diff-high">Deadly</span></td></tr>
-            <tr><td>5–16</td><td><span class="diff-low">Nuisance</span></td></tr>
-            <tr><td>17–20</td><td><span class="diff-high">Deadly</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="ref-card">
-        <div class="ref-card-header">Building a Trap</div>
-        <table class="ref-table">
-          <thead>
-            <tr><th rowspan="2">Livelli</th><th colspan="3" style="text-align:center;border-bottom:none;color:var(--text-dim)">Nuisance</th><th colspan="3" style="text-align:center;border-bottom:none;color:#e06050">Deadly</th></tr>
-            <tr><th>Atk</th><th>DC</th><th>Danno</th><th>Atk</th><th>DC</th><th>Danno</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1–4</td><td>+4</td><td>10–12</td><td>5 (1d10)</td><td>+8</td><td>13–15</td><td>11 (2d10)</td></tr>
-            <tr><td>5–10</td><td>+4</td><td>12–14</td><td>11 (2d10)</td><td>+8</td><td>15–17</td><td>22 (4d10)</td></tr>
-            <tr><td>11–16</td><td>+4</td><td>14–16</td><td>22 (4d10)</td><td>+8</td><td>17–19</td><td>55 (10d10)</td></tr>
-            <tr><td>17–20</td><td>+4</td><td>16–18</td><td>55 (10d10)</td><td>+8</td><td>19–21</td><td>99 (18d10)</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ SOPRAVVIVENZA ═══ -->
-  <div class="card">
-    <div class="ref-section-title">🍖 Affaticamento da Sopravvivenza</div>
-    <div class="ref-italic">L'end of the day corrisponde alla mezzanotte: se entro tale orario il personaggio non ha mangiato, bevuto o dormito a sufficienza, devono essere effettuati i relativi tiri salvezza.</div>
-    <div class="ref-grid">
-      <div class="ref-card">
-        <div class="ref-card-header">🍞 Cibo <span class="roll-badge">1 razione = 5 sp · 2 lb</span></div>
-        <table class="ref-table">
-          <thead><tr><th>Taglia</th><th>Cibo/giorno</th><th>Razioni</th></tr></thead>
-          <tbody>
-            <tr><td>Tiny</td><td>1/4 lb</td><td>1/8</td></tr>
-            <tr><td>Small</td><td>1 lb</td><td>1/2</td></tr>
-            <tr><td>Medium</td><td>1 lb</td><td>1/2</td></tr>
-            <tr><td>Large</td><td>4 lb</td><td>2</td></tr>
-            <tr><td>Huge</td><td>16 lb</td><td>8</td></tr>
-            <tr><td>Gargantuan</td><td>64 lb</td><td>32</td></tr>
-          </tbody>
-        </table>
-        <div class="ref-note">Meno di metà → TS Costituzione DC 10 o +1 Exhaustion. Nessun cibo per 5 giorni → +1 Exhaustion automatico al 5° giorno e seguenti.</div>
-      </div>
-      <div class="ref-card">
-        <div class="ref-card-header">💧 Acqua <span class="roll-badge">1 Waterskin = 2 sp · 0.5 gal</span></div>
-        <table class="ref-table">
-          <thead><tr><th>Taglia</th><th>Acqua/giorno</th><th>Waterskin</th></tr></thead>
-          <tbody>
-            <tr><td>Tiny</td><td>1/4 gal</td><td>1/2</td></tr>
-            <tr><td>Small</td><td>1 gal</td><td>2</td></tr>
-            <tr><td>Medium</td><td>1 gal</td><td>2</td></tr>
-            <tr><td>Large</td><td>4 gal</td><td>8</td></tr>
-            <tr><td>Huge</td><td>16 gal</td><td>32</td></tr>
-            <tr><td>Gargantuan</td><td>64 gal</td><td>128</td></tr>
-          </tbody>
-        </table>
-        <div class="ref-note">Meno di metà → +1 Exhaustion. L'Exhaustion da disidratazione non può essere rimossa finché non si beve la quantità piena richiesta.</div>
-      </div>
-    </div>
-  </div>
-
-</div>
+</div></div>
+<div class="toast" id="toast">✓ Salvato</div>
 
 <script>
 // ══════════════ DEFAULT DATA ══════════════
@@ -1704,7 +1498,6 @@ function buildQuestCard(idx){
     <span class="room-num">QUEST ${idx}</span>
     <span class="badge ${eBadge}">${ev.name}</span>
     <span class="det" style="font-size:.7rem">2d20: d20(${d1})+d20(${d2})=${evSum}</span>
-    <button class="add-quest-btn no-select" onclick="trackQuestFromCard(this)" title="Aggiungi al Tracker">＋ Traccia</button>
   </div>
   <div class="room-body">`;
 
@@ -1749,119 +1542,8 @@ function buildQuestCard(idx){
 
 function clearQuests(){ document.getElementById('quest-results').innerHTML=''; }
 
-// ══════════════ TRACKER ══════════════
-if(!S.trackedQuests) S.trackedQuests = [];
-if(!S.notes) S.notes = '';
-
-function trackQuestFromCard(btn){
-  const card = btn.closest('.room-card');
-  if(!card) return;
-  const titleEl = card.querySelector('.room-num');
-  const eventEl = card.querySelector('.room-hdr .badge');
-  const title = (titleEl ? titleEl.textContent : 'Quest') + (eventEl ? ' — ' + eventEl.textContent : '');
-  // Capture inner HTML minus the + button
-  const cloned = card.cloneNode(true);
-  const addBtn = cloned.querySelector('.add-quest-btn');
-  if(addBtn) addBtn.remove();
-  const id = Date.now() + Math.random();
-  const now = new Date();
-  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} · ${now.getDate()}/${now.getMonth()+1}`;
-  S.trackedQuests.push({ id, title, html: cloned.innerHTML, ts });
-  saveTracked();
-  renderTrackedQuests();
-  btn.textContent = '✓ Aggiunta';
-  btn.style.borderColor = '#4a8040';
-  btn.style.color = '#7ab870';
-  btn.disabled = true;
-  showToast('📝 Quest aggiunta al tracker');
-}
-
-function removeTrackedQuest(id){
-  S.trackedQuests = S.trackedQuests.filter(q => q.id !== id);
-  saveTracked();
-  renderTrackedQuests();
-}
-
-function clearTrackedQuests(){
-  if(!S.trackedQuests.length) return;
-  if(!confirm('Rimuovere tutte le quest tracciate?')) return;
-  S.trackedQuests = [];
-  saveTracked();
-  renderTrackedQuests();
-}
-
-function renderTrackedQuests(){
-  const area = document.getElementById('tracked-quests-area');
-  if(!area) return;
-  if(!S.trackedQuests.length){
-    area.innerHTML='<div class="tracker-empty">Nessuna quest tracciata. Genera quest e premi + per aggiungerle.</div>';
-    return;
-  }
-  area.innerHTML = S.trackedQuests.map(q => `
-    <div class="quest-track-card" data-qid="${q.id}">
-      <div class="quest-track-hdr">
-        <span class="quest-track-title" id="qtitle-${q.id}">${q.title}</span>
-        <span class="quest-track-meta">${q.ts}</span>
-        <button class="rename-btn no-select" onclick="startRename(${q.id})" title="Rinomina">✏</button>
-        <button class="remove-btn no-select" onclick="removeTrackedQuest(${q.id})">− Rimuovi</button>
-      </div>
-      <div class="quest-track-body">${q.html}</div>
-    </div>`).join('');
-}
-
-function startRename(id){
-  const titleEl = document.getElementById('qtitle-'+id);
-  if(!titleEl) return;
-  const q = S.trackedQuests.find(q=>q.id===id);
-  if(!q) return;
-  const input = document.createElement('input');
-  input.className = 'rename-input';
-  input.value = q.title;
-  input.placeholder = 'Nome quest…';
-  input.onblur = () => commitRename(id, input.value);
-  input.onkeydown = e => { if(e.key==='Enter') input.blur(); if(e.key==='Escape'){ input.value=q.title; input.blur(); } };
-  titleEl.replaceWith(input);
-  input.focus();
-  input.select();
-}
-
-function commitRename(id, newTitle){
-  const q = S.trackedQuests.find(q=>q.id===id);
-  if(!q) return;
-  q.title = newTitle.trim() || q.title;
-  saveTracked();
-  renderTrackedQuests();
-}
-
-function flashGroup(groupId, msg){
-  const el = document.getElementById(groupId);
-  if(el){ el.classList.remove('flash-group'); void el.offsetWidth; el.classList.add('flash-group'); setTimeout(()=>el.classList.remove('flash-group'),1300); }
-  showToast(msg);
-}
-
-function saveNotes(){
-  S.notes = document.getElementById('tracker-notes')?.value || '';
-  localStorage.setItem('gm_notes', S.notes);
-}
-
-function loadNotes(){
-  S.notes = localStorage.getItem('gm_notes') || '';
-  const el = document.getElementById('tracker-notes');
-  if(el) el.value = S.notes;
-}
-
-function saveTracked(){
-  localStorage.setItem('gm_tracked', JSON.stringify(S.trackedQuests));
-}
-
-function loadTracked(){
-  try { S.trackedQuests = JSON.parse(localStorage.getItem('gm_tracked')) || []; }
-  catch(e){ S.trackedQuests = []; }
-  renderTrackedQuests();
-}
-
 // ══════════════ TABS ══════════════
-const TABS=['hex','dungeon','quest','tracker','editor','ref','guide'];
+const TABS=['hex','dungeon','quest','editor','guide'];
 function switchTab(id){
   if(id==='editor')readEditor();
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',TABS[i]===id));
@@ -1917,6 +1599,11 @@ function readEditor(){
   });
 }
 
+function flashGroup(groupId, msg){
+  const el = document.getElementById(groupId);
+  if(el){ el.classList.remove('flash-group'); void el.offsetWidth; el.classList.add('flash-group'); setTimeout(()=>el.classList.remove('flash-group'),1300); }
+  showToast(msg);
+}
 function flashBtn(id,msg,dur=1700){
   const btn=document.getElementById(id);if(!btn)return;const orig=btn.innerHTML;
   btn.textContent=msg;btn.style.borderColor='var(--red)';btn.style.color='#e06050';
@@ -1927,8 +1614,6 @@ function flashBtn(id,msg,dur=1700){
 loadTables();
 buildEditor();
 loadState();
-loadNotes();
-loadTracked();
 </script>
 </body>
 </html>
