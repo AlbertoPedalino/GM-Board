@@ -206,8 +206,61 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 .meteo-effect{font-size:.8rem;color:var(--text-dim);margin-top:2px;}
 .meteo-timer{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.12em;color:var(--text-dim);white-space:nowrap;text-align:right;}
 
+/* TRACKER */
+.tracker-notes{width:100%;min-height:120px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Crimson Text',serif;font-size:.95rem;padding:10px 12px;border-radius:3px;resize:vertical;line-height:1.6;}
+.tracker-notes:focus{outline:none;border-color:var(--gold);}
+.tracker-notes::placeholder{color:var(--text-dim);font-style:italic;}
+.quest-track-card{background:var(--card);border:1px solid var(--border);border-radius:4px;margin-bottom:10px;overflow:hidden;}
+.quest-track-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);gap:8px;}
+.quest-track-title{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.12em;color:var(--gold-light);flex:1;}
+.quest-track-meta{font-size:.68rem;color:var(--text-dim);}
+.remove-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Cinzel',serif;font-size:.7rem;padding:3px 10px;border-radius:3px;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.remove-btn:hover{border-color:var(--red);color:#e06050;}
+.rename-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Cinzel',serif;font-size:.7rem;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.rename-btn:hover{border-color:var(--gold);color:var(--gold);}
+.rename-input{background:var(--surface);border:1px solid var(--gold);color:var(--text-bright);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.1em;padding:2px 8px;border-radius:3px;flex:1;min-width:0;}
+.rename-input:focus{outline:none;}
+.flash-group{animation:flashRed .6s ease 2;}
+@keyframes flashRed{0%,100%{opacity:1;}50%{opacity:.4;}}
+.quest-track-body{padding:10px 12px;}
+.add-quest-btn{background:rgba(74,128,64,.15);border:1px solid #4a8040;color:#7ab870;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.12em;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all .18s;white-space:nowrap;margin-left:auto;}
+.add-quest-btn:hover{background:rgba(74,128,64,.3);border-color:#6ab060;color:#a0d890;}
+.tracker-empty{font-style:italic;font-size:.88rem;color:var(--text-dim);padding:12px 0;text-align:center;}
+
 /* TOAST */
 .toast{display:none;position:fixed;bottom:20px;right:20px;z-index:999;background:rgba(60,100,55,.95);border:1px solid #4a8040;color:#b8e0a8;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.14em;padding:9px 15px;border-radius:3px;}
+
+/* RIFERIMENTO TAB */
+.ref-section{margin-bottom:6px;}
+.ref-section-title{
+  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--text-dim);padding:10px 0 6px;
+  border-bottom:1px solid var(--border);margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.ref-section-title::before{content:'';flex:none;display:block;width:3px;height:12px;background:var(--gold);border-radius:2px;}
+.ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+@media(max-width:560px){.ref-grid{grid-template-columns:1fr;}}
+.ref-card{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.ref-card-header{
+  font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold-light);background:rgba(200,150,10,.07);
+  padding:7px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:7px;
+}
+.ref-card-header .roll-badge{
+  font-size:.55rem;letter-spacing:.08em;color:var(--text-dim);
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  padding:1px 6px;border-radius:2px;white-space:nowrap;
+}
+.ref-table{width:100%;border-collapse:collapse;font-size:.84rem;}
+.ref-table th{font-family:'Cinzel',serif;font-size:.54rem;letter-spacing:.14em;color:var(--text-dim);padding:5px 10px;border-bottom:1px solid var(--border);text-align:left;background:rgba(0,0,0,.1);}
+.ref-table td{padding:5px 10px;border-bottom:1px solid rgba(61,42,16,.25);color:var(--text);}
+.ref-table tr:last-child td{border-bottom:none;}
+.ref-table tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.ref-note{font-size:.8rem;color:var(--text-dim);line-height:1.55;padding:8px 12px;border-top:1px solid var(--border);font-style:italic;}
+.ref-full{margin-bottom:8px;}
+.ref-italic{font-style:italic;color:var(--amber);font-size:.88rem;padding:8px 12px;border-left:2px solid var(--gold);margin-bottom:10px;background:rgba(200,150,10,.04);border-radius:0 3px 3px 0;}
 
 .no-select{user-select:none;}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-glow);border-radius:2px;}
@@ -227,7 +280,9 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <button class="tab-btn active no-select" onclick="switchTab('hex')">⬡ HEXcrawl</button>
   <button class="tab-btn no-select" onclick="switchTab('dungeon')">🏰 Dungeon</button>
   <button class="tab-btn no-select" onclick="switchTab('quest')">📜 Quest</button>
+  <button class="tab-btn no-select" onclick="switchTab('tracker')">📝 Tracker</button>
   <button class="tab-btn no-select" onclick="switchTab('editor')">📋 Tabelle</button>
+  <button class="tab-btn no-select" onclick="switchTab('ref')">📚 Riferimento</button>
   <button class="tab-btn no-select" onclick="switchTab('guide')">📖 Guida</button>
 </div>
 
@@ -427,6 +482,23 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <div id="quest-results"></div>
 </div>
 
+<div id="tab-tracker" class="tab-panel">
+  <div class="section-header"><h2>📝 Tracker</h2><div class="sub">Note & Quest Tracciate</div></div>
+
+  <div class="card">
+    <div class="section-label">Note di Sessione</div>
+    <textarea class="tracker-notes" id="tracker-notes" placeholder="Scrivi qui note libere sulla sessione, PNG incontrati, luoghi visitati…" oninput="saveNotes()"></textarea>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="section-label" style="margin:0">Quest Tracciate</div>
+      <button class="small-btn no-select" onclick="clearTrackedQuests()">✕ Cancella tutte</button>
+    </div>
+    <div id="tracked-quests-area"><div class="tracker-empty">Nessuna quest tracciata. Genera quest e premi + per aggiungerle.</div></div>
+  </div>
+</div>
+
 <div id="tab-editor" class="tab-panel">
   <div class="section-header"><h2>📋 Editor Tabelle</h2><div class="sub">Modifiche salvate nel browser</div></div>
 
@@ -472,181 +544,355 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 </div><div id="tab-guide" class="tab-panel">
   <div class="section-header"><h2>📖 Guida ai Tiri</h2><div class="sub">Riferimento completo — GM Board</div></div>
 
-  <div class="card guide-section">
-    <h3>⬡ HEXcrawl — Flusso Completo</h3>
-    <p>Ad ogni hex esplorato premi <strong>Procedi</strong>. Il tempo avanza, il meteo viene controllato se necessario, poi parte la sequenza di tiri. Usa <strong>Solo Avanza</strong> per far scorrere solo il tempo senza nessun tiro.</p>
+  <!-- HEXcrawl -->
+  <div class="card">
+    <div class="ref-section-title">⬡ HEXcrawl — Flusso Completo</div>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">Ad ogni hex esplorato premi <strong>Procedi</strong>. Il tempo avanza, il meteo viene controllato se necessario, poi parte la sequenza di tiri. Usa <strong>Solo Avanza</strong> per far scorrere solo il tempo senza nessun tiro.</p>
 
-    <h4>① Setup — cosa selezionare prima di giocare</h4>
-    <table class="guide-table">
-      <thead><tr><th>Parametro</th><th>Opzioni</th><th>Effetto</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Stagione</strong></td><td>Primavera / Estate / Autunno / Inverno</td><td>Definisce le soglie del meteo casuale</td></tr>
-        <tr><td><strong>Meteo Override</strong></td><td>Sole / Pioggia (3) / Neve (3)</td><td>Forza il meteo corrente — il check automatico può sovrascriverlo</td></tr>
-        <tr><td><strong>Popolazione</strong></td><td>Inesplorata / Periferica / Popolata</td><td>Soglia del dado trigger (vedi sotto)</td></tr>
-        <tr><td><strong>Terreno</strong></td><td>Strada / Pianura / Foresta / Montagna</td><td>Ore base di viaggio (modificate dal meteo)</td></tr>
-        <tr><td><strong>Tier Encounter</strong></td><td>T1–T4</td><td>Tabella encounter usata quando esce un incontro</td></tr>
-      </tbody>
-    </table>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">① Setup</div>
+        <table class="ref-table">
+          <thead><tr><th>Parametro</th><th>Opzioni</th><th>Effetto</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Stagione</strong></td><td>Primavera / Estate / Autunno / Inverno</td><td>Soglie meteo casuale</td></tr>
+            <tr><td><strong>Meteo Override</strong></td><td>Sole / Pioggia / Neve</td><td>Forza il meteo corrente</td></tr>
+            <tr><td><strong>Popolazione</strong></td><td>Inesplorata / Periferica / Popolata</td><td>Soglia dado trigger</td></tr>
+            <tr><td><strong>Terreno</strong></td><td>Strada / Pianura / Foresta / Montagna</td><td>Ore base di viaggio</td></tr>
+            <tr><td><strong>Tier Encounter</strong></td><td>T1–T4</td><td>Tabella encounter usata</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">② Meteo — check automatico</div>
+        <table class="ref-table">
+          <thead><tr><th>Meteo</th><th>Intensità</th><th>Viaggio</th><th>Svantaggio</th></tr></thead>
+          <tbody>
+            <tr><td>Sole</td><td>—</td><td>×1</td><td>No</td></tr>
+            <tr><td>Pioggia</td><td>Leggera</td><td>×1</td><td>No</td></tr>
+            <tr><td>Pioggia</td><td>Moderata</td><td>×2</td><td>No</td></tr>
+            <tr><td>Pioggia</td><td>Forte</td><td>×2</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Neve</td><td>Leggera</td><td>×2</td><td>No</td></tr>
+            <tr><td>Neve</td><td>Moderata</td><td>×2</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Neve</td><td>Forte</td><td>×4</td><td>✓ Perc/Inv</td></tr>
+          </tbody>
+        </table>
+        <div class="ref-note">Check ogni 1d6+2 ore di viaggio. Le soglie stagionali sono modificabili in Tabelle → Meteo Stagionale.</div>
+      </div>
+    </div>
 
-    <h4>② Meteo — check automatico a intervalli variabili</h4>
-    <p>Il primo check scatta dopo 8 ore di viaggio accumulate. Ogni check successivo imposta un nuovo intervallo casuale di <strong>1d6+2 ore</strong> (3–8 ore). Le ore in eccesso vengono portate avanti (es. prossimo check a 5h, si viaggiano 7h → check + 2h di resto). Se si accumulano più intervalli in una sola mossa, scattano più check in sequenza e il meteo finale è l'ultimo estratto.</p>
-    <p><strong>Tiro 1 — 1d20 → tipo di meteo</strong> (soglie modificabili nell'Editor Tabelle):</p>
-    <table class="guide-table">
-      <thead><tr><th>Stagione</th><th>Sole (≤)</th><th>Pioggia (≤)</th><th>Neve (resto)</th></tr></thead>
-      <tbody>
-        <tr><td>Primavera</td><td>10</td><td>19</td><td>20</td></tr>
-        <tr><td>Estate</td><td>16</td><td>20</td><td>—</td></tr>
-        <tr><td>Autunno</td><td>8</td><td>19</td><td>20</td></tr>
-        <tr><td>Inverno</td><td>4</td><td>10</td><td>11–20</td></tr>
-      </tbody>
-    </table>
-    <p><strong>Tiro 2 — 1d6 → intensità</strong> (solo se non è Sole): 1–3 = Leggera · 4–5 = Moderata · 6 = Forte</p>
-    <table class="guide-table">
-      <thead><tr><th>Meteo</th><th>Intensità</th><th>Effetto sul tempo di viaggio</th><th>Svantaggio</th></tr></thead>
-      <tbody>
-        <tr><td>Sole</td><td>—</td><td>×1 (nessun effetto)</td><td>No</td></tr>
-        <tr><td>Pioggia</td><td>Leggera</td><td>×1</td><td>No</td></tr>
-        <tr><td>Pioggia</td><td>Moderata</td><td>×2</td><td>No</td></tr>
-        <tr><td>Pioggia</td><td>Forte</td><td>×2</td><td>✓ Percezione / Investigazione</td></tr>
-        <tr><td>Neve</td><td>Leggera</td><td>×2</td><td>No</td></tr>
-        <tr><td>Neve</td><td>Moderata</td><td>×2</td><td>✓ Percezione / Investigazione</td></tr>
-        <tr><td>Neve</td><td>Forte</td><td>×4</td><td>✓ Percezione / Investigazione</td></tr>
-      </tbody>
-    </table>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">③ Terreno — ore di viaggio base</div>
+        <table class="ref-table">
+          <thead><tr><th>Terreno</th><th>Base</th><th>Pioggia Mod/Forte · Neve Legg/Mod</th><th>Neve Forte</th></tr></thead>
+          <tbody>
+            <tr><td>Strada</td><td>1h</td><td>2h</td><td>4h</td></tr>
+            <tr><td>Pianura</td><td>2h</td><td>4h</td><td>8h</td></tr>
+            <tr><td>Foresta</td><td>4h</td><td>8h</td><td>16h</td></tr>
+            <tr><td>Montagna</td><td>8h</td><td>16h</td><td>32h</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">④ Tiro Popolamento <span class="roll-badge">1d6</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Popolazione</th><th>Trigger se d6 ≤</th><th>Prob. evento</th></tr></thead>
+          <tbody>
+            <tr><td>Inesplorata</td><td>1</td><td>16.7%</td></tr>
+            <tr><td>Periferica</td><td>2</td><td>33.3%</td></tr>
+            <tr><td>Popolata</td><td>3</td><td>50%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <h4>③ Terreno — ore di viaggio base</h4>
-    <table class="guide-table">
-      <thead><tr><th>Terreno</th><th>Ore base</th><th>Con Pioggia Mod/Forte o Neve Legg/Mod</th><th>Con Neve Forte</th></tr></thead>
-      <tbody>
-        <tr><td>Strada</td><td>1h</td><td>2h</td><td>4h</td></tr>
-        <tr><td>Pianura</td><td>2h</td><td>4h</td><td>8h</td></tr>
-        <tr><td>Foresta</td><td>4h</td><td>8h</td><td>16h</td></tr>
-        <tr><td>Montagna</td><td>8h</td><td>16h</td><td>32h</td></tr>
-      </tbody>
-    </table>
+    <div class="ref-full">
+      <div class="ref-card">
+        <div class="ref-card-header">⑤ Event Table <span class="roll-badge">2d20</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Risultato</th><th>Evento</th><th>Cosa succede</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>Dungeon</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>3</td><td>Grotta</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>4</td><td>Ruins</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>5</td><td>Ostacolo</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>6–7</td><td>Encounter</td><td>→ Encounter Table del tier</td></tr>
+            <tr><td>8–9</td><td>Danno Ambientale / Trappola</td><td>→ CD individuazione + Trap Table del tier</td></tr>
+            <tr><td>10–11</td><td>Accampamento Nemico</td><td>→ CD individuazione + Encounter Table del tier</td></tr>
+            <tr><td>12–13</td><td>Campo di Battaglia</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>14–15</td><td>Struttura Abbandonata</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>16–17</td><td>Incontro Mercante / Viaggiatore</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>18–19</td><td>Tracce / Indizi</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>20–22</td><td>Loot</td><td>→ Loot Table + CD per trovarlo</td></tr>
+            <tr><td>23–24</td><td>Segni di Passaggio Amico</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>25–26</td><td>Incontro Mercante / Viaggiatore</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>27–28</td><td>Struttura Abitata</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>29–30</td><td>Luogo Sacro</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>31–32</td><td>Accampamento Amico</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>33–34</td><td>Danno Ambientale / Trappola</td><td>→ CD individuazione + Trap Table del tier</td></tr>
+            <tr><td>35–36</td><td>Encounter</td><td>→ Encounter Table del tier</td></tr>
+            <tr><td>37</td><td>Ostacolo</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>38</td><td>Ruins</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>39</td><td>Grotta</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>40</td><td>Dungeon</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+          </tbody>
+        </table>
+        <div class="ref-note"><strong>Encounter:</strong> 2d20 → Difficoltà / Livello / XP. · <strong>Loot:</strong> 1d8+1d12 → oggetto, poi secondo tiro per CD. · <strong>Accampamento Nemico:</strong> CD individuazione + 2d20 Encounter. · <strong>Tutto il resto:</strong> 1d8+1d12 grezzo = CD per interagire.</div>
+      </div>
+    </div>
 
-    <h4>④ Tiro Popolamento — 1d6</h4>
-    <p>Si lancia 1d6 e si confronta con la soglia della popolazione. Se supera la soglia → nessun evento. Se rientra → si tira sulla Event Table.</p>
-    <table class="guide-table">
-      <thead><tr><th>Popolazione</th><th>Trigger se d6 ≤</th><th>Probabilità evento</th></tr></thead>
-      <tbody>
-        <tr><td>Inesplorata</td><td>1</td><td>16,7%</td></tr>
-        <tr><td>Periferica</td><td>2</td><td>33,3%</td></tr>
-        <tr><td>Popolata</td><td>3</td><td>50%</td></tr>
-      </tbody>
-    </table>
-
-    <h4>⑤ Event Table — 2d20 (risultato 2–40)</h4>
-    <table class="guide-table">
-      <thead><tr><th>Risultato</th><th>Evento</th><th>Cosa succede</th></tr></thead>
-      <tbody>
-        <tr><td>2</td><td>Dungeon</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>3</td><td>Grotta</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>4</td><td>Ruins</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>5</td><td>Ostacolo</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>6–7</td><td>Encounter</td><td>→ Encounter Table del tier</td></tr>
-        <tr><td>8–9</td><td>Danno Ambientale/Trappola</td><td>→ CD individuazione + Trap Table del tier</td></tr>
-        <tr><td>10–11</td><td>Accampamento Nemico</td><td>→ CD individuazione + Encounter Table del tier</td></tr>
-        <tr><td>12–13</td><td>Campo di Battaglia</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>14–15</td><td>Struttura Abbandonata</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>16–17</td><td>Incontro Mercante/Viaggiatore</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>18–19</td><td>Tracce/Indizi</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>20–22</td><td>Loot</td><td>→ Loot Table + CD per trovarlo</td></tr>
-        <tr><td>23–24</td><td>Segni di Passaggio Amico</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>25–26</td><td>Incontro Mercante/Viaggiatore</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>27–28</td><td>Struttura Abitata</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>29–30</td><td>Luogo Sacro</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>31–32</td><td>Accampamento Amico</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>33–34</td><td>Danno Ambientale/Trappola</td><td>→ CD individuazione + Trap Table del tier</td></tr>
-        <tr><td>35–36</td><td>Encounter</td><td>→ Encounter Table del tier</td></tr>
-        <tr><td>37</td><td>Ostacolo</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>38</td><td>Ruins</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>39</td><td>Grotta</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-        <tr><td>40</td><td>Dungeon</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-      </tbody>
-    </table>
-
-    <h4>⑥ Risoluzione per tipo di evento</h4>
-    <p><strong>Encounter:</strong> si tira 2d20 sulla Encounter Table del tier selezionato. Il risultato mostra 2d20 → Difficoltà (Low / Moderate / High), Livello consigliato dell'incontro e XP per personaggio.</p>
-    <p><strong>Loot:</strong> si tira 1d8+1d12 sulla Loot Table. Se esce qualcosa (non "Niente trovato") si tira un secondo 1d8+1d12 per la CD — il risultato grezzo è la difficoltà della prova per trovare l'oggetto.</p>
-    <p><strong>Accampamento Nemico:</strong> primo tiro 1d8+1d12 per la CD di individuazione (difficoltà della prova Percezione/Furtività per notarlo), poi tiro 2d20 sulla Encounter Table per capire la minaccia interna.</p>
-    <p><strong>Tutto il resto (Ruins, Dungeon, Struttura, Mercante, Materiali…):</strong> un unico tiro 1d8+1d12 — il risultato grezzo (2–20) è la CD per rilevare, interagire o raccogliere ciò che si trova.</p>
-
-    <h4>⑦ Encounter Table — Tier</h4>
-    <table class="guide-table">
-      <thead><tr><th>Tier</th><th>Livelli PG</th><th>Dado</th></tr></thead>
-      <tbody>
-        <tr><td>🔴 Tier 1</td><td>1–4</td><td>2d20</td></tr>
-        <tr><td>🟠 Tier 2</td><td>5–10</td><td>2d20</td></tr>
-        <tr><td>🟡 Tier 3</td><td>11–16</td><td>2d20</td></tr>
-        <tr><td>🟣 Tier 4</td><td>17–20</td><td>2d20</td></tr>
-      </tbody>
-    </table>
+    <div class="ref-full">
+      <div class="ref-card">
+        <div class="ref-card-header">⑦ Encounter Table — Tier <span class="roll-badge">2d20</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Tier</th><th>Livelli PG</th><th>Dado</th></tr></thead>
+          <tbody>
+            <tr><td>🔴 Tier 1</td><td>1–4</td><td>2d20</td></tr>
+            <tr><td>🟠 Tier 2</td><td>5–10</td><td>2d20</td></tr>
+            <tr><td>🟡 Tier 3</td><td>11–16</td><td>2d20</td></tr>
+            <tr><td>🟣 Tier 4</td><td>17–20</td><td>2d20</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <div class="card guide-section">
-    <h3>🏰 Dungeon Explorer — Flusso Completo</h3>
-    <p>Imposta il numero di stanze, la popolazione e il tier, poi premi <strong>Genera</strong>. Tutte le stanze vengono risolte in una volta sola.</p>
+  <!-- Dungeon -->
+  <div class="card">
+    <div class="ref-section-title">🏰 Dungeon Explorer — Flusso Completo</div>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">Imposta il numero di stanze, la popolazione e il tier, poi premi <strong>Genera</strong>. Tutte le stanze vengono risolte in una volta sola.</p>
 
-    <h4>① Setup</h4>
-    <table class="guide-table">
-      <thead><tr><th>Parametro</th><th>Opzioni</th><th>Effetto</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Stanze</strong></td><td>1–40</td><td>Numero di stanze generate</td></tr>
-        <tr><td><strong>Popolazione</strong></td><td>Random / Inesplorata / Periferica / Popolata</td><td>Numero di tiri Complication per stanza</td></tr>
-        <tr><td><strong>Tier</strong></td><td>T1–T4</td><td>Tabelle usate per Encounter e Trap</td></tr>
-      </tbody>
-    </table>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">① Setup</div>
+        <table class="ref-table">
+          <thead><tr><th>Parametro</th><th>Opzioni</th><th>Effetto</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Stanze</strong></td><td>1–40</td><td>Numero di stanze generate</td></tr>
+            <tr><td><strong>Popolazione</strong></td><td>Random / Inesplorata / Periferica / Popolata</td><td>Tiri Complication per stanza</td></tr>
+            <tr><td><strong>Tier</strong></td><td>T1–T4</td><td>Tabelle Encounter e Trap usate</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">② Tiri Complication per stanza <span class="roll-badge">1d8 + 1d12</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Popolazione</th><th>Tiri per stanza</th></tr></thead>
+          <tbody>
+            <tr><td>Random</td><td>1, 2 o 3 — casuale per ogni stanza</td></tr>
+            <tr><td>Inesplorata</td><td>1 tiro fisso</td></tr>
+            <tr><td>Periferica</td><td>2 tiri fissi</td></tr>
+            <tr><td>Popolata</td><td>3 tiri fissi</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <h4>② Tiri Complication per stanza — 1d8+1d12</h4>
-    <p>La popolazione determina quanti tiri si fanno sulla Complication Table per ogni stanza. Non c'è dado trigger: si tira sempre il numero indicato.</p>
-    <table class="guide-table">
-      <thead><tr><th>Popolazione</th><th>Tiri per stanza</th></tr></thead>
-      <tbody>
-        <tr><td>Random</td><td>1, 2 o 3 — estratto casualmente per ogni stanza</td></tr>
-        <tr><td>Inesplorata</td><td>1 tiro fisso</td></tr>
-        <tr><td>Periferica</td><td>2 tiri fissi</td></tr>
-        <tr><td>Popolata</td><td>3 tiri fissi</td></tr>
-      </tbody>
-    </table>
-
-    <h4>③ Complication Table — risoluzione per tipo</h4>
-    <table class="guide-table">
-      <thead><tr><th>Tipo</th><th>Cosa succede</th><th>Dado secondario</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Encounter</strong></td><td>Tiro sulla Encounter Table del tier</td><td>2d20 → Difficoltà / Livello / XP</td></tr>
-        <tr><td><strong>Environment Damage</strong></td><td>Tiro sulla Trap Table del tier</td><td>1d8+1d12 → Tipo trappola / DC / Danno</td></tr>
-        <tr><td><strong>Environment</strong></td><td>Tiro sulla Environment Severity Table</td><td>1d8+1d12 → Gravità (Comune → Leggendario)</td></tr>
-        <tr><td><strong>Niente</strong></td><td>Nessuna complicazione in questo slot</td><td>—</td></tr>
-      </tbody>
-    </table>
-
-    <h4>④ Trap Table — struttura del risultato</h4>
-    <p>Ogni riga della Trap Table mostra: <strong>Tipo</strong> (Nuisance = fastidiosa / Deadly = letale), <strong>Livello</strong> consigliato, <strong>DC</strong> del tiro salvezza o prova per evitarla, <strong>Danno</strong> in caso di fallimento.</p>
-
-    <h4>⑤ Environment Severity — scala di gravità</h4>
-    <p>La gravità dell'ambiente (Comune → Non Comune → Raro → Molto Raro → Leggendario) indica quanto sia ostile o pericoloso l'hex a livello ambientale: difficoltà di orientamento, pericoli naturali, condizioni estreme. Il GM interpreta il risultato in base al contesto della stanza.</p>
-
-    <h4>⑥ Loot — sempre 1 tiro per stanza</h4>
-    <p>Indipendentemente dal numero di complicazioni, ogni stanza ha sempre 1 tiro sulla Loot Table (1d8+1d12). Se il risultato non è "Niente trovato", si tira un secondo 1d8+1d12 per la <strong>CD per trovare il loot</strong> — il risultato grezzo è la difficoltà della prova.</p>
-    <table class="guide-table">
-      <thead><tr><th>Risultato</th><th>Loot</th><th>CD</th></tr></thead>
-      <tbody>
-        <tr><td>2–7</td><td>Oggetto (varie rarità, qualità Rovinato)</td><td>Sì — tiro CD</td></tr>
-        <tr><td>8–14</td><td>Niente trovato</td><td>No</td></tr>
-        <tr><td>15–20</td><td>Oggetto (varie rarità, qualità Standard/Buono/Eccelso/Integro)</td><td>Sì — tiro CD</td></tr>
-      </tbody>
-    </table>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">③ Complication Table — risoluzione per tipo</div>
+        <table class="ref-table">
+          <thead><tr><th>Tipo</th><th>Cosa succede</th><th>Dado secondario</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Encounter</strong></td><td>Tiro sulla Encounter Table del tier</td><td>2d20</td></tr>
+            <tr><td><strong>Environment Damage</strong></td><td>Tiro sulla Trap Table del tier</td><td>1d8+1d12</td></tr>
+            <tr><td><strong>Environment</strong></td><td>Tiro sulla Environment Severity Table</td><td>1d8+1d12</td></tr>
+            <tr><td><strong>Niente</strong></td><td>Nessuna complicazione</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">⑥ Loot — 1 tiro per stanza <span class="roll-badge">1d8 + 1d12</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Risultato</th><th>Loot</th><th>CD</th></tr></thead>
+          <tbody>
+            <tr><td>2–7</td><td>Oggetto (rarità varie, qualità Rovinato)</td><td>Sì</td></tr>
+            <tr><td>8–14</td><td style="color:var(--text-dim);font-style:italic">Niente trovato</td><td>No</td></tr>
+            <tr><td>15–20</td><td>Oggetto (rarità varie, qualità Standard+)</td><td>Sì</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <div class="card guide-section">
-    <h3>📋 Editor Tabelle</h3>
-    <p>Tutte le tabelle sono modificabili dalla sezione Tabelle. Le modifiche vengono salvate automaticamente nel localStorage del browser e influenzano immediatamente entrambe le sezioni. Il tasto <strong>↺ Ripristina</strong> riporta tutto ai valori originali.</p>
-    <p>Il campo <strong>type</strong> nella Event Table usa parole chiave fisse: <code>encounter</code> · <code>loot</code> · <code>camp_nemico</code> · <code>other</code> · <code>nothing</code>. Usare parole diverse farà trattare l'evento come <em>other</em> (CD generica).</p>
-    <p>Il campo <strong>type</strong> nella Complication Table usa: <code>Encounter</code> · <code>Environment Damage</code> · <code>Environment</code> · <code>Niente</code>. La maiuscola è importante.</p>
+  <!-- Editor note -->
+  <div class="card">
+    <div class="ref-section-title">📋 Editor Tabelle</div>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">Tutte le tabelle sono modificabili dalla sezione <strong>Tabelle</strong>. Le modifiche vengono salvate automaticamente nel localStorage e influenzano immediatamente il generatore. Il tasto <strong>↺ Ripristina</strong> riporta tutto ai valori originali.</p>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">Il campo <strong>type</strong> nella Event Table usa parole chiave fisse: <code>encounter</code> · <code>loot</code> · <code>camp_nemico</code> · <code>other</code> · <code>nothing</code>.</p>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;">Il campo <strong>type</strong> nella Complication Table usa: <code>Encounter</code> · <code>Environment Damage</code> · <code>Environment</code> · <code>Niente</code> (maiuscola importante).</p>
   </div>
 
-</div></div><div class="toast" id="toast">✓ Salvato</div>
+</div><div id="tab-ref" class="tab-panel">
+  <div class="section-header"><h2>📚 Riferimento</h2><div class="sub">Tabelle di Gioco</div></div>
+
+  <!-- ═══ HEXPLORATION ═══ -->
+  <div class="card">
+    <div class="ref-section-title">⬡ HEXploration</div>
+
+    <div class="ref-full">
+      <div class="ref-card">
+        <div class="ref-card-header">Population Table <span class="roll-badge">Roll 1d6</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Zona</th><th>Trigger</th><th>Prob.</th><th>Esempio</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Inesplorata</strong></td><td>Solo 1</td><td>16.7%</td><td>Foreste remote, montagne, paludi</td></tr>
+            <tr><td><strong>Periferica</strong></td><td>1–2</td><td>33.3%</td><td>Colline, pianure di frontiera</td></tr>
+            <tr><td><strong>Popolata</strong></td><td>1–3</td><td>50%</td><td>Strade commerciali, campagne</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">Random Individual Treasure</div>
+        <table class="ref-table">
+          <thead><tr><th>CR</th><th>Tesoro</th></tr></thead>
+          <tbody>
+            <tr><td>0–4</td><td>3d6 (10) GP</td></tr>
+            <tr><td>5–10</td><td>2d8 × 10 (90) GP</td></tr>
+            <tr><td>11–16</td><td>2d10 × 10 (110) PP</td></tr>
+            <tr><td>17+</td><td>2d8 × 100 (900) PP</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">Random Treasure Hoard</div>
+        <table class="ref-table">
+          <thead><tr><th>CR</th><th>Tesoro Monetario</th><th>Oggetti Magici</th></tr></thead>
+          <tbody>
+            <tr><td>0–4</td><td>2d4 × 100 (500) GP</td><td>1d4–1</td></tr>
+            <tr><td>5–10</td><td>8d10 × 100 (4.400) GP</td><td>1d3</td></tr>
+            <tr><td>11–16</td><td>8d8 × 1.000 (36.000) GP</td><td>1d4</td></tr>
+            <tr><td>17+</td><td>6d10 × 10.000 (330.000) GP</td><td>1d6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ COMPLICATIONS ═══ -->
+  <div class="card">
+    <div class="ref-section-title">⚙️ Complications</div>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">Encounter Difficulty <span class="roll-badge">Roll 1d8 + 1d12</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Risultato</th><th>Difficoltà</th></tr></thead>
+          <tbody>
+            <tr><td>2–4</td><td><span class="diff-high">High</span></td></tr>
+            <tr><td>5–7</td><td><span class="diff-mod">Moderate</span></td></tr>
+            <tr><td>8–13</td><td><span class="diff-low">Low</span></td></tr>
+            <tr><td>14–16</td><td><span class="diff-mod">Moderate</span></td></tr>
+            <tr><td>17–20</td><td><span class="diff-high">High</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">XP Budget per Character</div>
+        <table class="ref-table">
+          <thead><tr><th>Liv.</th><th><span class="diff-low">Low</span></th><th><span class="diff-mod">Moderate</span></th><th><span class="diff-high">High</span></th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>50</td><td>75</td><td>100</td></tr>
+            <tr><td>2</td><td>100</td><td>150</td><td>200</td></tr>
+            <tr><td>3</td><td>150</td><td>225</td><td>400</td></tr>
+            <tr><td>4</td><td>250</td><td>375</td><td>500</td></tr>
+            <tr><td>5</td><td>500</td><td>750</td><td>1.100</td></tr>
+            <tr><td>6</td><td>600</td><td>1.000</td><td>1.400</td></tr>
+            <tr><td>7</td><td>750</td><td>1.300</td><td>1.700</td></tr>
+            <tr><td>8</td><td>1.000</td><td>1.700</td><td>2.100</td></tr>
+            <tr><td>9</td><td>1.300</td><td>2.000</td><td>2.600</td></tr>
+            <tr><td>10</td><td>1.600</td><td>2.300</td><td>3.100</td></tr>
+            <tr><td>11</td><td>1.900</td><td>2.900</td><td>4.100</td></tr>
+            <tr><td>12</td><td>2.200</td><td>3.700</td><td>4.700</td></tr>
+            <tr><td>13</td><td>2.600</td><td>4.200</td><td>5.400</td></tr>
+            <tr><td>14</td><td>2.900</td><td>4.900</td><td>6.200</td></tr>
+            <tr><td>15</td><td>3.300</td><td>5.400</td><td>7.800</td></tr>
+            <tr><td>16</td><td>3.800</td><td>6.100</td><td>9.800</td></tr>
+            <tr><td>17</td><td>4.500</td><td>7.200</td><td>11.700</td></tr>
+            <tr><td>18</td><td>5.000</td><td>8.700</td><td>14.200</td></tr>
+            <tr><td>19</td><td>5.500</td><td>10.700</td><td>17.200</td></tr>
+            <tr><td>20</td><td>6.400</td><td>13.200</td><td>22.000</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TRAPPOLE ═══ -->
+  <div class="card">
+    <div class="ref-section-title">🪤 Trappole</div>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">Trap Table <span class="roll-badge">Roll 1d8 + 1d12</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Risultato</th><th>Tipo</th></tr></thead>
+          <tbody>
+            <tr><td>2–4</td><td><span class="diff-high">Deadly</span></td></tr>
+            <tr><td>5–16</td><td><span class="diff-low">Nuisance</span></td></tr>
+            <tr><td>17–20</td><td><span class="diff-high">Deadly</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">Building a Trap</div>
+        <table class="ref-table">
+          <thead>
+            <tr><th rowspan="2">Livelli</th><th colspan="3" style="text-align:center;border-bottom:none;color:var(--text-dim)">Nuisance</th><th colspan="3" style="text-align:center;border-bottom:none;color:#e06050">Deadly</th></tr>
+            <tr><th>Atk</th><th>DC</th><th>Danno</th><th>Atk</th><th>DC</th><th>Danno</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1–4</td><td>+4</td><td>10–12</td><td>5 (1d10)</td><td>+8</td><td>13–15</td><td>11 (2d10)</td></tr>
+            <tr><td>5–10</td><td>+4</td><td>12–14</td><td>11 (2d10)</td><td>+8</td><td>15–17</td><td>22 (4d10)</td></tr>
+            <tr><td>11–16</td><td>+4</td><td>14–16</td><td>22 (4d10)</td><td>+8</td><td>17–19</td><td>55 (10d10)</td></tr>
+            <tr><td>17–20</td><td>+4</td><td>16–18</td><td>55 (10d10)</td><td>+8</td><td>19–21</td><td>99 (18d10)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SOPRAVVIVENZA ═══ -->
+  <div class="card">
+    <div class="ref-section-title">🍖 Affaticamento da Sopravvivenza</div>
+    <div class="ref-italic">L'end of the day corrisponde alla mezzanotte: se entro tale orario il personaggio non ha mangiato, bevuto o dormito a sufficienza, devono essere effettuati i relativi tiri salvezza.</div>
+    <div class="ref-grid">
+      <div class="ref-card">
+        <div class="ref-card-header">🍞 Cibo <span class="roll-badge">1 razione = 5 sp · 2 lb</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Taglia</th><th>Cibo/giorno</th><th>Razioni</th></tr></thead>
+          <tbody>
+            <tr><td>Tiny</td><td>1/4 lb</td><td>1/8</td></tr>
+            <tr><td>Small</td><td>1 lb</td><td>1/2</td></tr>
+            <tr><td>Medium</td><td>1 lb</td><td>1/2</td></tr>
+            <tr><td>Large</td><td>4 lb</td><td>2</td></tr>
+            <tr><td>Huge</td><td>16 lb</td><td>8</td></tr>
+            <tr><td>Gargantuan</td><td>64 lb</td><td>32</td></tr>
+          </tbody>
+        </table>
+        <div class="ref-note">Meno di metà → TS Costituzione DC 10 o +1 Exhaustion. Nessun cibo per 5 giorni → +1 Exhaustion automatico al 5° giorno e seguenti.</div>
+      </div>
+      <div class="ref-card">
+        <div class="ref-card-header">💧 Acqua <span class="roll-badge">1 Waterskin = 2 sp · 0.5 gal</span></div>
+        <table class="ref-table">
+          <thead><tr><th>Taglia</th><th>Acqua/giorno</th><th>Waterskin</th></tr></thead>
+          <tbody>
+            <tr><td>Tiny</td><td>1/4 gal</td><td>1/2</td></tr>
+            <tr><td>Small</td><td>1 gal</td><td>2</td></tr>
+            <tr><td>Medium</td><td>1 gal</td><td>2</td></tr>
+            <tr><td>Large</td><td>4 gal</td><td>8</td></tr>
+            <tr><td>Huge</td><td>16 gal</td><td>32</td></tr>
+            <tr><td>Gargantuan</td><td>64 gal</td><td>128</td></tr>
+          </tbody>
+        </table>
+        <div class="ref-note">Meno di metà → +1 Exhaustion. L'Exhaustion da disidratazione non può essere rimossa finché non si beve la quantità piena richiesta.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <script>
 // ══════════════ DEFAULT DATA ══════════════
@@ -790,7 +1036,7 @@ function resetTables(){
   for(let i=0;i<4;i++){localStorage.removeItem('gm_enc'+i);localStorage.removeItem('gm_trap'+i);}
   buildEditor();showToast('↺ Ripristinate');
 }
-function showToast(m='✓'){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
+function showToast(m='✓'){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
 
 function getEvent(s){readEditor();return T.events.find(e=>e.r===s)||{name:'—',type:'nothing'};}
 function getLoot(s){readEditor();return T.loot.find(e=>e.r===s)||{tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''};}
@@ -898,17 +1144,17 @@ function dHTMLEvent(a,b,c){return`<div class="dice-row"><span class="dlbl">d20</
 async function rollD8D12(a,b,c){
   const d8=roll(8),d12=roll(12),sum=d8+d12;
   await Promise.all([animDie(a,8,d8,480),animDie(b,12,d12,580)]);
-  await sleep(65);document.getElementById(c).textContent=sum;return{d8,d12,sum};
+  await sleep(65);const ec=document.getElementById(c);if(ec)ec.textContent=sum;return{d8,d12,sum};
 }
 async function rollD20D20(a,b,c){
   const d20a=roll(20),d20b=roll(20),sum=d20a+d20b;
   await Promise.all([animDie(a,20,d20a,480),animDie(b,20,d20b,580)]);
-  await sleep(65);document.getElementById(c).textContent=sum;return{d1:d20a,d2:d20b,sum};
+  await sleep(65);const ec=document.getElementById(c);if(ec)ec.textContent=sum;return{d1:d20a,d2:d20b,sum};
 }
 async function rollEventDice(a,b,c){
   const d1=roll(20),d2=roll(20),sum=d1+d2;
   await Promise.all([animDie(a,20,d1,480),animDie(b,20,d2,580)]);
-  await sleep(65);document.getElementById(c).textContent=sum;return{d1,d2,sum};
+  await sleep(65);const ec=document.getElementById(c);if(ec)ec.textContent=sum;return{d1,d2,sum};
 }
 
 // ══════════════ SELECTORS ══════════════
@@ -1253,9 +1499,9 @@ async function procedi(){
 // ══════════════ DUNGEON ══════════════
 function generateDungeon(){
   const n=+document.getElementById('d-rooms').value;
-  if(isNaN(n)||n<1||n>40){const el=document.getElementById('d-rooms');el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);return;}
-  if(!S.dPop){showToast('⚠ Seleziona popolazione');return;}
-  if(!S.dTier){showToast('⚠ Seleziona tier');return;}
+  if(isNaN(n)||n<1||n>40){const el=document.getElementById('d-rooms');el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);showToast('⚠ Inserisci un numero di stanze tra 1 e 40');return;}
+  if(!S.dPop){flashGroup('d-pop-group','⚠ Seleziona la Popolazione (quanti tiri per stanza)');return;}
+  if(!S.dTier){flashGroup('d-tier-group','⚠ Seleziona il Tier per le tabelle Encounter e Trap');return;}
   const con=document.getElementById('dungeon-results');con.innerHTML='';
   for(let i=1;i<=n;i++) con.appendChild(buildRoom(i));
   con.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1382,8 +1628,8 @@ function selQTier(btn,t){
 }
 
 function generateQuests(){
-  if(!S.qPop){showToast('⚠ Seleziona portata');return;}
-  if(!S.qTier){showToast('⚠ Seleziona tier');return;}
+  if(!S.qPop){flashGroup('q-pop-group','⚠ Seleziona la Portata (quanti d8 tirare per il numero di quest)');return;}
+  if(!S.qTier){flashGroup('q-tier-group','⚠ Seleziona il Tier per le tabelle Encounter e Loot');return;}
 
   // Quanti d8 tirare
   let numDice = S.qThr;
@@ -1458,6 +1704,7 @@ function buildQuestCard(idx){
     <span class="room-num">QUEST ${idx}</span>
     <span class="badge ${eBadge}">${ev.name}</span>
     <span class="det" style="font-size:.7rem">2d20: d20(${d1})+d20(${d2})=${evSum}</span>
+    <button class="add-quest-btn no-select" onclick="trackQuestFromCard(this)" title="Aggiungi al Tracker">＋ Traccia</button>
   </div>
   <div class="room-body">`;
 
@@ -1502,8 +1749,119 @@ function buildQuestCard(idx){
 
 function clearQuests(){ document.getElementById('quest-results').innerHTML=''; }
 
+// ══════════════ TRACKER ══════════════
+if(!S.trackedQuests) S.trackedQuests = [];
+if(!S.notes) S.notes = '';
+
+function trackQuestFromCard(btn){
+  const card = btn.closest('.room-card');
+  if(!card) return;
+  const titleEl = card.querySelector('.room-num');
+  const eventEl = card.querySelector('.room-hdr .badge');
+  const title = (titleEl ? titleEl.textContent : 'Quest') + (eventEl ? ' — ' + eventEl.textContent : '');
+  // Capture inner HTML minus the + button
+  const cloned = card.cloneNode(true);
+  const addBtn = cloned.querySelector('.add-quest-btn');
+  if(addBtn) addBtn.remove();
+  const id = Date.now() + Math.random();
+  const now = new Date();
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} · ${now.getDate()}/${now.getMonth()+1}`;
+  S.trackedQuests.push({ id, title, html: cloned.innerHTML, ts });
+  saveTracked();
+  renderTrackedQuests();
+  btn.textContent = '✓ Aggiunta';
+  btn.style.borderColor = '#4a8040';
+  btn.style.color = '#7ab870';
+  btn.disabled = true;
+  showToast('📝 Quest aggiunta al tracker');
+}
+
+function removeTrackedQuest(id){
+  S.trackedQuests = S.trackedQuests.filter(q => q.id !== id);
+  saveTracked();
+  renderTrackedQuests();
+}
+
+function clearTrackedQuests(){
+  if(!S.trackedQuests.length) return;
+  if(!confirm('Rimuovere tutte le quest tracciate?')) return;
+  S.trackedQuests = [];
+  saveTracked();
+  renderTrackedQuests();
+}
+
+function renderTrackedQuests(){
+  const area = document.getElementById('tracked-quests-area');
+  if(!area) return;
+  if(!S.trackedQuests.length){
+    area.innerHTML='<div class="tracker-empty">Nessuna quest tracciata. Genera quest e premi + per aggiungerle.</div>';
+    return;
+  }
+  area.innerHTML = S.trackedQuests.map(q => `
+    <div class="quest-track-card" data-qid="${q.id}">
+      <div class="quest-track-hdr">
+        <span class="quest-track-title" id="qtitle-${q.id}">${q.title}</span>
+        <span class="quest-track-meta">${q.ts}</span>
+        <button class="rename-btn no-select" onclick="startRename(${q.id})" title="Rinomina">✏</button>
+        <button class="remove-btn no-select" onclick="removeTrackedQuest(${q.id})">− Rimuovi</button>
+      </div>
+      <div class="quest-track-body">${q.html}</div>
+    </div>`).join('');
+}
+
+function startRename(id){
+  const titleEl = document.getElementById('qtitle-'+id);
+  if(!titleEl) return;
+  const q = S.trackedQuests.find(q=>q.id===id);
+  if(!q) return;
+  const input = document.createElement('input');
+  input.className = 'rename-input';
+  input.value = q.title;
+  input.placeholder = 'Nome quest…';
+  input.onblur = () => commitRename(id, input.value);
+  input.onkeydown = e => { if(e.key==='Enter') input.blur(); if(e.key==='Escape'){ input.value=q.title; input.blur(); } };
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
+}
+
+function commitRename(id, newTitle){
+  const q = S.trackedQuests.find(q=>q.id===id);
+  if(!q) return;
+  q.title = newTitle.trim() || q.title;
+  saveTracked();
+  renderTrackedQuests();
+}
+
+function flashGroup(groupId, msg){
+  const el = document.getElementById(groupId);
+  if(el){ el.classList.remove('flash-group'); void el.offsetWidth; el.classList.add('flash-group'); setTimeout(()=>el.classList.remove('flash-group'),1300); }
+  showToast(msg);
+}
+
+function saveNotes(){
+  S.notes = document.getElementById('tracker-notes')?.value || '';
+  localStorage.setItem('gm_notes', S.notes);
+}
+
+function loadNotes(){
+  S.notes = localStorage.getItem('gm_notes') || '';
+  const el = document.getElementById('tracker-notes');
+  if(el) el.value = S.notes;
+}
+
+function saveTracked(){
+  localStorage.setItem('gm_tracked', JSON.stringify(S.trackedQuests));
+}
+
+function loadTracked(){
+  try { S.trackedQuests = JSON.parse(localStorage.getItem('gm_tracked')) || []; }
+  catch(e){ S.trackedQuests = []; }
+  renderTrackedQuests();
+}
+
 // ══════════════ TABS ══════════════
-const TABS=['hex','dungeon','quest','editor','guide'];
+const TABS=['hex','dungeon','quest','tracker','editor','ref','guide'];
 function switchTab(id){
   if(id==='editor')readEditor();
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',TABS[i]===id));
@@ -1560,7 +1918,7 @@ function readEditor(){
 }
 
 function flashBtn(id,msg,dur=1700){
-  const btn=document.getElementById(id);const orig=btn.innerHTML;
+  const btn=document.getElementById(id);if(!btn)return;const orig=btn.innerHTML;
   btn.textContent=msg;btn.style.borderColor='var(--red)';btn.style.color='#e06050';
   setTimeout(()=>{btn.innerHTML=orig;btn.style.borderColor='';btn.style.color='';},dur);
 }
@@ -1569,6 +1927,8 @@ function flashBtn(id,msg,dur=1700){
 loadTables();
 buildEditor();
 loadState();
+loadNotes();
+loadTracked();
 </script>
 </body>
 </html>
