@@ -1462,6 +1462,132 @@
       align-items: center;
       margin-bottom: 10px;
     }
+
+    /* ── Rinforzi: trigger ── */
+    .collapsible-trigger {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--bdr2);
+      border-left: 3px solid var(--gold);
+      color: var(--text2);
+      padding: 9px 14px;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: var(--r);
+      transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .collapsible-trigger:hover {
+      background: var(--bg4);
+      border-color: var(--gold);
+      color: var(--gold2);
+    }
+
+    .collapsible-trigger .trig-arrow {
+      font-size: 10px;
+      opacity: .55;
+      transition: transform .25s;
+    }
+
+    .collapsible-content {
+      display: none;
+      overflow: hidden;
+    }
+
+    .collapsible-content.open {
+      display: block !important;
+      margin-bottom: 16px;
+    }
+
+    /* ── Rinforzi: pannello ── */
+    .qcomp-panel {
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-top: 2px solid var(--gold);
+      border-radius: 0 0 var(--rl) var(--rl);
+      overflow: hidden;
+    }
+
+    .qcomp-body {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+    }
+
+    @media(max-width:700px) {
+      .qcomp-body { grid-template-columns: 1fr; }
+    }
+
+    .qcomp-db {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .qcomp-manual {
+      padding: 12px 14px;
+      background: var(--bg3);
+      border-left: 1px solid var(--bdr);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .qcomp-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .qcomp-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .qcomp-field label {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 9px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .qcomp-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    /* Liste nel db */
+    #qMlist .mrow {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      background: var(--bg3);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      margin-bottom: 3px;
+      cursor: pointer;
+      transition: background .1s, border-color .1s;
+    }
+
+    #qMlist .mrow:hover {
+      background: var(--bg4);
+      border-color: var(--gold);
+    }
   </style>
 </head>
 
@@ -1668,9 +1794,10 @@
     };
 
     let allM = [], filtM = [], encounter = [], combatants = [], currentTurn = 0, round = 1;
+    let fullMonsterDb = [];
     let pid = 0, pg = 0;
     const PS = 50;
-    let sources = {}, activeSrc = null, selMon = null;
+    let sources = {}, activeSrcs = new Set(), selMon = null;
     // --- SISTEMA DI SALVATAGGIO GIOCATORI ---
     let party = { count: 4, level: 5 };
     let players = [];
@@ -1721,7 +1848,18 @@
     const d20 = () => Math.floor(Math.random() * 20) + 1;
 
     function getCR(c) { if (!c) return '0'; if (typeof c === 'string') return c; if (typeof c === 'object') return c.cr || '0'; return '0'; }
-    function getType(t) { if (!t) return ''; if (typeof t === 'string') return t; if (typeof t === 'object') return t.type || ''; return ''; }
+    function getType(t) {
+      if (!t) return '';
+      // Se è una stringa, la restituisce
+      if (typeof t === 'string') return t;
+      // Se è un oggetto, estrae la proprietà 'type'
+      if (typeof t === 'object') {
+        if (t.type) return t.type;
+        // Caso particolare di alcuni database dove il type è la prima chiave dell'oggetto
+        return Object.keys(t)[0] || '';
+      }
+      return '';
+    }
     function getAC(ac) { if (!ac || !ac[0]) return 10; const a = ac[0]; return typeof a === 'number' ? a : a.ac || 10; }
     function getACDesc(ac) { if (!ac || !ac[0] || typeof ac[0] === 'number') return ''; return ac[0].from ? ' (' + ac[0].from.join(', ') + ')' : ''; }
     function getHP(hp) { if (!hp) return 1; if (typeof hp === 'number') return hp; return hp.average || 1; }
@@ -1822,35 +1960,38 @@
       try {
         const r = await fetch(BASE + 'index.json');
         sources = await r.json();
-        renderChips(); loadSrc('MM');
+        renderChips();
+        // Rimosso loadSrc('MM'); <--- Questo caricava il 2014 per primo
       } catch (e) {
-        document.getElementById('chips').innerHTML = '<span style="color:var(--red2);font-size:13px">Errore connessione. Necessario server HTTPS (es. GitHub Pages).</span>';
+        document.getElementById('chips').innerHTML = '<span style="color:var(--red2);font-size:13px">Errore connessione.</span>';
       }
     }
 
     function renderChips() {
       const keys = Object.keys(sources);
       const pref = PREF.filter(k => keys.includes(k));
-
-      // Rimosso il blocco 'rest'. Ora carica SOLO i manuali scelti e usa i nomi completi!
+      // Nessuna selezione = tutti attivi (no filtro per sorgente)
+      const allActive = activeSrcs.size === 0;
       document.getElementById('chips').innerHTML = pref.map(k => {
         const name = FULL_NAMES[k] || k;
-        return `<button class="chip${k === activeSrc ? ' on' : ''}" onclick="loadSrc('${k}')" title="${esc(name)}">${esc(k)}</button>`;
+        const isOn = allActive || activeSrcs.has(k);
+        return `<button class="chip${isOn ? ' on' : ''}" onclick="toggleSrc('${k}')" title="${esc(name)}">${esc(k)}</button>`;
       }).join('');
     }
 
-    async function loadSrc(key) {
-      if (!sources[key]) return;
-      activeSrc = key; renderChips();
-      document.getElementById('mlist').innerHTML = `<div class="phmsg">Caricamento ${key}…</div>`;
-      try {
-        const r = await fetch(BASE + sources[key]);
-        const d = await r.json();
-        allM = d.monster || [];
-        applyF();
-      } catch (e) {
-        document.getElementById('mlist').innerHTML = '<div class="phmsg" style="color:var(--red2)">Errore caricamento</div>';
+    function toggleSrc(key) {
+      if (activeSrcs.has(key)) {
+        activeSrcs.delete(key);
+      } else {
+        activeSrcs.add(key);
       }
+      renderChips();
+      // Se nessun chip selezionato, mostra tutto; altrimenti filtra per fonte
+      allM = (activeSrcs.size === 0)
+        ? [...fullMonsterDb]
+        : fullMonsterDb.filter(m => activeSrcs.has(m.source));
+      pg = 0;
+      applyF();
     }
 
     function applyF() {
@@ -2016,7 +2157,7 @@
       calcDiff(); document.getElementById('btn-avvia').disabled = false;
     }
     function resetDiff() {
-      ['txp', 'axp'].forEach(id => document.getElementById(id).textContent = '—');
+      ['txp'].forEach(id => document.getElementById(id).textContent = '—');
       const b = document.getElementById('dbadge'); b.textContent = '—'; b.className = 'dbadge bnone';
       document.getElementById('xfill').style.width = '0'; document.getElementById('tgrid').innerHTML = '';
     }
@@ -2071,30 +2212,6 @@
       players[i].initMod = Math.max(-5, Math.min(10, players[i].initMod + d));
       document.getElementById('pmod-' + i).textContent = (players[i].initMod >= 0 ? '+' : '') + players[i].initMod;
       saveParty();
-    }
-    function updatePName(i, val) { players[i].name = val; saveParty(); }
-    function updatePAC(i, val) {
-      let v = parseInt(val);
-      players[i].ac = isNaN(v) ? 10 : v;
-      saveParty();
-    }
-
-    function renderPlayers() {
-      document.getElementById('pv').textContent = party.count;
-      document.getElementById('lv').textContent = party.level;
-      document.getElementById('plist').innerHTML = players.map((p, i) =>
-        `<div class="prow-item">
-      <div class="p-name"><input type="text" value="${esc(p.name)}" placeholder="Giocatore ${i + 1}" oninput="updatePName(${i}, this.value)"/></div>
-      <div class="p-hp"><span>HP Max</span><input type="number" value="${p.hpMax}" onchange="updatePHP(${i}, this.value)"/></div>
-      <div class="p-ac"><span>CA</span><input type="number" value="${p.ac}" onchange="updatePAC(${i}, this.value)"/></div>
-      <span class="pmlab">Init</span>
-      <div class="pmctl">
-        <button class="cbtn" onclick="adjMod(${i},-1)">−</button>
-        <span class="pmval" id="pmod-${i}">${p.initMod >= 0 ? '+' : ''}${p.initMod}</span>
-        <button class="cbtn" onclick="adjMod(${i},1)">+</button>
-      </div>
-    </div>`
-      ).join('');
     }
 
     /* ── Combat ── */
@@ -2175,43 +2292,320 @@
       }
       renderCombat();
     }
+
     function renderCombat() {
       const cur = combatants[currentTurn];
-      document.getElementById('rbadge').textContent = 'Round ' + round;
-      document.getElementById('rsub').textContent = 'Turno di ' + (cur ? esc(cur.name) : '—');
-      document.getElementById('clist').innerHTML = combatants.map((c, i) => {
-        const isAct = i === currentTurn, mon = c.type === 'monster';
+      // Salva lo stato del pannello rinforzi prima di ricostruire l'HTML
+      const wasOpen = document.getElementById('quick-comp')?.classList.contains('open');
+      if (document.getElementById('rbadge')) document.getElementById('rbadge').textContent = 'Round ' + round;
+      if (document.getElementById('rsub')) document.getElementById('rsub').textContent = 'Turno di ' + (cur ? esc(cur.name) : '—');
+
+      let html = '';
+
+      html += `
+  <div class="add-quick-wrapper" style="margin-bottom:18px">
+    <button class="collapsible-trigger" onclick="toggleQuickComp()">
+      <span>⚔&nbsp; Rinforzi &amp; Database</span>
+      <span class="trig-arrow">▼ espandi</span>
+    </button>
+
+    <div id="quick-comp" class="collapsible-content">
+      <div class="qcomp-panel">
+        <div class="qcomp-body">
+
+          <!-- Colonna sinistra: ricerca database -->
+          <div class="qcomp-db">
+            <div class="qcomp-title">🔍 Cerca nel database globale</div>
+            <input type="text" id="qSearch" placeholder="Cerca mostro…" oninput="applyQuickF()" autocomplete="off"/>
+            <div class="f2">
+              <select id="qCrf" onchange="applyQuickF()">
+                <option value="">Tutti i CR</option>
+                <option value="0">CR 0</option>
+                <option value="1/8">CR 1/8</option>
+                <option value="1/4">CR 1/4</option>
+                <option value="1/2">CR 1/2</option>
+                ${[...Array(31).keys()].map(n => `<option value="${n}">CR ${n}</option>`).join('')}
+              </select>
+              <select id="qTyf" onchange="applyQuickF()">
+                <option value="">Tutti i tipi</option>
+                <option value="aberration">Aberrazioni</option>
+                <option value="beast">Bestie</option>
+                <option value="celestial">Celestiali</option>
+                <option value="construct">Costrutti</option>
+                <option value="dragon">Draghi</option>
+                <option value="elemental">Elementali</option>
+                <option value="fey">Folletti</option>
+                <option value="fiend">Immondi</option>
+                <option value="giant">Giganti</option>
+                <option value="humanoid">Umanoidi</option>
+                <option value="monstrosity">Mostruosità</option>
+                <option value="ooze">Melme</option>
+                <option value="plant">Vegetali</option>
+                <option value="undead">Non Morti</option>
+              </select>
+            </div>
+            <div id="qMlist" class="mlist" style="max-height:260px;overflow-y:auto;flex:1">
+              <div class="phmsg">Caricamento database…</div>
+            </div>
+          </div>
+
+          <!-- Colonna destra: aggiungi manualmente -->
+          <div class="qcomp-manual">
+            <div class="qcomp-title">✚ Aggiungi combattente</div>
+            <div class="qcomp-field">
+              <label>Nome</label>
+              <input type="text" id="qManualName" placeholder="es. Goblin Boss, Aria…"/>
+            </div>
+            <div class="qcomp-2col">
+              <div class="qcomp-field">
+                <label>HP Max</label>
+                <input type="number" id="qManualHp" placeholder="10" min="1"/>
+              </div>
+              <div class="qcomp-field">
+                <label>CA</label>
+                <input type="number" id="qManualAc" placeholder="10" min="0"/>
+              </div>
+            </div>
+            <div class="qcomp-field">
+              <label>Iniziativa</label>
+              <input type="number" id="qManualInit" placeholder="0"/>
+            </div>
+            <button class="btn-avvia" onclick="addQuickManual()" style="margin-top:4px;font-size:13px;padding:9px">✚ Aggiungi</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+      html += combatants.map((c, i) => {
+        const isAct = i === currentTurn;
+        const mon = c.type === 'monster';
         const pct = c.hpMax ? Math.max(0, Math.round(c.hpCurrent / c.hpMax * 100)) : 100;
         const hpClr = pct > 50 ? '#27ae60' : pct > 25 ? '#f39c12' : '#c0392b';
 
-        let hpContent = (c.hpCurrent === 0 && !mon) ?
-          `<div class="death-saves">
-        <span style="color:var(--text3);font-size:10px;text-transform:uppercase;margin-right:4px">Morte</span>
-        <div class="ds-group">${[1, 2, 3].map(n => `<div class="ds-box s ${c.deathSaves.s >= n ? 'on' : ''}" onclick="setDS(${c.id},'s',${n})"></div>`).join('')}</div>
-        <div class="ds-group" style="margin-left:6px">${[1, 2, 3].map(n => `<div class="ds-box f ${c.deathSaves.f >= n ? 'on' : ''}" onclick="setDS(${c.id},'f',${n})"></div>`).join('')}</div>
-      </div>` :
-          `<div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpClr}"></div></div>
-      <div class="hp-nums"><input type="number" value="${c.hpCurrent}" min="0" max="${c.hpMax}" onchange="setHP(${c.id},this.value)"/><span class="hp-max">/${c.hpMax}</span></div>`;
-
-        return `<div class="crow${isAct ? ' active' : ''}${c.isDead ? ' dead' : ''}">
-      <div class="c-arr">${isAct ? '▶' : ''}</div>
-      <div class="c-init-col"><input type="number" value="${c.initiative}" onchange="setInit(${c.id},this.value)"/></div>
-      <div class="c-name-col" style="display:flex; align-items:center; gap:8px">
-        ${mon && c.monsterData ? `<img src="${getMonIcon(c.monsterData)}" style="width:28px; height:28px; border-radius:50%; border:1px solid var(--gold2); background:var(--bg3); object-fit:contain" onerror="this.src='https://5etools-mirror-3.github.io/5etools-img/token/mm/skeleton.webp';">` : `<div style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:var(--bg3); border-radius:50%; border:1px solid var(--bdr); font-size:9px; color:var(--gold); font-weight:bold">PG</div>`}
-        <span class="c-nm${mon ? ' click' : ''}"${mon ? ` onclick="showStatCombat(${c.id})" title="Scheda"` : ''}>${esc(c.name)}${c.isDead ? ' 💀' : ''}</span>
-      </div>
-      <div class="c-ac-col">${c.ac}<small>CA</small></div>
-      <div class="crow-hp">${hpContent}</div>
-      <div class="crow-ctrl">
-        <button class="hbtn d" onclick="modHP(${c.id},-10)">−10</button>
-        <button class="hbtn d" onclick="modHP(${c.id},-5)">−5</button>
-        <button class="hbtn d" onclick="modHP(${c.id},-1)">−1</button>
-        <button class="hbtn h" onclick="modHP(${c.id},1)">+1</button>
-        <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
-      </div>
-    </div>`;
+        return `
+      <div class="crow${isAct ? ' active' : ''}${c.isDead ? ' dead' : ''}">
+        <div class="c-arr">${isAct ? '▶' : ''}</div>
+        <div class="c-init-col"><input type="number" value="${c.initiative}" onchange="setInit(${c.id},this.value)"></div>
+        <div class="c-name-col">
+          ${mon && c.monsterData ? `<img src="${getMonIcon(c.monsterData)}" class="mon-icon" onerror="this.src='https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/bestiary/tokens/MM/Skeleton.webp';">` : `<div class="mon-icon" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold)">PG</div>`}
+          <span class="c-nm">${esc(c.name)}</span>
+        </div>
+        <div class="c-ac-col">${c.ac}<small>CA</small></div>
+        <div class="crow-hp">
+          <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpClr}"></div></div>
+          <div class="hp-nums"><input type="number" value="${c.hpCurrent}" onchange="setHP(${c.id},this.value)"><span class="hp-max">/${c.hpMax}</span></div>
+        </div>
+        <div class="crow-ctrl">
+          <button class="hbtn d" onclick="modHP(${c.id},-5)">-5</button>
+          <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
+          <button class="cbtn" style="border-color: var(--red); color: var(--red2); margin-left: 8px; width: 28px; height: 28px;" onclick="removeCombatant(${c.id})">✕</button>
+        </div>
+      </div>`;
       }).join('');
+
+      document.getElementById('clist').innerHTML = html;
+
+      // Ripristina lo stato aperto del pannello rinforzi se era aperto
+      if (wasOpen) {
+        const qc = document.getElementById('quick-comp');
+        if (qc) qc.classList.add('open');
+      }
+
+      // Forza il caricamento iniziale dei dati anche se la tendina è chiusa
+      setTimeout(applyQuickF, 100);
     }
+    // LOGICA PER L'AGGIUNTA
+    // Filtra i mostri dentro la sezione Incontro
+    function applyQuickF() {
+      const ml = document.getElementById('qMlist');
+      if (!ml) return;
+
+      const searchVal = (document.getElementById('qSearch')?.value || "").toLowerCase().trim();
+      const crVal = document.getElementById('qCrf')?.value || "";
+      const tyVal = document.getElementById('qTyf')?.value || "";
+
+      // Se il database è vuoto, proviamo a usare allM come fallback
+      const db = (fullMonsterDb && fullMonsterDb.length > 0) ? fullMonsterDb : allM;
+
+      if (!db || db.length === 0) {
+        ml.innerHTML = '<div class="phmsg">Database non ancora pronto... prova a cambiare manuale nel Costruttore.</div>';
+        return;
+      }
+
+      const filtered = db.filter(m => {
+        // Forza il tipo a stringa prima di usare toLowerCase
+        const rawType = getType(m.type) || "";
+        const mType = String(rawType).toLowerCase();
+
+        const matchesSearch = !searchVal || m.name.toLowerCase().includes(searchVal);
+        const matchesCR = !crVal || getCR(m.cr) === crVal;
+        const matchesType = !tyVal || mType.includes(tyVal);
+
+        return matchesSearch && matchesCR && matchesType;
+      }).slice(0, 50);
+
+      if (filtered.length === 0) {
+        ml.innerHTML = '<div class="phmsg">Nessun mostro trovato.</div>';
+        return;
+      }
+
+      // Costruiamo il contenuto HTML in una variabile prima di iniettarlo
+      let html = '';
+      filtered.forEach(m => {
+        const safeName = m.name.replace(/'/g, "\\'");
+        html += `
+      <div class="mrow" onclick="addMonsterToCombat('${safeName}', '${m.source}')" 
+           style="display: flex !important; align-items: center; gap: 10px; padding: 10px; background: var(--bg3); border: 1px solid var(--bdr); margin-bottom: 4px; cursor: pointer;">
+        <img src="${getMonIcon(m)}" style="width:24px; height:24px; border-radius:50%; border:1px solid var(--gold);" 
+             onerror="this.src='https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/bestiary/tokens/MM/Skeleton.webp';">
+        <div style="flex: 1; min-width: 0;">
+          <div style="color: var(--text); font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${esc(m.name)}</div>
+          <div style="color: var(--text3); font-size: 10px; font-style: italic;">${esc(m.source)}</div>
+        </div>
+        <div style="color: var(--gold); font-family: Cinzel; font-size: 12px; font-weight: bold; min-width: 45px; text-align: right;">CR ${getCR(m.cr)}</div>
+        <div class="madd" style="margin-left: 5px;">+</div>
+      </div>
+    `;
+      });
+
+      ml.innerHTML = html;
+    } // Funzione utile per gestire l'apertura e forzare il refresh della lista
+    function toggleQuickComp() {
+      const comp = document.getElementById('quick-comp');
+      if (!comp) return;
+
+      comp.classList.toggle('open');
+
+      // Se abbiamo aperto la tendina, carichiamo i mostri con un piccolo ritardo
+      if (comp.classList.contains('open')) {
+        setTimeout(() => {
+          applyQuickF();
+        }, 50);
+      }
+    }
+    // Aggiunge un mostro dal database globale al combattimento
+    function addMonsterToCombat(name, source) {
+      const db = fullMonsterDb.length > 0 ? fullMonsterDb : allM;
+      const found = db.find(m => m.name === name && m.source === source);
+      if (!found) return;
+
+      const currentActor = combatants[currentTurn];
+      const hp = getHP(found.hp);
+
+      const newUnit = {
+        id: Date.now(),
+        name: found.name,
+        initiative: Math.floor(Math.random() * 20) + 1, // Iniziativa casuale o chiedi
+        hpCurrent: hp,
+        hpMax: hp,
+        ac: getAC(found.ac),
+        type: 'monster',
+        deathSaves: { s: 0, f: 0 },
+        isDead: false,
+        monsterData: found
+      };
+
+      combatants.push(newUnit);
+      combatants.sort((a, b) => b.initiative - a.initiative);
+      if (currentActor) currentTurn = combatants.indexOf(currentActor);
+      renderCombat();
+    }
+
+    // Aggiunta manuale per PG o rinforzi generici
+    function addQuickManual() {
+      const name = document.getElementById('qManualName').value.trim();
+      if (!name) return;
+
+      const currentActor = combatants[currentTurn];
+      const hp = parseInt(document.getElementById('qManualHp').value) || 10;
+
+      combatants.push({
+        id: Date.now(),
+        name: name,
+        initiative: parseInt(document.getElementById('qManualInit').value) || 0,
+        hpCurrent: hp, hpMax: hp,
+        ac: parseInt(document.getElementById('qManualAc').value) || 10,
+        type: 'monster', deathSaves: { s: 0, f: 0 }, isDead: false, monsterData: null
+      });
+
+      combatants.sort((a, b) => b.initiative - a.initiative);
+      if (currentActor) currentTurn = combatants.indexOf(currentActor);
+
+      // Reset campi
+      ['qManualName','qManualHp','qManualAc','qManualInit'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+
+      renderCombat();
+    }
+    // Sostituisci la funzione addQuick (riga 754 circa) con questa
+    function addQuick() {
+      const nameVal = document.getElementById('qName').value.trim();
+      if (!nameVal) return;
+
+      const currentActor = combatants[currentTurn];
+
+      // Cerchiamo nel database globale che contiene TUTTI i manuali caricati
+      const found = fullMonsterDb.find(m => m.name.toLowerCase() === nameVal.toLowerCase());
+
+      let newUnit;
+      const init = parseInt(document.getElementById('qInit').value) || 0;
+
+      if (found) {
+        const hp = getHP(found.hp);
+        newUnit = {
+          id: Date.now(),
+          name: found.name,
+          initiative: init,
+          hpCurrent: hp,
+          hpMax: hp,
+          ac: getAC(found.ac),
+          type: 'monster',
+          deathSaves: { s: 0, f: 0 },
+          isDead: false,
+          monsterData: found
+        };
+      } else {
+        // Se non lo trova (PG o altro), usa i dati inseriti a mano
+        const hp = parseInt(document.getElementById('qHp').value) || 10;
+        const ac = parseInt(document.getElementById('qAc').value) || 10;
+        newUnit = {
+          id: Date.now(),
+          name: nameVal,
+          initiative: init,
+          hpCurrent: hp,
+          hpMax: hp,
+          ac: ac,
+          type: 'monster', // Lo teniamo come monster per avere la barra HP
+          deathSaves: { s: 0, f: 0 },
+          isDead: false,
+          monsterData: null
+        };
+      }
+
+      combatants.push(newUnit);
+      combatants.sort((a, b) => b.initiative - a.initiative);
+
+      if (currentActor) currentTurn = combatants.indexOf(currentActor);
+
+      // Reset campi
+      document.getElementById('qName').value = '';
+      document.getElementById('qHp').value = '';
+      document.getElementById('qAc').value = '';
+      document.getElementById('qInit').value = '';
+
+      renderCombat();
+    } function removeCombatant(id) {
+      if (!confirm("Rimuovere questo combattente?")) return;
+      const currentActor = combatants[currentTurn];
+      combatants = combatants.filter(c => c.id !== id);
+      if (currentActor) currentTurn = combatants.indexOf(currentActor);
+      if (currentTurn === -1) currentTurn = 0;
+      renderCombat();
+    }
+
     /* ── Events ── */
     let st;
     document.getElementById('search').addEventListener('input', () => { clearTimeout(st); st = setTimeout(applyF, 220); });
@@ -2221,7 +2615,9 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open'); });
 
     renderPlayers();
-    loadIndex();
+    loadIndex().then(() => {
+      loadAllManuals();
+    });
     /* ── SISTEMA DI LANCIO DADI ── */
     // Crea il contenitore della notifica se non esiste
     const toast = document.createElement('div');
@@ -2270,6 +2666,44 @@
       clearTimeout(toastTimer);
       toast.classList.add('show');
       toastTimer = setTimeout(() => toast.classList.remove('show'), 3500); // Scompare dopo 3.5 secondi
+    }
+    async function loadAllManuals() {
+      const ml = document.getElementById('qMlist');
+      if (ml) ml.innerHTML = '<div class="phmsg">Inizializzazione database...</div>';
+
+      for (const key of PREF) {
+        try {
+          if (!sources[key]) continue;
+          const r = await fetch(BASE + sources[key]);
+          if (!r.ok) continue;
+
+          const text = await r.text();
+          let d;
+          try {
+            d = JSON.parse(text);
+          } catch (e) {
+            console.warn(`Salto manuale ${key}: JSON non valido`);
+            continue;
+          }
+
+          const monstersFromSrc = d.monster || [];
+          monstersFromSrc.forEach(m => {
+            if (!fullMonsterDb.find(x => x.name === m.name && x.source === m.source)) {
+              fullMonsterDb.push(m);
+            }
+          });
+        } catch (e) {
+          console.error("Errore caricamento manuale: " + key, e);
+        }
+      }
+
+      fullMonsterDb.sort((a, b) => a.name.localeCompare(b.name));
+      // Rispetta la selezione corrente dei chip
+      allM = (activeSrcs.size === 0)
+        ? [...fullMonsterDb]
+        : fullMonsterDb.filter(m => activeSrcs.has(m.source));
+      applyF();
+      applyQuickF();
     }
   </script>
 </body>
