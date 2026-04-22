@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scheda Personaggio — D&D 5e</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:    #0f0e0d;
+      --bg2:   #1a1815;
+      --bg3:   #232019;
+      --bg4:   #2c2820;
+      --bg5:   #332e24;
+      --bdr:   rgba(180,150,90,.18);
+      --bdr2:  rgba(180,150,90,.38);
+      --bdr3:  rgba(180,150,90,.6);
+      --gold:  #c8a84b;
+      --gold2: #e8c96a;
+      --gold3: #f5dfa0;
+      --gdim:  rgba(200,168,75,.12);
+      --red:   #c0392b;
+      --red2:  #e74c3c;
+      --redbg: rgba(192,57,43,.12);
+      --green: #27ae60;
+      --gbg:   rgba(39,174,96,.12);
+      --blue:  #3498db;
+      --bluebg:rgba(52,152,219,.12);
+      --purple:#9b59b6;
+      --pbg:   rgba(155,89,182,.14);
+      --teal:  #1abc9c;
+      --tbg:   rgba(26,188,156,.12);
+      --orange:#e67e22;
+      --obg:   rgba(230,126,34,.12);
+      --text:  #e8dcc8;
+      --text2: #a89878;
+      --text3: #6b5c40;
+      --r: 6px; --rl: 10px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 15px;
+      min-height: 100vh;
+    }
+    body::before {
+      content:'';position:fixed;inset:0;pointer-events:none;
+      background:
+        radial-gradient(ellipse at 15% 10%, rgba(200,168,75,.05) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 90%, rgba(192,57,43,.04) 0%, transparent 55%);
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      background: var(--bg2);
+      border-bottom: 2px solid var(--bdr2);
+      padding: .6rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,.5);
+    }
+    .char-avatar {
+      width: 52px;height:52px;border-radius:50%;
+      border: 2px solid var(--bdr2);
+      background: var(--bg4);
+      display:flex;align-items:center;justify-content:center;
+      font-size: 22px;flex-shrink:0;
+    }
+    .char-identity { flex:1;min-width:0 }
+    .char-name {
+      font-family:'Cinzel',serif;font-size:18px;font-weight:700;
+      color:var(--gold2);letter-spacing:.04em;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .char-meta { font-size:12px;color:var(--text2);margin-top:1px }
+
+    .xp-block { display:flex;flex-direction:column;align-items:center;gap:3px;min-width:120px }
+    .xp-bar-wrap {
+      width:100%;height:6px;background:var(--bg4);
+      border-radius:3px;border:1px solid var(--bdr);overflow:hidden;
+    }
+    .xp-bar-fill { height:100%;background:var(--gold);border-radius:3px;transition:width .4s }
+    .xp-label { font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:var(--text3) }
+
+    .rest-btn {
+      padding: 6px 14px;border:1px solid;border-radius:var(--r);
+      font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      letter-spacing:.06em;cursor:pointer;transition:all .12s;
+    }
+    .rest-btn.short { border-color:var(--orange);color:var(--orange);background:var(--obg) }
+    .rest-btn.short:hover { background:rgba(230,126,34,.2) }
+    .rest-btn.long  { border-color:var(--blue);color:var(--blue);background:var(--bluebg) }
+    .rest-btn.long:hover  { background:rgba(52,152,219,.2) }
+
+    .back-btn {
+      padding: 6px 12px;border:1px solid var(--bdr2);border-radius:var(--r);
+      font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      letter-spacing:.06em;cursor:pointer;color:var(--text2);background:transparent;
+      transition:all .12s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;
+    }
+    .back-btn:hover { border-color:var(--gold);color:var(--gold) }
+
+    /* ─── ABILITY SCORES ROW ─── */
+    .scores-row {
+      display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem;
+      padding:.8rem 1.2rem;background:var(--bg3);border-bottom:1px solid var(--bdr);
+    }
+    .score-box {
+      background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);
+      display:flex;flex-direction:column;align-items:center;padding:.5rem .3rem;
+      position:relative;transition:border-color .15s;
+    }
+    .score-box:hover { border-color:var(--gold) }
+    .score-lbl {
+      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:2px;
+    }
+    .score-mod {
+      font-family:'Cinzel',serif;font-size:26px;font-weight:700;
+      color:var(--gold2);line-height:1;
+    }
+    .score-base {
+      font-family:'Cinzel',serif;font-size:11px;font-weight:600;
+      color:var(--text2);
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:50%;
+      width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+      margin-top:5px;
+    }
+
+    /* ─── STATS ROW ─── */
+    .stats-row {
+      display:flex;align-items:stretch;gap:.6rem;
+      padding:.6rem 1.2rem;background:var(--bg2);border-bottom:1px solid var(--bdr);
+      flex-wrap:wrap;
+    }
+    .stat-box {
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:.5rem .8rem;text-align:center;min-width:72px;
+    }
+    .stat-box-val {
+      font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2);line-height:1;
+    }
+    .stat-box-lbl {
+      font-family:'Cinzel',serif;font-size:8px;font-weight:600;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:4px;
+    }
+    .stat-box.green .stat-box-val { color:var(--green) }
+    .stat-box.blue  .stat-box-val { color:var(--blue)  }
+    .stat-box.red   .stat-box-val { color:var(--red2)  }
+    .stat-box.teal  .stat-box-val { color:var(--teal)  }
+
+    /* HP section */
+    .hp-block {
+      flex:1;min-width:220px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:.5rem .8rem;
+    }
+    .hp-title {
+      font-family:'Cinzel',serif;font-size:8px;font-weight:600;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem;
+    }
+    .hp-controls { display:flex;align-items:center;gap:.5rem }
+    .hp-btn {
+      padding:5px 12px;border-radius:var(--r);font-family:'Cinzel',serif;font-size:10px;
+      font-weight:600;cursor:pointer;border:1px solid;letter-spacing:.06em;
+    }
+    .hp-btn.heal { border-color:var(--green);color:var(--green);background:var(--gbg) }
+    .hp-btn.dmg  { border-color:var(--red2); color:var(--red2); background:var(--redbg) }
+    .hp-vals { display:flex;align-items:baseline;gap:.3rem;flex:1;justify-content:center }
+    .hp-cur {
+      font-family:'Cinzel',serif;font-size:32px;font-weight:700;color:var(--green);line-height:1;
+    }
+    .hp-sep { font-family:'Cinzel',serif;font-size:18px;color:var(--text3) }
+    .hp-max { font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--text2) }
+    .hp-temp-block { display:flex;flex-direction:column;align-items:center }
+    .hp-temp-val { font-family:'Cinzel',serif;font-size:18px;font-weight:600;color:var(--text3) }
+    .hp-sublbl { font-family:'Cinzel',serif;font-size:8px;color:var(--text3);letter-spacing:.1em }
+
+    /* ─── MAIN GRID ─── */
+    .main-grid {
+      display:grid;
+      grid-template-columns: 200px 210px 1fr;
+      gap:.6rem;
+      padding:.6rem 1.2rem;
+      align-items:start;
+      min-height:calc(100vh - 220px);
+    }
+    @media(max-width:960px){
+      .main-grid { grid-template-columns:1fr 1fr; }
+      .main-col-right { grid-column:1 / -1; }
+    }
+    @media(max-width:600px){
+      .main-grid { grid-template-columns:1fr }
+      .main-col-right { grid-column:1 }
+    }
+
+    /* ─── PANELS ─── */
+    .panel {
+      background:var(--bg2);border:1px solid var(--bdr);
+      border-radius:var(--rl);overflow:hidden;margin-bottom:.6rem;
+    }
+    .panel-hdr {
+      background:var(--bg3);border-bottom:1px solid var(--bdr);
+      padding:.45rem .9rem;display:flex;align-items:center;justify-content:space-between;
+    }
+    .panel-title {
+      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
+    }
+    .panel-body { padding:.6rem .9rem }
+
+    /* ─── SAVING THROWS ─── */
+    .save-row {
+      display:flex;align-items:center;gap:7px;padding:3px 0;
+    }
+    .save-dot {
+      width:10px;height:10px;border-radius:50%;
+      border:1px solid var(--bdr2);flex-shrink:0;
+      background:transparent;transition:all .1s;
+    }
+    .save-dot.on { background:var(--gold);border-color:var(--gold) }
+    .save-stat {
+      font-family:'Cinzel',serif;font-size:9px;font-weight:600;
+      color:var(--text3);letter-spacing:.08em;width:28px;flex-shrink:0;
+    }
+    .save-bonus {
+      font-family:'Cinzel',serif;font-size:12px;font-weight:600;
+      color:var(--text);margin-left:auto;
+    }
+
+    /* ─── SENSES ─── */
+    .sense-row {
+      display:flex;align-items:center;justify-content:space-between;
+      padding:4px 8px;background:var(--bg3);border:1px solid var(--bdr);
+      border-radius:var(--r);margin-bottom:3px;
+    }
+    .sense-val {
+      font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold2);
+      flex-shrink:0;
+    }
+    .sense-lbl { font-size:11px;color:var(--text2) }
+
+    /* ─── PROFICIENCIES ─── */
+    .prof-section { margin-bottom:.7rem }
+    .prof-section-title {
+      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;
+    }
+    .prof-text { font-size:12px;color:var(--text2);line-height:1.5 }
+
+    /* ─── SKILLS ─── */
+    .skills-header {
+      display:grid;grid-template-columns:20px 30px 1fr auto;
+      gap:4px;padding:0 .9rem .3rem;
+      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
+    }
+    .skill-row {
+      display:grid;grid-template-columns:20px 30px 1fr auto;
+      gap:4px;padding:3px .9rem;align-items:center;
+      transition:background .1s;
+    }
+    .skill-row:hover { background:var(--bg3) }
+    .skill-dot {
+      width:9px;height:9px;border-radius:50%;
+      border:1px solid var(--bdr2);background:transparent;
+    }
+    .skill-dot.prof { background:var(--gold);border-color:var(--gold) }
+    .skill-dot.exp  { background:var(--teal);border-color:var(--teal) }
+    .skill-ability {
+      font-family:'Cinzel',serif;font-size:9px;color:var(--text3);
+      letter-spacing:.06em;
+    }
+    .skill-name { font-size:12px;color:var(--text2) }
+    .skill-bonus {
+      font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--text);
+      text-align:right;
+    }
+
+    /* ─── RIGHT COLUMN ─── */
+    .right-top-row {
+      display:flex;gap:.6rem;margin-bottom:.6rem;flex-wrap:wrap;
+    }
+    .circle-stat {
+      width:72px;height:72px;border-radius:50%;
+      background:var(--bg3);border:2px solid var(--bdr2);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .circle-stat-val {
+      font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--gold2);line-height:1;
+    }
+    .circle-stat-lbl {
+      font-family:'Cinzel',serif;font-size:7px;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:2px;
+    }
+    .defenses-block, .conditions-block {
+      flex:1;min-width:140px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:.5rem .8rem;
+    }
+    .block-title {
+      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;
+    }
+    .def-text { font-size:12px;color:var(--text2) }
+    .def-tag {
+      display:inline-block;font-size:10px;font-family:'Cinzel',serif;
+      padding:2px 7px;border-radius:3px;border:1px solid var(--bdr2);
+      color:var(--text2);margin:2px;
+    }
+
+    /* ─── TABS ─── */
+    .tabs-bar {
+      display:flex;border-bottom:1px solid var(--bdr);overflow-x:auto;background:var(--bg2);
+    }
+    .tabs-bar::-webkit-scrollbar{height:2px}
+    .tabs-bar::-webkit-scrollbar-thumb{background:var(--bdr2)}
+    .tab-btn {
+      padding:.6rem 1rem;font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      letter-spacing:.08em;text-transform:uppercase;color:var(--text3);
+      border:none;background:transparent;cursor:pointer;white-space:nowrap;
+      border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;
+    }
+    .tab-btn:hover { color:var(--text2) }
+    .tab-btn.active { color:var(--gold2);border-bottom-color:var(--gold) }
+    .tab-content { display:none;padding:.8rem }
+    .tab-content.active { display:block }
+
+    /* ─── ACTIONS TAB ─── */
+    .action-filters {
+      display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem;
+    }
+    .af-btn {
+      padding:4px 10px;border:1px solid var(--bdr);border-radius:12px;
+      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.08em;
+      background:transparent;color:var(--text3);cursor:pointer;transition:all .12s;
+    }
+    .af-btn:hover { border-color:var(--bdr2);color:var(--text2) }
+    .af-btn.on { background:var(--gdim);border-color:var(--gold);color:var(--gold2) }
+
+    .attacks-table { width:100%;border-collapse:collapse;font-size:12px }
+    .attacks-table th {
+      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
+      border-bottom:1px solid var(--bdr);padding:4px 6px;text-align:left;
+    }
+    .attacks-table td {
+      padding:6px 6px;border-bottom:1px solid var(--bdr);vertical-align:middle;
+      color:var(--text2);
+    }
+    .attacks-table tr:last-child td { border-bottom:none }
+    .attacks-table tr:hover td { background:var(--bg3) }
+    .atk-name { color:var(--text);font-weight:600 }
+    .atk-sub  { font-size:10px;color:var(--text3) }
+    .atk-hit  { font-family:'Cinzel',serif;font-weight:700;
+      color:var(--gold2);font-size:14px; }
+    .atk-dmg  { font-family:'Cinzel',serif;color:var(--text);font-size:12px }
+    .atk-icon { font-size:14px;margin-right:4px }
+
+    /* ─── SPELLS TAB ─── */
+    .spell-level-section { margin-bottom:1rem }
+    .spell-level-hdr {
+      font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+      letter-spacing:.1em;color:var(--blue);text-transform:uppercase;
+      border-bottom:1px solid var(--bluebg);padding-bottom:4px;margin-bottom:.4rem;
+    }
+    .spell-entry {
+      display:flex;align-items:center;gap:8px;padding:5px 8px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      margin-bottom:3px;font-size:13px;color:var(--text);
+    }
+    .spell-entry .sp-school { font-size:10px;color:var(--text3);flex:1;text-align:right }
+    .spell-badge {
+      font-size:9px;font-family:'Cinzel',serif;padding:1px 6px;
+      border-radius:3px;flex-shrink:0;
+    }
+    .spell-badge.auto { border:1px solid var(--teal);color:var(--teal);background:var(--tbg) }
+    .spell-badge.conc { border:1px solid var(--purple);color:var(--purple);background:var(--pbg) }
+    .spell-badge.rit  { border:1px solid var(--green);color:var(--green);background:var(--gbg) }
+
+    /* ─── FEATURES TAB ─── */
+    .feature-item {
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      margin-bottom:4px;overflow:hidden;
+    }
+    .feature-hdr {
+      display:flex;align-items:center;justify-content:space-between;
+      padding:7px 10px;cursor:pointer;transition:background .1s;
+    }
+    .feature-hdr:hover { background:var(--bg4) }
+    .feature-name { font-size:13px;color:var(--text);font-weight:600 }
+    .feature-src  { font-size:10px;color:var(--text3);font-style:italic }
+    .feature-arrow { font-size:10px;color:var(--text3);transition:transform .15s }
+    .feature-item.open .feature-arrow { transform:rotate(90deg) }
+    .feature-body {
+      display:none;padding:8px 12px;font-size:13px;color:var(--text2);
+      border-top:1px solid var(--bdr);line-height:1.6;
+    }
+    .feature-item.open .feature-body { display:block }
+    .feature-lv-badge {
+      font-family:'Cinzel',serif;font-size:8px;padding:2px 6px;
+      border:1px solid var(--bdr2);border-radius:3px;color:var(--text3);flex-shrink:0;
+    }
+
+    /* ─── INVENTORY TAB ─── */
+    .inv-category { margin-bottom:.8rem }
+    .inv-cat-title {
+      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
+      border-bottom:1px solid var(--bdr);padding-bottom:3px;margin-bottom:.4rem;
+    }
+    .inv-item {
+      display:flex;align-items:center;gap:8px;
+      padding:5px 8px;font-size:13px;color:var(--text2);
+      border-bottom:1px solid var(--bdr);
+    }
+    .inv-item:last-child { border-bottom:none }
+    .inv-icon { font-size:14px;flex-shrink:0 }
+
+    /* ─── BACKGROUND TAB ─── */
+    .bg-section { margin-bottom:1rem }
+    .bg-section-title {
+      font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;
+    }
+    .bg-text { font-size:13px;color:var(--text2);line-height:1.6 }
+
+    /* ─── NOTES TAB ─── */
+    .notes-area {
+      width:100%;min-height:200px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      color:var(--text);font-family:'EB Garamond',serif;font-size:14px;
+      padding:.75rem;outline:none;resize:vertical;
+    }
+    .notes-area:focus { border-color:var(--gold) }
+
+    /* ─── MISC ─── */
+    .phmsg { font-size:13px;color:var(--text3);font-style:italic;padding:.5rem 0 }
+    .divider { height:1px;background:var(--bdr);margin:.6rem 0 }
+    .tag {
+      display:inline-block;font-size:10px;font-family:'Cinzel',serif;
+      padding:2px 7px;border-radius:3px;border:1px solid;margin:2px;
+    }
+    .tag.g  { border-color:var(--gold);  color:var(--gold);  background:var(--gdim) }
+    .tag.gr { border-color:var(--green); color:var(--green); background:var(--gbg)  }
+    .tag.b  { border-color:var(--blue);  color:var(--blue);  background:var(--bluebg) }
+    .tag.t  { border-color:var(--teal);  color:var(--teal);  background:var(--tbg)  }
+    .tag.p  { border-color:var(--purple);color:var(--purple);background:var(--pbg)  }
+    .tag.r  { border-color:var(--red2);  color:var(--red2);  background:var(--redbg) }
+
+    /* dice tag */
+    .hd-pips { display:flex;gap:4px;flex-wrap:wrap;margin-top:.3rem }
+    .hd-pip {
+      width:18px;height:18px;border-radius:3px;
+      border:1px solid var(--bdr2);background:var(--bg3);
+      display:flex;align-items:center;justify-content:center;
+      font-size:9px;color:var(--text3);
+    }
+    .hd-pip.used { opacity:.3 }
+    .hd-pip.full { background:var(--gdim);border-color:var(--gold);color:var(--gold) }
+
+    /* scroll */
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:var(--bg2)}
+    ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+
+    .condition-tag {
+      display:inline-flex;align-items:center;gap:4px;
+      padding:3px 9px;border-radius:12px;margin:2px;font-size:11px;
+      font-family:'Cinzel',serif;border:1px solid var(--bdr2);color:var(--text3);
+    }
+    .ac-shield {
+      position:relative;display:flex;align-items:center;justify-content:center;
+      width:72px;height:80px;flex-shrink:0;
+    }
+    .ac-shield svg { position:absolute;inset:0;width:100%;height:100% }
+    .ac-shield-val {
+      position:relative;z-index:1;
+      font-family:'Cinzel',serif;font-size:26px;font-weight:700;color:var(--gold2);
+    }
+    .ac-shield-lbl {
+      position:relative;z-index:1;
+      font-family:'Cinzel',serif;font-size:7px;font-weight:700;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--text3);
+      display:block;margin-top:22px;
+    }
+
+    .slot-pips { display:flex;gap:4px;flex-wrap:wrap }
+    .slot-pip {
+      width:14px;height:14px;border-radius:50%;
+      border:1px solid var(--blue);background:var(--bluebg);
+      transition:all .1s;cursor:pointer;
+    }
+    .slot-pip.used { background:transparent;border-color:var(--bdr) }
+
+    /* ─── XP INTERACTIVE ─── */
+    .xp-block { position:relative }
+    .xp-edit-input {
+      background:transparent;border:none;border-bottom:1px solid var(--gold);
+      color:var(--gold2);font-family:'Cinzel',serif;font-size:11px;font-weight:600;
+      text-align:center;outline:none;width:100px;padding:2px 0;
+    }
+
+    /* ─── INVENTORY STYLES ─── */
+    .inv-search-box {
+      width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:7px 11px;color:var(--text);font-family:'EB Garamond',serif;font-size:15px;
+      outline:none;transition:border-color .15s;margin-bottom:.5rem;
+    }
+    .inv-search-box:focus { border-color:var(--gold) }
+    .inv-search-box::placeholder { color:var(--text3) }
+    .inv-filter-row { display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem }
+    .inv-chip {
+      padding:3px 10px;border:1px solid var(--bdr);border-radius:12px;
+      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.06em;
+      cursor:pointer;background:transparent;color:var(--text3);transition:all .12s;
+    }
+    .inv-chip:hover { border-color:var(--bdr2);color:var(--text2) }
+    .inv-chip.on { background:var(--gdim);border-color:var(--gold);color:var(--gold2) }
+    .inv-search-list {
+      display:flex;flex-direction:column;gap:2px;
+      max-height:180px;overflow-y:auto;margin-bottom:.75rem;
+    }
+    .inv-search-row {
+      display:flex;align-items:center;gap:8px;padding:6px 10px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      cursor:pointer;transition:all .1s;
+    }
+    .inv-search-row:hover { border-color:var(--gold);background:var(--bg4) }
+    .inv-search-name { flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+    .inv-search-meta { font-size:11px;color:var(--text3);flex-shrink:0 }
+    .inv-search-price { font-size:10px;color:var(--text2);flex-shrink:0 }
+    .inv-row {
+      display:flex;align-items:center;gap:7px;padding:6px 10px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:3px;
+    }
+    .inv-row:hover { border-color:var(--bdr2) }
+    .inv-row-name { flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+    .inv-row-meta { font-size:11px;color:var(--text3);flex-shrink:0 }
+    .inv-badge {
+      font-size:8px;font-family:'Cinzel',serif;padding:1px 5px;border-radius:3px;
+      border:1px solid var(--bdr2);flex-shrink:0;
+    }
+    .inv-qty-wrap { display:flex;align-items:center;gap:4px;flex-shrink:0 }
+    .inv-qty-btn {
+      width:20px;height:20px;border:1px solid var(--bdr2);border-radius:3px;
+      background:transparent;color:var(--text2);font-size:13px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;line-height:1;transition:all .1s;
+    }
+    .inv-qty-btn:hover { border-color:var(--gold);color:var(--gold) }
+    .inv-qty-btn.del:hover { border-color:var(--red2);color:var(--red2) }
+    .inv-qty-val { font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--gold2);min-width:18px;text-align:center }
+    .inv-equip-btn {
+      padding:2px 7px;border:1px solid var(--bdr2);border-radius:3px;
+      font-size:9px;font-family:'Cinzel',serif;cursor:pointer;background:transparent;
+      color:var(--text3);transition:all .1s;flex-shrink:0;
+    }
+    .inv-equip-btn:hover { border-color:var(--teal);color:var(--teal) }
+    .inv-equip-btn.on { border-color:var(--teal);color:var(--teal);background:var(--tbg) }
+
+    /* ─── CURRENCY ─── */
+    .currency-row {
+      display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:.75rem;
+    }
+    .currency-cell {
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:5px 4px;text-align:center;
+    }
+    .currency-lbl { font-family:'Cinzel',serif;font-size:8px;letter-spacing:.08em;margin-bottom:3px }
+    .currency-inp {
+      width:100%;background:transparent;border:none;border-bottom:1px solid var(--bdr2);
+      color:var(--gold2);font-family:'Cinzel',serif;font-size:14px;font-weight:700;
+      text-align:center;outline:none;padding:2px 0;
+    }
+    .currency-inp:focus { border-bottom-color:var(--gold) }
+    .inv-section-hdr {
+      font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--bdr);
+      padding-bottom:3px;margin:.6rem 0 .4rem;
+    }
+    .inv-stat-row {
+      display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;
+    }
+    .inv-stat-pill {
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:4px 10px;font-size:12px;color:var(--text2);
+    }
+    .inv-stat-pill b { color:var(--gold2);font-family:'Cinzel',serif }
+    .item-detail-popup {
+      position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
+      display:flex;align-items:center;justify-content:center;padding:1rem;
+    }
+    .item-detail-card {
+      background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);
+      max-width:500px;width:100%;max-height:80vh;overflow-y:auto;padding:1.2rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <div class="char-avatar" id="top-avatar">⚔</div>
+  <div class="char-identity">
+    <div class="char-name" id="top-name">—</div>
+    <div class="char-meta" id="top-meta">—</div>
+  </div>
+  <div class="xp-block">
+    <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-fill" style="width:0%"></div></div>
+    <div style="display:flex;align-items:center;gap:5px;justify-content:center">
+      <input class="xp-edit-input" id="xp-input" type="number" min="0" value="0"
+        oninput="updateXPDisplay(this.value)" title="XP totali"/>
+      <div class="xp-label" id="xp-label" style="white-space:nowrap">XP</div>
+    </div>
+  </div>
+  <button class="rest-btn short" onclick="doRest('short')">☀ RIPOSO BREVE</button>
+  <button class="rest-btn long"  onclick="doRest('long')">🌙 RIPOSO LUNGO</button>
+  <a class="back-btn" href="charbuilder.html">← Builder</a>
+</div>
+
+<!-- ── ABILITY SCORES ── -->
+<div class="scores-row" id="scores-row"></div>
+
+<!-- ── STATS ROW ── -->
+<div class="stats-row" id="stats-row"></div>
+
+<!-- ── MAIN GRID ── -->
+<div class="main-grid">
+
+  <!-- LEFT COL -->
+  <div class="main-col-left">
+
+    <!-- Saving Throws -->
+    <div class="panel">
+      <div class="panel-hdr"><span class="panel-title">⚄ Tiri Salvezza</span></div>
+      <div class="panel-body" id="saves-body"></div>
+    </div>
+
+    <!-- Senses -->
+    <div class="panel">
+      <div class="panel-hdr"><span class="panel-title">👁 Sensi</span></div>
+      <div class="panel-body" id="senses-body"></div>
+    </div>
+
+    <!-- Proficiencies -->
+    <div class="panel">
+      <div class="panel-hdr"><span class="panel-title">📜 Competenze</span></div>
+      <div class="panel-body" id="profs-body"></div>
+    </div>
+
+    <!-- Hit Dice -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <span class="panel-title">🎲 Dadi Vita</span>
+        <span id="hd-label" style="font-size:11px;color:var(--text3)"></span>
+      </div>
+      <div class="panel-body" id="hd-body"></div>
+    </div>
+
+  </div>
+
+  <!-- MIDDLE COL -->
+  <div class="main-col-middle">
+    <div class="panel" style="margin-bottom:0">
+      <div class="panel-hdr"><span class="panel-title">Abilità</span></div>
+      <div class="skills-header">
+        <span></span>
+        <span>Att.</span>
+        <span>Abilità</span>
+        <span>Bon.</span>
+      </div>
+      <div id="skills-body"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT COL -->
+  <div class="main-col-right">
+
+    <!-- Top info row -->
+    <div class="right-top-row">
+      <div class="circle-stat">
+        <div class="circle-stat-val" id="init-val">+0</div>
+        <div class="circle-stat-lbl">Iniziativa</div>
+      </div>
+      <div class="ac-shield">
+        <svg viewBox="0 0 72 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M36 4 L68 18 L68 44 C68 60 52 74 36 78 C20 74 4 60 4 44 L4 18 Z"
+            fill="rgba(35,32,25,.8)" stroke="rgba(180,150,90,.45)" stroke-width="1.5"/>
+        </svg>
+        <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:1">
+          <div class="circle-stat-val" id="ac-val">10</div>
+          <div style="font-family:'Cinzel',serif;font-size:7px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase">CA</div>
+        </div>
+      </div>
+      <div class="defenses-block" id="defenses-block">
+        <div class="block-title">Difese</div>
+        <div id="def-content" class="def-text phmsg">Nessuna resistenza rilevata.</div>
+      </div>
+      <div class="conditions-block">
+        <div class="block-title">Condizioni</div>
+        <div id="conditions-content" class="def-text">
+          <span class="condition-tag">— Nessuna</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Tab Panel -->
+    <div class="panel" style="margin-bottom:0">
+      <div class="tabs-bar">
+        <button class="tab-btn active" onclick="switchTab('actions',this)">Azioni</button>
+        <button class="tab-btn" onclick="switchTab('spells',this)">Incantesimi</button>
+        <button class="tab-btn" onclick="switchTab('inventory',this)">Inventario</button>
+        <button class="tab-btn" onclick="switchTab('features',this)">Feature</button>
+        <button class="tab-btn" onclick="switchTab('background',this)">Background</button>
+        <button class="tab-btn" onclick="switchTab('notes',this)">Note</button>
+      </div>
+
+      <!-- ACTIONS -->
+      <div id="tab-actions" class="tab-content active">
+        <div class="action-filters">
+          <button class="af-btn on" onclick="filterActions('all',this)">Tutto</button>
+          <button class="af-btn" onclick="filterActions('attack',this)">Attacco</button>
+          <button class="af-btn" onclick="filterActions('action',this)">Azione</button>
+          <button class="af-btn" onclick="filterActions('bonus',this)">Azione Bonus</button>
+          <button class="af-btn" onclick="filterActions('reaction',this)">Reazione</button>
+        </div>
+        <div id="attacks-table-wrap"></div>
+        <div id="combat-actions-wrap" style="margin-top:.75rem"></div>
+      </div>
+
+      <!-- SPELLS -->
+      <div id="tab-spells" class="tab-content">
+        <div id="spells-wrap"></div>
+      </div>
+
+      <!-- INVENTORY -->
+      <div id="tab-inventory" class="tab-content">
+        <!-- Currency -->
+        <div class="currency-row" id="currency-row"></div>
+
+        <!-- Inventory stats -->
+        <div class="inv-stat-row" id="inv-stats-row"></div>
+
+        <!-- Search -->
+        <input class="inv-search-box" id="inv-search" placeholder="Cerca oggetti da aggiungere (es. Spada, Pozione, Torcia…)"
+          oninput="renderItemSearch()" autocomplete="off"/>
+        <div class="inv-filter-row">
+          <button class="inv-chip on" onclick="setInvFilter('all',this)">Tutto</button>
+          <button class="inv-chip" onclick="setInvFilter('weapon',this)">⚔ Armi</button>
+          <button class="inv-chip" onclick="setInvFilter('armor',this)">🛡 Armature</button>
+          <button class="inv-chip" onclick="setInvFilter('gear',this)">🎒 Equipagg.</button>
+          <button class="inv-chip" onclick="setInvFilter('magic',this)">✦ Magici</button>
+        </div>
+        <div class="inv-search-list" id="inv-search-results"></div>
+
+        <!-- Add custom -->
+        <div style="display:flex;gap:6px;margin-bottom:.75rem">
+          <input class="inv-search-box" id="inv-custom-name" placeholder="Aggiungi oggetto personalizzato…"
+            style="margin-bottom:0;flex:1"/>
+          <button onclick="addCustomItemSheet()" style="padding:6px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);font-family:'Cinzel',serif;font-size:10px;cursor:pointer;white-space:nowrap;transition:all .12s"
+            onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
+            onmouseout="this.style.borderColor='var(--bdr2)';this.style.color='var(--text2)'">+ Aggiungi</button>
+        </div>
+
+        <!-- Inventory list -->
+        <div class="inv-section-hdr">📦 Inventario (<span id="inv-count">0</span> oggetti)</div>
+        <div id="inv-list"></div>
+      </div>
+
+      <!-- FEATURES -->
+      <div id="tab-features" class="tab-content">
+        <div id="features-wrap"></div>
+      </div>
+
+      <!-- BACKGROUND -->
+      <div id="tab-background" class="tab-content">
+        <div id="background-wrap"></div>
+      </div>
+
+      <!-- NOTES -->
+      <div id="tab-notes" class="tab-content">
+        <textarea class="notes-area" id="notes-area" placeholder="Scrivi qui le tue note…" oninput="saveNotes()"></textarea>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════ CONSTANTS ═══════ */
+const PB_TABLE = [null,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6];
+const STATS = ['str','dex','con','int','wis','cha'];
+const SLBL  = {str:'FOR',dex:'DES',con:'COS',int:'INT',wis:'SAG',cha:'CAR'};
+const FULL_LBL = {str:'Forza',dex:'Destrezza',con:'Costituzione',int:'Intelligenza',wis:'Saggezza',cha:'Carisma'};
+const SCHOOL_LABELS = {A:'Abiurazione',C:'Ammaliamento',D:'Divinazione',E:'Evocazione',I:'Illusione',N:'Necromanzia',T:'Trasmutazione',V:'Veggenza'};
+const SPELL_LEVEL_LABELS = ['Cantrip','1° Livello','2° Livello','3° Livello','4° Livello','5° Livello','6° Livello','7° Livello','8° Livello','9° Livello'];
+const XP_TABLE = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+
+const SKILLS_LIST = [
+  {n:'Acrobatica',   a:'dex'}, {n:'Animalesca',   a:'wis'}, {n:'Arcana',        a:'int'},
+  {n:'Atletica',     a:'str'}, {n:'Consapevolezza',a:'wis'}, {n:'Destrezza Manuale',a:'dex'},
+  {n:'Furtività',   a:'dex'}, {n:'Indagare',     a:'int'}, {n:'Inganno',       a:'cha'},
+  {n:'Intuizione',   a:'wis'}, {n:'Intimidazione', a:'cha'}, {n:'Medicina',      a:'wis'},
+  {n:'Natura',       a:'int'}, {n:'Percezione',    a:'wis'}, {n:'Performance',   a:'cha'},
+  {n:'Persuasione',  a:'cha'}, {n:'Religione',     a:'int'}, {n:'Sopravvivenza', a:'wis'},
+];
+
+const COMBAT_ACTIONS = [
+  {name:'Attacco',    desc:'Effettua un attacco con un\'arma.'},
+  {name:'Schivata',   desc:'Fino al tuo prossimo turno, ogni tiro per colpire contro di te ha svantaggio se puoi vedere l\'attaccante.'},
+  {name:'Disingaggio',desc:'Il tuo movimento non provoca attacchi d\'opportunità per il resto del turno.'},
+  {name:'Nascondersi',desc:'Effettua un tiro Destrezza (Furtività) per nasconderti.'},
+  {name:'Aiuto',      desc:'Concedi vantaggio a un alleato su un tiro di attacco o abilità.'},
+  {name:'Corsa',      desc:'Il tuo movimento raddoppia per questo turno.'},
+  {name:'Prepararsi', desc:'Prepara un\'azione da eseguire in risposta a un grilletto specifico.'},
+  {name:'Studiare',   desc:'Effettua un tiro Intelligence per ottenere informazioni su un bersaglio.'},
+  {name:'Influenzare',desc:'Effettua un tiro Carisma (Persuasione/Inganno/Intimidazione) su una creatura.'},
+  {name:'Grapple',    desc:'Prova a bloccare una creatura con un tiro Atletica.'},
+  {name:'Spingere',   desc:'Prova a spostare o atterrare una creatura.'},
+];
+
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function clean(s){
+  if(!s)return'';
+  return String(s)
+    .replace(/\{@hit ([^}]+)\}/g,(_,v)=>`<b>${+v>=0?'+'+v:v}</b>`)
+    .replace(/\{@damage ([^}]+)\}/g,(_,v)=>`<b>${v}</b>`)
+    .replace(/\{@dc ([^}]+)\}/g,'CD $1')
+    .replace(/\{@spell ([^|}]+)[^}]*\}/g,'<i>$1</i>')
+    .replace(/\{@condition ([^|}]+)[^}]*\}/g,'<b>$1</b>')
+    .replace(/\{@action ([^|}]+)[^}]*\}/g,'<b>$1</b>')
+    .replace(/\{@skill ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@ability ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@b ([^}]+)\}/g,'<b>$1</b>')
+    .replace(/\{@i ([^}]+)\}/g,'<i>$1</i>')
+    .replace(/\{@[a-z]+ ([^|}]+)[^}]*\}/gi,'$1')
+    .replace(/\{[^}]+\}/g,'');
+}
+function rE(e){
+  if(!e)return'';
+  if(typeof e==='string')return clean(e);
+  if(typeof e==='number')return String(e);
+  if(Array.isArray(e))return e.map(rE).join('<br>');
+  if(typeof e==='object'){
+    if(e.type==='list')return`<ul style="margin:.3rem 0 .3rem 1.2rem">${(e.items||[]).map(i=>`<li>${rE(i)}</li>`).join('')}</ul>`;
+    if(e.type==='table'){
+      let h=`<table style="width:100%;border-collapse:collapse;font-size:12px;margin:.4rem 0">`;
+      if(e.colLabels)h+=`<thead><tr>${e.colLabels.map(l=>`<th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;color:var(--text3);padding:3px 6px;border-bottom:1px solid var(--bdr)">${clean(l)}</th>`).join('')}</tr></thead>`;
+      h+=`<tbody>${(e.rows||[]).map(r=>`<tr>${r.map(c=>`<td style="padding:2px 6px;color:var(--text2);border-bottom:1px solid var(--bdr)">${rE(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      return h;
+    }
+    if(e.type==='entries'||e.type==='section')return`<div style="margin-bottom:5px">${e.name?`<b>${clean(e.name)}.</b> `:''} ${rE(e.entries)}</div>`;
+    if(e.type==='inset')return`<div style="border-left:2px solid var(--bdr2);padding:5px 10px;margin:5px 0;font-style:italic">${rE(e.entries)}</div>`;
+    if(e.name&&e.entries)return`<div style="margin-bottom:5px"><b><i>${clean(e.name)}.</i></b> ${rE(e.entries)}</div>`;
+    if(e.entries)return rE(e.entries);
+    if(e.entry)return rE(e.entry);
+  }
+  return'';
+}
+
+/* ═══════ DATA ═══════ */
+let C = null; // character data
+let currentHP = 0;
+let maxHP = 0;
+let usedHD = 0;
+let spellSlotUsed = {}; // {lvl: count}
+let sheetInventory = []; // live inventory for this session
+let sheetCurrency = { cp:0, sp:0, ep:0, gp:10, pp:0 };
+let allItemsDb = []; // loaded from 5etools
+let invFilter = 'all';
+const BASE_URL = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
+const ALLOWED_SOURCES = ['XPHB','FRAiF','FRHoF','EFA'];
+
+function loadChar(){
+  try {
+    const raw = localStorage.getItem('5e_current_char');
+    if(!raw) return null;
+    return JSON.parse(raw);
+  } catch(e){ return null; }
+}
+
+function getBase(stat){
+  if(!C) return 10;
+  const m = C.scoreMethod;
+  if(m==='pointbuy') return (C.pbScores||{})[stat] || 8;
+  if(m==='standard') { const v = (C.arrAssign||{})[stat]; return v!==null&&v!==undefined ? v : 8; }
+  const v = (C.diceAssign||{})[stat]; return v!==null&&v!==undefined ? v : 8;
+}
+function bgBonus(stat){
+  if(!C||!C.bgAbility||!C.bgAbility.length) return 0;
+  // bgAbility is an array of stat keys; weights are +2 for first, +1 for second
+  const idx = C.bgAbility.indexOf(stat);
+  if(idx<0) return 0;
+  return idx===0 ? 2 : 1;
+}
+function getFinal(stat){ return getBase(stat)+bgBonus(stat); }
+function getMod(v){ return Math.floor((v-10)/2); }
+function getPB(){ return C ? (PB_TABLE[C.level]||2) : 2; }
+function fmod(v){ const m=getMod(v); return(m>=0?'+':'')+m; }
+
+function hasSaveProficiency(stat){
+  return C && (C.clsSnapshot?.proficiency||[]).includes(stat);
+}
+function getSaveBonus(stat){
+  const m = getMod(getFinal(stat));
+  return m + (hasSaveProficiency(stat)?getPB():0);
+}
+function fbonus(n){ return (n>=0?'+':'')+n; }
+
+function getSkillProficiency(skillName){
+  // Check selected skills array
+  const sel = C?.selectedSkills || [];
+  // Normalize comparison
+  const norm = s => s.toLowerCase().replace(/[^a-z]/g,'');
+  if(sel.some(s=>norm(s)===norm(skillName))) return 'prof';
+  // Check bg fixed skills
+  const bgFixed = (C?.bgSnapshot?.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose'));
+  if(bgFixed.some(s=>norm(s)===norm(skillName))) return 'prof';
+  // Check class choices
+  const ccHas = Array.isArray(C?.choices?.start_skills_lv1) &&
+    C.choices.start_skills_lv1.some(s=>norm(s)===norm(skillName));
+  if(ccHas) return 'prof';
+  return null;
+}
+function getSkillBonus(sk){
+  const m = getMod(getFinal(sk.a));
+  const p = getSkillProficiency(sk.n);
+  if(p==='exp') return m+getPB()*2;
+  if(p==='prof') return m+getPB();
+  return m;
+}
+
+function calcMaxHP(){
+  if(!C) return 10;
+  const hd = C.clsSnapshot?.hd;
+  let faces = 8;
+  if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
+  const conMod = getMod(getFinal('con'));
+  let total = faces+conMod;
+  const lv = C.level;
+  if(lv>1){ const avg=Math.floor(faces/2)+1; total+=(avg+conMod)*(lv-1); }
+  return Math.max(1, total);
+}
+
+function calcAC(){
+  if(!C) return 10;
+  const dex = getMod(getFinal('dex'));
+  // Check equipped armor in inventory
+  const inv = sheetInventory || C.inventory || [];
+  const equippedArmor = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
+  const equippedShield = inv.find(i => i.equipped && i.type === 'S');
+  let ac = 10 + dex;
+  if(equippedArmor){
+    const baseAC = equippedArmor.ac || 10;
+    if(equippedArmor.type==='LA') ac = baseAC + dex;
+    else if(equippedArmor.type==='MA') ac = baseAC + Math.min(2, dex);
+    else if(equippedArmor.type==='HA') ac = baseAC;
+  }
+  if(equippedShield) ac += 2;
+  return ac;
+}
+
+/* ═══════ RENDER ═══════ */
+function renderAll(){
+  if(!C){ showNoChar(); return; }
+
+  maxHP = calcMaxHP();
+  currentHP = parseInt(localStorage.getItem('5e_hp_current') || maxHP);
+  usedHD = parseInt(localStorage.getItem('5e_hd_used') || 0);
+  spellSlotUsed = JSON.parse(localStorage.getItem('5e_slots_used')||'{}');
+  const notes = localStorage.getItem('5e_notes')||'';
+
+  // Load inventory & currency from localStorage (builder saves these separately too)
+  try { sheetInventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(C.inventory||[])); } catch(e){ sheetInventory = C.inventory||[]; }
+  try { sheetCurrency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(C.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})); } catch(e){ sheetCurrency = {cp:0,sp:0,ep:0,gp:10,pp:0}; }
+
+  renderTopBar();
+  renderScores();
+  renderStatsRow();
+  renderSaves();
+  renderSenses();
+  renderProficiencies();
+  renderHitDice();
+  renderSkills();
+  renderRightTop();
+  renderActionsTab();
+  renderSpellsTab();
+  renderInventoryTab();
+  renderFeaturesTab();
+  renderBackgroundTab();
+  document.getElementById('notes-area').value = notes;
+}
+
+function showNoChar(){
+  document.getElementById('top-name').textContent = 'Nessun personaggio trovato';
+  document.getElementById('top-meta').textContent = 'Torna al builder per creare un personaggio';
+}
+
+function renderTopBar(){
+  const cls = C.className||'—';
+  const sc  = C.subclassShortName ? ` (${C.subclassShortName})` : '';
+  const race= C.speciesName||'';
+  const bg  = C.bgName||'';
+  document.getElementById('top-name').textContent = C.name || 'Personaggio Senza Nome';
+  document.getElementById('top-meta').textContent =
+    [race, cls+sc+' Lv.'+C.level, bg].filter(Boolean).join(' · ');
+
+  // XP
+  const xpStored = parseInt(localStorage.getItem('5e_xp') || C.xp || 0);
+  updateXPDisplay(xpStored);
+  const xpInp = document.getElementById('xp-input');
+  if(xpInp) xpInp.value = xpStored;
+
+  // Avatar initial
+  const initials = (C.name||'?')[0].toUpperCase();
+  document.getElementById('top-avatar').textContent = initials;
+}
+
+function renderScores(){
+  const el = document.getElementById('scores-row');
+  el.innerHTML = STATS.map(s => {
+    const val = getFinal(s);
+    const mod = getMod(val);
+    const modStr = (mod>=0?'+':'')+mod;
+    return `<div class="score-box">
+      <div class="score-lbl">${SLBL[s]}</div>
+      <div class="score-mod">${modStr}</div>
+      <div class="score-base">${val}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStatsRow(){
+  const el = document.getElementById('stats-row');
+  const pb = getPB();
+  const hd = C.clsSnapshot?.hd;
+  let faces = 8;
+  if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
+  const spd = C.speciesSnapshot?.speed||30;
+  const spdVal = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
+  const initMod = getMod(getFinal('dex'));
+
+  el.innerHTML = `
+    <div class="stat-box green">
+      <div class="stat-box-val">${fbonus(pb)}</div>
+      <div class="stat-box-lbl">Bonus Comp.</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val">${spdVal} ft.</div>
+      <div class="stat-box-lbl">Velocità</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val">${fbonus(initMod)}</div>
+      <div class="stat-box-lbl">Iniziativa</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val">${calcAC()}</div>
+      <div class="stat-box-lbl">CA</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-val">d${faces}</div>
+      <div class="stat-box-lbl">Dado Vita</div>
+    </div>
+    ${buildHPBlock()}
+  `;
+}
+
+function buildHPBlock(){
+  return `<div class="hp-block">
+    <div class="hp-title">Punti Ferita</div>
+    <div class="hp-controls">
+      <button class="hp-btn heal" onclick="adjustHP(+1, true)">⬆ Cura</button>
+      <div class="hp-vals">
+        <div class="hp-cur" id="hp-cur-display">${currentHP}</div>
+        <div class="hp-sep">/</div>
+        <div class="hp-max">${maxHP}</div>
+      </div>
+      <button class="hp-btn dmg" onclick="adjustHP(-1, true)">⬇ Danno</button>
+    </div>
+  </div>`;
+}
+
+function adjustHP(dir, prompt){
+  const amtStr = window.prompt(dir>0 ? 'Quanti PF recuperi?' : 'Quanti danni ricevi?', '0');
+  if(amtStr===null) return;
+  const amt = parseInt(amtStr)||0;
+  currentHP = Math.max(0, Math.min(maxHP, currentHP + dir*amt));
+  localStorage.setItem('5e_hp_current', currentHP);
+  document.getElementById('hp-cur-display').textContent = currentHP;
+}
+
+function renderSaves(){
+  const el = document.getElementById('saves-body');
+  el.innerHTML = STATS.map(s => {
+    const bonus = getSaveBonus(s);
+    const prof  = hasSaveProficiency(s);
+    return `<div class="save-row">
+      <div class="save-dot${prof?' on':''}"></div>
+      <span class="save-stat">${SLBL[s]}</span>
+      <span style="font-size:12px;color:var(--text2)">${FULL_LBL[s]}</span>
+      <span class="save-bonus">${fbonus(bonus)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSenses(){
+  const el = document.getElementById('senses-body');
+  const pb = getPB();
+  const wisMod = getMod(getFinal('wis'));
+  const percProf = getSkillProficiency('Percezione')==='prof';
+  const invProf  = getSkillProficiency('Indagare')==='prof';
+  const insProf  = getSkillProficiency('Intuizione')==='prof';
+  const passPerc = 10+wisMod+(percProf?pb:0);
+  const passInv  = 10+getMod(getFinal('int'))+(invProf?pb:0);
+  const passIns  = 10+wisMod+(insProf?pb:0);
+  const dv = C.speciesSnapshot?.darkvision||0;
+
+  let h = `
+    <div class="sense-row">
+      <div class="sense-val">${passPerc}</div>
+      <div class="sense-lbl">Percezione Passiva</div>
+    </div>
+    <div class="sense-row">
+      <div class="sense-val">${passInv}</div>
+      <div class="sense-lbl">Investig. Passiva</div>
+    </div>
+    <div class="sense-row">
+      <div class="sense-val">${passIns}</div>
+      <div class="sense-lbl">Intuizione Passiva</div>
+    </div>`;
+  if(dv>0) h+=`<div class="sense-row">
+    <div class="sense-val" style="color:var(--teal)">${dv} ft</div>
+    <div class="sense-lbl">Scurovisione</div>
+  </div>`;
+  el.innerHTML = h;
+}
+
+function renderProficiencies(){
+  const el = document.getElementById('profs-body');
+  const sp = C.clsSnapshot?.startingProficiencies||{};
+  const bsp= C.bgSnapshot||{};
+
+  const armor   = (sp.armor||[]).join(', ') || '—';
+  const weapons = (sp.weapons||[]).join(', ') || '—';
+  const tools   = [
+    ...(sp.tools ? (Array.isArray(sp.tools)?sp.tools:[String(sp.tools)]) : []),
+    ...(bsp.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>!['choose','anyArtisansTool'].includes(k)))
+  ].join(', ') || '—';
+
+  const langs = [
+    ...(C.selectedLanguages||[]),
+    ...(bsp.languageProficiencies||[]).flatMap(lp=>Object.keys(lp).filter(k=>k!=='anyStandard'&&k!=='choose'&&lp[k]===true))
+  ].filter((v,i,a)=>a.indexOf(v)===i).join(', ') || 'Comune';
+
+  el.innerHTML = `
+    <div class="prof-section">
+      <div class="prof-section-title">⛨ Armature</div>
+      <div class="prof-text">${esc(armor)}</div>
+    </div>
+    <div class="prof-section">
+      <div class="prof-section-title">⚔ Armi</div>
+      <div class="prof-text">${esc(weapons)}</div>
+    </div>
+    <div class="prof-section">
+      <div class="prof-section-title">🔧 Strumenti</div>
+      <div class="prof-text">${esc(tools)}</div>
+    </div>
+    <div class="prof-section" style="margin-bottom:0">
+      <div class="prof-section-title">🗣 Lingue</div>
+      <div class="prof-text">${esc(langs)}</div>
+    </div>`;
+}
+
+function renderHitDice(){
+  if(!C) return;
+  const hd = C.clsSnapshot?.hd;
+  let faces = 8;
+  if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
+  const total = C.level;
+  document.getElementById('hd-label').textContent = `${total-usedHD}/${total} d${faces}`;
+  let h = '<div class="hd-pips">';
+  for(let i=0;i<total;i++){
+    const used = i >= (total-usedHD);
+    h+=`<div class="hd-pip${used?' used':' full'}" title="d${faces}" onclick="toggleHD(${i})">${used?'':'⬡'}</div>`;
+  }
+  h+='</div>';
+  h+=`<div style="margin-top:.5rem;font-size:11px;color:var(--text3)">
+    <i>Clicca per usare/recuperare un dado vita</i>
+  </div>`;
+  document.getElementById('hd-body').innerHTML = h;
+}
+
+function toggleHD(idx){
+  const total = C.level;
+  // Simple toggle: add/remove 1 used die
+  if(idx >= (total-usedHD)){
+    // currently used → restore
+    usedHD = Math.max(0, usedHD-1);
+  } else {
+    usedHD = Math.min(total, usedHD+1);
+    // Roll the die
+    const hd = C.clsSnapshot?.hd;
+    let faces = 8;
+    if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
+    const roll = Math.floor(Math.random()*faces)+1;
+    const conMod = getMod(getFinal('con'));
+    const heal = Math.max(1, roll+conMod);
+    currentHP = Math.min(maxHP, currentHP+heal);
+    localStorage.setItem('5e_hp_current', currentHP);
+    const d = document.getElementById('hp-cur-display');
+    if(d) d.textContent = currentHP;
+    alert(`Dado vita: tiro ${roll} + CON (${fbonus(conMod)}) = +${heal} PF`);
+  }
+  localStorage.setItem('5e_hd_used', usedHD);
+  renderHitDice();
+}
+
+function renderSkills(){
+  const el = document.getElementById('skills-body');
+  el.innerHTML = SKILLS_LIST.map(sk => {
+    const bonus = getSkillBonus(sk);
+    const ptype = getSkillProficiency(sk.n);
+    return `<div class="skill-row">
+      <div class="skill-dot${ptype===' prof'?'prof':ptype==='prof'?' prof':ptype==='exp'?' exp':''}"></div>
+      <span class="skill-ability">${SLBL[sk.a]}</span>
+      <span class="skill-name">${esc(sk.n)}</span>
+      <span class="skill-bonus">${fbonus(bonus)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRightTop(){
+  const initMod = getMod(getFinal('dex'));
+  document.getElementById('init-val').textContent = fbonus(initMod);
+  document.getElementById('ac-val').textContent = calcAC();
+
+  // Defenses (resistances/immunities from species/feats)
+  const defEl = document.getElementById('def-content');
+  const items = [];
+  const specEntries = JSON.stringify(C.speciesSnapshot?.entries||'').toLowerCase();
+  if(specEntries.includes('resistance')) items.push({l:'Resistenza',c:'b'});
+  if(C.speciesSnapshot?.darkvision) items.push({l:'Scurovisione',c:'t'});
+  if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">Nessuna</span>'; }
+  else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${i.l}</div>`).join(''); }
+}
+
+function renderActionsTab(){
+  // Build attacks from class proficiencies
+  const weapons = (C.clsSnapshot?.startingProficiencies?.weapons||[]);
+  const strMod = getMod(getFinal('str'));
+  const dexMod = getMod(getFinal('dex'));
+  const pb = getPB();
+
+  // Build attacks from equipment
+  let attacksHtml = '';
+  const attackRows = buildAttackRows(strMod, dexMod, pb);
+
+  if(attackRows.length){
+    attacksHtml = `
+      <table class="attacks-table">
+        <thead><tr>
+          <th>Attacco</th><th>Gittata</th><th>Colpo</th><th>Danno</th><th>Note</th>
+        </tr></thead>
+        <tbody>${attackRows.join('')}</tbody>
+      </table>`;
+  }
+  document.getElementById('attacks-table-wrap').innerHTML = attacksHtml;
+
+  // Combat actions list
+  let combatHtml = `<div style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem">Azioni in Combattimento</div>
+  <div style="font-size:13px;color:var(--text2);line-height:1.8">
+  ${COMBAT_ACTIONS.map(a=>`<span style="color:var(--text);font-weight:600">${esc(a.name)}</span>, `).join('').slice(0,-2)}
+  </div>
+  <div style="margin-top:.75rem;display:flex;flex-direction:column;gap:3px">
+  ${COMBAT_ACTIONS.map(a=>`<details style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:4px 8px;">
+    <summary style="font-size:13px;color:var(--text);cursor:pointer;font-weight:600">${esc(a.name)}</summary>
+    <div style="font-size:12px;color:var(--text2);padding:.3rem 0">${esc(a.desc)}</div>
+  </details>`).join('')}
+  </div>`;
+  document.getElementById('combat-actions-wrap').innerHTML = combatHtml;
+}
+
+function buildAttackRows(strMod, dexMod, pb){
+  const rows = [];
+  const cls = C.className||'';
+
+  // Simple weapon list based on class
+  const weaponSets = {
+    Fighter: [{n:'Longsword',range:'5 ft',die:'1d8+',dmgType:'tagl.',note:'Versatile (1d10)'},
+              {n:'Arco Lungo',range:'150 (600) ft',die:'1d8+',dmgType:'perfo.',note:'Munizioni, a due mani'}],
+    Rogue:   [{n:'Stiletto',range:'5 ft / 20 (60) ft',die:'1d4+',dmgType:'perfo.',note:'Finesse, Leggero, Lancio'},
+              {n:'Arco Corto',range:'80 (320) ft',die:'1d6+',dmgType:'perfo.',note:'Munizioni, a due mani'}],
+    Ranger:  [{n:'Arco Lungo',range:'150 (600) ft',die:'1d8+',dmgType:'perfo.',note:'Munizioni, a due mani'},
+              {n:'Spada Corta',range:'5 ft',die:'1d6+',dmgType:'perfo.',note:'Finesse, Leggero'}],
+    Barbarian:[{n:'Ascia Bipenne',range:'5 ft',die:'1d12+',dmgType:'tagl.',note:'A due mani'},
+               {n:'Giavellotto',range:'5 ft / 30 (120) ft',die:'1d6+',dmgType:'perfo.',note:'Lancio'}],
+    Paladin: [{n:'Spada Lunga',range:'5 ft',die:'1d8+',dmgType:'tagl.',note:'Versatile (1d10)'},
+              {n:'Scudo + Spada',range:'5 ft',die:'1d8+',dmgType:'tagl.',note:'+2 CA con scudo'}],
+    Wizard:  [{n:'Bastone',range:'5 ft',die:'1d6+',dmgType:'conton.',note:'Versatile (1d8)'}],
+    Sorcerer:[{n:'Bastone',range:'5 ft',die:'1d6+',dmgType:'conton.',note:'Versatile (1d8)'}],
+    Warlock: [{n:'Bastone',range:'5 ft',die:'1d6+',dmgType:'conton.',note:'Versatile (1d8)'}],
+    Cleric:  [{n:'Mazza',range:'5 ft',die:'1d6+',dmgType:'conton.',note:'Semplice'},
+              {n:'Scudo',range:'—',die:'—',dmgType:'—',note:'+2 CA'}],
+    Druid:   [{n:'Bastone',range:'5 ft',die:'1d6+',dmgType:'conton.',note:'Versatile (1d8)'}],
+    Monk:    [{n:'Colpo Senz\'Armi',range:'5 ft',die:'1d6+',dmgType:'conton.',note:'Colpo Monaco'},
+              {n:'Arco Corto',range:'80 (320) ft',die:'1d6+',dmgType:'perfo.',note:'Munizioni'}],
+    Bard:    [{n:'Stocco',range:'5 ft',die:'1d8+',dmgType:'perfo.',note:'Finesse'},
+              {n:'Arco Corto',range:'80 (320) ft',die:'1d6+',dmgType:'perfo.',note:'Munizioni'}],
+  };
+
+  const wList = weaponSets[cls] || [{n:'Attacco Senz\'Armi',range:'5 ft',die:'1+',dmgType:'conton.',note:''}];
+  const atkMod = Math.max(strMod, dexMod)+pb;
+  const dmgMod = Math.max(strMod, dexMod);
+
+  for(const w of wList){
+    const hitStr = fbonus(atkMod);
+    const dmgStr = w.die+(dmgMod>=0?'+':'')+dmgMod+' '+w.dmgType;
+    rows.push(`<tr>
+      <td><div class="atk-name">⚔ ${esc(w.n)}</div></td>
+      <td style="font-size:12px">${esc(w.range)}</td>
+      <td><div class="atk-hit">${hitStr}</div></td>
+      <td><div class="atk-dmg">${esc(dmgStr)}</div></td>
+      <td style="font-size:11px;color:var(--text3)">${esc(w.note)}</td>
+    </tr>`);
+  }
+
+  // Add cantrip attacks
+  const attackCantrips = (C.selectedCantrips||[]).filter(n=>['Fire Bolt','Ray of Frost','Eldritch Blast','Sacred Flame','Toll the Dead','Chill Touch','Poison Spray'].includes(n));
+  const spellMod = getSpellMod();
+  for(const cn of attackCantrips){
+    rows.push(`<tr>
+      <td><div class="atk-name">✦ ${esc(cn)}</div><div class="atk-sub">Cantrip</div></td>
+      <td style="font-size:12px">varia</td>
+      <td><div class="atk-hit">${fbonus(spellMod+pb)}</div></td>
+      <td><div class="atk-dmg">1d10</div></td>
+      <td style="font-size:11px;color:var(--text3)">Incantesimo</td>
+    </tr>`);
+  }
+  return rows;
+}
+
+function getSpellMod(){
+  const cls = C?.className||'';
+  if(['Wizard','Artificer'].includes(cls)) return getMod(getFinal('int'));
+  if(['Cleric','Druid','Ranger'].includes(cls)) return getMod(getFinal('wis'));
+  return getMod(getFinal('cha')); // Bard, Paladin, Sorcerer, Warlock
+}
+function getSpellSaveDC(){ return 8+getPB()+getSpellMod(); }
+function getSpellAttackBonus(){ return getPB()+getSpellMod(); }
+
+function renderSpellsTab(){
+  const el = document.getElementById('spells-wrap');
+  const allCantrips = C.selectedCantrips||[];
+  const allSpells   = C.selectedSpells||{};
+  const auto        = C.autoGrantedSpells||[];
+  const snapshots   = C.spellSnapshots||[];
+
+  const hasCaster = C.clsSnapshot?.casterProgression;
+  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length){
+    el.innerHTML='<div class="phmsg">Questo personaggio non è un incantatore.</div>'; return;
+  }
+
+  const pb = getPB();
+  const spellMod = getSpellMod();
+  const dc = getSpellSaveDC();
+  const atk = fbonus(getSpellAttackBonus());
+
+  let h = `<div style="display:flex;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap">
+    <div class="stat-box" style="min-width:80px">
+      <div class="stat-box-val" style="font-size:18px">${dc}</div>
+      <div class="stat-box-lbl">CD Magie</div>
+    </div>
+    <div class="stat-box" style="min-width:80px">
+      <div class="stat-box-val" style="font-size:18px">${atk}</div>
+      <div class="stat-box-lbl">Attacco Magia</div>
+    </div>
+    <div class="stat-box" style="min-width:80px">
+      <div class="stat-box-val" style="font-size:18px">${SLBL[getSpellAbility()]}</div>
+      <div class="stat-box-lbl">Caratt. Magia</div>
+    </div>
+  </div>`;
+
+  // Spell slots + usage
+  const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+  const prog = C.clsSnapshot?.casterProgression;
+  const slots = prog==='full' ? (FULL_SLOTS[C.level]||[]) : [];
+  if(slots.length){
+    h+=`<div style="margin-bottom:.75rem">
+      <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Slot Incantesimo</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">`;
+    for(let i=0;i<slots.length;i++){
+      const tot = slots[i]; if(!tot) continue;
+      const used = spellSlotUsed[i+1]||0;
+      h+=`<div>
+        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${i+1}°</div>
+        <div class="slot-pips" id="slot-pips-${i+1}">
+          ${Array.from({length:tot},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${i+1},${k})"></div>`).join('')}
+        </div>
+      </div>`;
+    }
+    h+=`</div></div>`;
+  }
+
+  // Cantrips
+  if(allCantrips.length){
+    h+=`<div class="spell-level-section">
+      <div class="spell-level-hdr">Cantrip</div>`;
+    for(const name of allCantrips){
+      const snap = snapshots.find(s=>s.name===name);
+      const school = snap ? (SCHOOL_LABELS[snap.school]||snap.school||'') : '';
+      h+=`<div class="spell-entry">
+        <span>${esc(name)}</span>
+        <span class="sp-school">${esc(school)}</span>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+
+  // Spells by level
+  const allAutoNames = auto.map(a=>a.name);
+  for(let lv=1;lv<=9;lv++){
+    const chosen = (allSpells[lv]||[]);
+    const autoAtLv = auto.filter(a=>a.level===lv).map(a=>a.name);
+    const combined = [...new Set([...chosen, ...autoAtLv])];
+    if(!combined.length) continue;
+    h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[lv]}</div>`;
+    for(const name of combined){
+      const snap = snapshots.find(s=>s.name===name);
+      const school = snap ? (SCHOOL_LABELS[snap.school]||snap.school||'') : '';
+      const isAuto = autoAtLv.includes(name);
+      const isConc = snap?.concentration;
+      const isRit  = snap?.ritual;
+      h+=`<div class="spell-entry">
+        <span>${esc(name)}</span>
+        ${isAuto?`<span class="spell-badge auto">✦ Auto</span>`:''}
+        ${isConc?`<span class="spell-badge conc">C</span>`:''}
+        ${isRit?`<span class="spell-badge rit">R</span>`:''}
+        <span class="sp-school">${esc(school)}</span>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+
+  if(!allCantrips.length && !Object.values(allSpells).flat().length && !auto.length){
+    h+='<div class="phmsg">Nessuna magia selezionata.</div>';
+  }
+  el.innerHTML = h;
+}
+
+function getSpellAbility(){
+  const cls = C?.className||'';
+  if(['Wizard','Artificer'].includes(cls)) return 'int';
+  if(['Cleric','Druid','Ranger'].includes(cls)) return 'wis';
+  return 'cha';
+}
+
+function toggleSlot(lv, idx){
+  const used = spellSlotUsed[lv]||0;
+  if(idx < used) spellSlotUsed[lv] = Math.max(0, idx);
+  else spellSlotUsed[lv] = idx+1;
+  localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
+  // Re-render just the pips
+  const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+  const prog = C?.clsSnapshot?.casterProgression;
+  const slots = prog==='full' ? (FULL_SLOTS[C.level]||[]) : [];
+  const tot = slots[lv-1]||0;
+  const curUsed = spellSlotUsed[lv]||0;
+  const pipsEl = document.getElementById('slot-pips-'+lv);
+  if(pipsEl) pipsEl.innerHTML = Array.from({length:tot},(_,k)=>
+    `<div class="slot-pip${k<curUsed?' used':''}" onclick="toggleSlot(${lv},${k})"></div>`
+  ).join('');
+}
+
+/* ═══════ XP ═══════ */
+const XP_THRESHOLDS = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+
+function updateXPDisplay(val){
+  const xp = parseInt(val)||0;
+  localStorage.setItem('5e_xp', xp);
+  const lv = Math.min(C ? C.level : 1, 20);
+  const curLvXP = XP_THRESHOLDS[lv-1]||0;
+  const nextLvXP = lv >= 20 ? XP_THRESHOLDS[19] : XP_THRESHOLDS[lv]||XP_THRESHOLDS[19];
+  const pct = lv >= 20 ? 100 : Math.min(100, Math.round(((xp-curLvXP)/(nextLvXP-curLvXP))*100));
+  const fill = document.getElementById('xp-fill');
+  const lbl  = document.getElementById('xp-label');
+  if(fill) fill.style.width = Math.max(0,pct)+'%';
+  if(lbl){
+    if(lv>=20) lbl.textContent = 'MAX';
+    else lbl.textContent = `→ Lv.${lv+1} (${nextLvXP.toLocaleString()})`;
+  }
+}
+
+/* ═══════ ITEMS DB ═══════ */
+const ITEM_TYPE_LABELS = {
+  M:'Arma da Mischia',R:'Arma da Gittata',LA:'Arm. Leggera',MA:'Arm. Media',
+  HA:'Arm. Pesante',S:'Scudo',G:'Equipagg.',AT:'Strumenti',GS:'Set da Gioco',
+  INS:'Strumento',MNT:'Cavalcatura',VEH:'Veicolo',SCF:'Focale Magico',
+  WD:'Bacchetta',RG:'Anello',RD:'Bastone',ST:'Vincastro',WI:'Ogg. Merav.',
+  P:'Pozione',SC:'Pergamena','$':'Moneta',OTH:'Altro',GV:'Variante Magica',
+};
+const ITEM_RARITY_COLOR = {
+  none:'var(--text3)',common:'var(--text2)',uncommon:'var(--green)',
+  rare:'var(--blue)','very rare':'var(--purple)',legendary:'var(--gold)',artifact:'var(--red2)',
+};
+const SOURCE_LABELS = {
+  XPHB:'XPHB',XDMG:'XDMG',FRAiF:'FRAiF',FRHoF:'FRHoF',EFA:'EFA',DMG:'DMG',PHB:'PHB',XGE:'XGE',TCE:'TCE',
+};
+const ITEM_TYPE_GROUP = i => {
+  if(['M','R'].includes(i.type)) return 'weapon';
+  if(['LA','MA','HA','S'].includes(i.type)) return 'armor';
+  if(i.rarity && i.rarity!=='none') return 'magic';
+  return 'gear';
+};
+let invLoadingState = 'idle';
+
+function itemMatchesRequires(item, requires){
+  if(!requires||!requires.length) return false;
+  return requires.some(req=>{
+    if(req.weapon && item.weapon) return true;
+    if(req.sword && item.sword) return true;
+    if(req.axe && item.axe) return true;
+    if(req.bow && item.bow) return true;
+    if(req.crossbow && item.crossbow) return true;
+    if(req.hammer && item.hammer) return true;
+    if(req.spear && item.spear) return true;
+    if(req.staff && item.staff) return true;
+    if(req.dagger && item.dagger) return true;
+    if(req.armor && item.armor) return true;
+    if(req.shield && item.type==='S') return true;
+    if(req.type && item.type===req.type) return true;
+    return false;
+  });
+}
+
+function expandMagicVariants(variants, baseItems){
+  const ITEM_SOURCES = [...ALLOWED_SOURCES,'XDMG'];
+  const expanded = [];
+  for(const v of variants){
+    if(!ITEM_SOURCES.includes(v.source)) continue;
+    const inh = v.inherits||{};
+    const requires = v.requires||[];
+    if(!requires.length){
+      expanded.push({
+        name:v.name, source:v.source, type:inh.type||v.type||'WI',
+        rarity:inh.rarity||v.rarity||'none',
+        weight:inh.weight||v.weight||0, value:inh.value||v.value||0,
+        bonusWeapon:inh.bonusWeapon||null, bonusAc:inh.bonusAc||null,
+        ac:inh.ac||null, entries:inh.entries||v.entries||[], _variant:true,
+      });
+      continue;
+    }
+    for(const base of baseItems){
+      if(!itemMatchesRequires(base,requires)) continue;
+      const prefix = inh.namePrefix||'';
+      const suffix = inh.nameSuffix||'';
+      expanded.push({
+        name:prefix+base.name+suffix, source:v.source,
+        type:base.type||inh.type||'WI',
+        rarity:inh.rarity||v.rarity||'none',
+        weight:inh.weight??base.weight??0, value:inh.value??base.value??0,
+        dmg1:inh.dmg1||base.dmg1||null, dmgType:base.dmgType||null,
+        bonusWeapon:inh.bonusWeapon||null, bonusAc:inh.bonusAc||null,
+        ac:inh.ac??base.ac??null, property:base.property||[],
+        entries:inh.entries||v.entries||[], _variant:true,
+      });
+    }
+  }
+  return expanded;
+}
+
+const normalizeItemType = (item) => {
+  let type = item.type ? item.type.split('|')[0] : null;
+  if (!type || type === 'G' || type === 'OTH') {
+    if (item.weapon) type = 'M';
+    else if (item.ammo) type = 'A';
+    else if (item.armor) type = 'MA';
+    else if (item.shield) type = 'S';
+    else type = 'OTH';
+  }
+  item.type = type;
+  return item;
+};
+
+async function loadItems(){
+  invLoadingState='loading';
+  const loadingEl = document.getElementById('inv-search-results');
+  if(loadingEl) loadingEl.innerHTML='<div class="phmsg" style="font-size:12px">Caricamento database oggetti…</div>';
+  try{
+    const [r1,r2,r3] = await Promise.all([
+      fetch(BASE_URL+'items-base.json'),
+      fetch(BASE_URL+'items.json'),
+      fetch(BASE_URL+'magicvariants.json'),
+    ]);
+    const d1 = r1.ok ? await r1.json() : {baseitem:[]};
+    const d2 = r2.ok ? await r2.json() : {item:[]};
+    const d3 = r3.ok ? await r3.json() : {magicvariant:[]};
+    const ITEM_SOURCES = [...ALLOWED_SOURCES,'XDMG'];
+    const baseItems  = (d1.baseitem||[])
+      .filter(i => {
+        if(ITEM_SOURCES.includes(i.source)) return true;
+        if(i.reprintedAs && Array.isArray(i.reprintedAs) && i.reprintedAs.some(r=> typeof r === 'string' && (r.includes('XPHB')||r.includes('XDMG')))) return true;
+        return false;
+      })
+      .map(normalizeItemType);
+    const magicItems = (d2.item||[]).filter(i=>ITEM_SOURCES.includes(i.source)).map(normalizeItemType);
+    const variants   = d3.magicvariant||[];
+    const allBaseNormalized = (d1.baseitem||[]).map(normalizeItemType);
+    const expandedVariants = expandMagicVariants(variants, allBaseNormalized);
+    const seen = new Set();
+    allItemsDb = [...baseItems,...magicItems,...expandedVariants]
+      .filter(i=>{ if(seen.has(i.name)) return false; seen.add(i.name); return true; })
+      .sort((a,b)=>a.name.localeCompare(b.name));
+    invLoadingState='done';
+    renderItemSearch();
+  } catch(e){
+    invLoadingState='idle';
+    console.warn('Items DB non caricato:',e);
+    const el=document.getElementById('inv-search-results');
+    if(el) el.innerHTML='<div class="phmsg" style="color:var(--red2);font-size:12px">Errore caricamento oggetti.</div>';
+  }
+}
+
+function setInvFilter(f, btn){
+  invFilter = f;
+  document.querySelectorAll('.inv-chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderItemSearch();
+}
+
+function renderItemSearch(){
+  const el = document.getElementById('inv-search-results');
+  if(!el) return;
+  if(invLoadingState==='loading'){ el.innerHTML='<div class="phmsg" style="font-size:12px">Caricamento…</div>'; return; }
+  const q = (document.getElementById('inv-search')?.value||'').toLowerCase().trim();
+  let list = allItemsDb;
+  if(invFilter!=='all') list = list.filter(i=>ITEM_TYPE_GROUP(i)===invFilter);
+  if(q) list = list.filter(i=>i.name.toLowerCase().includes(q));
+  list = list.slice(0,60);
+  if(!list.length){ el.innerHTML='<div class="phmsg" style="font-size:12px">Nessun oggetto trovato.</div>'; return; }
+  el.innerHTML = list.map(item=>{
+    const typeLabel = ITEM_TYPE_LABELS[item.type]||item.type||'—';
+    const rarity = item.rarity && item.rarity!=='none' ? item.rarity : null;
+    const rc = ITEM_RARITY_COLOR[rarity]||'var(--text3)';
+    const valueGP = item.value ? (item.value/100).toFixed(item.value%100===0?0:2)+' MO' : '—';
+    const dmg = item.dmg1 ? ` · ${item.dmg1}${item.dmgType?' '+item.dmgType:''}` : '';
+    const bonus = item.bonusWeapon ? ` · ${item.bonusWeapon}` : (item.bonusAc?` · CA${item.bonusAc}`:'');
+    const ac = item.ac ? ` · CA ${item.ac}` : '';
+    const srcLabel = SOURCE_LABELS[item.source]||item.source||'';
+    const payload = encodeURIComponent(JSON.stringify({
+      name:item.name,source:item.source,type:item.type,rarity:item.rarity,
+      weight:item.weight,value:item.value,dmg1:item.dmg1,dmgType:item.dmgType,
+      ac:item.ac,bonusWeapon:item.bonusWeapon,bonusAc:item.bonusAc,property:item.property||[],
+    }));
+    return `<div class="inv-search-row" onclick="addItemToInventory(decodeURIComponent('${payload}'))">
+      <div class="inv-search-name">${esc(item.name)}</div>
+      <div class="inv-search-meta" style="color:${rc}">${esc(rarity||typeLabel)}${dmg}${bonus}${ac}</div>
+      <div class="inv-search-price" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+        <span>${esc(valueGP)}</span>
+        <span style="font-size:9px;color:var(--text3)">${esc(srcLabel)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addItemToInventory(jsonStr){
+  let item;
+  try{ item = JSON.parse(jsonStr); } catch(e){ return; }
+  const existing = sheetInventory.find(i=>i.name===item.name&&i.source===item.source);
+  if(existing){ existing.qty=(existing.qty||1)+1; }
+  else{
+    sheetInventory.push({
+      name:item.name, source:item.source||'', type:item.type||'OTH',
+      rarity:item.rarity||'none', qty:1,
+      weight:item.weight||0, value:item.value||0,
+      dmg1:item.dmg1||null, dmgType:item.dmgType||null,
+      ac:item.ac||null, bonusWeapon:item.bonusWeapon||null,
+      bonusAc:item.bonusAc||null, property:item.property||[],
+      equipped:false, custom:false,
+    });
+  }
+  persistInventory();
+  renderInventoryList();
+}
+
+function addCustomItemSheet(){
+  const inp = document.getElementById('inv-custom-name');
+  const name = (inp?.value||'').trim();
+  if(!name) return;
+  sheetInventory.push({name,source:'Custom',type:'OTH',rarity:'none',qty:1,weight:0,value:0,equipped:false,custom:true});
+  inp.value='';
+  persistInventory();
+  renderInventoryList();
+}
+
+function changeSheetInvQty(idx, delta){
+  if(!sheetInventory[idx]) return;
+  sheetInventory[idx].qty = Math.max(0,(sheetInventory[idx].qty||1)+delta);
+  if(sheetInventory[idx].qty===0) sheetInventory.splice(idx,1);
+  persistInventory();
+  renderInventoryList();
+  renderRightTop();
+}
+
+function toggleEquip(idx){
+  if(!sheetInventory[idx]) return;
+  const item = sheetInventory[idx];
+  const t = item.type||'';
+  if(['LA','MA','HA'].includes(t))
+    sheetInventory.forEach((i,n)=>{ if(n!==idx&&['LA','MA','HA'].includes(i.type)) i.equipped=false; });
+  if(t==='S')
+    sheetInventory.forEach((i,n)=>{ if(n!==idx&&i.type==='S') i.equipped=false; });
+  item.equipped = !item.equipped;
+  persistInventory();
+  renderInventoryList();
+  const acEl = document.getElementById('ac-val');
+  if(acEl) acEl.textContent = calcAC();
+  renderRightTop();
+}
+
+function persistInventory(){
+  localStorage.setItem('5e_inventory', JSON.stringify(sheetInventory));
+}
+
+function updateCurrencySheet(coin, val){
+  sheetCurrency[coin] = parseInt(val)||0;
+  localStorage.setItem('5e_currency', JSON.stringify(sheetCurrency));
+}
+
+/* ═══════ INVENTORY TAB RENDER ═══════ */
+function renderInventoryTab(){
+  renderCurrency();
+  renderInventoryList();
+  renderItemSearch();
+}
+
+function renderCurrency(){
+  const el = document.getElementById('currency-row');
+  if(!el) return;
+  const coins=[
+    {k:'cp',label:'Rame',color:'#b87333'},{k:'sp',label:'Argento',color:'#aaa'},
+    {k:'ep',label:'Electrum',color:'#888'},{k:'gp',label:'Oro',color:'var(--gold)'},
+    {k:'pp',label:'Platino',color:'#e0e0ff'},
+  ];
+  el.innerHTML=coins.map(c=>`
+    <div class="currency-cell">
+      <div class="currency-lbl" style="color:${c.color}">${c.label}</div>
+      <input type="number" class="currency-inp" min="0" value="${sheetCurrency[c.k]||0}"
+        oninput="updateCurrencySheet('${c.k}',this.value)">
+    </div>`).join('');
+}
+
+function renderInventoryList(){
+  const el = document.getElementById('inv-list');
+  const countEl = document.getElementById('inv-count');
+  const statsEl = document.getElementById('inv-stats-row');
+  if(!el) return;
+  const totalItems = sheetInventory.reduce((s,i)=>s+(i.qty||1),0);
+  const totalWeight = sheetInventory.reduce((s,i)=>s+(i.weight||0)*(i.qty||1),0).toFixed(1);
+  const totalGP = sheetInventory.reduce((s,i)=>s+((i.value||0)/100)*(i.qty||1),0).toFixed(1);
+  if(countEl) countEl.textContent=totalItems;
+  if(statsEl) statsEl.innerHTML=`
+    <div class="inv-stat-pill">Peso: <b>${totalWeight} lb</b></div>
+    <div class="inv-stat-pill">Capacità: <b>${getFinal('str')*15} lb</b></div>
+    <div class="inv-stat-pill">Valore: <b>${totalGP} MO</b></div>`;
+  if(!sheetInventory.length){ el.innerHTML='<div class="phmsg">Inventario vuoto.</div>'; return; }
+  const groupDefs = [
+    {g:'weapon',label:'⚔ Armi'},{g:'armor',label:'🛡 Armature'},
+    {g:'magic',label:'✦ Magici'},{g:'gear',label:'🎒 Equipaggiamento'},
+  ];
+  let h='';
+  for(const {g,label} of groupDefs){
+    const inGroup = sheetInventory.map((item,idx)=>({item,idx})).filter(({item})=>ITEM_TYPE_GROUP(item)===g);
+    if(!inGroup.length) continue;
+    h+=`<div class="inv-section-hdr">${label}</div>`;
+    for(const {item,idx} of inGroup){
+      const rarity = item.rarity&&item.rarity!=='none'?item.rarity:null;
+      const rc = ITEM_RARITY_COLOR[rarity]||'var(--text3)';
+      const typeLabel = ITEM_TYPE_LABELS[item.type]||item.type||'';
+      const srcLabel = SOURCE_LABELS[item.source]||item.source||'';
+      const canEquip = ['M','R','LA','MA','HA','S','SCF','WD','RD','ST','WI'].includes(item.type);
+      const dmgStr = item.dmg1?`${item.dmg1}${item.dmgType?' '+item.dmgType:''}`:item.bonusWeapon||'';
+      const acStr  = item.ac?`CA ${item.ac}`:item.bonusAc?`CA${item.bonusAc}`:'';
+      const propStr = (item.property||[]).map(p=>({F:'Finesse',L:'Leggero',H:'Pesante',T:'Lancio','2H':'Due Mani',V:'Versatile',A:'Muni.'})[p]||p).filter(Boolean).join(', ');
+      const meta = [item.weight?item.weight+'lb':null, dmgStr||null, acStr||null, propStr||null].filter(Boolean).join(' · ');
+      h+=`<div class="inv-row" style="${item.equipped?'border-color:var(--teal);background:rgba(26,188,156,.05)':''}">
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;min-width:48px">
+          <div class="inv-badge" style="color:${rc};border-color:${rc}">${esc(rarity||typeLabel)}</div>
+          ${srcLabel?`<div class="inv-badge" style="font-size:8px;color:var(--text3)">${esc(srcLabel)}</div>`:''}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:9px;color:var(--text3)">[custom]</span>':''}</div>
+          ${meta?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
+        </div>
+        ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?'✓ Equip.':'Equipaggia'}</button>`:''}
+        <div class="inv-qty-wrap">
+          <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},-1)">−</button>
+          <div class="inv-qty-val">${item.qty}</div>
+          <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},1)">+</button>
+        </div>
+        <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Rimuovi">🗑</button>
+      </div>`;
+    }
+  }
+  el.innerHTML = h;
+}
+
+function renderFeaturesTab(){
+  const el = document.getElementById('features-wrap');
+  const lv = C.level;
+  const allF = (C.allClassFeatures||[]).filter(f=>f.level<=lv&&!f.isReprinted);
+  const allSF= C.subclassShortName
+    ? (C.allSubFeatures||[]).filter(f=>f.subclassShortName===C.subclassShortName&&f.level<=lv&&!f.isReprinted)
+    : [];
+  const feats = C.allFeatSnapshots||[];
+
+  let h = '';
+
+  if(C.className){
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">⚔ ${esc(C.className)}</div>`;
+    const byLv = {};
+    for(const f of allF){ (byLv[f.level]||(byLv[f.level]=[])).push({...f,_type:'cls'}); }
+    for(const f of allSF){ (byLv[f.level]||(byLv[f.level]=[])).push({...f,_type:'sub'}); }
+    for(const lvNum of Object.keys(byLv).map(Number).sort((a,b)=>a-b)){
+      for(const f of byLv[lvNum]){
+        const id='feat_'+Math.random().toString(36).slice(2);
+        h+=`<div class="feature-item" id="${id}">
+          <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+            <div>
+              <div class="feature-name${f._type==='sub'?' sub':''}">
+                ${f._type==='sub'?'<span style="color:var(--purple);margin-right:4px">◆</span>':''}
+                ${esc(clean(f.name||''))}
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="feature-lv-badge">Lv.${lvNum}</span>
+              <span class="feature-arrow">▶</span>
+            </div>
+          </div>
+          <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">Nessuna descrizione.</i>'}</div>
+        </div>`;
+      }
+    }
+  }
+
+  if(C.speciesName){
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">✦ ${esc(C.speciesName)}</div>`;
+    for(const e of (C.speciesSnapshot?.entries||[])){
+      if(typeof e==='object'&&e.name){
+        const id='feat_'+Math.random().toString(36).slice(2);
+        h+=`<div class="feature-item" id="${id}">
+          <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+            <div class="feature-name">${esc(e.name)}</div>
+            <span class="feature-arrow">▶</span>
+          </div>
+          <div class="feature-body">${rE(e.entries||'')||'—'}</div>
+        </div>`;
+      }
+    }
+  }
+
+  if(feats.length){
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:.75rem 0 .5rem">✧ Talenti</div>`;
+    for(const f of feats){
+      const id='feat_'+Math.random().toString(36).slice(2);
+      h+=`<div class="feature-item" id="${id}">
+        <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+          <div class="feature-name" style="color:var(--orange)">${esc(f.name)}</div>
+          <span class="feature-arrow">▶</span>
+        </div>
+        <div class="feature-body">${rE(f.entries)||'—'}</div>
+      </div>`;
+    }
+  }
+
+  if(!h) h='<div class="phmsg">Nessuna feature disponibile.</div>';
+  el.innerHTML = h;
+}
+
+function renderBackgroundTab(){
+  const el = document.getElementById('background-wrap');
+  if(!C.bgName){ el.innerHTML='<div class="phmsg">Nessun background selezionato.</div>'; return; }
+  const snap = C.bgSnapshot||{};
+
+  let h = `<div class="bg-section">
+    <div class="bg-section-title">📜 ${esc(C.bgName)}</div>`;
+
+  const skills = (snap.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose'));
+  if(skills.length) h+=`<p class="bg-text"><strong>Competenze:</strong> ${skills.join(', ')}</p>`;
+
+  const tools = (snap.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>k!=='choose'&&k!=='anyArtisansTool'));
+  if(tools.length) h+=`<p class="bg-text"><strong>Strumenti:</strong> ${tools.join(', ')}</p>`;
+
+  const langs = (snap.languageProficiencies||[]).map(lp=>lp.anyStandard?`${lp.anyStandard} lingua a scelta`:Object.keys(lp).filter(k=>lp[k]===true).join(', ')).filter(Boolean);
+  if(langs.length) h+=`<p class="bg-text"><strong>Lingue:</strong> ${langs.join(', ')}</p>`;
+
+  h+=`</div>`;
+
+  for(const e of (snap.entries||[])){
+    if(typeof e==='object'&&e.name){
+      const id='bg_'+Math.random().toString(36).slice(2);
+      h+=`<div class="feature-item" id="${id}">
+        <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+          <div class="feature-name" style="color:var(--text2)">${esc(e.name)}</div>
+          <span class="feature-arrow">▶</span>
+        </div>
+        <div class="feature-body">${rE(e.entries||'')||'—'}</div>
+      </div>`;
+    }
+  }
+
+  el.innerHTML = h;
+}
+
+/* ═══════ UI ═══════ */
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function filterActions(type, btn){
+  document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function doRest(type){
+  if(type==='long'){
+    currentHP = maxHP;
+    usedHD = 0;
+    spellSlotUsed = {};
+    localStorage.setItem('5e_hp_current', currentHP);
+    localStorage.setItem('5e_hd_used', usedHD);
+    localStorage.setItem('5e_slots_used', '{}');
+    const d = document.getElementById('hp-cur-display');
+    if(d) d.textContent = currentHP;
+    renderHitDice();
+    renderSpellsTab();
+    alert('Riposo lungo completato! PF e slot ripristinati.');
+  } else {
+    const hdLeft = C.level - usedHD;
+    if(!hdLeft){ alert('Nessun dado vita disponibile!'); return; }
+    const hd = C.clsSnapshot?.hd;
+    let faces = 8;
+    if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
+    const roll = Math.floor(Math.random()*faces)+1;
+    const conMod = getMod(getFinal('con'));
+    const heal = Math.max(1, roll+conMod);
+    currentHP = Math.min(maxHP, currentHP+heal);
+    usedHD++;
+    localStorage.setItem('5e_hp_current', currentHP);
+    localStorage.setItem('5e_hd_used', usedHD);
+    const d = document.getElementById('hp-cur-display');
+    if(d) d.textContent = currentHP;
+    renderHitDice();
+    alert(`Riposo breve: tiro ${roll} + CON (${fbonus(conMod)}) = +${heal} PF`);
+  }
+}
+
+function saveNotes(){
+  localStorage.setItem('5e_notes', document.getElementById('notes-area').value);
+}
+
+/* ═══════ INIT ═══════ */
+C = loadChar();
+renderAll();
+loadItems(); // async, updates search after loading
+</script>
+</body>
+</html>

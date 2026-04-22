@@ -186,6 +186,22 @@
       opacity: .3
     }
 
+    .step {
+      cursor: pointer;
+    }
+
+    .step.locked {
+      cursor: default;
+    }
+
+    .tab-pane {
+      display: none
+    }
+
+    .tab-pane.active {
+      display: block
+    }
+
     .cb-grid {
       display: grid;
       grid-template-columns: 1fr 390px;
@@ -1684,6 +1700,58 @@
     .feat-item-name.eq {
       color: #c39bd3
     }
+
+    /* ── XP ── */
+    .xp-bar-wrap {
+      height: 6px; background: var(--bg4);
+      border-radius: 3px; border: 1px solid var(--bdr); overflow: hidden; margin-bottom: 4px;
+    }
+    .xp-bar-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width .4s }
+    .xp-input {
+      width: 100%; background: var(--bg3); border: 1px solid var(--bdr); border-radius: var(--r);
+      padding: 5px 10px; color: var(--text); font-family: 'EB Garamond', serif; font-size: 15px;
+      outline: none; transition: border-color .15s;
+    }
+    .xp-input:focus { border-color: var(--gold) }
+
+    /* ── INVENTORY ── */
+    .inv-row {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+      background: var(--bg3); border: 1px solid var(--bdr); border-radius: var(--r);
+      margin-bottom: 3px; font-size: 13px;
+    }
+    .inv-row-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+    .inv-row-meta { font-size: 11px; color: var(--text3); flex-shrink: 0 }
+    .inv-qty-btn {
+      width: 22px; height: 22px; border: 1px solid var(--bdr2); border-radius: 3px;
+      background: transparent; color: var(--text2); font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+      transition: all .1s; flex-shrink: 0;
+    }
+    .inv-qty-btn:hover { border-color: var(--gold); color: var(--gold) }
+    .inv-qty-btn.remove:hover { border-color: var(--red2); color: var(--red2) }
+    .inv-qty-val {
+      font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600;
+      color: var(--gold2); min-width: 20px; text-align: center; flex-shrink: 0;
+    }
+    .inv-type-badge {
+      font-size: 9px; font-family: 'Cinzel', serif; padding: 1px 5px; border-radius: 3px;
+      border: 1px solid var(--bdr2); color: var(--text3); flex-shrink: 0;
+    }
+    .currency-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: .75rem;
+    }
+    .currency-cell {
+      background: var(--bg3); border: 1px solid var(--bdr); border-radius: var(--r);
+      padding: 6px 4px; text-align: center;
+    }
+    .currency-lbl { font-family: 'Cinzel', serif; font-size: 9px; color: var(--text3); margin-bottom: 3px }
+    .currency-inp {
+      width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--bdr2);
+      color: var(--gold2); font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600;
+      text-align: center; outline: none; padding: 2px 0;
+    }
+    .currency-inp:focus { border-bottom-color: var(--gold) }
   </style>
 </head>
 
@@ -1695,31 +1763,31 @@
     </header>
 
     <div class="steps">
-      <div class="step active" id="st-1">
+      <div class="step active" id="st-1" onclick="gotoTab(1)">
         <div class="step-num">1</div>
         <div class="step-label">Classe</div>
       </div>
-      <div class="step locked" id="st-2">
+      <div class="step" id="st-2" onclick="gotoTab(2)">
         <div class="step-num">2</div>
         <div class="step-label">Specie</div>
       </div>
-      <div class="step locked" id="st-3">
+      <div class="step" id="st-3" onclick="gotoTab(3)">
         <div class="step-num">3</div>
         <div class="step-label">Background</div>
       </div>
-      <div class="step locked" id="st-4">
+      <div class="step" id="st-4" onclick="gotoTab(4)">
         <div class="step-num">4</div>
         <div class="step-label">Caratteristiche</div>
       </div>
-      <div class="step locked" id="st-5">
+      <div class="step" id="st-5" onclick="gotoTab(5)">
         <div class="step-num">5</div>
         <div class="step-label">Equipaggiamento</div>
       </div>
-      <div class="step locked" id="st-6">
+      <div class="step" id="st-6" onclick="gotoTab(6)">
         <div class="step-num">6</div>
         <div class="step-label">Talenti</div>
       </div>
-      <div class="step locked" id="st-7">
+      <div class="step" id="st-7" onclick="gotoTab(7)">
         <div class="step-num">7</div>
         <div class="step-label">Scheda</div>
       </div>
@@ -1727,121 +1795,221 @@
 
     <div class="cb-grid">
       <div>
-        <!-- Nome -->
-        <div class="panel">
-          <div class="ph"><span class="pt">Nome Personaggio</span></div>
-          <div class="pb"><input type="text" id="char-name" placeholder="Es. Aldric il Grigio…"
-              oninput="char.name=this.value;renderPreviewHeader()" /></div>
-        </div>
 
-        <!-- Classe -->
-        <div class="panel">
-          <div class="ph"><span class="pt">Classe</span><span id="cls-loading" class="ph-note">Caricamento…</span></div>
-          <div class="pb">
-            <div class="chips" id="cls-chips"></div>
-            <div id="cls-card"></div>
+        <!-- ── TAB 1: CLASSE ── -->
+        <div id="tab-1" class="tab-pane active">
+          <!-- Nome -->
+          <div class="panel">
+            <div class="ph"><span class="pt">Nome Personaggio</span></div>
+            <div class="pb"><input type="text" id="char-name" placeholder="Es. Aldric il Grigio…"
+                oninput="char.name=this.value;renderPreviewHeader()" /></div>
           </div>
-        </div>
 
-        <!-- Livello -->
-        <div class="panel" id="panel-level" style="display:none">
-          <div class="ph"><span class="pt">Livello</span></div>
-          <div class="pb">
-            <div class="level-grid" id="level-grid"></div>
-            <div class="lvl-stats" id="lvl-stats"></div>
-          </div>
-        </div>
-
-        <!-- Sottoclasse -->
-        <div class="panel" id="panel-subclass" style="display:none">
-          <div class="ph"><span class="pt" id="sc-title">Sottoclasse</span><span class="ph-note"
-              id="sc-unlock-note"></span></div>
-          <div class="pb">
-            <div class="sc-grid" id="sc-grid"></div>
-          </div>
-        </div>
-
-        <!-- Slot -->
-        <div class="panel" id="panel-slots" style="display:none">
-          <div class="ph"><span class="pt">Slot Incantesimo</span></div>
-          <div class="pb" id="slots-body"></div>
-        </div>
-
-        <!-- Specie -->
-        <div class="panel" id="panel-species" style="display:none">
-          <div class="ph"><span class="pt">Specie</span><span id="spc-loading" class="ph-note"></span></div>
-          <div class="pb">
-            <input class="search-box" id="spc-search" placeholder="Cerca specie…" oninput="renderSpeciesList()"
-              autocomplete="off" />
-            <div class="item-list" id="spc-list"></div>
-            <div id="spc-card"></div>
-          </div>
-        </div>
-
-        <!-- Scelte Specie -->
-        <div class="panel" id="panel-species-choices" style="display:none">
-          <div class="ph"><span class="pt">✦ Scelte Specie</span></div>
-          <div class="pb" id="species-choices-body"></div>
-        </div>
-
-        <!-- Background -->
-        <div class="panel" id="panel-bg" style="display:none">
-          <div class="ph"><span class="pt">Background</span><span id="bg-loading" class="ph-note"></span></div>
-          <div class="pb">
-            <input class="search-box" id="bg-search" placeholder="Cerca background…" oninput="renderBgList()"
-              autocomplete="off" />
-            <div class="item-list" id="bg-list"></div>
-            <div id="bg-card"></div>
-          </div>
-        </div>
-
-        <!-- Punteggi -->
-        <div class="panel" id="panel-scores" style="display:none">
-          <div class="ph"><span class="pt">Punteggi Caratteristiche</span></div>
-          <div class="pb">
-            <div class="score-tabs">
-              <button class="score-tab on" onclick="setScoreMethod('pointbuy')">Point Buy</button>
-              <button class="score-tab" onclick="setScoreMethod('standard')">Array Standard</button>
-              <button class="score-tab" onclick="setScoreMethod('dice')">Tira Dadi</button>
+          <!-- Classe -->
+          <div class="panel">
+            <div class="ph"><span class="pt">Classe</span><span id="cls-loading" class="ph-note">Caricamento…</span></div>
+            <div class="pb">
+              <div class="chips" id="cls-chips"></div>
+              <div id="cls-card"></div>
             </div>
-            <div id="scores-ui"></div>
+          </div>
+
+          <!-- Livello -->
+          <div class="panel" id="panel-level" style="display:none">
+            <div class="ph"><span class="pt">Livello</span></div>
+            <div class="pb">
+              <div class="level-grid" id="level-grid"></div>
+              <div class="lvl-stats" id="lvl-stats"></div>
+            </div>
+          </div>
+
+          <!-- XP -->
+          <div class="panel" id="panel-xp" style="display:none">
+            <div class="ph"><span class="pt">Esperienza (XP)</span><span id="xp-next-label" class="ph-note"></span></div>
+            <div class="pb">
+              <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div></div>
+              <input type="number" class="xp-input" id="xp-input" min="0" value="0"
+                placeholder="XP totali…" oninput="updateXP(this.value)" />
+            </div>
+          </div>
+
+          <!-- Sottoclasse -->
+          <div class="panel" id="panel-subclass" style="display:none">
+            <div class="ph"><span class="pt" id="sc-title">Sottoclasse</span><span class="ph-note"
+                id="sc-unlock-note"></span></div>
+            <div class="pb">
+              <div class="sc-grid" id="sc-grid"></div>
+            </div>
+          </div>
+
+          <!-- Slot -->
+          <div class="panel" id="panel-slots" style="display:none">
+            <div class="ph"><span class="pt">Slot Incantesimo</span></div>
+            <div class="pb" id="slots-body"></div>
+          </div>
+
+          <!-- Scelte di Classe -->
+          <div class="panel" id="panel-class-choices" style="display:none">
+            <div class="ph"><span class="pt">Scelte di Classe</span><span id="cc-loading" class="ph-note"></span></div>
+            <div class="pb" id="cc-body"></div>
+          </div>
+
+          <!-- Incantesimi -->
+          <div class="panel" id="panel-spells" style="display:none">
+            <div class="ph"><span class="pt">Incantesimi</span><span id="spell-loading" class="ph-note"></span></div>
+            <div class="pb" id="spell-body"></div>
           </div>
         </div>
 
-        <!-- Bonus caratteristiche background -->
-        <div class="panel" id="panel-bg-ability" style="display:none">
-          <div class="ph"><span class="pt">Bonus Caratteristiche da Background</span></div>
-          <div class="pb" id="bg-ability-body"></div>
+        <!-- ── TAB 2: SPECIE ── -->
+        <div id="tab-2" class="tab-pane">
+          <!-- Specie -->
+          <div class="panel" id="panel-species" style="display:none">
+            <div class="ph"><span class="pt">Specie</span><span id="spc-loading" class="ph-note"></span></div>
+            <div class="pb">
+              <input class="search-box" id="spc-search" placeholder="Cerca specie…" oninput="renderSpeciesList()"
+                autocomplete="off" />
+              <div class="item-list" id="spc-list"></div>
+              <div id="spc-card"></div>
+            </div>
+          </div>
+
+          <!-- Scelte Specie -->
+          <div class="panel" id="panel-species-choices" style="display:none">
+            <div class="ph"><span class="pt">✦ Scelte Specie</span></div>
+            <div class="pb" id="species-choices-body"></div>
+          </div>
         </div>
 
-        <!-- Scelte di Classe -->
-        <div class="panel" id="panel-class-choices" style="display:none">
-          <div class="ph"><span class="pt">Scelte di Classe</span><span id="cc-loading" class="ph-note"></span></div>
-          <div class="pb" id="cc-body"></div>
+        <!-- ── TAB 3: BACKGROUND ── -->
+        <div id="tab-3" class="tab-pane">
+          <!-- Background -->
+          <div class="panel" id="panel-bg" style="display:none">
+            <div class="ph"><span class="pt">Background</span><span id="bg-loading" class="ph-note"></span></div>
+            <div class="pb">
+              <input class="search-box" id="bg-search" placeholder="Cerca background…" oninput="renderBgList()"
+                autocomplete="off" />
+              <div class="item-list" id="bg-list"></div>
+              <div id="bg-card"></div>
+            </div>
+          </div>
+
+          <!-- Bonus caratteristiche background -->
+          <div class="panel" id="panel-bg-ability" style="display:none">
+            <div class="ph"><span class="pt">Bonus Caratteristiche da Background</span></div>
+            <div class="pb" id="bg-ability-body"></div>
+          </div>
         </div>
 
-        <!-- Incantesimi -->
-        <div class="panel" id="panel-spells" style="display:none">
-          <div class="ph"><span class="pt">Incantesimi</span><span id="spell-loading" class="ph-note"></span></div>
-          <div class="pb" id="spell-body"></div>
+        <!-- ── TAB 4: CARATTERISTICHE ── -->
+        <div id="tab-4" class="tab-pane">
+          <!-- Punteggi -->
+          <div class="panel" id="panel-scores" style="display:none">
+            <div class="ph"><span class="pt">Punteggi Caratteristiche</span></div>
+            <div class="pb">
+              <div class="score-tabs">
+                <button class="score-tab on" onclick="setScoreMethod('pointbuy')">Point Buy</button>
+                <button class="score-tab" onclick="setScoreMethod('standard')">Array Standard</button>
+                <button class="score-tab" onclick="setScoreMethod('dice')">Tira Dadi</button>
+              </div>
+              <div id="scores-ui"></div>
+            </div>
+          </div>
         </div>
 
-        <!-- Talenti -->
-        <div class="panel" id="panel-feats" style="display:none">
-          <div class="ph"><span class="pt">Talenti</span><span id="feat-loading" class="ph-note"></span></div>
-          <div class="pb" id="feats-body"></div>
+        <!-- ── TAB 5: EQUIPAGGIAMENTO ── -->
+        <div id="tab-5" class="tab-pane">
+          <!-- Equipaggiamento iniziale (read-only) -->
+          <div class="panel" id="panel-equip" style="display:none">
+            <div class="ph"><span class="pt">Equipaggiamento Iniziale</span></div>
+            <div class="pb" id="equip-body"></div>
+          </div>
+
+          <!-- Valuta -->
+          <div class="panel" id="panel-currency">
+            <div class="ph"><span class="pt">💰 Valuta</span></div>
+            <div class="pb">
+              <div class="currency-grid">
+                <div class="currency-cell">
+                  <div class="currency-lbl" style="color:#b87333">Rame (MR)</div>
+                  <input type="number" class="currency-inp" id="cur-cp" value="0" min="0" oninput="updateCurrency('cp',this.value)">
+                </div>
+                <div class="currency-cell">
+                  <div class="currency-lbl" style="color:#aaa">Argento (MA)</div>
+                  <input type="number" class="currency-inp" id="cur-sp" value="0" min="0" oninput="updateCurrency('sp',this.value)">
+                </div>
+                <div class="currency-cell">
+                  <div class="currency-lbl" style="color:#888">Electrum (ME)</div>
+                  <input type="number" class="currency-inp" id="cur-ep" value="0" min="0" oninput="updateCurrency('ep',this.value)">
+                </div>
+                <div class="currency-cell">
+                  <div class="currency-lbl" style="color:var(--gold)">Oro (MO)</div>
+                  <input type="number" class="currency-inp" id="cur-gp" value="10" min="0" oninput="updateCurrency('gp',this.value)">
+                </div>
+                <div class="currency-cell">
+                  <div class="currency-lbl" style="color:#e0e0ff">Platino (MP)</div>
+                  <input type="number" class="currency-inp" id="cur-pp" value="0" min="0" oninput="updateCurrency('pp',this.value)">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Inventario personale -->
+          <div class="panel">
+            <div class="ph">
+              <span class="pt">🎒 Inventario</span>
+              <span id="inv-weight-label" class="ph-note"></span>
+            </div>
+            <div class="pb">
+              <!-- Search -->
+              <input class="search-box" id="inv-search" placeholder="Cerca oggetti (es. Spada Lunga, Torcia, Pozione…)"
+                oninput="renderItemSearch()" autocomplete="off" style="margin-bottom:.5rem"/>
+              <!-- Filter chips -->
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem">
+                <button class="chip on" id="inv-f-all" onclick="setItemFilter('all',this)">Tutto</button>
+                <button class="chip" id="inv-f-weapon" onclick="setItemFilter('weapon',this)">Armi</button>
+                <button class="chip" id="inv-f-armor" onclick="setItemFilter('armor',this)">Armature</button>
+                <button class="chip" id="inv-f-gear" onclick="setItemFilter('gear',this)">Equipagg.</button>
+                <button class="chip" id="inv-f-magic" onclick="setItemFilter('magic',this)">Magici</button>
+              </div>
+              <!-- Search results -->
+              <div id="inv-search-results" class="item-list" style="max-height:200px;margin-bottom:.75rem"></div>
+              <!-- Current inventory -->
+              <div style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem">Inventario Corrente</div>
+              <div id="inv-list"></div>
+              <!-- Add custom item -->
+              <div style="margin-top:.6rem;display:flex;gap:6px">
+                <input class="search-box" id="inv-custom-name" placeholder="Oggetto personalizzato…"
+                  style="margin-bottom:0;flex:1" />
+                <button class="chip" onclick="addCustomItem()" style="white-space:nowrap">+ Aggiungi</button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Equipaggiamento -->
-        <div class="panel" id="panel-equip" style="display:none">
-          <div class="ph"><span class="pt">Equipaggiamento Iniziale</span></div>
-          <div class="pb" id="equip-body"></div>
+        <!-- ── TAB 6: TALENTI ── -->
+        <div id="tab-6" class="tab-pane">
+          <!-- Talenti -->
+          <div class="panel" id="panel-feats" style="display:none">
+            <div class="ph"><span class="pt">Talenti</span><span id="feat-loading" class="ph-note"></span></div>
+            <div class="pb" id="feats-body"></div>
+          </div>
         </div>
 
-        <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()">📋 Genera Scheda
-          Personaggio</button>
-        <div style="margin-top:.5rem;text-align:center"><a class="btn-sec" href="index.html">← Torna all'Encounter
-            Builder</a></div>
+        <!-- ── TAB 7: SCHEDA ── -->
+        <div id="tab-7" class="tab-pane">
+          <div class="panel">
+            <div class="ph"><span class="pt">Genera Scheda</span></div>
+            <div class="pb" style="text-align:center;padding:2rem 1.2rem">
+              <p style="color:var(--text2);font-size:14px;margin-bottom:1.5rem">
+                Hai completato tutte le scelte? Genera la tua scheda personaggio!
+              </p>
+              <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()">📋 Genera Scheda Personaggio</button>
+              <div style="margin-top:1rem"><a class="btn-sec" href="index.html">← Torna all'Encounter Builder</a></div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Preview -->
@@ -1928,10 +2096,13 @@
     /* ════════════════════════════════════ STATO */
     let char = {
       name: '', level: 1, className: null, classSource: null, cls: null,
+      classes: [],
       allFeatures: [], subclasses: [], allSubFeatures: [], subclassShortName: null,
       speciesName: null, speciesSource: null, speciesObj: null,
       bgName: null, bgSource: null, bgObj: null, bgAbility: [], bgPatternIdx: 0,
       scoreMethod: 'pointbuy',
+      hpMode: 'average', // 'average' o 'rolled'
+      hpManualRolls: {}, // conterrà i tiri per ogni livello: {2: 6, 3: 4, ...}
       pbScores: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 },
       arrAssign: { str: null, dex: null, con: null, int: null, wis: null, cha: null },
       dicePool: [], diceAssign: { str: null, dex: null, con: null, int: null, wis: null, cha: null },
@@ -1940,8 +2111,11 @@
       equipChoices: {},
       selectedCantrips: [],
       selectedSpells: {},
+      xp: 0,
+      inventory: [],    // [{name, source, type, qty, weight, value, rarity, dmg1, dmgType, ac, custom}]
+      currency: { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 },
     };
-    let classCache = {}, allSpecies = [], allBgs = [], allFeats = [], allOptFeats = [], spellDb = [];
+    let classCache = {}, allSpecies = [], allBgs = [], allFeats = [], allOptFeats = [], spellDb = [], allItemsDb = [];
     // classSpellIndex[className_lc] = Set<spellName_lc> — costruito da gendata-spell-source-lookup.json
     let classSpellIndex = {};
 
@@ -2282,10 +2456,29 @@
         if (sel) specs.push(..._subFeatureSpellGrants(sel, char.allFeatures, key));
       }
 
-      // 6. Expertise (hardcoded — no machine-readable data)
-      for (const { level, count, label } of (EXPERTISE_CONFIG[char.className] || [])) {
-        if (level > lv) continue;
-        specs.push({ key: `class_expertise_${level}`, label, type: 'expertise', count, level });
+      // 6. Expertise Dinamica (Scansione Testuale)
+      const allLvFeats = [
+        ...(char.allFeatures || []).filter(f => f.level <= lv && !f.isReprinted),
+        ...(char.subclassShortName ? char.allSubFeatures.filter(f => f.subclassShortName === char.subclassShortName && f.level <= lv && !f.isReprinted) : [])
+      ];
+
+      for (const feat of allLvFeats) {
+        const name = feat.name || '';
+        const text = JSON.stringify(feat.entries || '').toLowerCase();
+
+        // Cerca pattern per Maestria (Bardo, Ladro, Ranger "Canny", ecc.)
+        if (name.toLowerCase().includes('expertise') || name.toLowerCase().includes('maestria') ||
+          (text.includes('choose two') && text.includes('expertise')) ||
+          (text.includes('choose one') && text.includes('expertise'))) {
+
+          let count = text.includes('choose one') || text.includes('choose 1') || name.toLowerCase().includes('canny') ? 1 : 2;
+
+          const key = `class_dyn_exp_${feat.name.replace(/[^a-zA-Z0-9]/g, '_')}_${feat.level}`;
+          // Evita di creare duplicati dello stesso slot
+          if (!specs.find(s => s.key === key)) {
+            specs.push({ key, label: `${name} (Lv.${feat.level})`, type: 'expertise', count, level: feat.level });
+          }
+        }
       }
 
       return specs.sort((a, b) => a.level - b.level);
@@ -3205,10 +3398,11 @@
       char.subclasses = (d.subclass || []).filter(s => s.className === name && s.classSource === source && ALLOWED.includes(s.source));
       char.allSubFeatures = (d.subclassFeature || []).filter(f => f.className === name && f.classSource === source && ALLOWED.includes(f.source || source));
       renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderSlotsPanel();
-      ['panel-level', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => document.getElementById(id).style.display = 'block');
+      ['panel-level', 'panel-xp', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'block'; });
       document.getElementById('btn-next').disabled = false;
       char.choices = {}; char.selectedCantrips = []; char.selectedSpells = {};
       renderScoreUI(); renderChoicesPanel(); renderEquipPanel(); renderSpellPanel(); renderPreview(); updateSteps();
+      renderXPPanel(); renderInventoryList();
     }
     function renderClassCard() {
       const c = char.cls, el = document.getElementById('cls-card');
@@ -3235,6 +3429,64 @@
   </div>`;
     }
 
+    function calcMaxHP() {
+      if (!char.cls) return 0;
+      const hdInfo = char.cls.hd;
+      let faces = 8;
+      if (hdInfo) {
+        if (hdInfo.faces) faces = hdInfo.faces;
+        else if (Array.isArray(hdInfo) && hdInfo[0].faces) faces = hdInfo[0].faces;
+      }
+
+      const lv = char.level;
+      const conMod = Math.floor((getFinal('con') - 10) / 2);
+
+      // LIVELLO 1: Sempre il massimo del dado + CON
+      let totalHP = faces + conMod;
+
+      // LIVELLI 2+: Media automatica o Somma manuale
+      if (lv > 1) {
+        if (char.hpMode === 'average' || !char.hpMode) {
+          const avg = Math.floor(faces / 2) + 1;
+          totalHP += (avg + conMod) * (lv - 1);
+        } else {
+          for (let i = 2; i <= lv; i++) {
+            const val = parseInt(char.hpManualRolls[i]);
+            // Se la casella è vuota, usa temporaneamente la media per non azzerare gli HP
+            const roll = isNaN(val) ? (Math.floor(faces / 2) + 1) : val;
+            totalHP += roll + conMod;
+          }
+        }
+      }
+
+      // Bonus extra (Sottoclassi, Specie e Talenti come Robusto)
+      let bonusPerLv = 0;
+      const checkBonus = (txt) => {
+        if (txt.includes('hit point maximum increases by 2') || txt.includes('twice your character level')) return 2;
+        if (txt.includes('hit point maximum increases by 1') || txt.includes('equal to your character level')) return 1;
+        return 0;
+      };
+
+      const selFeats = Object.values(getSelectedFeats());
+      for (const fName of selFeats) {
+        if (fName === 'Tough' || fName.toLowerCase().includes('robusto')) bonusPerLv += 2;
+        else {
+          const feat = allFeats.find(f => f.name === fName);
+          if (feat) bonusPerLv += checkBonus(JSON.stringify(feat.entries || '').toLowerCase());
+        }
+      }
+      if (char.speciesObj) {
+        if (char.speciesObj.name === 'Dwarf' || char.speciesObj.name === 'Hill Dwarf') bonusPerLv = Math.max(bonusPerLv, 1);
+        else bonusPerLv += checkBonus(JSON.stringify(char.speciesObj.entries || '').toLowerCase());
+      }
+      if (char.subclassShortName) {
+        const scFeats = char.allSubFeatures.filter(f => f.subclassShortName === char.subclassShortName && f.level <= lv);
+        for (const f of scFeats) bonusPerLv += checkBonus(JSON.stringify(f.entries || '').toLowerCase());
+      }
+
+      return totalHP + (bonusPerLv * lv);
+    }
+
     /* ════════════════════════════════════ LIVELLO */
     function renderLevelGrid() {
       const sc = char.cls ? (char.cls.subclassLevel || 3) : 3;
@@ -3244,14 +3496,86 @@
         h += `<button class="lvl-btn${on}${hasSub}" onclick="selectLevel(${i})">${i}${i === sc ? '<br><span style="font-size:7px">◆</span>' : ''}</button>`;
       }
       document.getElementById('level-grid').innerHTML = h;
+
       const caster = char.cls ? (char.cls.casterProgression || CASTER_FB[char.cls.name] || null) : null;
       const cLbl = caster === 'full' ? 'Full' : caster === '1/2' ? '½' : caster === 'pact' ? 'Patto' : '';
-      document.getElementById('lvl-stats').innerHTML = `
-    <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Livello</div></div>
-    <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Bonus Comp.</div></div>
-    <div class="lvl-stat"><div class="lvl-stat-v">d${char.cls?.hd?.faces || '?'}</div><div class="lvl-stat-l">Dado Vita</div></div>
-    ${cLbl ? `<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:14px">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>` : ''}`;
+      const faces = char.cls?.hd?.faces || char.cls?.hd?.[0]?.faces || '?';
+      const hp = calcMaxHP();
+
+      // UI per la configurazione degli HP
+      let hpHtml = `
+      <div style="width:100%; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--bdr);">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span class="pt" style="font-size:10px">Metodo Punti Ferita:</span>
+          <button class="chip ${char.hpMode === 'average' || !char.hpMode ? 'on' : ''}" onclick="setHPMode('average')">Media</button>
+          <button class="chip ${char.hpMode === 'rolled' ? 'on' : ''}" onclick="setHPMode('rolled')">Manuale</button>
+        </div>
+      `;
+
+      if (char.hpMode === 'rolled' && char.level > 1) {
+        hpHtml += `<div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+        for (let i = 2; i <= char.level; i++) {
+          const val = char.hpManualRolls[i] || "";
+          hpHtml += `
+          <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r); padding:4px; text-align:center; width:45px;">
+            <div style="font-size:9px; color:var(--text3); font-family:'Cinzel',serif;">Lv.${i}</div>
+            <input type="number" min="1" max="${faces}" value="${val}" oninput="updateHpRoll(${i}, this.value)" 
+              style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--bdr2); color:var(--gold2); font-family:'Cinzel',serif; font-size:14px; font-weight:bold; text-align:center; outline:none; padding:2px 0;">
+          </div>`;
+        }
+        hpHtml += `</div>`;
+      }
+      hpHtml += `</div>`;
+
+      // Inseriamo l'UI degli HP prima dei contatori finali
+      document.getElementById('lvl-stats').innerHTML = hpHtml + `
+        <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Livello</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Punti Ferita</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Bonus Comp.</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
+        ${cLbl ? `<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:14px">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>` : ''}
+      `;
     }
+
+    function setHPMode(mode) {
+      char.hpMode = mode;
+      renderLevelGrid();
+      renderPreview();
+    }
+
+    function updateHpRoll(lv, val) {
+      const faces = char.cls?.hd?.faces || 8;
+      let n = parseInt(val);
+      if (isNaN(n)) n = 0;
+      if (n > faces) n = faces; // Evita valori impossibili (es. rollare 12 su un d8)
+      char.hpManualRolls[lv] = n;
+
+      const hp = calcMaxHP();
+      const hpBox = document.getElementById('hp-stat-box');
+      if (hpBox) hpBox.textContent = hp;
+      renderPreviewHeader();
+    }
+
+    // Funzioni di supporto
+    function setHPMode(mode) {
+      char.hpMode = mode;
+      renderLevelGrid();
+      renderPreview();
+    }
+
+    function updateHpRoll(lv, val) {
+      const faces = char.cls?.hd?.faces || 8;
+      let n = parseInt(val);
+      if (isNaN(n)) n = 0;
+      if (n > faces) n = faces;
+      char.hpManualRolls[lv] = n;
+      // Aggiorna solo i testi degli HP senza rifare tutto il grid (per evitare di perdere il focus dell'input)
+      const hp = calcMaxHP();
+      const hpBox = document.getElementById('hp-stat-box');
+      if (hpBox) hpBox.textContent = hp;
+      renderPreviewHeader();
+    }
+
     function selectLevel(n) { char.level = n; renderLevelGrid(); renderSubclassPanel(); renderSlotsPanel(); renderChoicesPanel(); renderSpellPanel(); renderPreview(); updateSteps(); }
 
     /* ════════════════════════════════════ SOTTOCLASSE */
@@ -3761,8 +4085,18 @@
       if (char.speciesName) parts.push(char.speciesName);
       if (char.className) parts.push(`${char.className}${char.subclassShortName ? ' (' + char.subclassShortName + ')' : ''} Lv.${char.level}`);
       if (char.bgName) parts.push(char.bgName);
-      document.getElementById('prev-meta').textContent = parts.join(' · ');
+
+      let metaStr = parts.join(' · ');
+
+      // Mostra gli HP calcolati nell'intestazione
+      if (char.cls) {
+        const hp = calcMaxHP();
+        metaStr += ` · ❤️ ${hp} HP`;
+      }
+
+      document.getElementById('prev-meta').textContent = metaStr;
     }
+
     function renderPreviewScores() {
       const el = document.getElementById('prev-scores');
       const hasAny = STATS.some(s => getFinal(s) !== 8 + bgBonus(s) || bgBonus(s) > 0);
@@ -3885,16 +4219,35 @@
     function tf(target) { (typeof target === 'string' ? document.getElementById(target) : target)?.classList.toggle('open'); }
 
     /* ════════════════════════════════════ STEPS */
+    let currentTab = 1;
+
+    function gotoTab(n) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + n).classList.add('active');
+      currentTab = n;
+      updateSteps();
+    }
+
     function updateSteps() {
-      const mk = (id, st) => document.getElementById(id).className = 'step ' + st;
-      mk('st-1', char.className ? 'done' : 'active');
-      mk('st-2', char.speciesName ? 'done' : char.className ? 'active' : 'locked');
-      mk('st-3', char.bgName ? 'done' : char.className ? 'active' : 'locked');
-      mk('st-4', char.className ? 'active' : 'locked');
-      const hasOriginFeat = char.choices?.feat_origin;
-      mk('st-5', char.cls?.startingEquipment || char.bgObj?.startingEquipment ? 'done' : 'locked');
-      mk('st-6', hasOriginFeat ? 'done' : char.className ? 'active' : 'locked');
-      mk('st-7', 'locked');
+      const done1 = !!char.className;
+      const done2 = !!char.speciesName;
+      const done3 = !!char.bgName;
+      const done5 = !!(char.cls?.startingEquipment || char.bgObj?.startingEquipment);
+      const done6 = !!char.choices?.feat_origin;
+
+      function cls(n, done) {
+        if (n === currentTab) return 'active';
+        if (done) return 'done';
+        return '';
+      }
+
+      document.getElementById('st-1').className = 'step ' + cls(1, done1);
+      document.getElementById('st-2').className = 'step ' + cls(2, done2);
+      document.getElementById('st-3').className = 'step ' + cls(3, done3);
+      document.getElementById('st-4').className = 'step ' + cls(4, false);
+      document.getElementById('st-5').className = 'step ' + cls(5, done5);
+      document.getElementById('st-6').className = 'step ' + cls(6, done6);
+      document.getElementById('st-7').className = 'step ' + (currentTab === 7 ? 'active' : '');
     }
 
     function saveAndOpenSheet() {
@@ -3947,6 +4300,9 @@
         selectedCantrips: char.selectedCantrips,
         selectedSpells: char.selectedSpells,
         autoGrantedSpells: getAutoGrantedSpells(),
+        xp: char.xp || 0,
+        inventory: char.inventory || [],
+        currency: char.currency || { cp:0, sp:0, ep:0, gp:10, pp:0 },
         // Spell grant choices (flat values that are arrays of spell names)
         grantSpellNames: Object.values(char.choices || {})
           .filter(v => Array.isArray(v)).flat().filter(v => spellDb.some(s => s.name === v)),
@@ -3965,6 +4321,9 @@
           })),
       };
       localStorage.setItem('5e_current_char', JSON.stringify(saved));
+      localStorage.setItem('5e_inventory', JSON.stringify(char.inventory || []));
+      localStorage.setItem('5e_currency', JSON.stringify(char.currency || { cp:0,sp:0,ep:0,gp:10,pp:0 }));
+      localStorage.setItem('5e_xp', String(char.xp || 0));
       window.open('character-sheet.html', '_blank');
     }
 
@@ -4352,6 +4711,419 @@
       el.innerHTML = h;
     }
 
+    /* ════════════════════════════════════ XP ════════════════════════════════════ */
+    const XP_TABLE = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+    const XP_TOTAL = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+
+    function getLevelFromXP(xp) {
+      let lv = 1;
+      for (let i = 1; i < XP_TOTAL.length; i++) { if (xp >= XP_TOTAL[i]) lv = i + 1; }
+      return Math.min(20, lv);
+    }
+
+    function updateXP(val) {
+      char.xp = parseInt(val) || 0;
+      const lv = getLevelFromXP(char.xp);
+      const curLvXP = XP_TOTAL[lv - 1] || 0;
+      const nextLvXP = XP_TOTAL[lv] || XP_TOTAL[19];
+      const pct = lv >= 20 ? 100 : Math.min(100, Math.round(((char.xp - curLvXP) / (nextLvXP - curLvXP)) * 100));
+      const bar = document.getElementById('xp-bar-fill');
+      const lbl = document.getElementById('xp-next-label');
+      if (bar) bar.style.width = pct + '%';
+      if (lbl) {
+        if (lv >= 20) lbl.textContent = 'Livello Massimo';
+        else lbl.textContent = `${char.xp.toLocaleString()} / ${nextLvXP.toLocaleString()} XP → Lv.${lv + 1}`;
+      }
+      // Auto suggest level
+      if (lv !== char.level) {
+        const suggest = document.getElementById('xp-level-suggest');
+        if (suggest) {
+          suggest.style.display = lv !== char.level ? 'block' : 'none';
+          suggest.innerHTML = `<span style="color:var(--teal)">✦ XP suggerisce Livello ${lv}</span>
+            <button class="chip" style="margin-left:6px" onclick="selectLevel(${lv});updateXP(${char.xp})">Aggiorna</button>`;
+        }
+      }
+    }
+
+    function renderXPPanel() {
+      const p = document.getElementById('panel-xp');
+      if (!p) return;
+      if (!char.className) { p.style.display = 'none'; return; }
+      p.style.display = 'block';
+      const inp = document.getElementById('xp-input');
+      if (inp && inp.value !== String(char.xp)) inp.value = char.xp;
+      updateXP(char.xp);
+    }
+
+    /* ════════════════════════════════════ ITEMS ════════════════════════════════════ */
+    const ITEM_TYPE_LABELS = {
+      M:'Arma da Mischia', R:'Arma da Gittata', LA:'Arm. Leggera', MA:'Arm. Media',
+      HA:'Arm. Pesante', S:'Scudo', G:'Equipagg.', AT:'Attrezzi', GS:'Set Gioco',
+      INS:'Strumento', MNT:'Cavalcatura', VEH:'Veicolo', SCF:'Focale Magico',
+      WD:'Bacchetta', RG:'Anello', RD:'Bastone', ST:'Vincastro', WI:'Oggetto Meraviglioso',
+      P:'Pozione', SC:'Pergamena', '$':'Moneta', OTH:'Altro', GV:'Variante Magica',
+    };
+    const ITEM_RARITY_COLOR = {
+      none:'var(--text3)', common:'var(--text2)', uncommon:'var(--green)',
+      rare:'var(--blue)', 'very rare':'var(--purple)', legendary:'var(--gold)',
+      artifact:'var(--red2)',
+    };
+    const SOURCE_LABELS = {
+      XPHB:'XPHB', XDMG:'XDMG', FRAiF:'FRAiF', FRHoF:'FRHoF', EFA:'EFA',
+      DMG:'DMG', PHB:'PHB', XGE:'XGE', TCE:'TCE', SCAG:'SCAG',
+    };
+    let invSearchFilter = 'all';
+    let invLoadingState = 'idle'; // 'idle' | 'loading' | 'done'
+
+    function getItemTypeGroup(item) {
+      const t = item.type || '';
+      if (['M','R'].includes(t)) return 'weapon';
+      if (['LA','MA','HA','S'].includes(t)) return 'armor';
+      if (item.rarity && item.rarity !== 'none') return 'magic';
+      return 'gear';
+    }
+
+    // Controlla se un baseitem soddisfa i requisiti di una magicvariant
+    function itemMatchesRequires(item, requires) {
+      if (!requires || !requires.length) return false;
+      return requires.some(req => {
+        if (req.weapon && item.weapon) return true;
+        if (req.sword && item.sword) return true;
+        if (req.axe && item.axe) return true;
+        if (req.bow && item.bow) return true;
+        if (req.crossbow && item.crossbow) return true;
+        if (req.club && item.club) return true;
+        if (req.dagger && item.dagger) return true;
+        if (req.hammer && item.hammer) return true;
+        if (req.spear && item.spear) return true;
+        if (req.staff && item.staff) return true;
+        if (req.net && item.net) return true;
+        if (req.armor && item.armor) return true;
+        if (req.shield && item.type === 'S') return true;
+        if (req.type && item.type === req.type) return true;
+        return false;
+      });
+    }
+
+    // Espande le magicvariants contro i baseitem per generare "Greatsword +1" ecc.
+    function expandMagicVariants(variants, baseItems) {
+      const ITEM_SOURCES = [...ALLOWED, 'XDMG', 'DMG', 'GV'];
+      const expanded = [];
+      for (const v of variants) {
+        if (!ITEM_SOURCES.includes(v.source)) continue;
+        const inh = v.inherits || {};
+        const requires = v.requires || [];
+        // Se non ha requires, è un oggetto standalone (es. Amulet of Health)
+        if (!requires.length) {
+          expanded.push({
+            name: v.name,
+            source: v.source,
+            type: inh.type || v.type || 'WI',
+            rarity: inh.rarity || v.rarity || 'none',
+            weight: inh.weight || v.weight || 0,
+            value: inh.value || v.value || 0,
+            bonusWeapon: inh.bonusWeapon || null,
+            bonusAc: inh.bonusAc || null,
+            ac: inh.ac || null,
+            entries: inh.entries || v.entries || [],
+            _variant: true,
+          });
+          continue;
+        }
+        // Genera una voce per ogni baseitem compatibile
+        for (const base of baseItems) {
+          if (!itemMatchesRequires(base, requires)) continue;
+          const prefix = inh.namePrefix || '';
+          const suffix = inh.nameSuffix || '';
+          expanded.push({
+            name: prefix + base.name + suffix,
+            source: v.source,
+            type: base.type || inh.type || 'WI',
+            rarity: inh.rarity || v.rarity || 'none',
+            weight: inh.weight ?? base.weight ?? 0,
+            value: inh.value ?? base.value ?? 0,
+            dmg1: inh.dmg1 || base.dmg1 || null,
+            dmgType: base.dmgType || null,
+            bonusWeapon: inh.bonusWeapon || null,
+            bonusAc: inh.bonusAc || null,
+            ac: inh.ac ?? base.ac ?? null,
+            property: base.property || [],
+            entries: inh.entries || v.entries || [],
+            _variant: true,
+          });
+        }
+      }
+      
+      // Fallback: Se non ci sono varianti caricate, aggiungi le varianti +1, +2, +3 standard
+      if (expanded.length === 0 && baseItems.length > 0) {
+        const bonusLevels = [1, 2, 3];
+        const rarityByBonus = { 1: 'uncommon', 2: 'rare', 3: 'very rare' };
+        for (const base of baseItems) {
+          for (const bonus of bonusLevels) {
+            expanded.push({
+              name: base.name + ', +' + bonus,
+              source: 'XDMG',
+              type: base.type,
+              rarity: rarityByBonus[bonus] || 'rare',
+              weight: base.weight || 0,
+              value: (base.value || 0) + (bonus * 500),
+              dmg1: base.dmg1 || null,
+              dmgType: base.dmgType || null,
+              bonusWeapon: bonus,
+              bonusAc: ['M', 'R'].includes(base.type) ? null : bonus,
+              ac: ['LA', 'MA', 'HA', 'S'].includes(base.type) ? (base.ac || 0) + bonus : base.ac || null,
+              property: base.property || [],
+              entries: base.entries || [`Bonus di +${bonus} a tiri per colpire e danni.`],
+              _variant: true,
+            });
+          }
+        }
+      }
+      return expanded;
+    }
+
+    // Armi e armature standard di D&D 5e (fallback se i fetch falliscono)
+    const STANDARD_ITEMS_FALLBACK = [
+      // Armi comuni
+      { name: 'Longsword', type: 'M', source: 'XDMG', dmg1: '1d8', dmgType: 'slashing', weight: 3, value: 1500, property: ['versatile'] },
+      { name: 'Greatsword', type: 'M', source: 'XDMG', dmg1: '2d6', dmgType: 'slashing', weight: 6, value: 2000, property: ['heavy', 'two-handed'] },
+      { name: 'Shortsword', type: 'M', source: 'XDMG', dmg1: '1d6', dmgType: 'piercing', weight: 2, value: 1000, property: ['finesse', 'light'] },
+      { name: 'Dagger', type: 'M', source: 'XDMG', dmg1: '1d4', dmgType: 'piercing', weight: 1, value: 200, property: ['finesse', 'light', 'thrown'] },
+      { name: 'Quarterstaff', type: 'M', source: 'XDMG', dmg1: '1d6', dmgType: 'bludgeoning', weight: 4, value: 200, property: ['versatile'] },
+      { name: 'Mace', type: 'M', source: 'XDMG', dmg1: '1d6', dmgType: 'bludgeoning', weight: 4, value: 500, property: [] },
+      { name: 'Warhammer', type: 'M', source: 'XDMG', dmg1: '1d8', dmgType: 'bludgeoning', weight: 5, value: 1500, property: ['versatile'] },
+      { name: 'Greataxe', type: 'M', source: 'XDMG', dmg1: '1d12', dmgType: 'slashing', weight: 7, value: 3000, property: ['heavy', 'two-handed'] },
+      { name: 'Flail', type: 'M', source: 'XDMG', dmg1: '1d8', dmgType: 'bludgeoning', weight: 2, value: 1000, property: [] },
+      { name: 'Rapier', type: 'M', source: 'XDMG', dmg1: '1d8', dmgType: 'piercing', weight: 2, value: 2500, property: ['finesse'] },
+      // Armi a distanza
+      { name: 'Longbow', type: 'R', source: 'XDMG', dmg1: '1d8', dmgType: 'piercing', weight: 3, value: 5000, property: ['ammunition', 'heavy', 'two-handed'] },
+      { name: 'Shortbow', type: 'R', source: 'XDMG', dmg1: '1d6', dmgType: 'piercing', weight: 2, value: 2500, property: ['ammunition', 'two-handed'] },
+      { name: 'Crossbow, hand', type: 'R', source: 'XDMG', dmg1: '1d6', dmgType: 'piercing', weight: 3, value: 7500, property: ['ammunition', 'light'] },
+      { name: 'Crossbow, light', type: 'R', source: 'XDMG', dmg1: '1d8', dmgType: 'piercing', weight: 5, value: 2500, property: ['ammunition', 'loading', 'two-handed'] },
+      { name: 'Crossbow, heavy', type: 'R', source: 'XDMG', dmg1: '1d10', dmgType: 'piercing', weight: 18, value: 5000, property: ['ammunition', 'heavy', 'loading', 'two-handed'] },
+      // Armature leggere
+      { name: 'Leather Armor', type: 'LA', source: 'XDMG', ac: 11, weight: 10, value: 500 },
+      { name: 'Studded Leather Armor', type: 'LA', source: 'XDMG', ac: 12, weight: 13, value: 4500 },
+      // Armature medie
+      { name: 'Hide Armor', type: 'MA', source: 'XDMG', ac: 12, weight: 25, value: 1000 },
+      { name: 'Chain Shirt', type: 'MA', source: 'XDMG', ac: 13, weight: 20, value: 5000 },
+      { name: 'Scale Mail', type: 'MA', source: 'XDMG', ac: 14, weight: 45, value: 5000 },
+      { name: 'Breastplate', type: 'MA', source: 'XDMG', ac: 14, weight: 20, value: 40000 },
+      // Armature pesanti
+      { name: 'Ring Mail', type: 'HA', source: 'XDMG', ac: 14, weight: 40, value: 3000 },
+      { name: 'Chain Mail', type: 'HA', source: 'XDMG', ac: 16, weight: 55, value: 75000 },
+      { name: 'Splint Armor', type: 'HA', source: 'XDMG', ac: 17, weight: 60, value: 20000 },
+      { name: 'Plate Armor', type: 'HA', source: 'XDMG', ac: 18, weight: 65, value: 150000 },
+      // Scudi
+      { name: 'Shield', type: 'S', source: 'XDMG', ac: 2, weight: 6, value: 1000 },
+    ];
+
+    async function loadItems() {
+      // Inizializza SUBITO con il fallback per mostrare gli oggetti immediatamente
+      const normalizeItemType = (item) => {
+        // Estrai il tipo prima della pipe (es. "G|XPHB" -> "G")
+        let type = item.type ? item.type.split('|')[0] : null;
+        
+        if (!type || type === 'G' || type === 'OTH') {
+          // Tipo generico/altro - controlla i flag
+          if (item.weapon) type = 'M';
+          else if (item.ammo) type = 'A';
+          else if (item.armor) type = 'MA';
+          else if (item.shield) type = 'S';
+          else type = 'OTH';
+        }
+        
+        item.type = type;
+        return item;
+      };
+
+      // Mostra subito il fallback
+      allItemsDb = STANDARD_ITEMS_FALLBACK.map(normalizeItemType).sort((a, b) => a.name.localeCompare(b.name));
+      renderItemSearch();
+      
+      // Carica i dati remoti in background
+      let baseItems = [];
+      let magicItems = [];
+      let variants = [];
+      
+      try {
+        const [r1, r2, r3] = await Promise.all([
+          fetch(BASE + 'items-base.json'),
+          fetch(BASE + 'items.json'),
+          fetch(BASE + 'magicvariants.json'),
+        ]);
+        const d1 = r1.ok ? await r1.json() : { baseitem: [] };
+        const d2 = r2.ok ? await r2.json() : { item: [] };
+        const d3 = r3.ok ? await r3.json() : { magicvariant: [] };
+
+        const ITEM_SOURCES = [...ALLOWED, 'XDMG'];
+        
+        // Per baseitem, includi oggetti che:
+        // 1. Hanno source in ALLOWED (XPHB/XDMG/etc)
+        // 2. O hanno reprintedAs con XPHB/XDMG (versione 2024)
+        baseItems  = (d1.baseitem || [])
+          .filter(i => {
+            if (ITEM_SOURCES.includes(i.source)) return true;
+            if (i.reprintedAs && Array.isArray(i.reprintedAs) && i.reprintedAs.some(r=> typeof r === 'string' && (r.includes('XPHB') || r.includes('XDMG')))) return true;
+            return false;
+          })
+          .map(normalizeItemType);
+        magicItems = (d2.item || []).filter(i => ITEM_SOURCES.includes(i.source)).map(normalizeItemType);
+        variants   = d3.magicvariant || [];
+      } catch (e) {
+        console.warn('Errore nel fetch dei dati remoti:', e);
+      }
+
+      // Fallback: Se baseItems è vuoto, usa gli item standard locali
+      if (!baseItems || baseItems.length === 0) {
+        baseItems = [...STANDARD_ITEMS_FALLBACK];
+      }
+
+      // Espandi le varianti magiche
+      const expandedVariants = expandMagicVariants(variants, baseItems);
+
+      // Unisci tutto e deduplicazione per nome
+      const seen = new Set();
+      allItemsDb = [...baseItems, ...magicItems, ...expandedVariants]
+        .filter(i => { if (seen.has(i.name)) return false; seen.add(i.name); return true; })
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      renderItemSearch();
+    }
+
+    function setItemFilter(f, btn) {
+      invSearchFilter = f;
+      document.querySelectorAll('#tab-5 .chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      renderItemSearch();
+    }
+
+    function renderItemSearch() {
+      const el = document.getElementById('inv-search-results');
+      if (!el) return;
+      if (invLoadingState === 'loading') { el.innerHTML = '<div class="phmsg">Caricamento…</div>'; return; }
+
+      const q = (document.getElementById('inv-search')?.value || '').toLowerCase().trim();
+
+      let list = allItemsDb;
+      
+      // DEBUG: Mostra la struttura dei primi 3 oggetti
+      if (invSearchFilter !== 'all' && list.length > 0) {
+        console.log('=== DEBUG FILTRO ===');
+        console.log('Filtro selezionato:', invSearchFilter);
+        console.log('Primi 3 oggetti:', list.slice(0, 3).map(i => ({name: i.name, type: i.type, typeGroup: getItemTypeGroup(i), weapon: i.weapon, armor: i.armor})));
+        console.log('Total items:', list.length);
+      }
+      
+      if (invSearchFilter !== 'all') list = list.filter(i => getItemTypeGroup(i) === invSearchFilter);
+      if (q) list = list.filter(i => i.name.toLowerCase().includes(q));
+      list = list.slice(0, 60);
+
+      if (!list.length) {
+        el.innerHTML = '<div class="phmsg">Nessun oggetto trovato.</div>';
+        return;
+      }
+
+      el.innerHTML = list.map(item => {
+        const typeLabel = ITEM_TYPE_LABELS[item.type] || item.type || '—';
+        const rarity = item.rarity && item.rarity !== 'none' ? item.rarity : null;
+        const rc = ITEM_RARITY_COLOR[rarity] || 'var(--text3)';
+        const valueGP = item.value ? (item.value / 100).toFixed(item.value % 100 === 0 ? 0 : 2) + ' MO' : '—';
+        const dmg = item.dmg1 ? ` · ${item.dmg1}${item.dmgType?' '+item.dmgType:''}` : '';
+        const bonus = item.bonusWeapon ? ` · ${item.bonusWeapon}` : (item.bonusAc ? ` · CA${item.bonusAc}` : '');
+        const ac = item.ac ? ` · CA ${item.ac}` : '';
+        const srcLabel = SOURCE_LABELS[item.source] || item.source || '';
+        const safe = encodeURIComponent(JSON.stringify({
+          name:item.name, source:item.source, type:item.type,
+          rarity:item.rarity, weight:item.weight, value:item.value,
+          dmg1:item.dmg1, dmgType:item.dmgType, ac:item.ac,
+          bonusWeapon:item.bonusWeapon, bonusAc:item.bonusAc,
+          property:item.property||[],
+        }));
+        return `<div class="item-row" onclick="addInventoryItem(decodeURIComponent('${safe}'))">
+          <span class="item-row-name">${esc(item.name)}</span>
+          <span class="item-row-meta" style="color:${rc}">${esc(rarity || typeLabel)}${dmg}${bonus}${ac}</span>
+          <span class="item-row-src" style="color:var(--text3)">${esc(srcLabel)} · ${esc(valueGP)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function addInventoryItem(jsonStr) {
+      let item;
+      try { item = JSON.parse(jsonStr); } catch(e) { return; }
+      const existing = char.inventory.find(i => i.name === item.name && i.source === item.source);
+      if (existing) { existing.qty++; }
+      else {
+        char.inventory.push({
+          name: item.name, source: item.source || '', type: item.type || 'OTH',
+          rarity: item.rarity || 'none', qty: 1,
+          weight: item.weight || 0, value: item.value || 0,
+          dmg1: item.dmg1 || null, dmgType: item.dmgType || null,
+          ac: item.ac || null, bonusWeapon: item.bonusWeapon || null,
+          bonusAc: item.bonusAc || null, property: item.property || [],
+          custom: false,
+        });
+      }
+      renderInventoryList();
+    }
+
+    function addCustomItem() {
+      const inp = document.getElementById('inv-custom-name');
+      const name = (inp?.value || '').trim();
+      if (!name) return;
+      char.inventory.push({ name, source: 'Custom', type: 'OTH', rarity: 'none', qty: 1, weight: 0, value: 0, custom: true });
+      inp.value = '';
+      renderInventoryList();
+    }
+
+    function changeInvQty(idx, delta) {
+      if (!char.inventory[idx]) return;
+      char.inventory[idx].qty = Math.max(0, (char.inventory[idx].qty || 1) + delta);
+      if (char.inventory[idx].qty === 0) char.inventory.splice(idx, 1);
+      renderInventoryList();
+    }
+
+    function renderInventoryList() {
+      const el = document.getElementById('inv-list');
+      if (!el) return;
+      const totalWeight = char.inventory.reduce((s, i) => s + (i.weight || 0) * (i.qty || 1), 0);
+      const wl = document.getElementById('inv-weight-label');
+      if (wl) wl.textContent = totalWeight > 0 ? `${totalWeight.toFixed(1)} lb` : '';
+
+      if (!char.inventory.length) { el.innerHTML = '<div class="phmsg">Nessun oggetto. Cerca e aggiungi sopra.</div>'; return; }
+
+      el.innerHTML = char.inventory.map((item, idx) => {
+        const typeLabel = ITEM_TYPE_LABELS[item.type] || item.type || '';
+        const rarity = item.rarity && item.rarity !== 'none' ? item.rarity : null;
+        const rc = ITEM_RARITY_COLOR[rarity] || 'var(--text3)';
+        const srcLabel = SOURCE_LABELS[item.source] || item.source || '';
+        const dmgStr = item.dmg1 ? `${item.dmg1}${item.dmgType?' '+item.dmgType:''}` : '';
+        const bonus = item.bonusWeapon || item.bonusAc ? `${item.bonusWeapon||''}${item.bonusAc?'CA'+item.bonusAc:''}` : '';
+        const meta = [
+          item.weight ? item.weight + ' lb' : null,
+          item.value ? (item.value / 100).toFixed(0) + ' MO' : null,
+          dmgStr || null,
+          bonus || null,
+        ].filter(Boolean).join(' · ');
+        return `<div class="inv-row">
+          <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+            <div class="inv-type-badge" style="color:${rc}">${esc(rarity || typeLabel || '—')}</div>
+            ${srcLabel ? `<div class="inv-type-badge" style="color:var(--text3);font-size:8px">${esc(srcLabel)}</div>` : ''}
+          </div>
+          <div class="inv-row-name">${esc(item.name)}</div>
+          <div class="inv-row-meta">${esc(meta)}</div>
+          <button class="inv-qty-btn" onclick="changeInvQty(${idx},-1)">−</button>
+          <div class="inv-qty-val">${item.qty}</div>
+          <button class="inv-qty-btn" onclick="changeInvQty(${idx},1)">+</button>
+        </div>`;
+      }).join('');
+    }
+
+    function updateCurrency(coin, val) {
+      if (!char.currency) char.currency = { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 };
+      char.currency[coin] = parseInt(val) || 0;
+    }
+
     /* ════════════════════════════════════ INIT */
     loadClassIndex();
     loadSpecies();
@@ -4359,6 +5131,7 @@
     loadFeats();
     loadOptionalFeatures();
     loadSpells();
+    loadItems();
   </script>
 </body>
 
