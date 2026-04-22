@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>D&D 5e — Character Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0f0e0d;--bg2:#1a1815;--bg3:#232019;--bg4:#2c2820;
+      --bdr:rgba(180,150,90,.18);--bdr2:rgba(180,150,90,.35);
+      --gold:#c8a84b;--gold2:#e8c96a;--gdim:rgba(200,168,75,.12);
+      --red:#c0392b;--red2:#e74c3c;
+      --green:#27ae60;--greenbg:rgba(39,174,96,.12);
+      --blue:#3498db;--bluebg:rgba(52,152,219,.14);
+      --purple:#9b59b6;--purplebg:rgba(155,89,182,.14);
+      --teal:#1abc9c;--tealbg:rgba(26,188,156,.12);
+      --orange:#e67e22;--orangebg:rgba(230,126,34,.12);
+      --text:#e8dcc8;--text2:#a89878;--text3:#6b5c40;
+      --r:6px;--rl:10px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;min-height:100vh;line-height:1.5}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(200,168,75,.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(192,57,43,.04) 0%,transparent 60%);pointer-events:none}
+    .app{max-width:1200px;margin:0 auto;padding:2rem 1.5rem;position:relative;z-index:1}
+    header{text-align:center;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--bdr);position:relative}
+    header::after{content:'✦';position:absolute;bottom:-.65em;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 1rem;color:var(--gold);font-size:13px}
+    h1{font-family:'Cinzel',Georgia,serif;font-size:2rem;font-weight:700;color:var(--gold2);letter-spacing:.06em;margin-bottom:.25rem;text-shadow:0 0 40px rgba(200,168,75,.25)}
+    .sub{font-family:'Cinzel',Georgia,serif;font-size:11px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase}
+
+    .steps{display:flex;margin-bottom:1.75rem;border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;background:var(--bg2)}
+    .step{flex:1;padding:10px 6px;text-align:center;border-right:1px solid var(--bdr);position:relative;transition:background .15s}
+    .step:last-child{border-right:none}
+    .step-num{font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:2px}
+    .step-label{font-family:'Cinzel',serif;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.04em}
+    .step.done .step-num{color:var(--green)}.step.done .step-label{color:var(--text2)}
+    .step.active{background:var(--bg3)}.step.active .step-num{color:var(--gold)}.step.active .step-label{color:var(--gold2)}
+    .step.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold)}
+    .step.locked .step-label{opacity:.3}
+
+    .cb-grid{display:grid;grid-template-columns:1fr 390px;gap:1.25rem;align-items:start}
+    @media(max-width:900px){.cb-grid{grid-template-columns:1fr}}
+
+    .panel{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);overflow:hidden;margin-bottom:1rem}
+    .ph{padding:.65rem 1.2rem;background:var(--bg3);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .pt{font-family:'Cinzel',Georgia,serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);flex-shrink:0}
+    .pb{padding:1rem 1.2rem}
+    .ph-note{font-size:11px;color:var(--text3);font-style:italic}
+
+    .search-box{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:7px 11px;color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:15px;outline:none;transition:border-color .15s;margin-bottom:.75rem}
+    .search-box:focus{border-color:var(--gold)}
+    .search-box::placeholder{color:var(--text3)}
+
+    .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem;min-height:30px}
+    .chip{padding:4px 11px;border:1px solid var(--bdr);border-radius:12px;font-size:11px;font-family:'Cinzel',Georgia,serif;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);letter-spacing:.04em;transition:all .12s}
+    .chip:hover{border-color:var(--gold);color:var(--gold)}
+    .chip.on{background:var(--gdim);border-color:var(--gold);color:var(--gold2)}
+
+    .item-list{display:flex;flex-direction:column;gap:3px;max-height:280px;overflow-y:auto;padding-right:2px}
+    .item-list::-webkit-scrollbar{width:3px}
+    .item-list::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
+    .item-row{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:border-color .1s,background .1s}
+    .item-row:hover{border-color:var(--gold);background:var(--bg4)}
+    .item-row.on{border-color:var(--gold);background:var(--gdim)}
+    .item-row-name{font-size:14px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .item-row-src{font-size:10px;color:var(--text3);font-style:italic;flex-shrink:0}
+    .item-row-meta{font-size:11px;color:var(--text2);flex-shrink:0;font-family:'Cinzel',serif}
+
+    .info-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px;margin-top:.75rem}
+    .info-card-name{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px}
+    .info-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+    .info-tag{font-size:11px;font-family:'Cinzel',serif;padding:2px 8px;border-radius:3px;border:1px solid var(--bdr2);color:var(--text2)}
+    .info-tag.g{border-color:var(--gold);color:var(--gold);background:var(--gdim)}
+    .info-tag.b{border-color:var(--blue);color:var(--blue);background:var(--bluebg)}
+    .info-tag.gr{border-color:var(--green);color:var(--green);background:var(--greenbg)}
+    .info-tag.p{border-color:var(--purple);color:var(--purple);background:var(--purplebg)}
+    .info-tag.t{border-color:var(--teal);color:var(--teal);background:var(--tealbg)}
+    .info-row{font-size:13px;color:var(--text2);margin-bottom:3px;line-height:1.4}
+    .info-row strong{color:var(--text);font-weight:600}
+
+    .level-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:.75rem}
+    .lvl-btn{padding:6px 4px;text-align:center;font-family:'Cinzel',serif;font-size:12px;font-weight:600;border:1px solid var(--bdr);border-radius:4px;background:transparent;color:var(--text3);cursor:pointer;transition:all .1s}
+    .lvl-btn:hover{border-color:var(--gold);color:var(--gold2)}
+    .lvl-btn.on{background:var(--gdim);border-color:var(--gold);color:var(--gold2)}
+    .lvl-btn.has-sub{border-color:var(--purple);color:var(--purple)}
+    .lvl-btn.has-sub.on{background:var(--purplebg);border-color:var(--purple);color:#c39bd3}
+    .lvl-stats{display:flex;gap:8px;flex-wrap:wrap}
+    .lvl-stat{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:6px 12px;text-align:center}
+    .lvl-stat-v{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2)}
+    .lvl-stat-l{font-size:10px;color:var(--text3);font-family:'Cinzel',serif;letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+
+    .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:5px}
+    .sc-btn{padding:7px 10px;border:1px solid var(--bdr);border-radius:var(--r);background:transparent;color:var(--text2);font-size:12px;font-family:'Cinzel',serif;font-weight:600;cursor:pointer;text-align:left;transition:all .12s;line-height:1.3}
+    .sc-btn:hover{border-color:var(--purple);color:#c39bd3;background:var(--purplebg)}
+    .sc-btn.on{background:var(--purplebg);border-color:var(--purple);color:#c39bd3}
+    .sc-src{font-size:9px;color:var(--text3);font-family:'EB Garamond',serif;font-style:italic;display:block;margin-top:1px}
+
+    .slot-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:.5rem}
+    .slot-table th{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:4px 6px;border-bottom:1px solid var(--bdr);text-align:center}
+    .slot-table td{padding:3px 6px;text-align:center;color:var(--text2)}
+    .slot-table td.zero{color:var(--text3);opacity:.4}
+    .slot-table td.has{color:var(--gold2);font-family:'Cinzel',serif;font-weight:600}
+
+    /* Ability scores */
+    .score-tabs{display:flex;gap:4px;margin-bottom:.75rem}
+    .score-tab{flex:1;padding:7px;border:1px solid var(--bdr);border-radius:var(--r);background:transparent;color:var(--text3);font-family:'Cinzel',serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;text-align:center}
+    .score-tab:hover{border-color:var(--bdr2);color:var(--text2)}
+    .score-tab.on{background:var(--gdim);border-color:var(--gold);color:var(--gold2)}
+    .score-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:.75rem}
+    .score-cell{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:8px 4px;text-align:center}
+    .score-cell.focused{border-color:var(--gold)}
+    .score-label{font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+    .score-val{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2);line-height:1}
+    .score-mod{font-size:11px;color:var(--text2);margin-top:2px}
+    .score-bonus{font-size:10px;color:var(--teal);margin-top:1px}
+    .score-btn{width:20px;height:20px;border:1px solid var(--bdr2);border-radius:3px;background:transparent;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .1s}
+    .score-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+    .score-btn:disabled{opacity:.3;cursor:not-allowed}
+    .pb-bar{margin-bottom:.75rem}
+    .pb-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between}
+    .pb-track{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+    .pb-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .2s}
+    .pb-fill.over{background:var(--red2)}
+    .array-pool{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem}
+    .pool-val{padding:4px 10px;border:1px solid var(--bdr2);border-radius:var(--r);font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .12s;background:var(--bg3)}
+    .pool-val:hover:not(.used){border-color:var(--gold);color:var(--gold2)}
+    .pool-val.used{opacity:.3;cursor:default;text-decoration:line-through}
+    .pool-val.selected{border-color:var(--gold);color:var(--gold2);background:var(--gdim)}
+    .dice-val{display:inline-block;padding:4px 10px;border:1px solid var(--bdr2);border-radius:var(--r);font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--text2);background:var(--bg3);cursor:pointer;transition:all .12s}
+    .dice-val.sel{border-color:var(--gold);color:var(--gold2);background:var(--gdim)}
+    .dice-val.used{opacity:.3;cursor:default}
+    .assign-btn{padding:2px 8px;border:1px solid var(--green);border-radius:3px;background:var(--greenbg);color:var(--green);font-size:11px;font-family:'Cinzel',serif;cursor:pointer}
+    .unassign-btn{padding:2px 6px;border:1px solid var(--bdr2);border-radius:3px;background:transparent;color:var(--text3);font-size:11px;cursor:pointer}
+    .unassign-btn:hover{border-color:var(--red2);color:var(--red2)}
+
+    /* Background ability picker */
+    .bg-ap{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--bdr)}
+    .bg-ap-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:.5rem}
+    .bg-ab-btn{padding:4px 10px;border:1px solid var(--bdr);border-radius:var(--r);font-family:'Cinzel',serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .12s;margin:2px}
+    .bg-ab-btn:hover{border-color:var(--teal);color:var(--teal)}
+    .bg-ab-btn.s0{background:var(--tealbg);border-color:var(--teal);color:var(--teal)}
+    .bg-ab-btn.s1{background:rgba(26,188,156,.06);border-color:var(--teal);color:var(--teal);opacity:.75}
+
+    /* Feature accordion */
+    .feat-section-hdr{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid var(--bdr);margin-bottom:6px;margin-top:10px}
+    .feat-section-hdr:first-child{margin-top:0}
+    .feat-section-hdr.cls{color:var(--gold)}
+    .feat-section-hdr.spc{color:var(--teal)}
+    .feat-section-hdr.bg{color:var(--green)}
+    .feat-level-group{margin-bottom:.75rem}
+    .feat-level-hdr{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:4px 0;border-bottom:1px solid var(--bdr);margin-bottom:5px;display:flex;align-items:center;gap:7px}
+    .lv-badge{background:var(--gdim);border:1px solid var(--bdr2);border-radius:3px;padding:1px 6px;font-size:10px;color:var(--gold2)}
+    .sub-badge{background:var(--purplebg);border:1px solid var(--purple);border-radius:3px;padding:1px 6px;font-size:10px;color:#c39bd3}
+    .feat-item{border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:4px}
+    .feat-item-hdr{display:flex;align-items:center;gap:8px;padding:7px 11px;cursor:pointer;background:var(--bg3);transition:background .1s;user-select:none}
+    .feat-item-hdr:hover{background:var(--bg4)}
+    .feat-item-name{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--text);flex:1}
+    .feat-item-name.sub{color:#c39bd3}
+    .feat-item-name.spc{color:var(--teal)}
+    .feat-item-name.bg{color:var(--green)}
+    .feat-arrow{font-size:10px;color:var(--text3);transition:transform .15s;flex-shrink:0}
+    .feat-item.open .feat-arrow{transform:rotate(90deg)}
+    .feat-item-body{display:none;padding:10px 14px;background:var(--bg2);font-size:14px;color:var(--text2);border-top:1px solid var(--bdr);line-height:1.6}
+    .feat-item.open .feat-item-body{display:block}
+    .feat-item-body b{color:var(--text);font-weight:600}
+    .feat-item-body ul{margin:6px 0 6px 18px}
+    .feat-item-body li{margin-bottom:3px}
+    .feat-item-body table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+    .feat-item-body th{background:var(--bg3);color:var(--text2);padding:4px 8px;border:1px solid var(--bdr);font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+    .feat-item-body td{padding:4px 8px;border:1px solid var(--bdr);color:var(--text2)}
+
+    .phmsg{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:14px;font-style:italic}
+    input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:16px;outline:none;transition:border-color .15s}
+    input[type=text]:focus{border-color:var(--gold)}
+    input[type=text]::placeholder{color:var(--text3)}
+    .btn-primary{width:100%;padding:11px;border:1px solid var(--gold);border-radius:var(--r);background:var(--gdim);color:var(--gold2);font-size:14px;font-family:'Cinzel',Georgia,serif;font-weight:600;letter-spacing:.08em;cursor:pointer;transition:all .15s}
+    .btn-primary:hover:not(:disabled){background:rgba(200,168,75,.22)}
+    .btn-primary:disabled{opacity:.35;cursor:not-allowed;border-color:var(--bdr);color:var(--text3);background:transparent}
+    .btn-sec{padding:8px 14px;border:1px solid var(--bdr);border-radius:var(--r);background:transparent;color:var(--text2);font-size:13px;font-family:'Cinzel',Georgia,serif;cursor:pointer;letter-spacing:.04em;transition:all .12s;text-decoration:none;display:inline-block}
+    .btn-sec:hover{border-color:var(--bdr2);color:var(--text)}
+    .btn-roll{padding:7px 14px;border:1px solid var(--purple);border-radius:var(--r);background:var(--purplebg);color:#c39bd3;font-size:13px;font-family:'Cinzel',Georgia,serif;font-weight:600;cursor:pointer;transition:all .12s;margin-bottom:.75rem}
+    .btn-roll:hover{background:rgba(155,89,182,.25)}
+    /* ── Scelte di Classe ── */
+    .choice-block{margin-bottom:1rem}
+    .choice-block-hdr{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);padding:5px 0;border-bottom:1px solid var(--bdr);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+    .choice-count{font-size:10px;color:var(--text3);font-style:italic;font-family:'EB Garamond',serif}
+    .option-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+    .option-card{border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:all .12s;background:var(--bg3)}
+    .option-card:hover{border-color:var(--gold)}
+    .option-card.on{border-color:var(--gold);background:var(--gdim)}
+    .option-card.on.gr{border-color:var(--green);background:var(--greenbg)}
+    .option-card.on.b{border-color:var(--blue);background:var(--bluebg)}
+    .option-card.on.p{border-color:var(--purple);background:var(--purplebg)}
+    .option-name{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+    .option-name.gr{color:var(--green)}.option-name.b{color:var(--blue)}.option-name.p{color:var(--purple)}
+    .option-desc{font-size:12px;color:var(--text2);line-height:1.4}
+    .optfeat-list{display:flex;flex-direction:column;gap:3px;max-height:260px;overflow-y:auto}
+    .optfeat-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:all .1s}
+    .optfeat-row:hover{border-color:var(--orange);background:var(--bg4)}
+    .optfeat-row.on{border-color:var(--orange);background:rgba(230,126,34,.1)}
+    .optfeat-check{width:16px;height:16px;border:1px solid var(--bdr2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--orange)}
+    .optfeat-check.on{background:rgba(230,126,34,.2);border-color:var(--orange)}
+    .expertise-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:5px}
+    .exp-btn{padding:5px 10px;border:1px solid var(--bdr);border-radius:var(--r);background:transparent;color:var(--text2);font-size:12px;font-family:'Cinzel',serif;cursor:pointer;transition:all .12s;text-align:left}
+    .exp-btn:hover{border-color:var(--teal);color:var(--teal)}
+    .exp-btn.on{background:var(--tealbg);border-color:var(--teal);color:var(--teal)}
+    .exp-btn:disabled{opacity:.3;cursor:not-allowed}
+
+    /* ── Incantesimi ── */
+    .spell-tabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:.75rem}
+    .spell-tab{padding:4px 9px;border:1px solid var(--bdr);border-radius:var(--r);background:transparent;color:var(--text3);font-family:'Cinzel',serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .12s}
+    .spell-tab:hover{border-color:var(--blue);color:var(--blue)}
+    .spell-tab.on{background:var(--bluebg);border-color:var(--blue);color:var(--blue)}
+    .spell-tab.has{border-color:rgba(52,152,219,.4);color:rgba(52,152,219,.7)}
+    .spell-count-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;font-size:12px;color:var(--text2)}
+    .spell-count-ok{color:var(--green)}
+    .spell-count-over{color:var(--red2)}
+    .spell-list{display:flex;flex-direction:column;gap:3px;max-height:300px;overflow-y:auto}
+    .spell-row{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:all .1s}
+    .spell-row:hover{border-color:var(--blue);background:var(--bg4)}
+    .spell-row.on{border-color:var(--blue);background:var(--bluebg)}
+    .spell-check{width:16px;height:16px;border:1px solid var(--bdr2);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--blue)}
+    .spell-check.on{background:var(--bluebg);border-color:var(--blue)}
+    .spell-name{font-size:13px;color:var(--text);flex:1}
+    .spell-school{font-size:10px;color:var(--text3);font-style:italic;flex-shrink:0}
+    .prev-spell-section{margin-bottom:.5rem}
+    .prev-spell-lv{font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.08em;margin-bottom:3px}
+    .prev-spell-list{font-size:12px;color:var(--text2);line-height:1.5}
+
+    footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--bdr);text-align:center;font-size:12px;color:var(--text3);font-style:italic}
+    footer a{color:var(--gold);text-decoration:none}
+
+    /* ── Feat ── */
+    .feat-section-hdr.ft{color:var(--orange)}
+    .feat-item-name.ft{color:var(--orange)}
+    .feat-cat-badge{font-size:10px;font-family:'Cinzel',serif;padding:1px 7px;border-radius:3px;border:1px solid;flex-shrink:0}
+    .feat-cat-badge.origin{border-color:var(--teal);color:var(--teal);background:var(--tealbg)}
+    .feat-cat-badge.general{border-color:var(--blue);color:var(--blue);background:var(--bluebg)}
+    .feat-cat-badge.fighting{border-color:var(--red2);color:var(--red2);background:var(--redbg)}
+    .feat-cat-badge.epic{border-color:var(--gold);color:var(--gold);background:var(--gdim)}
+    .feat-prereq{font-size:11px;color:var(--text3);font-style:italic;margin-bottom:4px}
+
+    /* ── Equipment ── */
+    .feat-section-hdr.eq{color:#c39bd3}
+    .eq-block{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 13px;margin-bottom:6px}
+    .eq-block-title{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+    .eq-item{font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--bdr);line-height:1.4}
+    .eq-item:last-child{border-bottom:none}
+    .eq-or{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:.08em;padding:4px 0;text-align:center}
+    .eq-gold{font-family:'Cinzel',serif;font-size:13px;color:var(--gold2);margin-top:6px}
+    .feat-item-name.eq{color:#c39bd3}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Character Builder</h1>
+    <div class="sub">D&amp;D 5e 2024 · 5etools</div>
+  </header>
+
+  <div class="steps">
+    <div class="step active" id="st-1"><div class="step-num">1</div><div class="step-label">Classe</div></div>
+    <div class="step locked" id="st-2"><div class="step-num">2</div><div class="step-label">Specie</div></div>
+    <div class="step locked" id="st-3"><div class="step-num">3</div><div class="step-label">Background</div></div>
+    <div class="step locked" id="st-4"><div class="step-num">4</div><div class="step-label">Caratteristiche</div></div>
+    <div class="step locked" id="st-5"><div class="step-num">5</div><div class="step-label">Equipaggiamento</div></div>
+    <div class="step locked" id="st-6"><div class="step-num">6</div><div class="step-label">Talenti</div></div>
+    <div class="step locked" id="st-7"><div class="step-num">7</div><div class="step-label">Scheda</div></div>
+  </div>
+
+  <div class="cb-grid">
+    <div>
+      <!-- Nome -->
+      <div class="panel">
+        <div class="ph"><span class="pt">Nome Personaggio</span></div>
+        <div class="pb"><input type="text" id="char-name" placeholder="Es. Aldric il Grigio…" oninput="char.name=this.value;renderPreviewHeader()"/></div>
+      </div>
+
+      <!-- Classe -->
+      <div class="panel">
+        <div class="ph"><span class="pt">Classe</span><span id="cls-loading" class="ph-note">Caricamento…</span></div>
+        <div class="pb">
+          <div class="chips" id="cls-chips"></div>
+          <div id="cls-card"></div>
+        </div>
+      </div>
+
+      <!-- Livello -->
+      <div class="panel" id="panel-level" style="display:none">
+        <div class="ph"><span class="pt">Livello</span></div>
+        <div class="pb">
+          <div class="level-grid" id="level-grid"></div>
+          <div class="lvl-stats" id="lvl-stats"></div>
+        </div>
+      </div>
+
+      <!-- Sottoclasse -->
+      <div class="panel" id="panel-subclass" style="display:none">
+        <div class="ph"><span class="pt" id="sc-title">Sottoclasse</span><span class="ph-note" id="sc-unlock-note"></span></div>
+        <div class="pb"><div class="sc-grid" id="sc-grid"></div></div>
+      </div>
+
+      <!-- Slot -->
+      <div class="panel" id="panel-slots" style="display:none">
+        <div class="ph"><span class="pt">Slot Incantesimo</span></div>
+        <div class="pb" id="slots-body"></div>
+      </div>
+
+      <!-- Specie -->
+      <div class="panel" id="panel-species" style="display:none">
+        <div class="ph"><span class="pt">Specie</span><span id="spc-loading" class="ph-note"></span></div>
+        <div class="pb">
+          <input class="search-box" id="spc-search" placeholder="Cerca specie…" oninput="renderSpeciesList()" autocomplete="off"/>
+          <div class="item-list" id="spc-list"></div>
+          <div id="spc-card"></div>
+        </div>
+      </div>
+
+      <!-- Background -->
+      <div class="panel" id="panel-bg" style="display:none">
+        <div class="ph"><span class="pt">Background</span><span id="bg-loading" class="ph-note"></span></div>
+        <div class="pb">
+          <input class="search-box" id="bg-search" placeholder="Cerca background…" oninput="renderBgList()" autocomplete="off"/>
+          <div class="item-list" id="bg-list"></div>
+          <div id="bg-card"></div>
+        </div>
+      </div>
+
+      <!-- Punteggi -->
+      <div class="panel" id="panel-scores" style="display:none">
+        <div class="ph"><span class="pt">Punteggi Caratteristiche</span></div>
+        <div class="pb">
+          <div class="score-tabs">
+            <button class="score-tab on" onclick="setScoreMethod('pointbuy')">Point Buy</button>
+            <button class="score-tab" onclick="setScoreMethod('standard')">Array Standard</button>
+            <button class="score-tab" onclick="setScoreMethod('dice')">Tira Dadi</button>
+          </div>
+          <div id="scores-ui"></div>
+        </div>
+      </div>
+
+      <!-- Bonus caratteristiche background -->
+      <div class="panel" id="panel-bg-ability" style="display:none">
+        <div class="ph"><span class="pt">Bonus Caratteristiche da Background</span></div>
+        <div class="pb" id="bg-ability-body"></div>
+      </div>
+
+      <!-- Scelte di Classe -->
+      <div class="panel" id="panel-class-choices" style="display:none">
+        <div class="ph"><span class="pt">Scelte di Classe</span><span id="cc-loading" class="ph-note"></span></div>
+        <div class="pb" id="cc-body"></div>
+      </div>
+
+      <!-- Incantesimi -->
+      <div class="panel" id="panel-spells" style="display:none">
+        <div class="ph"><span class="pt">Incantesimi</span><span id="spell-loading" class="ph-note"></span></div>
+        <div class="pb" id="spell-body"></div>
+      </div>
+
+      <!-- Talenti -->
+      <div class="panel" id="panel-feats" style="display:none">
+        <div class="ph"><span class="pt">Talenti</span><span id="feat-loading" class="ph-note"></span></div>
+        <div class="pb" id="feats-body"></div>
+      </div>
+
+      <!-- Scelte Feat Spell (es. Magic Initiate) -->
+      <div class="panel" id="panel-feat-spells" style="display:none">
+        <div class="ph"><span class="pt">Scelte Talento</span></div>
+        <div class="pb" id="feat-spells-body"></div>
+      </div>
+
+      <!-- Equipaggiamento -->
+      <div class="panel" id="panel-equip" style="display:none">
+        <div class="ph"><span class="pt">Equipaggiamento Iniziale</span></div>
+        <div class="pb" id="equip-body"></div>
+      </div>
+
+      <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()">📋 Genera Scheda Personaggio</button>
+      <div style="margin-top:.5rem;text-align:center"><a class="btn-sec" href="index.html">← Torna all'Encounter Builder</a></div>
+    </div>
+
+    <!-- Preview -->
+    <div>
+      <div class="panel" style="position:sticky;top:1rem;max-height:90vh;overflow-y:auto">
+        <div class="ph"><span class="pt">Anteprima</span></div>
+        <div class="pb">
+          <div id="preview-header" style="margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)">
+            <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2)" id="prev-name">—</div>
+            <div style="font-size:13px;color:var(--text2);font-style:italic;margin-top:2px" id="prev-meta"></div>
+          </div>
+          <div id="prev-scores" style="display:none;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)"></div>
+          <div id="prev-equip" style="display:none;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)"></div>
+          <div id="prev-spells" style="display:none;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)"></div>
+          <div id="feat-list"><div class="phmsg">Seleziona una classe per vedere le feature.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Dati da <a href="https://5e.tools" target="_blank">5etools</a> via mirror GitHub · D&amp;D 5e è marchio registrato di Wizards of the Coast</footer>
+</div>
+<script>
+/* ════════════════════════════════════ COSTANTI */
+const BASE='https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
+const ALLOWED=['XPHB','FRAiF','FRHoF','EFA'];
+const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+const HALF_SLOTS=[null,null,[2,0,0,0,0],[3,0,0,0,0],[3,0,0,0,0],[4,2,0,0,0],[4,2,0,0,0],[4,3,0,0,0],[4,3,0,0,0],[4,3,2,0,0],[4,3,2,0,0],[4,3,3,0,0],[4,3,3,0,0],[4,3,3,1,0],[4,3,3,1,0],[4,3,3,2,0],[4,3,3,2,0],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
+const WLOCK=[null,{n:1,l:1},{n:2,l:1},{n:2,l:2},{n:2,l:2},{n:3,l:3},{n:3,l:3},{n:3,l:4},{n:3,l:4},{n:3,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5}];
+const CASTER_FB={Bard:'full',Cleric:'full',Druid:'full',Sorcerer:'full',Wizard:'full',Paladin:'1/2',Ranger:'1/2',Warlock:'pact',Artificer:'1/2'};
+const PB=[null,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6];
+const PB_COST={8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
+const STATS=['str','dex','con','int','wis','cha'];
+const SLBL={str:'FOR',dex:'DES',con:'COS',int:'INT',wis:'SAG',cha:'CAR'};
+const STD_ARR=[15,14,13,12,10,8];
+const CLASS_FILES=['class-barbarian.json','class-bard.json','class-cleric.json','class-druid.json','class-fighter.json','class-monk.json','class-paladin.json','class-ranger.json','class-rogue.json','class-sorcerer.json','class-warlock.json','class-wizard.json'];
+
+// Numero di ASI/Feat per classe (livelli in cui si ottengono)
+const ASI_LEVELS={
+  Barbarian:[4,8,12,16,19],Bard:[4,8,12,16,19],Cleric:[4,8,12,16,19],
+  Druid:[4,8,12,16,19],Fighter:[4,6,8,12,14,16,19],Monk:[4,8,12,16,19],
+  Paladin:[4,8,12,16,19],Ranger:[4,8,12,16,19],Rogue:[4,8,10,12,16,19],
+  Sorcerer:[4,8,12,16,19],Warlock:[4,8,12,16,19],Wizard:[4,8,12,16,19]
+};
+
+/* ─ Scelte di classe ─ */
+const CLASS_CHOICES={
+  Barbarian:[],
+  Bard:[
+    {key:'expertise',label:'Expertise',lvMin:2,type:'expertise',count:2,
+     desc:'Scegli 2 abilità in cui sei competente: il bonus di competenza raddoppia per quelle prove.'}
+  ],
+  Cleric:[
+    {key:'divineOrder',label:'Ordine Divino',lvMin:1,type:'option',count:1,options:[
+      {name:'Protettore',tag:'gr',desc:'Guadagni competenza con armature medie, scudi e armature pesanti. Impari anche una lingua aggiuntiva.'},
+      {name:'Taumaturgo',tag:'b', desc:'Impari un cantrip extra a scelta dalla lista del Chierico. Quel cantrip è sempre preparato per te.'}
+    ]}
+  ],
+  Druid:[],
+  Fighter:[
+    {key:'fightingStyle',label:'Stile di Combattimento',lvMin:1,type:'optfeat',feat:'FS',count:1}
+  ],
+  Monk:[],
+  Paladin:[
+    {key:'fightingStyle',label:'Stile di Combattimento',lvMin:2,type:'optfeat',feat:'FS:P',count:1}
+  ],
+  Ranger:[
+    {key:'fightingStyle',label:'Stile di Combattimento',lvMin:2,type:'optfeat',feat:'FS:R',count:1}
+  ],
+  Rogue:[
+    {key:'expertise',label:'Expertise',lvMin:1,type:'expertise',count:2,
+     desc:'Scegli 2 abilità (o Attrezzi da Scassinatore) in cui sei competente: il bonus raddoppia.'},
+    {key:'expertise2',label:'Expertise (Lv. 10)',lvMin:10,type:'expertise',count:2}
+  ],
+  Sorcerer:[
+    {key:'metamagic',label:'Metamagia',lvMin:2,type:'optfeat',feat:'MM',countByLevel:{2:2,10:3,17:4}}
+  ],
+  Warlock:[
+    {key:'invocations',label:'Invocazioni Occulte',lvMin:2,type:'optfeat',feat:'EI',
+     countByLevel:{2:2,5:3,7:4,9:5,12:6,15:7,18:8}},
+    {key:'pactBoon',label:'Dono del Patto',lvMin:3,type:'optfeat',feat:'PB',count:1}
+  ],
+  Wizard:[]
+};
+
+/* ─ Cantrip conosciuti per livello (index = lv-1) ─ */
+const CANTRIP_KNOWN={
+  Bard:    [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
+  Cleric:  [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5],
+  Druid:   [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
+  Sorcerer:[4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6],
+  Warlock: [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
+  Wizard:  [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5]
+};
+
+/* ─ Spell conosciute per livello (caster "conosciuti") ─ */
+const SPELLS_KNOWN={
+  Bard:    [4,5,6,7,8,9,10,11,12,13,14,15,16,18,19,19,20,22,22,22],
+  Ranger:  [0,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11],
+  Sorcerer:[2,3,4,5,6,7,8,9,10,11,12,12,13,13,14,14,15,15,15,15],
+  Warlock: [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15]
+};
+
+const SPELL_FILES=['spells-xphb.json','spells-fraif.json','spells-frhof.json','spells-efa.json'];
+const SCHOOL_LABELS={A:'Abiurazione',C:'Ammaliamento',D:'Divinazione',E:'Evocazione',I:'Illusione',N:'Necromanzia',T:'Trasmutazione',V:'Veggenza'};
+const SPELL_LEVEL_LABELS=['Cantrip','1°','2°','3°','4°','5°','6°','7°','8°','9°'];
+
+/* ─ Skills ─ */
+const SKILLS=[
+  {n:'Acrobatica',a:'dex'},{n:'Animalesca',a:'wis'},{n:'Arcana',a:'int'},{n:'Atletica',a:'str'},
+  {n:'Consapevolezza',a:'wis'},{n:'Destrezza Manuale',a:'dex'},{n:'Furtività',a:'dex'},
+  {n:'Indagare',a:'int'},{n:'Inganno',a:'cha'},{n:'Intuizione',a:'wis'},{n:'Intimidazione',a:'cha'},
+  {n:'Medicina',a:'wis'},{n:'Percezione',a:'wis'},{n:'Perform',a:'cha'},{n:'Persuasione',a:'cha'},
+  {n:'Religione',a:'int'},{n:'Sopravvivenza',a:'wis'}
+];
+
+/* ════════════════════════════════════ STATO */
+let char={
+  name:'',level:1,className:null,classSource:null,cls:null,
+  allFeatures:[],subclasses:[],allSubFeatures:[],subclassShortName:null,
+  speciesName:null,speciesSource:null,speciesObj:null,
+  bgName:null,bgSource:null,bgObj:null,bgAbility:[],bgPatternIdx:0,
+  scoreMethod:'pointbuy',
+  pbScores:{str:8,dex:8,con:8,int:8,wis:8,cha:8},
+  arrAssign:{str:null,dex:null,con:null,int:null,wis:null,cha:null},
+  dicePool:[],diceAssign:{str:null,dex:null,con:null,int:null,wis:null,cha:null},
+  selPoolVal:null,selDiceIdx:null,
+  // Talenti: slot 0 = Origin (da bg), slot 1..N = ASI/Feat da classe
+  featSlots:{},
+  featSpellChoices:{},   // scelte di spell/cantrip per feat come Magic Initiate
+  equipChoices:{},
+  classChoices:{},       // key → valore scelto (stringa o array)
+  selectedCantrips:[],   // nomi cantrip scelti
+  selectedSpells:{},     // livello → [nomi spell]
+};
+let classCache={},allSpecies=[],allBgs=[],allFeats=[],allOptFeats=[],spellDb=[];
+
+/* ════════════════════════════════════ PARSER */
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function clean(s){
+  if(!s)return'';
+  return String(s)
+    .replace(/\{@hit ([^}]+)\}/g,(_,v)=>`<b>${+v>=0?'+'+v:v}</b>`)
+    .replace(/\{@damage ([^}]+)\}/g,(_,v)=>`<b>${v}</b>`)
+    .replace(/\{@d20 ([^}]+)\}/g,(_,v)=>`<b>${+v>=0?'+'+v:v}</b>`)
+    .replace(/\{@dc ([^}]+)\}/g,'CD $1')
+    .replace(/\{@h\}/g,'<i>Colpisce:</i> ')
+    .replace(/\{@atk ([^}]+)\}/g,'<i>Attacco $1:</i>')
+    .replace(/\{@recharge ([^}]+)\}/g,'(Ricarica $1–6)')
+    .replace(/\{@chance ([^|}]+)[^}]*\}/g,'$1%')
+    .replace(/\{@spell ([^|}]+)[^}]*\}/g,'<i>$1</i>')
+    .replace(/\{@item ([^|}]+)[^}]*\}/g,'<i>$1</i>')
+    .replace(/\{@creature ([^|}]+)[^}]*\}/g,'<i>$1</i>')
+    .replace(/\{@condition ([^|}]+)[^}]*\}/g,'<b>$1</b>')
+    .replace(/\{@skill ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@ability ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@action ([^|}]+)[^}]*\}/g,'<b>$1</b>')
+    .replace(/\{@i ([^}]+)\}/g,'<i>$1</i>')
+    .replace(/\{@b ([^}]+)\}/g,'<b>$1</b>')
+    .replace(/\{@italic ([^}]+)\}/g,'<i>$1</i>')
+    .replace(/\{@bold ([^}]+)\}/g,'<b>$1</b>')
+    .replace(/\{@filter ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@classFeature ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@subclassFeature ([^|}]+)[^}]*\}/g,'$1')
+    .replace(/\{@[a-z]+ ([^|}]+)[^}]*\}/gi,'$1')
+    .replace(/\{[^}]+\}/g,'');
+}
+function rE(e){
+  if(!e)return'';
+  if(typeof e==='string')return clean(e);
+  if(typeof e==='number')return String(e);
+  if(Array.isArray(e))return e.map(rE).join('<br>');
+  if(typeof e==='object'){
+    if(e.type==='list')return`<ul>${(e.items||[]).map(i=>`<li>${rE(i)}</li>`).join('')}</ul>`;
+    if(e.type==='table'){
+      let h=`<table>`;
+      if(e.caption)h+=`<caption style="font-weight:bold;margin-bottom:4px">${clean(e.caption)}</caption>`;
+      if(e.colLabels)h+=`<thead><tr>${e.colLabels.map(l=>`<th>${clean(l)}</th>`).join('')}</tr></thead>`;
+      h+=`<tbody>${(e.rows||[]).map(r=>`<tr>${r.map(c=>`<td>${rE(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      return h;
+    }
+    if(e.type==='entries'||e.type==='section')return`<div style="margin-bottom:6px">${e.name?`<b>${clean(e.name)}.</b> `:''}${rE(e.entries)}</div>`;
+    if(e.type==='inset'||e.type==='insetReadaloud')return`<div style="border-left:2px solid var(--bdr2);padding:6px 12px;margin:6px 0;font-style:italic">${rE(e.entries)}</div>`;
+    if(e.name&&e.entries)return`<div style="margin-bottom:6px"><b><i>${clean(e.name)}.</i></b> ${rE(e.entries)}</div>`;
+    if(e.entries)return rE(e.entries);
+    if(e.entry)return rE(e.entry);
+  }
+  return'';
+}
+
+/* ════════════════════════════════════ CARICAMENTO */
+async function loadClassIndex(){
+  const el=document.getElementById('cls-loading');
+  let ok=0;
+  for(const f of CLASS_FILES){
+    try{
+      el.textContent=`Caricamento ${ok}/${CLASS_FILES.length}…`;
+      const r=await fetch(BASE+'class/'+f);
+      if(!r.ok)continue;
+      classCache[f]=await r.json(); ok++;
+    }catch(e){}
+  }
+  el.textContent=ok?`${ok} classi`:'Errore';
+  renderClassChips();
+}
+async function loadSpecies(){
+  const el=document.getElementById('spc-loading');
+  try{
+    const r=await fetch(BASE+'races.json');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    allSpecies=(d.race||d.species||[]).filter(s=>ALLOWED.includes(s.source)).sort((a,b)=>a.name.localeCompare(b.name));
+    el.textContent=allSpecies.length+' specie';
+    renderSpeciesList();
+  }catch(e){el.style.color='var(--red2)';el.textContent='Errore: '+e.message;}
+}
+async function loadBgs(){
+  const el=document.getElementById('bg-loading');
+  try{
+    const r=await fetch(BASE+'backgrounds.json');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    allBgs=(d.background||[]).filter(b=>ALLOWED.includes(b.source)).sort((a,b)=>a.name.localeCompare(b.name));
+    el.textContent=allBgs.length+' background';
+    renderBgList();
+  }catch(e){el.style.color='var(--red2)';el.textContent='Errore: '+e.message;}
+}
+
+async function loadFeats(){
+  const el=document.getElementById('feat-loading');
+  el.textContent='Caricamento…';
+  try{
+    const r=await fetch(BASE+'feats.json');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    console.log('Feat sources trovate:',[ ...new Set((d.feat||[]).map(f=>f.source))].join(', '));
+    console.log('Categorie feat:',[ ...new Set((d.feat||[]).map(f=>f.category).filter(Boolean))].join(', '));
+    allFeats=(d.feat||[]).filter(f=>ALLOWED.includes(f.source)).sort((a,b)=>a.name.localeCompare(b.name));
+    if(!allFeats.length){
+      allFeats=(d.feat||[]).sort((a,b)=>a.name.localeCompare(b.name));
+      console.warn('Nessun feat ALLOWED, uso tutto il database');
+    }
+    el.textContent=allFeats.length+' talenti';
+    // Rilancia se background già selezionato
+    if(char.bgObj) renderFeatsPanel();
+    else if(char.className) renderFeatsPanel();
+  }catch(e){el.style.color='var(--red2)';el.textContent='Errore: '+e.message;console.error(e);}
+}
+
+/* ════════════════════════════════════ TALENTI */
+
+function getFeatCatClass(cat){
+  if(!cat)return'general';
+  const c=String(cat);
+  // Categorie 5etools: O=Origin, G=General, FS=Fighting Style, EB=Epic Boon, D=Druidic
+  if(c==='O'||c.toLowerCase().includes('origin'))return'origin';
+  if(c==='FS'||c.startsWith('FS:'))return'fighting';
+  if(c==='EB')return'epic';
+  return'general';
+}
+
+function getFeatCatLabel(cat){
+  if(!cat)return'Generale';
+  const map={'O':'Origine','G':'Generale','FS':'Stile Combattimento','FS:P':'Stile (Paladino)','FS:R':'Stile (Ranger)','EB':'Dono Epico','D':'Druidico'};
+  return map[cat]||cat;
+}
+
+// Ritorna i "slot feat" disponibili per il personaggio corrente
+// Ogni slot ha: key, label, filter (funzione che filtra i feat disponibili)
+function getFeatSlots(){
+  const slots=[];
+  const bgFeat=getBgOriginFeat();
+  if(bgFeat.fixed){
+    slots.push({key:'origin',label:'Talento Origine (da Background)',fixed:bgFeat.fixed,filter:null});
+  }else{
+    // Background senza feat specifico → scegli qualsiasi talento Origine (cat O)
+    slots.push({key:'origin',label:'Talento Origine',fixed:null,
+      filter:f=>f.category==='O'||String(f.category||'').toLowerCase().includes('origin')
+    });
+  }
+  if(char.className){
+    const asiLvs=(ASI_LEVELS[char.className]||[]).filter(l=>l<=char.level);
+    asiLvs.forEach(lv=>{
+      slots.push({key:`asi_${lv}`,label:`Liv. ${lv} — ASI o Talento (${char.className})`,fixed:null,
+        filter:f=>f.category!=='O'&&!((f.prerequisite||[]).some(p=>p.level&&(p.level.level||p.level)>char.level))
+      });
+    });
+  }
+  return slots;
+}
+
+// Converte camelCase in "Title Case" → magicInitiate → "Magic Initiate"
+function camelToTitle(s){
+  return s.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase()).trim();
+}
+function normFeat(s){return s.toLowerCase().replace(/[^a-z]/g,'');}
+
+// Ricava il feat di origine dal background
+function getBgOriginFeat(){
+  const b=char.bgObj;
+  if(!b||!b.feats)return{fixed:null};
+  const fe=b.feats[0];
+  if(!fe)return{fixed:null};
+  // Formato: {"magic initiate; wizard|xphb": true} → feat fisso (chiave con ; separatore)
+  const keys=Object.keys(fe).filter(k=>k!=='choose');
+  if(keys.length){
+    const raw=keys[0].split(';')[0].trim().split('|')[0];
+    const title=camelToTitle(raw);
+    // Fuzzy match nel database: "Magic Initiate" matcha anche "Magic Initiate (Wizard)"
+    const match=allFeats.find(f=>normFeat(f.name)===normFeat(title)||normFeat(f.name).startsWith(normFeat(title)));
+    return{fixed:match?match.name:title};
+  }
+  // Formato: {"choose": {...}} → scelta libera
+  return{fixed:null};
+}
+
+function renderFeatsPanel(){
+  const panel=document.getElementById('panel-feats');
+  panel.style.display='block';
+  const body=document.getElementById('feats-body');
+  if(!allFeats.length){body.innerHTML='<div class="phmsg">Caricamento talenti…</div>';return;}
+  const slots=getFeatSlots();
+  if(!slots.length){body.innerHTML='<div class="phmsg">Nessun slot talento a questo livello.</div>';return;}
+
+  let h='';
+  for(const slot of slots){
+    h+=`<div style="margin-bottom:1rem">
+      <div class="feat-section-hdr ft">${esc(slot.label)}</div>`;
+
+    if(slot.fixed){
+      // Mostra il feat fisso — cerca con normFeat per tollerare differenze di capitalizzazione
+      const feat=allFeats.find(f=>normFeat(f.name)===normFeat(slot.fixed)||normFeat(f.name).startsWith(normFeat(slot.fixed)));
+      console.log('Origin feat cercato:', slot.fixed, '→ trovato:', feat?.name||'NON TROVATO', '— allFeats.length:', allFeats.length);
+      const sel=char.featSlots[slot.key];
+      h+=`<div class="feat-item${sel?' open':''}">
+        <div class="feat-item-hdr" onclick="tf(this.parentElement)">
+          <span class="feat-item-name ft">${esc(feat?feat.name:slot.fixed)}</span>
+          <span class="feat-cat-badge origin">Origine</span>
+          <span class="feat-arrow">▶</span>
+        </div>
+        <div class="feat-item-body">${feat?rE(feat.entries):'<i style="color:var(--text3)">Descrizione non disponibile.</i>'}</div>
+      </div>`;
+      if(!char.featSlots[slot.key])char.featSlots[slot.key]=feat?feat.name:slot.fixed;
+    }else{
+      // Lista filtrata con ricerca
+      const filtFeat=(slot.filter?allFeats.filter(slot.filter):allFeats).slice(0,100);
+      const sel=char.featSlots[slot.key]||null;
+      h+=`<input class="search-box" id="feat-search-${slot.key}" placeholder="Cerca talento…"
+          oninput="renderFeatList('${slot.key}')" autocomplete="off" style="margin-bottom:.5rem"/>
+        <div id="feat-list-${slot.key}" class="item-list" style="max-height:200px"></div>`;
+      if(sel){
+        const feat=allFeats.find(f=>f.name===sel);
+        if(feat){
+          const catCls=getFeatCatClass(feat.category);
+          h+=`<div class="feat-item open" style="margin-top:.5rem">
+            <div class="feat-item-hdr" onclick="tf(this.parentElement)">
+              <span class="feat-item-name ft">${esc(feat.name)}</span>
+              <span class="feat-cat-badge ${catCls}">${esc(getFeatCatLabel(feat.category))}</span>
+              <span class="feat-arrow">▶</span>
+            </div>
+            <div class="feat-item-body">${rE(feat.entries)}</div>
+          </div>`;
+        }
+      }
+    }
+    h+=`</div>`;
+  }
+  body.innerHTML=h;
+  // Renderizza le liste di ricerca
+  slots.filter(s=>!s.fixed).forEach(s=>renderFeatList(s.key));
+}
+
+function renderFeatList(slotKey){
+  const el=document.getElementById('feat-list-'+slotKey);
+  if(!el)return;
+  const q=(document.getElementById('feat-search-'+slotKey)?.value||'').toLowerCase().trim();
+  const slot=getFeatSlots().find(s=>s.key===slotKey);
+  if(!slot)return;
+  let list=slot.filter?allFeats.filter(slot.filter):allFeats;
+  if(q)list=list.filter(f=>f.name.toLowerCase().includes(q));
+  list=list.slice(0,40);
+  if(!list.length){el.innerHTML='<div class="phmsg">Nessun talento trovato.</div>';return;}
+  el.innerHTML=list.map(f=>{
+    const catCls=getFeatCatClass(f.category);
+    const prereq=(f.prerequisite||[]).map(p=>{
+      if(p.level)return`Lv. ${p.level.level||p.level}`;
+      if(p.ability)return Object.entries(p.ability[0]).map(([k,v])=>`${SLBL[k]||k} ${v}`).join(', ');
+      if(p.spellcasting)return'Incantatore';
+      if(p.proficiency)return'Competenza';
+      return'';
+    }).filter(Boolean).join(' · ');
+    return`<div class="item-row${char.featSlots[slotKey]===f.name?' on':''}"
+      onclick="selFeat('${slotKey}','${f.name.replace(/'/g,"\\'")}')">
+      <span class="item-row-name">${esc(f.name)}</span>
+      ${prereq?`<span style="font-size:10px;color:var(--text3);font-style:italic;flex-shrink:0">${esc(prereq)}</span>`:''}
+      <span class="feat-cat-badge ${catCls}" style="flex-shrink:0">${esc(getFeatCatLabel(f.category))}</span>
+      <span class="item-row-src">${esc(f.source)}</span>
+    </div>`;
+  }).join('');
+}
+
+function selFeat(slotKey,name){
+  char.featSlots[slotKey]=char.featSlots[slotKey]===name?null:name;
+  renderFeatsPanel();
+  renderFeatSpellPanel();
+  renderPreview();
+  updateSteps();
+}
+
+/* ════════════════════════════════════ EQUIPAGGIAMENTO */
+
+function renderFeatSpellPanel(){
+  const panel=document.getElementById('panel-feat-spells');
+  if(!panel)return;
+  
+  // Verifica se Magic Initiate è selezionato
+  const magicInitiate=char.featSlots['origin']==='Magic Initiate'||char.featSlots['origin']?.includes('Magic Initiate');
+  if(!magicInitiate){
+    panel.style.display='none';
+    return;
+  }
+  
+  panel.style.display='block';
+  const body=document.getElementById('feat-spells-body');
+  
+  if(!char.featSpellChoices)char.featSpellChoices={};
+  
+  // Magic Initiate: scegli 2 cantrip e 1 spell da Cleric, Druid, o Wizard
+  const spellLists=['cleric','druid','wizard'];
+  const selectedList=char.featSpellChoices.magicInitiateList||spellLists[0];
+  
+  // Filtra i cantrip e spell per ogni lista (con fallback come in getClassSpells)
+  const getSpellsForList=(list)=>{
+    let result=spellDb.filter(s=>{
+      const cls=s.classes?.fromClassList||[];
+      return cls.some(c=>c.name?.toLowerCase?.()===list);
+    });
+    
+    if(result.length>0) return result;
+    
+    // Fallback: ritorna tutti gli incantesimi per evitare lista vuota
+    return spellDb;
+  };
+  
+  // Cantrip (livello 0)
+  const allCantrips=getSpellsForList(selectedList).filter(s=>s.level===0);
+  const selectedCantrips=char.featSpellChoices.magicInitiateCantrips||[];
+  
+  // Spell livello 1
+  const allLevel1=getSpellsForList(selectedList).filter(s=>s.level===1);
+  const selectedSpell=char.featSpellChoices.magicInitiateSpell||null;
+  
+  let h=`<div style="margin-bottom:1rem">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:.5rem;font-style:italic">
+      Magic Initiate — Scegli lista, 2 cantrip, e 1 spell di livello 1
+    </div>
+    
+    <div style="margin-bottom:.8rem">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:.4rem"><b>Lista Incantesimi:</b></label>
+      <div style="display:flex;gap:6px">`;
+  
+  spellLists.forEach(list=>{
+    const isSelected=selectedList===list;
+    h+=`<button onclick="selMagicInitiateList('${list}')" 
+      style="padding:6px 12px;border:1px solid ${isSelected?'var(--teal)':'var(--bdr)'};
+        border-radius:var(--r);background:${isSelected?'var(--tealbg)':'var(--bg3)'};
+        color:${isSelected?'var(--teal)':'var(--text2)'};cursor:pointer;font-size:12px;
+        font-family:'Cinzel',serif;font-weight:600">
+      ${list.charAt(0).toUpperCase()+list.slice(1)}
+    </button>`;
+  });
+  
+  h+=`</div></div>
+    
+    <div style="margin-bottom:.8rem">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:.4rem">
+        <b>Cantrip (scegli 2):</b> ${selectedCantrips.length}/2
+      </label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:200px;overflow-y:auto">`;
+  
+  allCantrips.forEach(spell=>{
+    const isSelected=selectedCantrips.includes(spell.name);
+    h+=`<div onclick="togMagicInitiateCantrip('${spell.name.replace(/'/g,"\\'")}')
+      " style="padding:8px;border:1px solid ${isSelected?'var(--teal)':'var(--bdr)'};
+        border-radius:var(--r);background:${isSelected?'var(--tealbg)':'var(--bg3)'};
+        cursor:pointer;font-size:11px;color:${isSelected?'var(--teal)':'var(--text2)'}">
+      ${esc(spell.name)}
+      ${isSelected?'<br>✓':''}
+    </div>`;
+  });
+  
+  h+=`</div></div>
+    
+    <div>
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:.4rem">
+        <b>Spell Livello 1 (scegli 1):</b>
+      </label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:200px;overflow-y:auto">`;
+  
+  allLevel1.forEach(spell=>{
+    const isSelected=selectedSpell===spell.name;
+    h+=`<div onclick="selMagicInitiateSpell('${spell.name.replace(/'/g,"\\'")}')
+      " style="padding:8px;border:1px solid ${isSelected?'var(--teal)':'var(--bdr)'};
+        border-radius:var(--r);background:${isSelected?'var(--tealbg)':'var(--bg3)'};
+        cursor:pointer;font-size:11px;color:${isSelected?'var(--teal)':'var(--text2)'}">
+      ${esc(spell.name)}
+      ${isSelected?'<br>✓':''}
+    </div>`;
+  });
+  
+  h+=`</div></div></div>`;
+  body.innerHTML=h;
+}
+
+function selMagicInitiateList(list){
+  if(!char.featSpellChoices)char.featSpellChoices={};
+  char.featSpellChoices.magicInitiateList=list;
+  char.featSpellChoices.magicInitiateCantrips=[];
+  char.featSpellChoices.magicInitiateSpell=null;
+  renderFeatSpellPanel();
+}
+
+function togMagicInitiateCantrip(name){
+  if(!char.featSpellChoices)char.featSpellChoices={};
+  const list=char.featSpellChoices.magicInitiateCantrips||[];
+  const idx=list.indexOf(name);
+  if(idx>=0)list.splice(idx,1);
+  else{if(list.length>=2)list.shift();list.push(name);}
+  char.featSpellChoices.magicInitiateCantrips=list;
+  renderFeatSpellPanel();
+}
+
+function selMagicInitiateSpell(name){
+  if(!char.featSpellChoices)char.featSpellChoices={};
+  char.featSpellChoices.magicInitiateSpell=char.featSpellChoices.magicInitiateSpell===name?null:name;
+  renderFeatSpellPanel();
+}
+
+/* ════════════════════════════════════ EQUIPAGGIAMENTO */
+
+function renderEquipPanel(){
+  const panel=document.getElementById('panel-equip');
+  panel.style.display='block';
+  const body=document.getElementById('equip-body');
+  let h='';
+
+  if(char.cls&&char.cls.startingEquipment){
+    h+=`<div class="eq-block"><div class="eq-block-title">📦 ${esc(char.className)}</div>`;
+    const eq=char.cls.startingEquipment;
+    // Verifica se il formato è strutturato (oggetti con A/B) o testo
+    const isStructured=hasChoiceNode(eq);
+    console.log('Fighter equipment - hasChoiceNode:', isStructured, 'eq.keys:', eq?Object.keys(eq):[]);
+    if(isStructured){
+      h+=renderEquipChoices(eq,'cls');
+    }else{
+      // Formato testo: cerca di estrarre le opzioni o mostra come lista interattiva
+      h+=renderEquipText(eq,'cls');
+    }
+    h+=`</div>`;
+  }
+
+  if(char.bgObj&&char.bgObj.startingEquipment){
+    h+=`<div class="eq-block"><div class="eq-block-title">🎒 ${esc(char.bgObj.name)}</div>`;
+    h+=renderEquipChoices(char.bgObj.startingEquipment,'bg');
+    h+=`</div>`;
+  }
+
+  if(!h)h='<div class="phmsg">Seleziona classe e background per vedere l\'equipaggiamento.</div>';
+  body.innerHTML=h;
+}
+
+// Verifica se la struttura ha almeno un nodo con chiavi A/B
+function hasChoiceNode(node){
+  if(!node)return false;
+  if(Array.isArray(node))return node.some(hasChoiceNode);
+  if(typeof node==='object'){
+    const CL=['A','B','C','D','E','a','b','c','d','e'];
+    if(CL.filter(k=>Object.prototype.hasOwnProperty.call(node,k)).length>1)return true;
+    return Object.values(node).some(v=>typeof v==='object'&&hasChoiceNode(v));
+  }
+  return false;
+}
+
+// Renderizza equipment in formato testo come bottoni interattivi
+function renderEquipText(eq, prefix){
+  // Raccoglie il testo raw (prima di clean) per parsare le scelte
+  const rawParts=[];
+  function collectRaw(n){
+    if(!n)return;
+    if(typeof n==='string'){rawParts.push(n);return;}
+    if(Array.isArray(n)){n.forEach(collectRaw);return;}
+    if(typeof n==='object'){
+      if(n.entries)collectRaw(n.entries);
+      else if(n.entry)collectRaw(n.entry);
+      else if(n.items)collectRaw(n.items);
+    }
+  }
+  collectRaw(eq);
+  const fullText=rawParts.map(t=>clean(t)).join(' ').trim();
+
+  if(!fullText)return'<div class="phmsg">Nessun dato disponibile.</div>';
+
+  // Prova a estrarre scelte multiple: "(A) ... or (B) ..." o "(A)...; or (B)..."
+  // Pattern: (A) contenuto ; or (B) contenuto [; or (C) contenuto ...]
+  // Rimuove i tag HTML prima di matchare
+  const textWithoutHTML=fullText.replace(/<[^>]*>/g,'');
+  const choicePattern=/\(([A-Z])\)\s*(.*?)(?=\s*(?:;|or)?\s*\([A-Z]\)|$)/gi;
+  const choices=[];
+  let m;
+  while((m=choicePattern.exec(textWithoutHTML))!==null){
+    choices.push({key:m[1],label:m[2].replace(/[;,]\s*$/,'').trim()});
+  }
+
+  // DEBUG: Log regex test results
+  const debugMsg = `renderEquipText: textLen=${textWithoutHTML.length}, choicesFound=${choices.length}, text="${textWithoutHTML.substring(0,80)}..."`;
+  console.log(debugMsg);
+  window.lastDebug = debugMsg;
+
+  if(choices.length>=2){
+    // Mostra come bottoni interattivi
+    const ck=`${prefix}_text_choice`;
+    const sel=char.equipChoices[ck]||null;
+    let h=`<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
+    h+=`<div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+    h+=`<div style="display:flex;flex-direction:column;gap:4px">`;
+    for(const ch of choices){
+      const isSel=sel===ch.key;
+      h+=`<button onclick="selEquip('${ck}','${ch.key}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel?'var(--gold)':'var(--bdr)'};border-radius:var(--r);background:${isSel?'var(--gdim)':'var(--bg3)'};color:${isSel?'var(--gold2)':'var(--text2)'};cursor:pointer;font-size:13px;font-family:'EB Garamond',serif;transition:all .1s">
+        ${isSel?'<b style="color:var(--gold)">✓ </b>':''}<b style="font-family:'Cinzel',serif;font-size:10px;color:${isSel?'var(--gold)':'var(--text3)'}"> ${ch.key})</b> ${esc(ch.label)}
+      </button>`;
+    }
+    h+=`</div></div>`;
+    return h;
+  }
+
+  // Fallback: mostra come lista di elementi senza scelta
+  return`<div class="eq-item">${fullText}</div>`;
+}
+
+// Rende le scelte equipaggiamento in modo interattivo
+function renderEquipChoices(eq, prefix){
+  if(!eq)return'';
+  
+  // Special handling for complex objects with defaultData (like Fighter equipment)
+  if(eq.defaultData&&Array.isArray(eq.defaultData)&&eq.defaultData.length>0){
+    const choiceData=eq.defaultData[0]; // First choice set usually has A/B/C
+    const choiceKeys=['A','B','C','D','E'].filter(k=>k in choiceData);
+    if(choiceKeys.length>0){
+      const ck=`${prefix}_choice_0`;
+      const sel=char.equipChoices[ck]||null;
+      let h=`<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
+      h+=`<div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+      h+=`<div style="display:flex;flex-direction:column;gap:4px">`;
+      for(const k of choiceKeys){
+        const items=[];flattenEquip(choiceData[k],items);
+        const label=items.map(i=>i.replace(/<[^>]+>/g,'')).join(', ')||k;
+        const isSel=sel===k;
+        h+=`<button onclick="selEquip('${ck}','${k}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel?'var(--gold)':'var(--bdr)'};border-radius:var(--r);background:${isSel?'var(--gdim)':'var(--bg3)'};color:${isSel?'var(--gold2)':'var(--text2)'};cursor:pointer;font-size:13px;font-family:'EB Garamond',serif;transition:all .1s">
+          ${isSel?'<b style="color:var(--gold)">✓ </b>':''}<b style="font-family:'Cinzel',serif;font-size:10px;color:${isSel?'var(--gold)':'var(--text3)'}">${k})</b> ${esc(label)}
+        </button>`;
+      }
+      h+=`</div></div>`;
+      return h;
+    }
+  }
+
+  const CHOICE_LABELS=['A','B','C','D','E','a','b','c','d','e'];
+  let h='',choiceIdx=0;
+
+  function processNode(node){
+    if(!node)return;
+    if(typeof node==='string'){h+=`<div class="eq-item">${clean(node)}</div>`;return;}
+    if(Array.isArray(node)){
+      for(const el of node) processNode(el);
+      return;
+    }
+    if(typeof node==='object'){
+      // Nodo con chiavi A/B/C o a/b/c = scelta alternativa
+      const choiceKeys=CHOICE_LABELS.filter(k=>Object.prototype.hasOwnProperty.call(node,k));
+      // Deduplica: se trovo sia 'A' che 'a', uso solo uppercase
+      const uniqueKeys=[...new Set(choiceKeys.map(k=>k.toUpperCase()))].filter(k=>
+        Object.prototype.hasOwnProperty.call(node,k)||Object.prototype.hasOwnProperty.call(node,k.toLowerCase())
+      );
+      const resolvedKeys=uniqueKeys.map(k=>node[k]!==undefined?k:k.toLowerCase());
+      if(resolvedKeys.length>1){
+        const ck=`${prefix}_choice_${choiceIdx++}`;
+        const sel=char.equipChoices[ck]||null;
+        h+=`<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
+        h+=`<div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+        h+=`<div style="display:flex;flex-direction:column;gap:4px">`;
+        resolvedKeys.forEach(k=>{
+          const items=[];flattenEquip(node[k],items);
+          const label=items.map(i=>i.replace(/<[^>]+>/g,'')).join(', ')||k.toUpperCase();
+          const isSel=sel===k;
+          h+=`<button onclick="selEquip('${ck}','${k}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel?'var(--gold)':'var(--bdr)'};border-radius:var(--r);background:${isSel?'var(--gdim)':'var(--bg3)'};color:${isSel?'var(--gold2)':'var(--text2)'};cursor:pointer;font-size:13px;font-family:'EB Garamond',serif;transition:all .1s">
+            ${isSel?'<b style="color:var(--gold)">✓ </b>':''}<b style="font-family:'Cinzel',serif;font-size:10px;color:${isSel?'var(--gold)':'var(--text3)'}">${k.toUpperCase()})</b> ${esc(label)}
+          </button>`;
+        });
+        h+=`</div></div>`;
+        return;
+      }
+      // Oggetto singolo
+      if(node.item){
+        const name=(node.displayName||node.item.split('|')[0]);
+        const qty=node.quantity&&node.quantity>1?` ×${node.quantity}`:'';
+        const valCp=node.containsValue||node.value||0;
+        const gold=valCp?` <span style="color:var(--gold2)">(💰 ${cpToGp(valCp)})</span>`:'';
+        h+=`<div class="eq-item"><b>${clean(name)}</b>${qty}${gold}</div>`;
+      } else if(node.special){
+        h+=`<div class="eq-item"><i>${clean(node.special)}</i></div>`;
+      } else if(node.equipmentType){
+        h+=`<div class="eq-item">${clean(node.equipmentType)}</div>`;
+      } else if(node.containsValue||node.value){
+        h+=`<div class="eq-gold">💰 ${cpToGp(node.containsValue||node.value)}</div>`;
+      } else if(node.entries){
+        processNode(node.entries);
+      } else {
+        // Fallback ricorsivo
+        for(const k of Object.keys(node)){
+          if(['source','page','type'].includes(k))continue;
+          processNode(node[k]);
+        }
+      }
+    }
+  }
+  processNode(eq);
+  return h||'<div class="phmsg" style="padding:.5rem 0">Nessun dato disponibile.</div>';
+}
+
+function selEquip(key,val){
+  char.equipChoices[key]=char.equipChoices[key]===val?null:val;
+  renderEquipPanel();
+}
+
+// Converti rame in display leggibile
+function cpToGp(cp){
+  if(!cp||cp===0)return'0 cp';
+  if(cp%100===0)return(cp/100)+' gp';
+  if(cp>=100)return(cp/100).toFixed(1)+' gp';
+  return cp+' cp';
+}
+
+// Appiattisce ricorsivamente qualsiasi struttura 5etools in una lista di stringhe leggibili
+function flattenEquip(node, items=[]){
+  if(!node)return items;
+  if(typeof node==='string'){items.push(clean(node));return items;}
+  if(typeof node==='number')return items;
+  if(Array.isArray(node)){
+    // Array di scelte alternative: [{a:[...],b:[...],...}] oppure lista diretta
+    for(const el of node) flattenEquip(el, items);
+    return items;
+  }
+  if(typeof node==='object'){
+    // Formato scelte: {a:[...], b:[...], ...} o {A:[...], B:[...], ...} → "A oppure B"
+    const CLBLS=['A','B','C','D','E','a','b','c','d','e'];
+    const choiceKeys=CLBLS.filter(k=>Object.prototype.hasOwnProperty.call(node,k));
+    const uniq=[...new Set(choiceKeys.map(k=>k.toUpperCase()))].map(k=>node[k]!==undefined?k:k.toLowerCase());
+    if(uniq.length>1){
+      const branches=uniq.map(k=>{
+        const sub=[];flattenEquip(node[k],sub);
+        return sub.map(s=>s.replace(/<[^>]+>/g,'')).join(', ');
+      });
+      items.push(branches.join(' oppure '));
+      return items;
+    }
+    if(uniq.length===1){flattenEquip(node[uniq[0]],items);return items;}
+    // Oggetto singolo item
+    if(node.item){
+      const name=node.item.split('|')[0];
+      const qty=node.quantity&&node.quantity>1?` ×${node.quantity}`:'';
+      // In 5etools 2024 usa "value" (copper pieces), non "containsValue"
+      const valCp=node.containsValue||node.value||0;
+      const gold=valCp?` (💰 ${cpToGp(valCp)})`:'';
+      items.push(`<b>${clean(name)}</b>${qty}${gold}`);
+    } else if(node.special){
+      items.push(`<i>${clean(node.special)}</i>`);
+    } else if(node.equipmentType){
+      items.push(clean(node.equipmentType));
+    } else if(node.containsValue||node.value){
+      items.push(`💰 ${cpToGp(node.containsValue||node.value)}`);
+    } else if(node.entries){
+      flattenEquip(node.entries, items);
+    } else {
+      // Fallback: cerca qualsiasi chiave stringa significativa
+      for(const k of Object.keys(node)){
+        if(['source','page','type'].includes(k))continue;
+        if(typeof node[k]==='string')items.push(clean(node[k]));
+        else if(Array.isArray(node[k])||typeof node[k]==='object') flattenEquip(node[k],items);
+      }
+    }
+  }
+  return items;
+}
+
+function renderEquipBlock(eq){
+  if(!eq)return'';
+  const items=flattenEquip(eq);
+  if(!items.length)return'<div class="phmsg" style="padding:.5rem 0">Dati non disponibili.</div>';
+  return items.map(i=>`<div class="eq-item">${i}</div>`).join('');
+}
+
+/* ════════════════════════════════════ CLASSE */
+function renderClassChips(){
+  const cls=[];
+  for(const d of Object.values(classCache))
+    for(const c of(d.class||[]))
+      if(ALLOWED.includes(c.source))cls.push(c);
+  cls.sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('cls-chips').innerHTML=cls.map(c=>
+    `<button class="chip${char.className===c.name&&char.classSource===c.source?' on':''}" onclick="selectClass('${c.name.replace(/'/g,"\\'")}','${c.source}')">${esc(c.name)}</button>`
+  ).join('');
+}
+function selectClass(name,source){
+  let cls=null,d=null;
+  for(const data of Object.values(classCache)){
+    const f=(data.class||[]).find(c=>c.name===name&&c.source===source);
+    if(f){cls=f;d=data;break;}
+  }
+  if(!cls)return;
+  // Debug struttura equipment classe
+  console.log('Classe selezionata:', name);
+  console.log('startingEquipment:', JSON.stringify(cls.startingEquipment));
+  char.className=name;char.classSource=source;char.cls=cls;char.subclassShortName=null;
+  char.allFeatures=(d.classFeature||[]).filter(f=>f.className===name&&f.classSource===source&&!f.isReprinted);
+  char.subclasses=(d.subclass||[]).filter(s=>s.className===name&&s.classSource===source&&ALLOWED.includes(s.source));
+  char.allSubFeatures=(d.subclassFeature||[]).filter(f=>f.className===name&&f.classSource===source&&ALLOWED.includes(f.source||source));
+  renderClassChips();renderClassCard();renderLevelGrid();renderSubclassPanel();renderSlotsPanel();
+  ['panel-level','panel-species','panel-bg','panel-bg-ability','panel-scores','panel-class-choices','panel-feats','panel-spells','panel-equip'].forEach(id=>document.getElementById(id).style.display='block');
+  document.getElementById('btn-next').disabled=false;
+  char.classChoices={};char.selectedCantrips=[];char.selectedSpells={};
+  renderScoreUI();renderFeatsPanel();renderEquipPanel();renderClassChoicesPanel();renderSpellPanel();renderPreview();updateSteps();
+}
+function renderClassCard(){
+  const c=char.cls,el=document.getElementById('cls-card');
+  if(!c){el.innerHTML='';return;}
+  const saves=(c.proficiency||[]).map(s=>s.toUpperCase()).join(', ')||'—';
+  const caster=c.casterProgression||CASTER_FB[c.name]||null;
+  const cLbl=caster==='full'?'Full Caster':caster==='1/2'?'Half Caster':caster==='pact'?'Pact Magic':null;
+  const sp=c.startingProficiencies||{};
+  const armor=(sp.armor||[]).join(', ')||'—';
+  const weapons=(sp.weapons||[]).join(', ')||'—';
+  const tools=sp.tools?(Array.isArray(sp.tools)?sp.tools.join(', '):String(sp.tools)):null;
+  let sk='—';if(sp.skills){const s=sp.skills;if(s.choose)sk=`Scegli ${s.choose.count||2}: ${(s.choose.from||[]).join(', ')}`;else if(Array.isArray(s))sk=s.join(', ');}
+  el.innerHTML=`<div class="info-card">
+    <div class="info-card-name">${esc(c.name)}</div>
+    <div class="info-tags">
+      <span class="info-tag g">d${c.hd?.faces||'?'} Dado Vita</span>
+      <span class="info-tag gr">${saves} Tiri Salvezza</span>
+      ${cLbl?`<span class="info-tag b">${cLbl}</span>`:''}
+    </div>
+    <div class="info-row"><strong>Armature:</strong> ${esc(armor)}</div>
+    <div class="info-row"><strong>Armi:</strong> ${esc(weapons)}</div>
+    ${tools?`<div class="info-row"><strong>Strumenti:</strong> ${esc(tools)}</div>`:''}
+    <div class="info-row"><strong>Abilità:</strong> ${esc(sk)}</div>
+  </div>`;
+}
+
+/* ════════════════════════════════════ LIVELLO */
+function renderLevelGrid(){
+  const sc=char.cls?(char.cls.subclassLevel||3):3;
+  let h='';
+  for(let i=1;i<=20;i++){
+    const on=i===char.level?' on':'',hasSub=i===sc&&char.level!==i?' has-sub':'';
+    h+=`<button class="lvl-btn${on}${hasSub}" onclick="selectLevel(${i})">${i}${i===sc?'<br><span style="font-size:7px">◆</span>':''}</button>`;
+  }
+  document.getElementById('level-grid').innerHTML=h;
+  const caster=char.cls?(char.cls.casterProgression||CASTER_FB[char.cls.name]||null):null;
+  const cLbl=caster==='full'?'Full':caster==='1/2'?'½':caster==='pact'?'Patto':'';
+  document.getElementById('lvl-stats').innerHTML=`
+    <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Livello</div></div>
+    <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Bonus Comp.</div></div>
+    <div class="lvl-stat"><div class="lvl-stat-v">d${char.cls?.hd?.faces||'?'}</div><div class="lvl-stat-l">Dado Vita</div></div>
+    ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:14px">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}`;
+}
+function selectLevel(n){char.level=n;renderLevelGrid();renderSubclassPanel();renderSlotsPanel();renderFeatsPanel();renderClassChoicesPanel();renderSpellPanel();renderPreview();updateSteps();}
+
+/* ════════════════════════════════════ SOTTOCLASSE */
+function renderSubclassPanel(){
+  const p=document.getElementById('panel-subclass');
+  if(!char.cls||!char.subclasses.length){p.style.display='none';return;}
+  const scLv=char.cls.subclassLevel||3;
+  if(char.level<scLv){p.style.display='none';return;}
+  p.style.display='block';
+  document.getElementById('sc-title').textContent=char.cls.subclassTitle||'Sottoclasse';
+  document.getElementById('sc-unlock-note').textContent='Liv. '+scLv;
+  document.getElementById('sc-grid').innerHTML=char.subclasses.map(sc=>
+    `<button class="sc-btn${char.subclassShortName===sc.shortName?' on':''}" onclick="selSC('${(sc.shortName||sc.name).replace(/'/g,"\\'")}')">
+      ${esc(sc.name||sc.shortName)}<span class="sc-src">${esc(sc.source||'')}</span>
+    </button>`).join('');
+}
+function selSC(n){char.subclassShortName=char.subclassShortName===n?null:n;renderSubclassPanel();renderPreview();updateSteps();}
+
+/* ════════════════════════════════════ SLOT */
+function renderSlotsPanel(){
+  const p=document.getElementById('panel-slots');
+  if(!char.cls){p.style.display='none';return;}
+  const caster=char.cls.casterProgression||CASTER_FB[char.cls.name]||null;
+  if(!caster){p.style.display='none';return;}
+  p.style.display='block';
+  const body=document.getElementById('slots-body'),lv=char.level;
+  if(caster==='pact'){
+    const w=WLOCK[lv];
+    body.innerHTML=w?`<span style="font-size:14px;color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recuperati con riposo breve</span>`:'<div class="phmsg">Nessuno slot</div>';
+    return;
+  }
+  const tbl=caster==='full'?FULL_SLOTS:HALF_SLOTS;
+  const slots=tbl[lv];
+  if(!slots){body.innerHTML='<div class="phmsg">Nessuno slot a questo livello</div>';return;}
+  let h=`<table class="slot-table"><thead><tr><th>Lv</th>`;
+  for(let i=1;i<=slots.length;i++)h+=`<th>${i}°</th>`;
+  h+=`</tr></thead><tbody><tr><td style="font-family:'Cinzel',serif;color:var(--gold2)">${lv}</td>`;
+  for(const n of slots)h+=`<td class="${n>0?'has':'zero'}">${n>0?n:'—'}</td>`;
+  h+=`</tr></tbody></table>`;
+  body.innerHTML=h;
+}
+
+/* ════════════════════════════════════ SPECIE */
+function renderSpeciesList(){
+  const q=document.getElementById('spc-search').value.toLowerCase().trim();
+  const list=allSpecies.filter(s=>!q||s.name.toLowerCase().includes(q));
+  const el=document.getElementById('spc-list');
+  if(!list.length){el.innerHTML='<div class="phmsg">Nessuna specie trovata.</div>';return;}
+  el.innerHTML=list.map(s=>{
+    const spd=s.speed?(typeof s.speed==='number'?s.speed+' ft':Object.entries(s.speed).filter(([,v])=>v).map(([k,v])=>k==='walk'?v+' ft':k+' '+v+' ft').join(', ')):'30 ft';
+    return`<div class="item-row${char.speciesName===s.name&&char.speciesSource===s.source?' on':''}" onclick="selSpecies('${s.name.replace(/'/g,"\\'")}','${s.source}')">
+      <span class="item-row-name">${esc(s.name)}</span>
+      <span class="item-row-meta">${esc(spd)}${s.darkvision?' · DV '+s.darkvision+'ft':''}</span>
+      <span class="item-row-src">${esc(s.source)}</span>
+    </div>`;
+  }).join('');
+}
+function selSpecies(name,source){
+  char.speciesName=name;char.speciesSource=source;
+  char.speciesObj=allSpecies.find(s=>s.name===name&&s.source===source)||null;
+  renderSpeciesList();renderSpeciesCard();renderPreview();updateSteps();
+}
+function renderSpeciesCard(){
+  const s=char.speciesObj,el=document.getElementById('spc-card');
+  if(!s){el.innerHTML='';return;}
+  const spd=s.speed?(typeof s.speed==='number'?s.speed+' ft':Object.entries(s.speed).filter(([,v])=>v).map(([k,v])=>k==='walk'?v+' ft':k+' '+v+' ft').join(', ')):'30 ft';
+  const sizes=(s.size||[]).join(', ')||'Media';
+  el.innerHTML=`<div class="info-card">
+    <div class="info-card-name">${esc(s.name)}</div>
+    <div class="info-tags">
+      <span class="info-tag g">Velocità ${esc(spd)}</span>
+      <span class="info-tag">Taglia ${esc(sizes)}</span>
+      ${s.darkvision?`<span class="info-tag t">Scurovisione ${s.darkvision} ft</span>`:''}
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════ BACKGROUND */
+function renderBgList(){
+  const q=document.getElementById('bg-search').value.toLowerCase().trim();
+  const list=allBgs.filter(b=>!q||b.name.toLowerCase().includes(q));
+  const el=document.getElementById('bg-list');
+  if(!list.length){el.innerHTML='<div class="phmsg">Nessun background trovato.</div>';return;}
+  el.innerHTML=list.map(b=>{
+    const sk=(b.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose')).slice(0,2).join(', ');
+    return`<div class="item-row${char.bgName===b.name&&char.bgSource===b.source?' on':''}" onclick="selBg('${b.name.replace(/'/g,"\\'")}','${b.source}')">
+      <span class="item-row-name">${esc(b.name)}</span>
+      <span class="item-row-meta">${esc(sk)}</span>
+      <span class="item-row-src">${esc(b.source)}</span>
+    </div>`;
+  }).join('');
+}
+function selBg(name,source){
+  char.bgName=name;char.bgSource=source;
+  char.bgObj=allBgs.find(b=>b.name===name&&b.source===source)||null;
+  char.bgAbility=[];char.equipChoices={};char.bgPatternIdx=0;
+  
+  // Azzera i feat slot TRANNE il feat origin che va auto-selezionato dal background
+  const slots=getFeatSlots();
+  const originSlot=slots.find(s=>s.key==='origin');
+  if(originSlot&&originSlot.fixed){
+    // Auto-select origin feat from background
+    char.featSlots={'origin':originSlot.fixed};
+  }else{
+    char.featSlots={};
+  }
+  
+  renderBgList();renderBgCard();renderBgAbilityPanel();renderFeatsPanel();renderFeatSpellPanel();renderEquipPanel();renderPreview();renderScoreUI();updateSteps();
+}
+function getBgPool(b){
+  if(!b||!b.ability)return STATS;
+  const a=b.ability[0];
+  if(!a)return STATS;
+  // Formato reale: {choose: {weighted: {from: [...], weights: [...]}}}
+  if(a.choose?.weighted?.from?.length)return a.choose.weighted.from;
+  if(a.choose?.from?.length)return a.choose.from;
+  const direct=Object.keys(a).filter(k=>k!=='choose'&&STATS.includes(k));
+  if(direct.length)return direct;
+  return STATS;
+}
+function getBgPattern(b){
+  if(!char.bgPatternIdx===undefined)char.bgPatternIdx=0;
+  if(!b||!b.ability)return[2,1];
+  const idx=char.bgPatternIdx||0;
+  const a=b.ability[Math.min(idx,b.ability.length-1)];
+  if(!a)return[2,1];
+  if(a.choose?.weighted?.weights)return a.choose.weighted.weights;
+  if(a.choose?.weighted?.weights===undefined&&a.choose)return[2,1];
+  const vals=Object.values(a).filter(v=>typeof v==='number').sort((x,y)=>y-x);
+  return vals.length?vals:[2,1];
+}
+function renderBgCard(){
+  const b=char.bgObj,el=document.getElementById('bg-card');
+  if(!b){el.innerHTML='';return;}
+  const sk=(b.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose')).join(', ');
+  const tl=(b.toolProficiencies||[]).flatMap(tp=>Object.keys(tp).filter(k=>!['choose','anyArtisansTool'].includes(k))).join(', ');
+  const lg=(b.languageProficiencies||[]).map(lp=>lp.anyStandard?`${lp.anyStandard} lingua a scelta`:Object.keys(lp).join(', ')).join(', ');
+  el.innerHTML=`<div class="info-card">
+    <div class="info-card-name">${esc(b.name)}</div>
+    <div class="info-tags">
+      ${sk?`<span class="info-tag gr">${esc(sk)}</span>`:''}
+      ${tl?`<span class="info-tag g">${esc(tl)}</span>`:''}
+      ${lg?`<span class="info-tag b">${esc(lg)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function renderBgAbilityPanel(){
+  const b=char.bgObj;
+  const panel=document.getElementById('panel-bg-ability');
+  if(!b){panel.style.display='none';return;}
+  panel.style.display='block';
+
+  const pool=getBgPool(b);
+  const patterns=b.ability?b.ability.map((_,i)=>{
+    const a=b.ability[i];
+    const w=a?.choose?.weighted?.weights||[2,1];
+    return w.map(v=>'+'+v).join('/');
+  }):['+ 2/+1'];
+  const pat=getBgPattern(b);
+  const chosen=char.bgAbility;
+
+  let h='';
+  // Toggle pattern se ce ne sono più di uno
+  if(patterns.length>1){
+    h+=`<div style="margin-bottom:.75rem">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:.4rem;font-style:italic">Schema bonus:</div>
+      <div style="display:flex;gap:6px">`;
+    patterns.forEach((p,i)=>{
+      const on=i===(char.bgPatternIdx||0);
+      h+=`<button onclick="setBgPattern(${i})" style="padding:5px 12px;border:1px solid ${on?'var(--teal)':'var(--bdr)'};border-radius:var(--r);background:${on?'var(--tealbg)':'var(--bg3)'};color:${on?'var(--teal)':'var(--text2)'};font-family:'Cinzel',serif;font-size:12px;font-weight:600;cursor:pointer">${p}</button>`;
+    });
+    h+=`</div></div>`;
+  }
+
+  const patDesc=pat.map(v=>'+'+v).join(' e ');
+  h+=`<div style="font-size:13px;color:var(--text2);margin-bottom:.75rem">
+    Assegna ${patDesc} tra: <b style="color:var(--text)">${pool.map(s=>SLBL[s]||s.toUpperCase()).join(', ')}</b>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(${pool.length},1fr);gap:6px">`;
+
+  for(const st of pool){
+    const idx=chosen.indexOf(st);
+    const bonus=idx>=0?(pat[idx]||0):0;
+    const isChosen=idx>=0;
+    h+=`<div class="score-cell${isChosen?' focused':''}" style="cursor:pointer" onclick="togBgAb('${st}')">
+      <div class="score-label">${SLBL[st]||st.toUpperCase()}</div>
+      <div class="score-val" style="font-size:16px;color:${isChosen?'var(--teal)':'var(--text3)'}">
+        ${isChosen?'+'+bonus:'—'}
+      </div>
+      ${isChosen?`<div style="font-size:10px;color:var(--teal);margin-top:2px">✓</div>`:''}
+    </div>`;
+  }
+  h+=`</div>`;
+  const remaining=pat.length-chosen.length;
+  if(remaining>0){
+    h+=`<div style="font-size:12px;color:var(--text3);font-style:italic;margin-top:.6rem">
+      Clicca ${remaining} caratteristica${remaining>1?'e':''} per assegnare il bonus
+    </div>`;
+  }
+  document.getElementById('bg-ability-body').innerHTML=h;
+}
+
+function setBgPattern(idx){
+  char.bgPatternIdx=idx;
+  char.bgAbility=[]; // reset scelte quando cambia il pattern
+  renderBgAbilityPanel();renderScoreUI();renderPreview();
+}
+function togBgAb(stat){
+  const pat=getBgPattern(char.bgObj);
+  const idx=char.bgAbility.indexOf(stat);
+  if(idx>=0)char.bgAbility.splice(idx,1);
+  else{if(char.bgAbility.length>=pat.length)char.bgAbility.shift();char.bgAbility.push(stat);}
+  renderBgAbilityPanel();renderScoreUI();renderPreview();
+}
+function bgBonus(stat){
+  if(!char.bgObj||!char.bgAbility.length)return 0;
+  const pat=getBgPattern(char.bgObj),idx=char.bgAbility.indexOf(stat);
+  return idx>=0?(pat[idx]||0):0;
+}
+
+/* ════════════════════════════════════ PUNTEGGI */
+function getFinal(stat){
+  let base=8;
+  if(char.scoreMethod==='pointbuy')base=char.pbScores[stat];
+  else if(char.scoreMethod==='standard'){const v=char.arrAssign[stat];base=v!==null?v:8;}
+  else{const v=char.diceAssign[stat];base=v!==null?v:8;}
+  return base+bgBonus(stat);
+}
+function fmod(v){const m=Math.floor((v-10)/2);return(m>=0?'+':'')+m;}
+
+function setScoreMethod(m){
+  char.scoreMethod=m;
+  document.querySelectorAll('.score-tab').forEach((t,i)=>t.classList.toggle('on',['pointbuy','standard','dice'][i]===m));
+  renderScoreUI();
+}
+function renderScoreUI(){
+  const el=document.getElementById('scores-ui');
+  if(char.scoreMethod==='pointbuy')renderPB(el);
+  else if(char.scoreMethod==='standard')renderStd(el);
+  else renderDice(el);
+  renderPreviewScores();
+}
+
+/* Point Buy */
+function renderPB(el){
+  let spent=0;for(const s of STATS)spent+=PB_COST[char.pbScores[s]]||0;
+  const left=27-spent,pct=Math.min(100,Math.round(spent/27*100));
+  let h=`<div class="pb-bar">
+    <div class="pb-label"><span>Spesi: <b>${spent}/27</b></span><span style="color:${left<0?'var(--red2)':left===0?'var(--green)':'var(--text2)'}">Rimanenti: <b>${left}</b></span></div>
+    <div class="pb-track"><div class="pb-fill${left<0?' over':''}" style="width:${pct}%"></div></div>
+  </div><div class="score-grid">`;
+  for(const s of STATS){
+    const v=char.pbScores[s],bon=bgBonus(s),fin=v+bon;
+    const canUp=v<15&&(27-spent-(PB_COST[v+1]-(PB_COST[v]||0)))>=0;
+    const canDn=v>8;
+    h+=`<div class="score-cell">
+      <div class="score-label">${SLBL[s]}</div>
+      <div class="score-val">${fin}</div>
+      <div class="score-mod">${fmod(fin)}</div>
+      ${bon?`<div class="score-bonus">+${bon} bg</div>`:''}
+      <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:5px">
+        <button class="score-btn" onclick="pbAdj('${s}',-1)" ${canDn?'':' disabled'}>−</button>
+        <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--text3)">${v}</span>
+        <button class="score-btn" onclick="pbAdj('${s}',1)" ${canUp?'':' disabled'}>+</button>
+      </div>
+    </div>`;
+  }
+  h+=`</div>`;
+  el.innerHTML=h;
+}
+function pbAdj(stat,d){
+  const v=char.pbScores[stat],nv=v+d;
+  if(nv<8||nv>15)return;
+  let spent=0;for(const s of STATS)spent+=PB_COST[s===stat?nv:char.pbScores[s]]||0;
+  if(spent>27)return;
+  char.pbScores[stat]=nv;renderScoreUI();
+}
+
+/* Standard Array */
+function renderStd(el){
+  const assigned=Object.values(char.arrAssign).filter(v=>v!==null);
+  let h=`<p style="font-size:13px;color:var(--text2);margin-bottom:.5rem">Seleziona un valore, poi premi Assegna sulla caratteristica.</p>
+  <div class="array-pool">`;
+  // conta quante volte ogni valore è già assegnato
+  const useCnt={};for(const v of STD_ARR)useCnt[v]=(useCnt[v]||0);
+  for(const v of assigned)useCnt[v]=(useCnt[v]||0)+1;
+  const totCnt={};for(const v of STD_ARR)totCnt[v]=(totCnt[v]||0)+1;
+  STD_ARR.forEach(v=>{
+    const avail=(totCnt[v]||0),used=(useCnt[v]||0);
+    // We show one chip per occurrence in the array
+    const isSel=char.selPoolVal===v&&used<avail;
+    const isUsed=used>=avail;
+    h+=`<div class="pool-val${isUsed?' used':isSel?' selected':''}" onclick="${isUsed?'':'selPool('+v+')'}">${v}</div>`;
+  });
+  h+=`</div><div class="score-grid">`;
+  for(const s of STATS){
+    const v=char.arrAssign[s],bon=bgBonus(s),fin=(v!==null?v:8)+bon;
+    const canAssign=char.selPoolVal!==null&&v===null;
+    h+=`<div class="score-cell${canAssign?' focused':''}">
+      <div class="score-label">${SLBL[s]}</div>
+      <div class="score-val" style="${v===null?'opacity:.3':''}">${v!==null?fin:'—'}</div>
+      ${v!==null?`<div class="score-mod">${fmod(fin)}</div>`:''}
+      ${bon&&v!==null?`<div class="score-bonus">+${bon} bg</div>`:''}
+      <div style="display:flex;gap:4px;justify-content:center;margin-top:4px">
+        ${canAssign?`<button class="assign-btn" onclick="assArr('${s}')">Assegna</button>`:''}
+        ${v!==null?`<button class="unassign-btn" onclick="unArr('${s}')">✕</button>`:''}
+      </div>
+    </div>`;
+  }
+  h+=`</div>`;
+  el.innerHTML=h;
+}
+function selPool(v){char.selPoolVal=char.selPoolVal===v?null:v;renderScoreUI();}
+function assArr(stat){if(char.selPoolVal===null)return;char.arrAssign[stat]=char.selPoolVal;char.selPoolVal=null;renderScoreUI();}
+function unArr(stat){char.arrAssign[stat]=null;renderScoreUI();}
+
+/* Dice */
+function renderDice(el){
+  let h='';
+  if(!char.dicePool.length){
+    h=`<button class="btn-roll" onclick="rollStats()">🎲 Tira 6 volte (4d6 scarta il minore)</button>`;
+  }else{
+    h=`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem">`;
+    char.dicePool.forEach((v,i)=>{
+      const isSel=char.selDiceIdx===i;
+      h+=`<div class="dice-val${isSel?' sel':''}" onclick="selDice(${i})">${v}</div>`;
+    });
+    h+=`</div><button class="btn-roll" onclick="rollStats()">🎲 Ritira tutto</button>
+    <div class="score-grid">`;
+    for(const s of STATS){
+      const v=char.diceAssign[s],bon=bgBonus(s),fin=(v!==null?v:8)+bon;
+      const canAssign=char.selDiceIdx!==null&&v===null;
+      h+=`<div class="score-cell${canAssign?' focused':''}">
+        <div class="score-label">${SLBL[s]}</div>
+        <div class="score-val" style="${v===null?'opacity:.3':''}">${v!==null?fin:'—'}</div>
+        ${v!==null?`<div class="score-mod">${fmod(fin)}</div>`:''}
+        ${bon&&v!==null?`<div class="score-bonus">+${bon} bg</div>`:''}
+        <div style="display:flex;gap:4px;justify-content:center;margin-top:4px">
+          ${canAssign?`<button class="assign-btn" onclick="assDice('${s}')">Assegna</button>`:''}
+          ${v!==null?`<button class="unassign-btn" onclick="unDice('${s}')">✕</button>`:''}
+        </div>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+  el.innerHTML=h;
+}
+function rollStats(){
+  char.dicePool=[];char.diceAssign={str:null,dex:null,con:null,int:null,wis:null,cha:null};char.selDiceIdx=null;
+  for(let i=0;i<6;i++){
+    const r=[0,1,2,3].map(()=>Math.floor(Math.random()*6)+1).sort((a,b)=>b-a);
+    char.dicePool.push(r[0]+r[1]+r[2]);
+  }
+  renderScoreUI();
+}
+function selDice(i){char.selDiceIdx=char.selDiceIdx===i?null:i;renderScoreUI();}
+function assDice(stat){if(char.selDiceIdx===null)return;char.diceAssign[stat]=char.dicePool[char.selDiceIdx];char.dicePool.splice(char.selDiceIdx,1);char.selDiceIdx=null;renderScoreUI();}
+function unDice(stat){if(char.diceAssign[stat]!==null){char.dicePool.push(char.diceAssign[stat]);char.diceAssign[stat]=null;}renderScoreUI();}
+
+/* ════════════════════════════════════ PREVIEW */
+function renderPreviewHeader(){
+  document.getElementById('prev-name').textContent=char.name||'—';
+  const parts=[];
+  if(char.speciesName)parts.push(char.speciesName);
+  if(char.className)parts.push(`${char.className}${char.subclassShortName?' ('+char.subclassShortName+')':''} Lv.${char.level}`);
+  if(char.bgName)parts.push(char.bgName);
+  document.getElementById('prev-meta').textContent=parts.join(' · ');
+}
+function renderPreviewScores(){
+  const el=document.getElementById('prev-scores');
+  const hasAny=STATS.some(s=>getFinal(s)!==8+bgBonus(s)||bgBonus(s)>0);
+  if(!hasAny){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">
+    ${STATS.map(s=>{const v=getFinal(s);return`<div style="text-align:center;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:5px 3px">
+      <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text3)">${SLBL[s]}</div>
+      <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2);line-height:1">${v}</div>
+      <div style="font-size:11px;color:var(--text2)">${fmod(v)}</div>
+    </div>`;}).join('')}
+  </div>`;
+}
+
+function renderPreviewEquip(){
+  const el=document.getElementById('prev-equip');
+  const items=[];
+  // Raccoglie item notevoli da classe e background
+  const collect=(eq)=>{
+    if(!eq)return;
+    if(Array.isArray(eq)){eq.forEach(g=>{if(Array.isArray(g))g.forEach(i=>collect(i));else collect(g);});}
+    else if(typeof eq==='object'){
+      if(eq.item)items.push(eq.item.split('|')[0]+(eq.quantity>1?` ×${eq.quantity}`:''));
+      else if(eq.special)items.push(eq.special);
+      else if(eq.equipmentType)items.push(eq.equipmentType);
+      else if(eq.entries)collect(eq.entries);
+    }else if(typeof eq==='string')items.push(eq);
+  };
+  if(char.cls?.startingEquipment)collect(char.cls.startingEquipment);
+  if(char.bgObj?.startingEquipment)collect(char.bgObj.startingEquipment);
+  if(!items.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c39bd3;margin-bottom:5px">⚔ Equipaggiamento</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      ${items.slice(0,12).map(i=>`<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(clean(i))}</span>`).join('')}
+      ${items.length>12?`<span style="font-size:11px;color:var(--text3)">+${items.length-12} altri…</span>`:''}
+    </div>`;
+}
+function renderPreview(){
+  renderPreviewHeader();renderPreviewScores();renderPreviewEquip();renderPreviewSpells();
+  const el=document.getElementById('feat-list');
+  if(!char.cls&&!char.speciesObj&&!char.bgObj){el.innerHTML='<div class="phmsg">Seleziona una classe per vedere le feature.</div>';return;}
+  let html='';
+
+  // Classe
+  if(char.cls){
+    const lv=char.level;
+    const cf=char.allFeatures.filter(f=>f.level<=lv&&!f.isReprinted);
+    const sf=char.subclassShortName?char.allSubFeatures.filter(f=>f.subclassShortName===char.subclassShortName&&f.level<=lv&&!f.isReprinted):[];
+    const by={};
+    for(const f of cf){if(!by[f.level])by[f.level]={c:[],s:[]};by[f.level].c.push(f);}
+    for(const f of sf){if(!by[f.level])by[f.level]={c:[],s:[]};by[f.level].s.push(f);}
+    const lvs=Object.keys(by).map(Number).sort((a,b)=>a-b);
+    if(lvs.length){
+      html+=`<div class="feat-section-hdr cls">⚔ ${esc(char.className)}</div>`;
+      for(const lv of lvs){
+        const g=by[lv];if(!g.c.length&&!g.s.length)continue;
+        html+=`<div class="feat-level-group"><div class="feat-level-hdr"><span class="lv-badge">Liv. ${lv}</span>${g.s.length?`<span class="sub-badge">${esc(char.subclassShortName)}</span>`:''}</div>`;
+        for(const f of g.c)html+=fi(f,'');
+        for(const f of g.s)html+=fi(f,'sub');
+        html+=`</div>`;
+      }
+    }
+  }
+
+  // Specie
+  if(char.speciesObj){
+    const s=char.speciesObj;
+    const entries=s.entries||[];
+    if(entries.length){
+      html+=`<div class="feat-section-hdr spc">✦ ${esc(s.name)}</div>`;
+      for(const e of entries){
+        if(typeof e==='object'&&e.name)html+=fi({name:e.name,entries:e.entries||[e.entry||''],level:0},'spc');
+        else if(typeof e==='string')html+=fi({name:s.name,entries:[e],level:0},'spc');
+      }
+    }
+  }
+
+  // Background
+  if(char.bgObj){
+    const b=char.bgObj;
+    const entries=b.entries||[];
+    if(entries.length){
+      html+=`<div class="feat-section-hdr bg">📜 ${esc(b.name)}</div>`;
+      for(const e of entries){
+        if(typeof e==='object'&&e.name)html+=fi({name:e.name,entries:e.entries||[e.entry||''],level:0},'bg');
+      }
+    }
+  }
+
+  // Talenti selezionati
+  const selFeats=Object.entries(char.featSlots).filter(([,v])=>v);
+  if(selFeats.length){
+    html+=`<div class="feat-section-hdr ft">✧ Talenti</div>`;
+    for(const [slotKey,name] of selFeats){
+      const feat=allFeats.find(f=>f.name===name);
+      const slot=getFeatSlots().find(s=>s.key===slotKey);
+      const slotLabel=slot?' ('+slot.label.split('—')[0].trim()+')':'';
+      html+=fi({name:name+slotLabel,entries:feat?.entries||[]},'ft');
+    }
+  }
+
+  el.innerHTML=html||'<div class="phmsg">Nessuna feature ancora.</div>';
+}
+
+let _featCtr=0;
+function fi(f,type){
+  const id=`fi_${++_featCtr}`;
+  const nameCls=type?` ${type}`:'';
+  return`<div class="feat-item" id="${id}">
+    <div class="feat-item-hdr" onclick="tf('${id}')">
+      <span class="feat-item-name${nameCls}">${esc(clean(f.name||''))}</span>
+      <span class="feat-arrow">▶</span>
+    </div>
+    <div class="feat-item-body">${rE(f.entries)||'<i style="color:var(--text3)">Nessuna descrizione disponibile.</i>'}</div>
+  </div>`;
+}
+function tf(target){(typeof target==='string'?document.getElementById(target):target)?.classList.toggle('open');}
+
+/* ════════════════════════════════════ STEPS */
+function updateSteps(){
+  const mk=(id,st)=>document.getElementById(id).className='step '+st;
+  mk('st-1',char.className?'done':'active');
+  mk('st-2',char.speciesName?'done':char.className?'active':'locked');
+  mk('st-3',char.bgName?'done':char.className?'active':'locked');
+  mk('st-4',char.className?'active':'locked');
+  const hasOriginFeat=char.featSlots['origin'];
+  mk('st-5',char.cls?.startingEquipment||char.bgObj?.startingEquipment?'done':'locked');
+  mk('st-6',hasOriginFeat?'done':char.className?'active':'locked');
+  mk('st-7','locked');
+}
+
+function saveAndOpenSheet(){
+  // Costruisce oggetto serializzabile (senza funzioni o riferimenti circolari)
+  const saved={
+    name:char.name, level:char.level,
+    className:char.className, classSource:char.classSource,
+    subclassShortName:char.subclassShortName,
+    speciesName:char.speciesName, speciesSource:char.speciesSource,
+    bgName:char.bgName, bgSource:char.bgSource,
+    bgAbility:char.bgAbility,
+    scoreMethod:char.scoreMethod,
+    pbScores:{...char.pbScores},
+    arrAssign:{...char.arrAssign},
+    diceAssign:{...char.diceAssign},
+    featSlots:{...char.featSlots},
+    // Snapshot dati usati dalla scheda
+    clsSnapshot:{
+      hd:char.cls?.hd,
+      proficiency:char.cls?.proficiency||[],
+      casterProgression:char.cls?.casterProgression||null,
+      subclassLevel:char.cls?.subclassLevel||3,
+      subclassTitle:char.cls?.subclassTitle||'',
+      startingProficiencies:char.cls?.startingProficiencies||{},
+      startingEquipment:char.cls?.startingEquipment||null,
+    },
+    speciesSnapshot:{
+      speed:char.speciesObj?.speed||30,
+      size:char.speciesObj?.size||['M'],
+      darkvision:char.speciesObj?.darkvision||0,
+      entries:char.speciesObj?.entries||[],
+    },
+    bgSnapshot:{
+      skillProficiencies:char.bgObj?.skillProficiencies||[],
+      languageProficiencies:char.bgObj?.languageProficiencies||[],
+      toolProficiencies:char.bgObj?.toolProficiencies||[],
+      startingEquipment:char.bgObj?.startingEquipment||null,
+      entries:char.bgObj?.entries||[],
+    },
+    allFeatSnapshots:allFeats.filter(f=>Object.values(char.featSlots).includes(f.name))
+      .map(f=>({name:f.name,source:f.source,category:f.category,entries:f.entries,prerequisite:f.prerequisite})),
+    allClassFeatures:char.allFeatures,
+    allSubFeatures:char.allSubFeatures,
+    classChoices:char.classChoices,
+    selectedCantrips:char.selectedCantrips,
+    selectedSpells:char.selectedSpells,
+    // Snapshot spell selezionate con entries
+    spellSnapshots:[...char.selectedCantrips,...Object.values(char.selectedSpells).flat()]
+      .map(name=>spellDb.find(s=>s.name===name))
+      .filter(Boolean)
+      .map(s=>({name:s.name,level:s.level,school:s.school,source:s.source,
+        components:s.components,duration:s.duration,range:s.range,
+        ritual:s.ritual,concentration:s.concentration,entries:s.entries})),
+  };
+  localStorage.setItem('5e_current_char',JSON.stringify(saved));
+  window.open('character-sheet.html','_blank');
+}
+
+/* ════════════════════════════════════ SCELTE DI CLASSE */
+
+async function loadOptionalFeatures(){
+  const el=document.getElementById('cc-loading');
+  try{
+    const r=await fetch(BASE+'optionalfeatures.json');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    allOptFeats=(d.optionalfeature||[]).filter(f=>ALLOWED.includes(f.source));
+    el.textContent=allOptFeats.length+' feature';
+    if(char.className) renderClassChoicesPanel();
+  }catch(e){el.style.color='var(--red2)';el.textContent='Errore: '+e.message;}
+}
+
+function getChoiceCount(choice){
+  if(choice.count)return choice.count;
+  if(choice.countByLevel){
+    const lv=char.level;
+    let n=0;
+    for(const [lvReq,cnt] of Object.entries(choice.countByLevel)){
+      if(lv>=parseInt(lvReq))n=cnt;
+    }
+    return n;
+  }
+  return 1;
+}
+
+function renderClassChoicesPanel(){
+  const panel=document.getElementById('panel-class-choices');
+  const body=document.getElementById('cc-body');
+  const cfg=(CLASS_CHOICES[char.className]||[]).filter(c=>c.lvMin<=char.level);
+  if(!cfg.length){panel.style.display='none';body.innerHTML='';return;}
+  panel.style.display='block';
+
+  let h='';
+  for(const choice of cfg){
+    const count=getChoiceCount(choice);
+    h+=`<div class="choice-block">
+      <div class="choice-block-hdr">
+        <span>${esc(choice.label)}</span>
+        <span class="choice-count">Scegli ${count}</span>
+      </div>`;
+
+    if(choice.type==='option'){
+      // Scelta radio tra opzioni hardcoded
+      const sel=char.classChoices[choice.key]||null;
+      h+=`<div class="option-grid">`;
+      for(const opt of choice.options){
+        const on=sel===opt.name;
+        h+=`<div class="option-card${on?' on':on&&opt.tag?' '+opt.tag:''}" onclick="selClassOption('${choice.key}','${opt.name.replace(/'/g,"\\'")}')">
+          <div class="option-name${opt.tag?' '+opt.tag:''}">${esc(opt.name)}</div>
+          <div class="option-desc">${esc(opt.desc)}</div>
+        </div>`;
+      }
+      h+=`</div>`;
+
+    }else if(choice.type==='optfeat'){
+      // Lista da optionalfeatures.json
+      const feats=allOptFeats.filter(f=>{
+        const ft=f.featureType;
+        if(typeof ft==='string')return ft===choice.feat||ft.startsWith(choice.feat);
+        if(Array.isArray(ft))return ft.some(t=>t===choice.feat||typeof t==='string'&&t.startsWith(choice.feat));
+        return false;
+      });
+      const sel=char.classChoices[choice.key]||[];
+      const selArr=Array.isArray(sel)?sel:[sel].filter(Boolean);
+      const remaining=count-selArr.length;
+      if(remaining>0)h+=`<div style="font-size:12px;color:var(--text3);margin-bottom:.4rem;font-style:italic">Seleziona ancora ${remaining}</div>`;
+      h+=`<input class="search-box" style="margin-bottom:.5rem" placeholder="Cerca…" oninput="renderOptFeatList('${choice.key}',this.value,'${choice.feat}',${count})" autocomplete="off"/>`;
+      h+=`<div id="of-list-${choice.key}" class="optfeat-list"></div>`;
+
+    }else if(choice.type==='expertise'){
+      // Selezione abilità skill
+      const allSkillNames=SKILLS.map(s=>s.n);
+      const sel=char.classChoices[choice.key]||[];
+      const selArr=Array.isArray(sel)?sel:[sel].filter(Boolean);
+      h+=`<div class="expertise-grid">`;
+      for(const sk of allSkillNames){
+        const on=selArr.includes(sk);
+        const full=selArr.length>=count&&!on;
+        h+=`<button class="exp-btn${on?' on':''}" ${full?'disabled':''} onclick="togExpertise('${choice.key}','${sk}',${count})">${esc(sk)}${on?' ✓':''}</button>`;
+      }
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  }
+  body.innerHTML=h;
+  // Renderizza le liste optfeat
+  cfg.filter(c=>c.type==='optfeat').forEach(c=>{
+    renderOptFeatList(c.key,'',c.feat,getChoiceCount(c));
+  });
+}
+
+function renderOptFeatList(key,q,featType,count){
+  const el=document.getElementById('of-list-'+key);
+  if(!el)return;
+  let list=allOptFeats.filter(f=>{
+    const ft=f.featureType;
+    if(typeof ft==='string')return ft===featType||ft.startsWith(featType);
+    if(Array.isArray(ft))return ft.some(t=>t===featType||typeof t==='string'&&t.startsWith(featType));
+    return false;
+  });
+  if(q)list=list.filter(f=>f.name.toLowerCase().includes(q.toLowerCase()));
+  list=list.slice(0,60);
+  const sel=char.classChoices[key]||[];
+  const selArr=Array.isArray(sel)?sel:[sel].filter(Boolean);
+  el.innerHTML=list.map(f=>{
+    const on=selArr.includes(f.name);
+    const full=selArr.length>=count&&!on;
+    const prereq=f.prerequisite?`<span style="font-size:10px;color:var(--text3);font-style:italic">${clean(f.prerequisite.map?f.prerequisite.map(p=>Object.values(p).join(' ')).join(', '):String(f.prerequisite))}</span>`:'';
+    return`<div class="optfeat-row${on?' on':''}${full?' disabled':''}" ${full?'':`onclick="togOptFeat('${key}','${f.name.replace(/'/g,"\\'")}',${count})"`}>
+      <div class="optfeat-check${on?' on':''}">${on?'✓':''}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--text)">${esc(f.name)}</div>
+        ${prereq}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selClassOption(key,val){
+  char.classChoices[key]=char.classChoices[key]===val?null:val;
+  renderClassChoicesPanel();renderPreview();
+}
+function togOptFeat(key,name,count){
+  let sel=char.classChoices[key]||[];
+  if(!Array.isArray(sel))sel=[sel].filter(Boolean);
+  const idx=sel.indexOf(name);
+  if(idx>=0)sel=sel.filter(s=>s!==name);
+  else if(sel.length<count)sel=[...sel,name];
+  char.classChoices[key]=sel;
+  renderClassChoicesPanel();renderPreview();
+}
+function togExpertise(key,skill,count){
+  let sel=char.classChoices[key]||[];
+  if(!Array.isArray(sel))sel=[sel].filter(Boolean);
+  const idx=sel.indexOf(skill);
+  if(idx>=0)sel=sel.filter(s=>s!==skill);
+  else if(sel.length<count)sel=[...sel,skill];
+  char.classChoices[key]=sel;
+  renderClassChoicesPanel();renderPreview();
+}
+
+/* ════════════════════════════════════ INCANTESIMI */
+
+async function loadSpells(){
+  const el=document.getElementById('spell-loading');
+  el.textContent='Caricamento…';
+  let loaded=0;
+  for(const file of SPELL_FILES){
+    try{
+      const r=await fetch(BASE+'spells/'+file);
+      if(!r.ok)continue;
+      const d=await r.json();
+      (d.spell||[]).forEach(s=>{
+        if(ALLOWED.includes(s.source)&&!spellDb.find(x=>x.name===s.name&&x.source===s.source))
+          spellDb.push(s);
+      });
+      loaded++;
+    }catch(e){}
+  }
+  spellDb.sort((a,b)=>a.name.localeCompare(b.name));
+  el.textContent=spellDb.length+' spell';
+  if(char.className) renderSpellPanel();
+}
+
+function getClassSpells(className){
+  // Prima prova il filtro originale nel database globale
+  let result=spellDb.filter(s=>{
+    const cls=s.classes?.fromClassList||[];
+    return cls.some(c=>c.name?.toLowerCase?.()===className.toLowerCase());
+  });
+  
+  if(result.length>0) return result;
+  
+  // Se non funziona, estrai le spell dalla tabella di spellcasting della classe
+  const classFileKey=Object.keys(classCache).find(f=>
+    f.toLowerCase().includes(className.toLowerCase())
+  );
+  
+  if(classFileKey&&classCache[classFileKey]){
+    const classData=classCache[classFileKey];
+    const spellList=[];
+    
+    // Cerca nel classFeature per trovare la feature di Spellcasting
+    if(classData.classFeature){
+      classData.classFeature.forEach(feat=>{
+        // Cerca feature che contiene informazioni di spellcasting
+        if(feat.name&&(feat.name.includes('Spellcasting')||feat.name.includes('Cantrip'))){
+          // Estrai spell da questo feature
+          if(feat.spells||feat.entries){
+            const text=JSON.stringify(feat).toLowerCase();
+            // Se find spell names nella feature
+            spellDb.forEach(s=>{
+              if(text.includes(s.name.toLowerCase())){
+                spellList.push(s);
+              }
+            });
+          }
+        }
+      });
+    }
+    
+    if(spellList.length>0) return spellList.sort((a,b)=>a.level-b.level||a.name.localeCompare(b.name));
+  }
+  
+  // Fallback: ritorna tutte le spell (non ideale ma almeno mostra qualcosa)
+  console.warn('Fallback: returning all spells for class '+className);
+  return spellDb;
+}
+
+function calcSpellCounts(c){
+  const cls=char.className;
+  const lv=char.level;
+  const caster=char.cls?.casterProgression||CASTER_FB[cls]||null;
+  if(!caster)return null;
+  const scores={};STATS.forEach(s=>scores[s]=getFinal(s));
+  const intMod=Math.floor((scores.int-10)/2);
+  const wisMod=Math.floor((scores.wis-10)/2);
+  const chaMod=Math.floor((scores.cha-10)/2);
+  const cantrips=CANTRIP_KNOWN[cls]?CANTRIP_KNOWN[cls][lv-1]:0;
+  let spells=0;
+  if(SPELLS_KNOWN[cls]){spells=SPELLS_KNOWN[cls][lv-1]||0;}
+  else if(cls==='Cleric'||cls==='Druid'){spells=Math.max(1,wisMod+lv);}
+  else if(cls==='Wizard'){spells=Math.max(1,intMod+lv);}
+  else if(cls==='Paladin'){spells=Math.max(1,chaMod+Math.floor(lv/2));}
+  return{cantrips,spells};
+}
+
+let activeSpellLevel=0;
+
+function renderSpellPanel(){
+  const panel=document.getElementById('panel-spells');
+  const body=document.getElementById('spell-body');
+  const cls=char.className;
+  const caster=char.cls?.casterProgression||CASTER_FB[cls]||null;
+  if(!caster){panel.style.display='none';return;}
+  panel.style.display='block';
+  if(!spellDb.length){body.innerHTML='<div class="phmsg">Caricamento incantesimi…</div>';return;}
+
+  const counts=calcSpellCounts(char);
+  const classSpells=getClassSpells(cls);
+  // Determina livello massimo di slot
+  const maxSlotLv=caster==='full'?Math.ceil(char.level/2):Math.floor(char.level/4)+1;
+  const maxLv=Math.min(9,maxSlotLv+1);
+
+  // Tab per livello
+  let h=`<div style="font-size:13px;color:var(--text2);margin-bottom:.6rem">`;
+  if(counts.cantrips>0)h+=`Cantrip: <b style="color:var(--gold2)">${char.selectedCantrips.length}/${counts.cantrips}</b> · `;
+  h+=`Incantesimi: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
+  if(caster==='pact')h+=` <span style="font-size:11px;color:var(--text3)">(Warlock: spell conosciute)</span>`;
+  else if(['Cleric','Druid','Wizard','Paladin'].includes(cls))h+=` <span style="font-size:11px;color:var(--text3)">(preparate)</span>`;
+  h+=`</div>`;
+
+  h+=`<div class="spell-tabs">`;
+  for(let lv=0;lv<=maxLv;lv++){
+    if(lv>0){const row=classSpells.filter(s=>s.level===lv);if(!row.length)continue;}
+    const isActive=lv===activeSpellLevel;
+    const selCount=lv===0?char.selectedCantrips.length:(char.selectedSpells[lv]||[]).length;
+    h+=`<button class="spell-tab${isActive?' on':selCount>0?' has':''}" onclick="setSpellTab(${lv})">${SPELL_LEVEL_LABELS[lv]}${selCount>0?` (${selCount})`:''}</button>`;
+  }
+  h+=`</div><div id="spell-list-body"></div>`;
+  body.innerHTML=h;
+  renderSpellList(classSpells,maxLv,counts);
+}
+
+function setSpellTab(lv){activeSpellLevel=lv;renderSpellPanel();}
+
+function renderSpellList(classSpells,maxLv,counts){
+  const el=document.getElementById('spell-list-body');
+  if(!el)return;
+  const lv=activeSpellLevel;
+  const list=classSpells.filter(s=>s.level===lv);
+  if(!list.length){el.innerHTML='<div class="phmsg">Nessuna spell disponibile.</div>';return;}
+
+  const isCantrip=lv===0;
+  const selList=isCantrip?char.selectedCantrips:(char.selectedSpells[lv]||[]);
+  const maxSel=isCantrip?counts.cantrips:counts.spells;
+  const selCount=Object.values(char.selectedSpells).flat().length;
+  const remaining=maxSel-(isCantrip?char.selectedCantrips.length:selCount);
+
+  let h=`<div class="spell-count-bar">
+    <span style="font-size:12px;color:var(--text3)">${list.length} disponibili</span>
+    <span class="${remaining<0?'spell-count-over':'spell-count-ok'}">${isCantrip?char.selectedCantrips.length:selCount}/${maxSel}</span>
+  </div>`;
+  h+=`<div class="spell-list">`;
+  for(const s of list){
+    const on=selList.includes(s.name);
+    const full=!on&&(isCantrip?char.selectedCantrips.length>=counts.cantrips:selCount>=counts.spells);
+    const school=SCHOOL_LABELS[s.school]||s.school||'';
+    const comp=[s.components?.v?'V':'',s.components?.s?'G':'',s.components?.m?'M':''].filter(Boolean).join('');
+    h+=`<div class="spell-row${on?' on':''}" onclick="${full&&!on?'':(`toggleSpell(${lv},'${s.name.replace(/'/g,"\\'")}')`)}">
+      <div class="spell-check${on?' on':''}">${on?'✓':''}</div>
+      <div style="flex:1;min-width:0">
+        <div class="spell-name">${esc(s.name)}</div>
+        <div style="font-size:11px;color:var(--text3)">${esc(school)}${comp?' · '+comp:''}</div>
+      </div>
+      ${s.ritual?`<span style="font-size:10px;color:var(--teal);flex-shrink:0">R</span>`:''}
+      ${s.concentration?`<span style="font-size:10px;color:var(--purple);flex-shrink:0">C</span>`:''}
+    </div>`;
+  }
+  h+=`</div>`;
+  el.innerHTML=h;
+}
+
+function toggleSpell(lv,name){
+  if(lv===0){
+    const idx=char.selectedCantrips.indexOf(name);
+    if(idx>=0)char.selectedCantrips.splice(idx,1);
+    else char.selectedCantrips.push(name);
+  }else{
+    if(!char.selectedSpells[lv])char.selectedSpells[lv]=[];
+    const idx=char.selectedSpells[lv].indexOf(name);
+    if(idx>=0)char.selectedSpells[lv].splice(idx,1);
+    else char.selectedSpells[lv].push(name);
+  }
+  renderSpellPanel();
+  renderPreviewSpells();
+}
+
+function renderPreviewSpells(){
+  const el=document.getElementById('prev-spells');
+  const hasSpells=char.selectedCantrips.length||Object.values(char.selectedSpells).flat().length;
+  if(!hasSpells){el.style.display='none';return;}
+  el.style.display='block';
+  let h=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:6px">✦ Incantesimi</div>`;
+  if(char.selectedCantrips.length){
+    h+=`<div class="prev-spell-section"><div class="prev-spell-lv">Cantrip</div><div class="prev-spell-list">${char.selectedCantrips.map(esc).join(', ')}</div></div>`;
+  }
+  for(const [lv,names] of Object.entries(char.selectedSpells)){
+    if(!names.length)continue;
+    h+=`<div class="prev-spell-section"><div class="prev-spell-lv">${SPELL_LEVEL_LABELS[parseInt(lv)]}</div><div class="prev-spell-list">${names.map(esc).join(', ')}</div></div>`;
+  }
+  el.innerHTML=h;
+}
+
+/* ════════════════════════════════════ INIT */
+loadClassIndex();
+loadSpecies();
+loadBgs();
+loadFeats();
+loadOptionalFeatures();
+loadSpells();
+</script>
+</body>
+</html>
