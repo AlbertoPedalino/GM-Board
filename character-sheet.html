@@ -266,8 +266,8 @@
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
     }
     .skill-row {
-      display:grid;grid-template-columns:20px 30px 1fr auto;
-      gap:4px;padding:3px .9rem;align-items:center;
+      display:grid;grid-template-columns:20px 30px 1fr auto auto;
+      gap:4px;padding:3px .9rem;align-items:center;cursor:pointer;
       transition:background .1s;
     }
     .skill-row:hover { background:var(--bg3) }
@@ -277,6 +277,13 @@
     }
     .skill-dot.prof { background:var(--gold);border-color:var(--gold) }
     .skill-dot.exp  { background:var(--teal);border-color:var(--teal) }
+    .skill-dot.joat { background:rgba(200,168,75,.35);border-color:var(--gold);border-style:dashed }
+    .adv-badge {
+      font-size:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.04em;
+      padding:1px 5px;border-radius:3px;flex-shrink:0;
+    }
+    .adv-badge.adv   { background:rgba(39,174,96,.2);color:var(--green);border:1px solid var(--green) }
+    .adv-badge.disadv{ background:rgba(192,57,43,.2);color:var(--red2);border:1px solid var(--red2) }
     .skill-ability {
       font-family:'Cinzel',serif;font-size:9px;color:var(--text3);
       letter-spacing:.06em;
@@ -378,8 +385,14 @@
     .spell-entry {
       display:flex;align-items:center;gap:8px;padding:5px 8px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      margin-bottom:3px;font-size:13px;color:var(--text);
+      margin-bottom:3px;font-size:13px;color:var(--text);cursor:pointer;
     }
+    .spell-entry-body {
+      display:none;font-size:11px;color:var(--text2);line-height:1.5;
+      background:var(--bg);border:1px solid var(--bdr);border-top:none;
+      border-radius:0 0 var(--r) var(--r);padding:6px 10px;margin-top:-3px;margin-bottom:3px;
+    }
+    .spell-entry-body.open { display:block }
     .spell-entry .sp-school { font-size:10px;color:var(--text3);flex:1;text-align:right }
     .spell-badge {
       font-size:9px;font-family:'Cinzel',serif;padding:1px 6px;
@@ -447,6 +460,27 @@
 
     /* ─── MISC ─── */
     .phmsg { font-size:13px;color:var(--text3);font-style:italic;padding:.5rem 0 }
+    .spl-add-btn {
+      background:var(--gdim);border:1px solid var(--gold);border-radius:var(--r);
+      color:var(--gold);font-family:'Cinzel',serif;font-size:11px;font-weight:600;
+      letter-spacing:.06em;padding:5px 14px;cursor:pointer;transition:all .12s;
+    }
+    .spl-add-btn:hover { background:rgba(200,168,75,.2) }
+    .spl-row {
+      display:flex;align-items:center;gap:.5rem;padding:7px 10px;border-radius:var(--r);
+      border:1px solid transparent;cursor:pointer;transition:all .12s;
+    }
+    .spl-row:hover { border-color:var(--bdr);background:var(--bg3) }
+    .spl-row.on { border-color:var(--green);background:rgba(39,174,96,.08) }
+    .spl-row.blocked { opacity:.45;cursor:not-allowed }
+    .spl-name { flex:1;min-width:0;font-size:13px }
+    .spl-school { font-size:10px;color:var(--text3);flex-shrink:0 }
+    .spl-check { font-size:11px;color:var(--green);flex-shrink:0 }
+    .spl-count-badge {
+      font-family:'Cinzel',serif;font-size:11px;font-weight:700;
+      color:var(--gold2);background:var(--gdim);border:1px solid var(--bdr2);
+      border-radius:10px;padding:1px 10px;
+    }
     .divider { height:1px;background:var(--bdr);margin:.6rem 0 }
     .tag {
       display:inline-block;font-size:10px;font-family:'Cinzel',serif;
@@ -546,6 +580,13 @@
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:3px;
     }
     .inv-row:hover { border-color:var(--bdr2) }
+    .inv-row.equipped { border-color:var(--teal);background:rgba(26,188,156,.06) }
+    .inv-entry-body {
+      display:none;font-size:11px;color:var(--text2);line-height:1.45;
+      background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:6px 10px;margin:-2px 0 4px;
+    }
+    .inv-entry-body.open { display:block }
     .inv-row-name { flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
     .inv-row-meta { font-size:11px;color:var(--text3);flex-shrink:0 }
     .inv-badge {
@@ -1066,19 +1107,46 @@ function getSaveBonus(stat){
 }
 function fbonus(n){ return (n>=0?'+':'')+n; }
 
+const _SKILL_EN_IT_SHEET = {
+  'acrobatics':'Acrobatica','animalhandling':'Animalesca','arcana':'Arcana',
+  'athletics':'Atletica','deception':'Inganno','history':'Storia',
+  'insight':'Intuizione','intimidation':'Intimidazione','investigation':'Indagare',
+  'medicine':'Medicina','nature':'Natura','perception':'Percezione',
+  'performance':'Performance','persuasion':'Persuasione','religion':'Religione',
+  'sleightofhand':'Destrezza Manuale','stealth':'Furtività','survival':'Sopravvivenza',
+};
+function _normSkill(s){
+  if(!s||typeof s!=='string') return '';
+  const raw = s.toLowerCase().replace(/[^a-z]/g,'');
+  const it = _SKILL_EN_IT_SHEET[raw];
+  return it ? it.toLowerCase().replace(/[^a-z]/g,'') : raw;
+}
+
 function getSkillProficiency(skillName){
-  // Check selected skills array
-  const sel = C?.selectedSkills || [];
-  // Normalize comparison
-  const norm = s => s.toLowerCase().replace(/[^a-z]/g,'');
-  if(sel.some(s=>norm(s)===norm(skillName))) return 'prof';
-  // Check bg fixed skills
+  const nsk = _normSkill(skillName);
+  // Builder saves selectedSkills as {proficient:[...], expert:[...]} or legacy array
+  const skillData = C?.selectedSkills || {};
+  const profList = Array.isArray(skillData) ? skillData : (skillData.proficient || []);
+  const expList  = Array.isArray(skillData) ? [] : (skillData.expert || []);
+  if(expList.some(s=>_normSkill(s)===nsk)) return 'exp';
+  if(profList.some(s=>_normSkill(s)===nsk)) return 'prof';
+  // Background fixed skills
   const bgFixed = (C?.bgSnapshot?.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose'));
-  if(bgFixed.some(s=>norm(s)===norm(skillName))) return 'prof';
-  // Check class choices
-  const ccHas = Array.isArray(C?.choices?.start_skills_lv1) &&
-    C.choices.start_skills_lv1.some(s=>norm(s)===norm(skillName));
-  if(ccHas) return 'prof';
+  if(bgFixed.some(s=>_normSkill(s)===nsk)) return 'prof';
+  // Class starting skill choices
+  if(C?.choices){
+    for(const [key,val] of Object.entries(C.choices)){
+      if(!val) continue;
+      if(key.includes('skill')||key.startsWith('start_skills')){
+        const vals = Array.isArray(val)?val:[val];
+        if(vals.some(v=>_normSkill(v)===nsk)) return 'prof';
+      }
+      if(key.includes('exp')||key.includes('expertise')){
+        const vals = Array.isArray(val)?val:[val];
+        if(vals.some(v=>_normSkill(v)===nsk)) return 'exp';
+      }
+    }
+  }
   return null;
 }
 function getSkillBonus(sk){
@@ -1086,6 +1154,8 @@ function getSkillBonus(sk){
   const p = getSkillProficiency(sk.n);
   if(p==='exp') return m+getPB()*2;
   if(p==='prof') return m+getPB();
+  // Jack of All Trades: Bard lv2+
+  if(C?.className==='Bard' && (C?.level||1)>=2) return m+Math.floor(getPB()/2);
   return m;
 }
 
@@ -1104,19 +1174,30 @@ function calcMaxHP(){
 function calcAC(){
   if(!C) return 10;
   const dex = getMod(getFinal('dex'));
-  // Check equipped armor in inventory
   const inv = sheetInventory || C.inventory || [];
-  const equippedArmor = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
+  const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
-  let ac = 10 + dex;
+  const shieldBonus = equippedShield ? (2 + (equippedShield.bonusAc ? parseInt(equippedShield.bonusAc)||0 : 0)) : 0;
+  let ac;
   if(equippedArmor){
     const baseAC = equippedArmor.ac || 10;
-    if(equippedArmor.type==='LA') ac = baseAC + dex;
-    else if(equippedArmor.type==='MA') ac = baseAC + Math.min(2, dex);
-    else if(equippedArmor.type==='HA') ac = baseAC;
+    const magicBonus = equippedArmor.bonusAc ? parseInt(equippedArmor.bonusAc)||0 : 0;
+    if(equippedArmor.type==='LA') ac = baseAC + dex + magicBonus;
+    else if(equippedArmor.type==='MA') ac = baseAC + Math.min(2,dex) + magicBonus;
+    else ac = baseAC + magicBonus; // HA
+  } else {
+    const cls = C?.className||'';
+    if(cls==='Barbarian'){
+      // Unarmored Defense: 10 + DEX + STR
+      ac = 10 + dex + getMod(getFinal('str'));
+    } else if(cls==='Monk'){
+      // Unarmored Defense: 10 + DEX + WIS
+      ac = 10 + dex + getMod(getFinal('wis'));
+    } else {
+      ac = 10 + dex;
+    }
   }
-  if(equippedShield) ac += 2;
-  return ac;
+  return ac + shieldBonus;
 }
 
 /* ═══════ RENDER ═══════ */
@@ -1182,9 +1263,10 @@ function renderScores(){
     const val = getFinal(s);
     const mod = getMod(val);
     const modStr = (mod>=0?'+':'')+mod;
-    return `<div class="score-box">
+    const label = FULL_LBL[s]||SLBL[s];
+    return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'Prova di ${label}')" title="Tira Prova di ${label}">
       <div class="score-lbl">${SLBL[s]}</div>
-      <div class="score-mod">${modStr}</div>
+      <div class="score-mod">${modStr} 🎲</div>
       <div class="score-base">${val}</div>
     </div>`;
   }).join('');
@@ -1269,14 +1351,9 @@ function rollSave(stat){
 
 function renderSenses(){
   const el = document.getElementById('senses-body');
-  const pb = getPB();
-  const wisMod = getMod(getFinal('wis'));
-  const percProf = getSkillProficiency('Percezione')==='prof';
-  const invProf  = getSkillProficiency('Indagare')==='prof';
-  const insProf  = getSkillProficiency('Intuizione')==='prof';
-  const passPerc = 10+wisMod+(percProf?pb:0);
-  const passInv  = 10+getMod(getFinal('int'))+(invProf?pb:0);
-  const passIns  = 10+wisMod+(insProf?pb:0);
+  const passPerc = 10+getSkillBonus({n:'Percezione',a:'wis'});
+  const passInv  = 10+getSkillBonus({n:'Indagare',a:'int'});
+  const passIns  = 10+getSkillBonus({n:'Intuizione',a:'wis'});
   const dv = C.speciesSnapshot?.darkvision||0;
 
   let h = `
@@ -1306,15 +1383,23 @@ function renderProficiencies(){
 
   const armor   = (sp.armor||[]).join(', ') || '—';
   const weapons = (sp.weapons||[]).join(', ') || '—';
-  const tools   = [
-    ...(sp.tools ? (Array.isArray(sp.tools)?sp.tools:[String(sp.tools)]) : []),
-    ...(bsp.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>!['choose','anyArtisansTool'].includes(k)))
-  ].join(', ') || '—';
 
-  const langs = [
-    ...(C.selectedLanguages||[]),
-    ...(bsp.languageProficiencies||[]).flatMap(lp=>Object.keys(lp).filter(k=>k!=='anyStandard'&&k!=='choose'&&lp[k]===true))
-  ].filter((v,i,a)=>a.indexOf(v)===i).join(', ') || 'Comune';
+  // Tools: class starting + bg + adapter choices (monk_tool_proficiency, subclass_bm_student_tool, etc.)
+  const toolSet = new Set();
+  (sp.tools ? (Array.isArray(sp.tools)?sp.tools:[String(sp.tools)]) : []).forEach(t=>toolSet.add(t));
+  (bsp.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>!['choose','anyArtisansTool'].includes(k))).forEach(t=>toolSet.add(t));
+  if(C?.choices){
+    for(const [key,val] of Object.entries(C.choices)){
+      if(!val) continue;
+      if(key.includes('tool')||key.includes('instrument')){
+        const vals = Array.isArray(val)?val:[val];
+        vals.forEach(v=>{if(typeof v==='string') toolSet.add(v);});
+      }
+    }
+  }
+  const tools = toolSet.size ? Array.from(toolSet).join(', ') : '—';
+
+  const langs = [...new Set(C.selectedLanguages||[])].join(', ') || 'Comune';
 
   el.innerHTML = `
     <div class="prof-section">
@@ -1379,21 +1464,47 @@ function toggleHD(idx){
   renderHitDice();
 }
 
+// Skill advantage/disadvantage per skill: 'adv'|'disadv'|null
+let skillAdv = JSON.parse(localStorage.getItem('5e_skill_adv')||'{}');
+
+function cycleSkillAdv(name){
+  const cur = skillAdv[name]||null;
+  const next = cur===null?'adv':cur==='adv'?'disadv':null;
+  if(next===null) delete skillAdv[name]; else skillAdv[name]=next;
+  localStorage.setItem('5e_skill_adv', JSON.stringify(skillAdv));
+  renderSkills();
+}
+
 function renderSkills(){
   const el = document.getElementById('skills-body');
+  const isJoat = C?.className==='Bard' && (C?.level||1)>=2;
   el.innerHTML = SKILLS_LIST.map(sk => {
     const bonus = getSkillBonus(sk);
     const ptype = getSkillProficiency(sk.n);
-    const dotCls = ptype==='prof'?' prof':ptype==='exp'?' exp':'';
-    return `<div class="skill-row" onclick="rollSkill('${sk.n.replace(/'/g,"\\'")}',${bonus})" title="Tira ${sk.n}">
+    const dotCls = ptype==='exp'?' exp':ptype==='prof'?' prof':(isJoat&&!ptype)?' joat':'';
+    const adv = skillAdv[sk.n]||null;
+    const advBadge = adv==='adv'
+      ? `<span class="adv-badge adv" title="Vantaggio">V</span>`
+      : adv==='disadv'
+      ? `<span class="adv-badge disadv" title="Svantaggio">S</span>`
+      : '';
+    const safeN = sk.n.replace(/'/g,"\\'");
+    return `<div class="skill-row"
+      onclick="rollSkill('${safeN}',${bonus},'${adv||''}')"
+      oncontextmenu="event.preventDefault();cycleSkillAdv('${safeN}')"
+      title="Clic: tira | Clic destro: vantaggio/svantaggio">
       <div class="skill-dot${dotCls}"></div>
       <span class="skill-ability">${SLBL[sk.a]}</span>
       <span class="skill-name">${esc(sk.n)}</span>
+      ${advBadge}
       <span class="skill-bonus">${fbonus(bonus)}</span>
     </div>`;
   }).join('');
 }
-function rollSkill(name, bonus){ rollD20(bonus, name); }
+function rollSkill(name, bonus, adv){
+  const a = adv==='adv'?true:adv==='disadv'?false:undefined;
+  rollD20(bonus, name, a);
+}
 
 function renderRightTop(){
   const initMod = getMod(getFinal('dex'));
@@ -1403,11 +1514,28 @@ function renderRightTop(){
   // Defenses (resistances/immunities from species/feats)
   const defEl = document.getElementById('def-content');
   const items = [];
-  const specEntries = JSON.stringify(C.speciesSnapshot?.entries||'').toLowerCase();
-  if(specEntries.includes('resistance')) items.push({l:'Resistenza',c:'b'});
-  if(C.speciesSnapshot?.darkvision) items.push({l:'Scurovisione',c:'t'});
+  const DMGTYPE_IT = {fire:'Fuoco',cold:'Freddo',lightning:'Fulmine',thunder:'Tuono',
+    acid:'Acido',poison:'Veleno',psychic:'Psichico',radiant:'Radiante',necrotic:'Necrotico',
+    force:'Forza',bludgeoning:'Contundente',piercing:'Perforante',slashing:'Tagliente'};
+  const resist = C.speciesSnapshot?.resist||[];
+  const immune = C.speciesSnapshot?.immune||[];
+  for(const r of resist){
+    const lbl = typeof r==='string'?DMGTYPE_IT[r.toLowerCase()]||r:r.special||'—';
+    items.push({l:`Resistenza: ${lbl}`,c:'b'});
+  }
+  for(const r of immune){
+    const lbl = typeof r==='string'?DMGTYPE_IT[r.toLowerCase()]||r:r.special||'—';
+    items.push({l:`Immunità: ${lbl}`,c:'r'});
+  }
+  if(C.speciesSnapshot?.darkvision) items.push({l:`Scurovisione ${C.speciesSnapshot.darkvision} ft`,c:'t'});
+  // Unarmored Defense badge
+  const cls = C?.className||'';
+  if(!( sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type))){
+    if(cls==='Barbarian') items.push({l:'Unarmored Defense (FOR+CON)',c:'g'});
+    if(cls==='Monk')      items.push({l:'Unarmored Defense (DES+SAG)',c:'g'});
+  }
   if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">Nessuna</span>'; }
-  else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${i.l}</div>`).join(''); }
+  else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
 }
 
 /* ═══════════════ ACTIONS SYSTEM ═══════════════ */
@@ -1691,13 +1819,34 @@ function renderSpellsTab(){
   const auto        = C.autoGrantedSpells||[];
   const snapshots   = C.spellSnapshots||[];
 
-  const hasCaster = C.clsSnapshot?.casterProgression;
-  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length){
-    el.innerHTML='<div class="phmsg">Questo personaggio non è un incantatore.</div>'; return;
+  // Gather extra cantrips from adapter choices (EK, AT, Thaumaturge, Magician, Pact of Tome)
+  const CANTRIP_CHOICE_KEYS = [
+    'cleric_thaumaturge_cantrip','druid_magician_cantrip',
+    'subclass_ek_cantrip_1','subclass_ek_cantrip_2',
+    'subclass_at_cantrip_1','subclass_at_cantrip_2',
+    'warlock_tome_cantrip_1','warlock_tome_cantrip_2','warlock_tome_cantrip_3',
+  ];
+  const adapterCantrips = []; // [{name, key}]
+  if(C?.choices){
+    for(const key of CANTRIP_CHOICE_KEYS){
+      const val = C.choices[key];
+      if(!val) continue;
+      const vals = Array.isArray(val)?val:[val];
+      vals.forEach(v=>{if(typeof v==='string') adapterCantrips.push({name:v,key});});
+    }
   }
 
-  const pb = getPB();
-  const spellMod = getSpellMod();
+  const hasCaster = C.clsSnapshot?.casterProgression;
+  const hasAdapterCantrips = adapterCantrips.length > 0;
+  const hasAdapterEK = !!(C?.subclassShortName==='Eldritch Knight'||C?.choices?.subclass_ek_cantrip_1);
+  const hasAdapterAT = !!(C?.subclassShortName==='Arcane Trickster'||C?.choices?.subclass_at_cantrip_1);
+
+  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips){
+    el.innerHTML='<div class="phmsg">Questo personaggio non è un incantatore.</div>'
+      + '<button class="spl-add-btn" onclick="openSpellPicker()">+ Aggiungi Magia</button>';
+    return;
+  }
+
   const dc = getSpellSaveDC();
   const atk = fbonus(getSpellAttackBonus());
 
@@ -1716,17 +1865,22 @@ function renderSpellsTab(){
     </div>
   </div>`;
 
-  // Spell slots + usage
+  // Spell slots
   const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+  const HALF_SLOTS=[null,null,[2,0,0,0,0],[3,0,0,0,0],[3,0,0,0,0],[4,2,0,0,0],[4,2,0,0,0],[4,3,0,0,0],[4,3,0,0,0],[4,3,2,0,0],[4,3,2,0,0],[4,3,3,0,0],[4,3,3,0,0],[4,3,3,1,0],[4,3,3,1,0],[4,3,3,2,0],[4,3,3,2,0],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
+  const PACT_SLOTS=[null,{n:1,l:1},{n:2,l:1},{n:2,l:2},{n:2,l:2},{n:3,l:3},{n:3,l:3},{n:3,l:4},{n:3,l:4},{n:3,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5}];
   const prog = C.clsSnapshot?.casterProgression;
-  const slots = prog==='full' ? (FULL_SLOTS[C.level]||[]) : [];
+  const lv = C.level;
+  let slots = [];
+  if(prog==='full') slots = FULL_SLOTS[lv]||[];
+  else if(prog==='1/2') slots = HALF_SLOTS[lv]||[];
   if(slots.length){
     h+=`<div style="margin-bottom:.75rem">
       <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Slot Incantesimo</div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">`;
     for(let i=0;i<slots.length;i++){
-      const tot = slots[i]; if(!tot) continue;
-      const used = spellSlotUsed[i+1]||0;
+      const tot=slots[i]; if(!tot) continue;
+      const used=spellSlotUsed[i+1]||0;
       h+=`<div>
         <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${i+1}°</div>
         <div class="slot-pips" id="slot-pips-${i+1}">
@@ -1735,51 +1889,98 @@ function renderSpellsTab(){
       </div>`;
     }
     h+=`</div></div>`;
+  } else if(prog==='pact'){
+    const ps=PACT_SLOTS[lv]||{n:1,l:1};
+    const used=spellSlotUsed[ps.l]||0;
+    h+=`<div style="margin-bottom:.75rem">
+      <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Slot Patto (${ps.n}x ${ps.l}°)</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
+          <div class="slot-pips" id="slot-pips-${ps.l}">
+            ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${ps.l},${k})"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
   }
 
-  // Cantrips
-  if(allCantrips.length){
-    h+=`<div class="spell-level-section">
-      <div class="spell-level-hdr">Cantrip</div>`;
-    for(const name of allCantrips){
-      const snap = snapshots.find(s=>s.name===name);
-      const school = snap ? (SCHOOL_LABELS[snap.school]||snap.school||'') : '';
-      h+=`<div class="spell-entry">
-        <span>${esc(name)}</span>
-        <span class="sp-school">${esc(school)}</span>
-      </div>`;
+  // Helper for a spell row with source badge and dice buttons
+  function _spellRow(name, extra=''){
+    const snap = snapshots.find(s=>s.name===name);
+    // sheetSpellDb is authoritative for attack/damage metadata once loaded
+    const full = sheetSpellDb?.find(s=>s.name===name);
+    const school = snap ? (SCHOOL_LABELS[snap.school]||snap.school||'') : (full ? (SCHOOL_LABELS[full.school]||full.school||'') : '');
+    const isConc = snap?.concentration ?? full?.concentration;
+    const isRit  = snap?.ritual ?? full?.ritual;
+    const src = getSpellSource(name);
+    const spellMod = getMod(getFinal(getSpellAbility()));
+    const spellAtk = spellMod + getPB();
+    const entriesStr = JSON.stringify(snap?.entries ?? full?.entries ?? []);
+    const hasAtk = !!(snap?.spellAttack?.length || full?.spellAttack?.length || entriesStr.includes('{@atk '));
+    let dmgFormula = null;
+    if(entriesStr && entriesStr !== '[]'){
+      const m = entriesStr.match(/\{@(?:damage|scaledamage) (\d+d\d+(?:[+-]\d+)?)/);
+      if(m) dmgFormula = m[1];
     }
+    const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const atkBtn = hasAtk
+      ? `<button class="roll-btn" style="font-size:9px;padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">🎲 ${fbonus(spellAtk)}</button>`
+      : '';
+    const dmgBtn = dmgFormula
+      ? `<button class="roll-btn dmg" style="font-size:9px;padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">💥 ${dmgFormula}</button>`
+      : '';
+    const spellId = 'spl_' + name.replace(/[^a-zA-Z0-9]/g,'_');
+    const entryHtml = rE(full?.entries ?? snap?.entries ?? []);
+    const castTime = full?.time?.[0] ? `${full.time[0].number} ${full.time[0].unit}` : (snap?.time?.[0] ? `${snap.time[0].number} ${snap.time[0].unit}` : '');
+    const range = full?.range?.distance?.amount != null ? `${full.range.distance.amount} ${full.range.distance.type||''}`.trim() : (full?.range?.type||snap?.range?.type||'');
+    const compArr = (full?.components ?? snap?.components ?? {});
+    const comp = [compArr.v?'V':null, compArr.m?'M':null, compArr.s?'S':null].filter(Boolean).join(', ');
+    const dur = full?.duration?.[0]?.type||snap?.duration?.[0]?.type||'';
+    const metaLine = [castTime, range, comp, dur].filter(Boolean).join(' · ');
+    return `<div>
+      <div class="spell-entry" onclick="toggleSpellDesc('${spellId}')">
+        <span>${esc(name)}</span>
+        ${src?`<span class="spell-badge" style="background:var(--pbg);border-color:var(--purple);color:var(--purple);border:1px solid;border-radius:3px;padding:1px 5px;font-size:9px;flex-shrink:0">${esc(src.label)}</span>`:''}
+        ${extra}
+        ${atkBtn}${dmgBtn}
+        ${isConc?`<span class="spell-badge conc">C</span>`:''}
+        ${isRit?`<span class="spell-badge rit">R</span>`:''}
+        <span class="sp-school">${esc(school)}</span>
+      </div>
+      ${entryHtml?`<div id="${spellId}" class="spell-entry-body">
+        ${metaLine?`<div style="font-size:10px;color:var(--text3);margin-bottom:5px">${esc(metaLine)}</div>`:''}
+        ${entryHtml}
+      </div>`:''}
+    </div>`;
+  }
+
+  // Cantrips: class cantrips + adapter cantrips
+  const allCantripNames = [...new Set([...allCantrips, ...adapterCantrips.map(a=>a.name)])];
+  if(allCantripNames.length){
+    h+=`<div class="spell-level-section"><div class="spell-level-hdr">Cantrip</div>`;
+    for(const name of allCantripNames) h+=_spellRow(name);
     h+=`</div>`;
   }
 
   // Spells by level
-  const allAutoNames = auto.map(a=>a.name);
-  for(let lv=1;lv<=9;lv++){
-    const chosen = (allSpells[lv]||[]);
-    const autoAtLv = auto.filter(a=>a.level===lv).map(a=>a.name);
+  for(let slv=1;slv<=9;slv++){
+    const chosen = (allSpells[slv]||[]);
+    const autoAtLv = auto.filter(a=>a.level===slv).map(a=>a.name);
     const combined = [...new Set([...chosen, ...autoAtLv])];
     if(!combined.length) continue;
-    h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[lv]}</div>`;
+    h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[slv]}</div>`;
     for(const name of combined){
-      const snap = snapshots.find(s=>s.name===name);
-      const school = snap ? (SCHOOL_LABELS[snap.school]||snap.school||'') : '';
       const isAuto = autoAtLv.includes(name);
-      const isConc = snap?.concentration;
-      const isRit  = snap?.ritual;
-      h+=`<div class="spell-entry">
-        <span>${esc(name)}</span>
-        ${isAuto?`<span class="spell-badge auto">✦ Auto</span>`:''}
-        ${isConc?`<span class="spell-badge conc">C</span>`:''}
-        ${isRit?`<span class="spell-badge rit">R</span>`:''}
-        <span class="sp-school">${esc(school)}</span>
-      </div>`;
+      h+=_spellRow(name, isAuto?`<span class="spell-badge auto">✦ Auto</span>`:'');
     }
     h+=`</div>`;
   }
 
-  if(!allCantrips.length && !Object.values(allSpells).flat().length && !auto.length){
+  if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length){
     h+='<div class="phmsg">Nessuna magia selezionata.</div>';
   }
+  h+='<div style="margin-top:.75rem"><button class="spl-add-btn" onclick="openSpellPicker()">+ Aggiungi / Rimuovi Magia</button></div>';
   el.innerHTML = h;
 }
 
@@ -1788,6 +1989,43 @@ function getSpellAbility(){
   if(['Wizard','Artificer'].includes(cls)) return 'int';
   if(['Cleric','Druid','Ranger'].includes(cls)) return 'wis';
   return 'cha';
+}
+
+// Returns source label for a spell name — checks auto grants, choices, then class
+function getSpellSource(spellName){
+  const n = spellName.toLowerCase();
+  // Auto-granted (species, subclass domain spells)
+  const auto = C.autoGrantedSpells||[];
+  const autoEntry = auto.find(a=>a.name.toLowerCase()===n);
+  if(autoEntry) return {label: autoEntry.source||'Auto', cls:'t'};
+  // Choice-based grants: adapter keys
+  const CHOICE_SOURCE = {
+    'cleric_thaumaturge_cantrip':  'Divine Order (Thaumaturge)',
+    'druid_magician_cantrip':      'Primal Order (Magician)',
+    'subclass_ek_cantrip_1':       'Eldritch Knight',
+    'subclass_ek_cantrip_2':       'Eldritch Knight',
+    'subclass_at_cantrip_1':       'Arcane Trickster',
+    'subclass_at_cantrip_2':       'Arcane Trickster',
+    'warlock_tome_cantrip_1':      'Pact of the Tome',
+    'warlock_tome_cantrip_2':      'Pact of the Tome',
+    'warlock_tome_cantrip_3':      'Pact of the Tome',
+    'wizard_spell_mastery_l1':     'Spell Mastery (Lv.18)',
+    'wizard_spell_mastery_l2':     'Spell Mastery (Lv.18)',
+    'wizard_signature_1':          'Signature Spell (Lv.20)',
+    'wizard_signature_2':          'Signature Spell (Lv.20)',
+  };
+  if(C?.choices){
+    for(const [key,val] of Object.entries(C.choices)){
+      if(!val) continue;
+      const vals = Array.isArray(val)?val:[val];
+      if(vals.some(v=>typeof v==='string'&&v.toLowerCase()===n)){
+        if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key],cls:'p'};
+        if(key.startsWith('feat_')) return {label:'Talento',cls:'g'};
+        if(key.startsWith('subclass_')) return {label:C.subclassShortName||'Sottoclasse',cls:'p'};
+      }
+    }
+  }
+  return null; // class choice = no badge (it's the default)
 }
 
 function toggleSlot(lv, idx){
@@ -1869,7 +2107,7 @@ function itemMatchesRequires(item, requires){
 }
 
 function expandMagicVariants(variants, baseItems){
-  const ITEM_SOURCES = [...ALLOWED_SOURCES,'XDMG'];
+  const ITEM_SOURCES = [...ALLOWED_SOURCES,'XDMG','DMG','GV'];
   const expanded = [];
   for(const v of variants){
     if(!ITEM_SOURCES.includes(v.source)) continue;
@@ -1899,6 +2137,31 @@ function expandMagicVariants(variants, baseItems){
         ac:inh.ac??base.ac??null, property:base.property||[],
         entries:inh.entries||v.entries||[], _variant:true,
       });
+    }
+  }
+  // Fallback: XPHB base items lack weapon/armor bool flags → requires matching fails → 0 expanded.
+  // Generate +1/+2/+3 synthetically from all weapon/armor base items.
+  if(expanded.length===0 && baseItems.length>0){
+    const rarityByBonus = {1:'uncommon',2:'rare',3:'very rare'};
+    for(const base of baseItems){
+      const isWeapon = ['M','R'].includes(base.type)||base.weapon;
+      const isArmor  = ['LA','MA','HA'].includes(base.type)||base.armor;
+      const isShield = base.type==='S'||base.shield;
+      if(!isWeapon && !isArmor && !isShield) continue;
+      for(const bonus of [1,2,3]){
+        expanded.push({
+          name: base.name+', +'+ bonus,
+          source:'XDMG', type:base.type,
+          rarity:rarityByBonus[bonus]||'rare',
+          weight:base.weight||0, value:(base.value||0)+bonus*500,
+          dmg1:base.dmg1||null, dmgType:base.dmgType||null,
+          bonusWeapon:isWeapon?'+'+bonus:null,
+          bonusAc:   (isArmor||isShield)?'+'+bonus:null,
+          ac:base.ac??null, property:base.property||[],
+          entries:[`Hai un bonus di +${bonus} ai tiri per colpire e ai tiri di danno con quest'arma magica.`],
+          _variant:true,
+        });
+      }
     }
   }
   return expanded;
@@ -1986,6 +2249,7 @@ function renderItemSearch(){
       name:item.name,source:item.source,type:item.type,rarity:item.rarity,
       weight:item.weight,value:item.value,dmg1:item.dmg1,dmgType:item.dmgType,
       ac:item.ac,bonusWeapon:item.bonusWeapon,bonusAc:item.bonusAc,property:item.property||[],
+      entries:item.entries||[],
     }));
     return `<div class="inv-search-row" onclick="addItemToInventory(decodeURIComponent('${payload}'))">
       <div class="inv-search-name">${esc(item.name)}</div>
@@ -2011,7 +2275,7 @@ function addItemToInventory(jsonStr){
       dmg1:item.dmg1||null, dmgType:item.dmgType||null,
       ac:item.ac||null, bonusWeapon:item.bonusWeapon||null,
       bonusAc:item.bonusAc||null, property:item.property||[],
-      equipped:false, custom:false,
+      entries:item.entries||[], equipped:false, custom:false,
     });
   }
   persistInventory();
@@ -2035,6 +2299,11 @@ function changeSheetInvQty(idx, delta){
   persistInventory();
   renderInventoryList();
   renderRightTop();
+}
+
+function toggleSpellDesc(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
 }
 
 function toggleEquip(idx){
@@ -2115,27 +2384,40 @@ function renderInventoryList(){
       const typeLabel = ITEM_TYPE_LABELS[item.type]||item.type||'';
       const srcLabel = SOURCE_LABELS[item.source]||item.source||'';
       const canEquip = ['M','R','LA','MA','HA','S','SCF','WD','RD','ST','WI'].includes(item.type);
-      const dmgStr = item.dmg1?`${item.dmg1}${item.dmgType?' '+item.dmgType:''}`:item.bonusWeapon||'';
-      const acStr  = item.ac?`CA ${item.ac}`:item.bonusAc?`CA${item.bonusAc}`:'';
-      const propStr = (item.property||[]).map(p=>({F:'Finesse',L:'Leggero',H:'Pesante',T:'Lancio','2H':'Due Mani',V:'Versatile',A:'Muni.'})[p]||p).filter(Boolean).join(', ');
+      const magicBonus = parseInt((item.bonusWeapon||item.bonusAc||'0').replace('+',''))||0;
+      // dmg: show base die + magic bonus together
+      const dmgParts = [];
+      if(item.dmg1) dmgParts.push(item.dmg1+(item.dmgType?' '+item.dmgType:''));
+      if(item.bonusWeapon) dmgParts.push(item.bonusWeapon+' magia');
+      // AC: show base CA + bonus together
+      const acParts = [];
+      if(item.ac) acParts.push('CA '+item.ac);
+      if(item.bonusAc) acParts.push(item.bonusAc+' magia');
+      const dmgStr = dmgParts.join(' ') || '';
+      const acStr  = acParts.join(' ') || '';
+      const PROP_MAP={F:'Finesse',L:'Leggero',H:'Pesante',T:'Lancio','2H':'Due Mani',V:'Versatile',A:'Muni.',REACH:'Portata'};
+      const propStr = (item.property||[]).map(p=>PROP_MAP[p]||p).filter(Boolean).join(', ');
       const meta = [item.weight?item.weight+'lb':null, dmgStr||null, acStr||null, propStr||null].filter(Boolean).join(' · ');
-      h+=`<div class="inv-row" style="${item.equipped?'border-color:var(--teal);background:rgba(26,188,156,.05)':''}">
-        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;min-width:48px">
+      const entryText = item.entries ? clean(rE(item.entries)).slice(0,200) : '';
+      const iid = 'inv_'+idx;
+      h+=`<div class="inv-row${item.equipped?' equipped':''}">
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;min-width:52px">
           <div class="inv-badge" style="color:${rc};border-color:${rc}">${esc(rarity||typeLabel)}</div>
-          ${srcLabel?`<div class="inv-badge" style="font-size:8px;color:var(--text3)">${esc(srcLabel)}</div>`:''}
+          ${magicBonus>0?`<div class="inv-badge" style="color:var(--gold);border-color:var(--gold);font-weight:700">✦ +${magicBonus}</div>`:''}
         </div>
-        <div style="flex:1;min-width:0">
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="document.getElementById('${iid}').classList.toggle('open')">
           <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:9px;color:var(--text3)">[custom]</span>':''}</div>
           ${meta?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
         ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?'✓ Equip.':'Equipaggia'}</button>`:''}
         <div class="inv-qty-wrap">
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},-1)">−</button>
-          <div class="inv-qty-val">${item.qty}</div>
+          <div class="inv-qty-val">${item.qty||1}</div>
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},1)">+</button>
         </div>
         <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Rimuovi">🗑</button>
-      </div>`;
+      </div>
+      ${entryText?`<div id="${iid}" class="inv-entry-body">${entryText}…</div>`:''}`;
     }
   }
   el.innerHTML = h;
@@ -2150,6 +2432,37 @@ function renderFeaturesTab(){
     : [];
   const feats = C.allFeatSnapshots||[];
 
+  // Determine which feat slot gave each feat (choice keys like feat_asi_lv4, bg_feat_origin, etc.)
+  function getFeatSlot(featName){
+    if(!C?.choices) return null;
+    for(const [key,val] of Object.entries(C.choices)){
+      if(val===featName){
+        if(key==='species_origin_feat') return 'Origine (Specie)';
+        if(key.startsWith('feat_origin')) return 'Origine (BG)';
+        if(key.startsWith('bg_feat')) return 'Origine (BG)';
+        const lvMatch = key.match(/lv(\d+)/i);
+        if(lvMatch) return `Talento Lv.${lvMatch[1]}`;
+        return 'Talento';
+      }
+    }
+    return 'Talento';
+  }
+
+  function _featItem(id, name, badge, badgeStyle, body){
+    return `<div class="feature-item" id="${id}">
+      <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+        <div style="flex:1;min-width:0">
+          <div class="feature-name" style="${badgeStyle?'color:'+badgeStyle:''}">
+            ${badge?`<span style="font-size:9px;margin-right:5px;opacity:.7">${badge}</span>`:''}
+            ${esc(clean(name||''))}
+          </div>
+        </div>
+        <span class="feature-arrow">▶</span>
+      </div>
+      <div class="feature-body">${body||'<i style="color:var(--text3)">Nessuna descrizione.</i>'}</div>
+    </div>`;
+  }
+
   let h = '';
 
   if(C.className){
@@ -2160,18 +2473,19 @@ function renderFeaturesTab(){
     for(const lvNum of Object.keys(byLv).map(Number).sort((a,b)=>a-b)){
       for(const f of byLv[lvNum]){
         const id='feat_'+Math.random().toString(36).slice(2);
+        const isSub = f._type==='sub';
+        const srcLabel = isSub
+          ? `◆ ${C.subclassShortName||'Sottoclasse'} · Lv.${lvNum}`
+          : `${C.className} · Lv.${lvNum}`;
         h+=`<div class="feature-item" id="${id}">
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
-            <div>
-              <div class="feature-name${f._type==='sub'?' sub':''}">
-                ${f._type==='sub'?'<span style="color:var(--purple);margin-right:4px">◆</span>':''}
+            <div style="flex:1;min-width:0">
+              <div class="feature-name${isSub?' sub':''}">
                 ${esc(clean(f.name||''))}
               </div>
+              <div style="font-size:9px;color:${isSub?'var(--purple)':'var(--text3)'};margin-top:1px">${esc(srcLabel)}</div>
             </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span class="feature-lv-badge">Lv.${lvNum}</span>
-              <span class="feature-arrow">▶</span>
-            </div>
+            <span class="feature-arrow">▶</span>
           </div>
           <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">Nessuna descrizione.</i>'}</div>
         </div>`;
@@ -2186,7 +2500,10 @@ function renderFeaturesTab(){
         const id='feat_'+Math.random().toString(36).slice(2);
         h+=`<div class="feature-item" id="${id}">
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
-            <div class="feature-name">${esc(e.name)}</div>
+            <div style="flex:1;min-width:0">
+              <div class="feature-name">${esc(e.name)}</div>
+              <div style="font-size:9px;color:var(--teal);margin-top:1px">✦ ${esc(C.speciesName)}</div>
+            </div>
             <span class="feature-arrow">▶</span>
           </div>
           <div class="feature-body">${rE(e.entries||'')||'—'}</div>
@@ -2199,9 +2516,14 @@ function renderFeaturesTab(){
     h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:.75rem 0 .5rem">✧ Talenti</div>`;
     for(const f of feats){
       const id='feat_'+Math.random().toString(36).slice(2);
+      const slot = getFeatSlot(f.name);
+      const catLabel = f.category ? ` · Cat. ${f.category}` : '';
       h+=`<div class="feature-item" id="${id}">
         <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
-          <div class="feature-name" style="color:var(--orange)">${esc(f.name)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="feature-name" style="color:var(--orange)">${esc(f.name)}</div>
+            <div style="font-size:9px;color:var(--orange);opacity:.7;margin-top:1px">✧ ${esc(slot||'Talento')}${catLabel}</div>
+          </div>
           <span class="feature-arrow">▶</span>
         </div>
         <div class="feature-body">${rE(f.entries)||'—'}</div>
@@ -2723,10 +3045,204 @@ function buildResourceBlockInline(actionName){
 }
 
 
+/* ═════════════════════ SPELL PICKER (sheet-side) ═════════════════════ */
+
+let sheetSpellDb = null;
+let _splFilter = { level: 0 };
+const _SPL_BASE = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
+const _SPL_FILES = ['spells/spells-xphb.json','spells/spells-fraif.json','spells/spells-frhof.json','spells/spells-efa.json'];
+const _SPL_ALLOWED = new Set(['XPHB','FRAiF','FRHoF','EFA']);
+
+async function _loadSheetSpells(){
+  if(sheetSpellDb) return;
+  sheetSpellDb = [];
+  for(const f of _SPL_FILES){
+    try{
+      const r = await fetch(_SPL_BASE+f);
+      if(!r.ok) continue;
+      const d = await r.json();
+      (d.spell||[]).forEach(s=>{
+        if(_SPL_ALLOWED.has(s.source) && !sheetSpellDb.find(x=>x.name===s.name))
+          sheetSpellDb.push(s);
+      });
+    } catch(e){}
+  }
+}
+
+function _getPickerModal(){
+  let m = document.getElementById('spl-modal');
+  if(m) return m;
+  m = document.createElement('div');
+  m.id = 'spl-modal';
+  m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;overflow-y:auto;padding:1rem';
+  m.addEventListener('click', e=>{ if(e.target===m) closeSpellPicker(); });
+  m.innerHTML = `
+    <div style="max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
+        <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);flex:1">✦ Magie</div>
+        <span id="spl-count" class="spl-count-badge"></span>
+        <button onclick="closeSpellPicker()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1">✕</button>
+      </div>
+      <div id="spl-tabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem"></div>
+      <input id="spl-q" type="text" placeholder="Cerca…" oninput="_renderPickerList()"
+        style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+               color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit;margin-bottom:.6rem"/>
+      <div id="spl-loading" style="color:var(--text3);font-size:13px;font-style:italic;display:none">Caricamento…</div>
+      <div id="spl-list" style="max-height:52vh;overflow-y:auto"></div>
+    </div>`;
+  document.body.appendChild(m);
+  return m;
+}
+
+function _buildPickerTabs(){
+  const el = document.getElementById('spl-tabs');
+  if(!el) return;
+  const labels = ['Cantrip','1°','2°','3°','4°','5°','6°','7°','8°','9°'];
+  const cantripCount = (C.selectedCantrips||[]).length;
+  const spellCount = Object.values(C.selectedSpells||{}).flat().length;
+  el.innerHTML = labels.map((l,i)=>{
+    const lim = _getSpellLimit(i===0);
+    const badge = lim.max!==null ? ` (${i===0?cantripCount:spellCount}/${lim.max})` : '';
+    return `<button class="af-btn${_splFilter.level===i?' on':''}"
+      onclick="setPickerLevel(${i})" style="font-size:10px;padding:3px 8px">${l}${badge}</button>`;
+  }).join('');
+  // Update count badge
+  const cb = document.getElementById('spl-count');
+  if(cb){ const lim=_getSpellLimit(_splFilter.level===0); cb.textContent=lim.max!==null?`${lim.current}/${lim.max}`:''; }
+}
+
+function setPickerLevel(lv){
+  _splFilter.level = lv;
+  _buildPickerTabs();
+  _renderPickerList();
+}
+
+async function openSpellPicker(){
+  const m = _getPickerModal();
+  m.style.display = 'block';
+  _buildPickerTabs();
+  if(!sheetSpellDb){
+    const ld = document.getElementById('spl-loading');
+    if(ld) ld.style.display = 'block';
+    await _loadSheetSpells();
+    if(ld) ld.style.display = 'none';
+  }
+  _renderPickerList();
+}
+
+function closeSpellPicker(){
+  const m = document.getElementById('spl-modal');
+  if(m) m.style.display = 'none';
+}
+
+// Returns {max, current} for cantrips (lv=0) or total spells (lv>0). null max = no limit.
+function _getSpellLimit(isCantrip){
+  const cls = C?.className||'';
+  const lv  = C?.level||1;
+  const sm  = getMod(getFinal(getSpellAbility()));
+  if(isCantrip){
+    const T={
+      Wizard:   [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5],
+      Cleric:   [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5],
+      Druid:    [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
+      Bard:     [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
+      Sorcerer: [4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6],
+      Warlock:  [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
+    };
+    return { max: T[cls]?.[lv-1]??null, current: (C.selectedCantrips||[]).length };
+  }
+  const KNOWN={
+    Bard:    [4,5,6,7,8,9,10,11,12,14,15,15,16,18,19,19,20,22,22,22],
+    Sorcerer:[2,3,4,5,6,7,8,9,10,11,12,12,13,13,14,14,15,15,15,15],
+    Warlock: [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15],
+    Ranger:  [0,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11],
+  };
+  const total = Object.values(C.selectedSpells||{}).flat().length;
+  if(KNOWN[cls]) return { max: KNOWN[cls][lv-1]??null, current: total };
+  if(['Wizard','Cleric','Druid'].includes(cls)) return { max: Math.max(1, sm+lv), current: total };
+  if(cls==='Paladin') return { max: Math.max(1, sm+Math.floor(lv/2)), current: total };
+  return { max: null, current: total };
+}
+
+function _renderPickerList(){
+  const el = document.getElementById('spl-list');
+  if(!el || !sheetSpellDb) return;
+  const q = (document.getElementById('spl-q')?.value||'').toLowerCase().trim();
+  const lv = _splFilter.level;
+  let list = sheetSpellDb.filter(s=>s.level===lv);
+  if(q) list = list.filter(s=>s.name.toLowerCase().includes(q));
+  list.sort((a,b)=>a.name.localeCompare(b.name));
+  list = list.slice(0,80);
+  const knownCantrips = new Set(C.selectedCantrips||[]);
+  const knownSpells   = new Set(Object.values(C.selectedSpells||{}).flat());
+  const lim = _getSpellLimit(lv===0);
+  // Show limit counter in picker header
+  const cntEl = document.getElementById('spl-count');
+  if(cntEl && lim.max!==null)
+    cntEl.textContent = `${lim.current} / ${lim.max}`;
+  else if(cntEl) cntEl.textContent = '';
+  const atMax = lim.max!==null && lim.current>=lim.max;
+  const SCHOOL_SHORT={A:'Abiu',C:'Amm',D:'Div',E:'Evo',I:'Ill',N:'Nec',T:'Tras',V:'Vegg'};
+  el.innerHTML = list.map(s=>{
+    const on = lv===0 ? knownCantrips.has(s.name) : knownSpells.has(s.name);
+    const blocked = !on && atMax;
+    const safeName = s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="spl-row${on?' on':''}${blocked?' blocked':''}"
+      onclick="${blocked?'':'toggleSheetSpell(\''+safeName+'\','+s.level+')'}">
+      <span class="spl-name">${esc(s.name)}</span>
+      <span class="spl-school">${SCHOOL_SHORT[s.school]||s.school||''}</span>
+      ${on?`<span class="spl-check">✓</span>`:blocked?`<span class="spl-school">max</span>`:''}
+    </div>`;
+  }).join('') || '<div class="phmsg">Nessuna magia trovata.</div>';
+}
+
+function toggleSheetSpell(name, level){
+  if(!C) return;
+  const snap = sheetSpellDb?.find(s=>s.name===name);
+  if(level===0){
+    const arr = C.selectedCantrips||[];
+    const i = arr.indexOf(name);
+    if(i>=0) arr.splice(i,1); else arr.push(name);
+    C.selectedCantrips = arr;
+  } else {
+    if(!C.selectedSpells) C.selectedSpells={};
+    const arr = C.selectedSpells[level]||[];
+    const i = arr.indexOf(name);
+    if(i>=0) arr.splice(i,1); else arr.push(name);
+    C.selectedSpells[level] = arr;
+  }
+  // Sync spellSnapshots
+  if(snap){
+    const snaps = C.spellSnapshots||[];
+    const si = snaps.findIndex(s=>s.name===name);
+    const isKnown = level===0
+      ? (C.selectedCantrips||[]).includes(name)
+      : (C.selectedSpells?.[level]||[]).includes(name);
+    if(isKnown && si<0){
+      snaps.push({
+        name:snap.name, level:snap.level, school:snap.school, source:snap.source,
+        components:snap.components, duration:snap.duration, range:snap.range,
+        ritual:snap.ritual||false, concentration:snap.concentration||false,
+        entries:snap.entries||[], spellAttack:snap.spellAttack||null,
+        damageInflict:snap.damageInflict||null,
+      });
+    } else if(!isKnown && si>=0){
+      snaps.splice(si,1);
+    }
+    C.spellSnapshots = snaps;
+  }
+  localStorage.setItem('5e_current_char', JSON.stringify(C));
+  _buildPickerTabs();
+  _renderPickerList();
+  renderSpellsTab();
+}
+
 /* ═══════ INIT ═══════ */
 C = loadChar();
 renderAll();
-loadItems(); // async, updates search after loading
+loadItems();
+// Load spell DB in background so ATK/DMG buttons and picker work immediately
+_loadSheetSpells().then(()=>{ if(C) renderSpellsTab(); });
 </script>
 </body>
 </html>

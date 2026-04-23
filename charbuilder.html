@@ -1387,12 +1387,13 @@
       align-items: center;
       justify-content: center;
       font-size: 10px;
-      color: var(--purple)
+      color: transparent
     }
 
     .choice-check.on {
       background: var(--purplebg);
-      border-color: var(--purple)
+      border-color: var(--purple);
+      color: var(--purple)
     }
 
     /* ── Ability Choice (Radio) ── */
@@ -2151,6 +2152,9 @@
     <footer>Dati da <a href="https://5e.tools" target="_blank">5etools</a> via mirror GitHub · D&amp;D 5e è marchio
       registrato di Wizards of the Coast</footer>
   </div>
+  <script src="adapters/registry.js"></script>
+  <script src="adapters/manifest.js"></script>
+  <script src="adapters/loader.js"></script>
   <script>
     /* ════════════════════════════════════ COSTANTI */
     const BASE = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
@@ -2200,7 +2204,7 @@
       { n: 'Acrobatica', a: 'dex' }, { n: 'Animalesca', a: 'wis' }, { n: 'Arcana', a: 'int' }, { n: 'Atletica', a: 'str' },
       { n: 'Consapevolezza', a: 'wis' }, { n: 'Destrezza Manuale', a: 'dex' }, { n: 'Furtività', a: 'dex' },
       { n: 'Indagare', a: 'int' }, { n: 'Inganno', a: 'cha' }, { n: 'Intuizione', a: 'wis' }, { n: 'Intimidazione', a: 'cha' },
-      { n: 'Medicina', a: 'wis' }, { n: 'Percezione', a: 'wis' }, { n: 'Perform', a: 'cha' }, { n: 'Persuasione', a: 'cha' },
+      { n: 'Medicina', a: 'wis' }, { n: 'Natura', a: 'int' }, { n: 'Percezione', a: 'wis' }, { n: 'Performance', a: 'cha' }, { n: 'Persuasione', a: 'cha' },
       { n: 'Religione', a: 'int' }, { n: 'Sopravvivenza', a: 'wis' }
     ];
 
@@ -2328,8 +2332,6 @@
         const r = await fetch(BASE + 'feats.json');
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
-        console.log('Feat sources trovate:', [...new Set((d.feat || []).map(f => f.source))].join(', '));
-        console.log('Categorie feat:', [...new Set((d.feat || []).map(f => f.category).filter(Boolean))].join(', '));
         allFeats = (d.feat || []).filter(f => ALLOWED.includes(f.source)).sort((a, b) => a.name.localeCompare(b.name));
         if (!allFeats.length) {
           allFeats = (d.feat || []).sort((a, b) => a.name.localeCompare(b.name));
@@ -2398,14 +2400,25 @@
       if (Array.isArray(prog)) { const i = prog.findIndex(n => n > 0); return i >= 0 ? i + 1 : 1; }
       return Math.min(...Object.keys(prog).map(Number));
     }
+    // Scansiona ricorsivamente per trovare scelte nidificate (Divine Order, Invocazioni)
     function _scanForOptionsNode(entries) {
       if (!entries) return null;
-      if (Array.isArray(entries)) { for (const e of entries) { const f = _scanForOptionsNode(e); if (f) return f; } return null; }
-      if (typeof entries === 'object') {
+      if (Array.isArray(entries)) {
+        for (const e of entries) {
+          const found = _scanForOptionsNode(e);
+          if (found) return found;
+        }
+      } else if (typeof entries === 'object') {
         if (entries.type === 'options') return entries;
         if (entries.entries) return _scanForOptionsNode(entries.entries);
       }
       return null;
+    }
+
+    // Pulisce le stringhe tecniche di 5etools (es. "Protector|Cleric|XPHB|1" -> "Protector")
+    function _cleanTagName(str) {
+      if (typeof str !== 'string') return str;
+      return str.split('|')[0].replace(/\{@\w+ /g, '').replace(/\}/g, '');
     }
     function _resolveOption(refEntry, allCF) {
       if (!refEntry || refEntry.type !== 'refClassFeature') return null;
@@ -2442,7 +2455,7 @@
       const specs = [];
       if (!char.choices) char.choices = {};
 
-      // 1. Competenze iniziali della Classe (Lv. 1)
+      // 1. Skill Iniziali (Logica Generale)
       if (cls.startingProficiencies?.skills) {
         cls.startingProficiencies.skills.forEach((sc, idx) => {
           if (sc.choose) {
@@ -2454,63 +2467,38 @@
         });
       }
 
-      // 2. Talenti e ASI
+      // 2. Talenti e ASI (Logica Generale)
       const bgf = getBgOriginFeat();
       if (bgf.fixed) {
         if (!char.choices.feat_origin) char.choices.feat_origin = bgf.fixed;
-        specs.push({ key: 'feat_origin', label: 'Talento Origine (Background)', type: 'feat_fixed', fixed: bgf.fixed, count: 1, level: 0 });
-      } else {
-        specs.push({ key: 'feat_origin', label: 'Talento Origine', type: 'feat_cat', categories: ['O'], count: 1, level: 0 });
-      }
-      for (const l of _asiLevelsFromClass(cls).filter(l => l <= lv)) {
-        specs.push({ key: `class_asi_${l}`, label: `Lv.${l} — ASI o Talento`, type: 'feat_cat', categories: ['G'], count: 1, level: l });
+        specs.push({ key: 'feat_origin', label: 'Talento Origine', type: 'feat_fixed', fixed: bgf.fixed, count: 1, level: 0 });
       }
 
-      // 3. MOTORE SOTTOCLASSI: Scansione Feature (Classe + Sottoclasse)
+      // 3. Logica Ibrida: ClassAdapters + SubclassAdapters
+      if (typeof ClassAdapters !== 'undefined' && typeof ClassAdapters[char.className] === 'function') {
+        ClassAdapters[char.className](cls, lv, specs);
+      }
+      if (char.subclassShortName && typeof SubclassAdapters !== 'undefined') {
+        const _subKey = char.className + '_' + char.subclassShortName;
+        if (typeof SubclassAdapters[_subKey] === 'function') {
+          SubclassAdapters[_subKey](cls, lv, specs);
+        }
+      }
+
+      // 4. Expertise e Skill extra dalle Feature caricate
       const allLvFeats = [
         ...(char.allFeatures || []).filter(f => f.level <= lv && !f.isReprinted),
-        ...(char.subclassShortName ? char.allSubFeatures.filter(f => 
-          (f.subclassShortName === char.subclassShortName || f.subclassShortName === char.subclassShortName.split(' ')[0]) && 
-          f.level <= lv && !f.isReprinted) : [])
+        ...(char.subclassShortName ? char.allSubFeatures.filter(f => f.level <= lv && !f.isReprinted) : [])
       ];
 
-      for (const feat of allLvFeats) {
-        const featKey = feat.name.replace(/[^a-zA-Z0-9]/g, '_');
-        // Abilità (es. Knowledge Domain)
-        if (feat.skillProficiencies) {
-          feat.skillProficiencies.forEach((sp, idx) => {
-            if (sp.choose) {
-              specs.push({
-                key: `feat_skill_${featKey}_${idx}`, label: `${feat.name}: Abilità`,
-                type: 'skill_choice', from: sp.choose.from || SKILLS.map(s => s.n), count: sp.choose.count || 1, level: feat.level
-              });
-            }
-          });
-        }
-        // Strumenti
-        if (feat.toolProficiencies) {
-          feat.toolProficiencies.forEach((tp, idx) => {
-            if (tp.choose || tp.anyArtisansTool) {
-              const from = tp.choose?.from || ["Alchimista", "Fabbro", "Falegname", "Gioielliere", "Intagliatore", "Muratore", "Pittore", "Sarto", "Vasaio"];
-              specs.push({
-                key: `feat_tool_${featKey}_${idx}`, label: `${feat.name}: Strumento`,
-                type: 'generic_choice', from: from, count: tp.choose?.count || 1, level: feat.level
-              });
-            }
-          });
-        }
-        // Maestria (Expertise)
+      allLvFeats.forEach(feat => {
         if (feat.expertise) {
           feat.expertise.forEach((ex, idx) => {
-            if (ex.choose) {
-              specs.push({
-                key: `feat_exp_${featKey}_${idx}`, label: `${feat.name}: Maestria`,
-                type: 'expertise', from: ex.choose.from || [], count: ex.choose.count || 1, level: feat.level
-              });
-            }
+            if (ex.choose) specs.push({ key: `feat_exp_${feat.name.replace(/\s/g, '_')}_${idx}`, label: `${feat.name}: Maestria`, type: 'expertise', from: ex.choose.from || [], count: ex.choose.count || 1, level: feat.level });
           });
         }
-      }
+      });
+
       return specs.sort((a, b) => a.level - b.level);
     }
 
@@ -2597,8 +2585,8 @@
     function renderChoicesPanel() {
       if (!char.cls) return;
       const specs = deriveAllChoices();
-      _renderFeatPanel(specs.filter(s => ['feat_fixed', 'feat_cat'].includes(s.type)));
-      _renderClassPanel(specs.filter(s => !['feat_fixed', 'feat_cat'].includes(s.type)));
+      _renderFeatPanel(specs.filter(s => s.type === 'feat_fixed'));
+      _renderClassPanel(specs.filter(s => s.type !== 'feat_fixed'));
     }
 
     // Alias per compatibilità
@@ -2659,7 +2647,8 @@
       const el = document.getElementById('feat-list-' + slotKey);
       if (!el) return;
       const q = (document.getElementById('feat-search-' + slotKey)?.value || '').toLowerCase().trim();
-      const spec = deriveAllChoices().find(s => s.key === slotKey);
+      const spec = deriveAllChoices().find(s => s.key === slotKey)
+        || (char.speciesObj ? deriveSpeciesChoices(char.speciesObj).find(s => s.key === slotKey) : null);
       if (!spec) return;
       let list = allFeats.filter(f => {
         if ((f.prerequisite || []).some(p => p.level && (p.level.level || p.level) > char.level)) return false;
@@ -2828,33 +2817,67 @@
     function _renderClassPanel(specs) {
       const panel = document.getElementById('panel-class-choices');
       const body = document.getElementById('cc-body');
-      if (!specs.length) { panel.style.display = 'none'; body.innerHTML = ''; return; }
+
+      if (!specs || !specs.length) {
+        panel.style.display = 'none';
+        body.innerHTML = '';
+        return;
+      }
+
       panel.style.display = 'block';
       let h = '';
       for (const spec of specs) {
-        // Gestione tipi "Choice" (Inclusa la nuova Expertise)
-        if (['skill_choice', 'language_choice', 'generic_choice', 'expertise'].includes(spec.type)) {
-          h += _renderChoiceBlock(spec);
-        } else {
-          // Gestione Talenti (Codice esistente)
-          h += `<div class="choice-block">
-            <div class="choice-block-hdr"><span>${esc(spec.label)}</span>
-              <span class="choice-count">Scegli ${spec.count}</span></div>
-            <div id="cb_${spec.key}"></div>
-          </div>`;
-        }
+        h += `<div class="choice-block">
+      <div class="choice-block-hdr">
+        <span>${esc(spec.label)}</span>
+        <span class="choice-count">Scegli ${spec.count || 1}</span>
+      </div>
+      <div id="cb_${spec.key}" class="choice-grid"></div>
+      <div id="cb_sub_${spec.key}"></div> </div>`;
       }
       body.innerHTML = h;
 
-      // Iniezione dei bottoni reali
       specs.forEach(s => {
         const el = document.getElementById(`cb_${s.key}`);
+        const subEl = document.getElementById(`cb_sub_${s.key}`);
         if (!el) return;
-        if (s.type === 'expertise') _renderExpertiseList(s);
-        else _renderChoiceList(s.key, s.from, s.count, s.type);
-      });
-    }
 
+        if (s.type === 'expertise') {
+          _renderExpertiseList(s);
+        } else if (['skill_choice', 'language_choice', 'generic_choice'].includes(s.type)) {
+          _renderChoiceList(s.key, s.from, s.count, s.type);
+        } else if (s.type === 'spell_choice') {
+          // RENDERING MAGIE: Usa la funzione esistente per i talenti
+          subEl.innerHTML = _renderSpellChoiceBlock(s);
+        } else if (s.type === 'feat_cat') {
+          el.className = '';
+          el.innerHTML = '';
+          const sel = char.choices[s.key] || null;
+          const sk = s.key;
+          let inner = `<input class="search-box" id="feat-search-${sk}" placeholder="Cerca talento…"
+            oninput="_renderFeatList('${sk}')" autocomplete="off" style="width:100%;margin-bottom:.5rem"/>
+          <div id="feat-list-${sk}" class="item-list" style="max-height:160px;overflow-y:auto"></div>`;
+          if (sel) {
+            const feat = allFeats.find(f => f.name === sel);
+            if (feat) {
+              const catCls = getFeatCatClass(feat.category);
+              inner += `<div class="feat-item open" style="margin-top:.5rem">
+                <div class="feat-item-hdr" onclick="tf(this.parentElement)">
+                  <span class="feat-item-name ft">${esc(feat.name)}</span>
+                  <span class="feat-cat-badge ${catCls}">${esc(getFeatCatLabel(feat.category))}</span>
+                  <span class="feat-arrow">▶</span>
+                </div>
+                <div class="feat-item-body">${rE(feat.entries)}</div>
+              </div>`;
+            }
+          }
+          subEl.innerHTML = inner;
+        }
+      });
+      specs.filter(s => s.type === 'feat_cat').forEach(s => _renderFeatList(s.key));
+    }
+    
+    
     // Nuova funzione per disegnare i bottoni Maestria (Expertise)
     function _renderExpertiseList(spec) {
       const el = document.getElementById(`cb_${spec.key}`);
@@ -3208,7 +3231,6 @@
         const eq = char.cls.startingEquipment;
         // Verifica se il formato è strutturato (oggetti con A/B) o testo
         const isStructured = hasChoiceNode(eq);
-        console.log('Fighter equipment - hasChoiceNode:', isStructured, 'eq.keys:', eq ? Object.keys(eq) : []);
         if (isStructured) {
           h += renderEquipChoices(eq, 'cls');
         } else {
@@ -3269,11 +3291,6 @@
       while ((m = choicePattern.exec(textWithoutHTML)) !== null) {
         choices.push({ key: m[1], label: m[2].replace(/[;,]\s*$/, '').trim() });
       }
-
-      // DEBUG: Log regex test results
-      const debugMsg = `renderEquipText: textLen=${textWithoutHTML.length}, choicesFound=${choices.length}, text="${textWithoutHTML.substring(0, 80)}..."`;
-      console.log(debugMsg);
-      window.lastDebug = debugMsg;
 
       if (choices.length >= 2) {
         // Mostra come bottoni interattivi
@@ -3461,7 +3478,8 @@
               qty: qty, weight: dbItem.weight, value: dbItem.value,
               rarity: dbItem.rarity, dmg1: dbItem.dmg1, dmgType: dbItem.dmgType,
               ac: dbItem.ac, bonusWeapon: dbItem.bonusWeapon, bonusAc: dbItem.bonusAc,
-              property: dbItem.property || []
+              property: dbItem.property || [], entries: dbItem.entries || [],
+              equipped: false,
             });
           }
         } else {
@@ -3472,7 +3490,7 @@
           } else {
             char.inventory.push({
               name: itemName, source: prefix === 'bg' ? 'Background' : 'Classe',
-              type: 'OTH', qty: qty, weight: 0, value: 0, rarity: 'none'
+              type: 'OTH', qty: qty, weight: 0, value: 0, rarity: 'none', equipped: false,
             });
           }
         }
@@ -3637,8 +3655,8 @@
       ).join('');
     }
 
-    
-   function selectClass(name, source) {
+
+    function selectClass(name, source) {
       let cls = null, d = null;
       for (const data of Object.values(classCache)) {
         const f = (data.class || []).find(c => c.name === name && c.source === source);
@@ -3650,7 +3668,7 @@
       // Carica tutte le sottoclassi e le loro feature
       char.subclasses = (d.subclass || []).filter(s => s.className === name && (s.classSource === source || !s.classSource) && ALLOWED.includes(s.source));
       char.allSubFeatures = (d.subclassFeature || []).filter(f => f.className === name && (f.classSource === source || !f.classSource) && ALLOWED.includes(f.source || source));
-      
+
       renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderSlotsPanel();
       ['panel-level', 'panel-xp', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
       document.getElementById('btn-next').disabled = false;
@@ -3658,32 +3676,32 @@
       renderScoreUI(); renderChoicesPanel(); renderEquipPanel(); renderSpellPanel(); renderPreview(); updateSteps();
       renderXPPanel(); renderInventoryList();
     }
-    
+
     function renderClassCard() {
       const c = char.cls, el = document.getElementById('cls-card');
       if (!c) { el.innerHTML = ''; return; }
-      const saves = (c.proficiency || []).map(s => s.toUpperCase()).join(', ') || '—';
-      const caster = c.casterProgression || CASTER_FB[c.name] || null;
-      const cLbl = caster === 'full' ? 'Full Caster' : caster === '1/2' ? 'Half Caster' : caster === 'pact' ? 'Pact Magic' : null;
+
       const sp = c.startingProficiencies || {};
-      const armor = (sp.armor || []).join(', ') || '—';
-      const weapons = (sp.weapons || []).join(', ') || '—';
-      const tools = sp.tools ? (Array.isArray(sp.tools) ? sp.tools.join(', ') : String(sp.tools)) : null;
-      let sk = '—'; if (sp.skills) { const s = sp.skills; if (s.choose) sk = `Scegli ${s.choose.count || 2}: ${(s.choose.from || []).join(', ')}`; else if (Array.isArray(s)) sk = s.join(', '); }
+      let sk = '—';
+
+      // Gestione robusta per array di oggetti o stringhe
+      if (sp.skills && Array.isArray(sp.skills)) {
+        sk = sp.skills.map(item => {
+          if (typeof item === 'string') return item;
+          if (item.choose) return `Scegli ${item.choose.count} da: ${item.choose.from.join(', ')}`;
+          return '';
+        }).filter(Boolean).join(' · ');
+      }
+
       el.innerHTML = `<div class="info-card">
     <div class="info-card-name">${esc(c.name)}</div>
     <div class="info-tags">
       <span class="info-tag g">d${c.hd?.faces || '?'} Dado Vita</span>
-      <span class="info-tag gr">${saves} Tiri Salvezza</span>
-      ${cLbl ? `<span class="info-tag b">${cLbl}</span>` : ''}
+      <span class="info-tag gr">${(c.proficiency || []).map(s => s.toUpperCase()).join(', ')} Tiri Salvezza</span>
     </div>
-    <div class="info-row"><strong>Armature:</strong> ${esc(armor)}</div>
-    <div class="info-row"><strong>Armi:</strong> ${esc(weapons)}</div>
-    ${tools ? `<div class="info-row"><strong>Strumenti:</strong> ${esc(tools)}</div>` : ''}
-    <div class="info-row"><strong>Abilità:</strong> ${esc(sk)}</div>
+    <div class="info-row"><strong>Competenze:</strong> ${esc(sk)}</div>
   </div>`;
     }
-
     function calcMaxHP() {
       if (!char.cls) return 0;
       const hdInfo = char.cls.hd;
@@ -3862,14 +3880,15 @@
       char.subclassShortName = char.subclassShortName === n ? null : n;
       if (char.choices) {
         // Pulisce le vecchie scelte della sottoclasse precedente
+        // include chiavi 'subclass_*' degli adapter e le chiavi legacy
         for (const k of Object.keys(char.choices)) {
           if (k.startsWith('subclass_') || k.includes('_skill_') || k.includes('_exp_')) delete char.choices[k];
         }
       }
-      renderSubclassPanel(); 
+      renderSubclassPanel();
       renderChoicesPanel(); // <--- INDISPENSABILE: ricalcola le scelte (Competenze/Expertise)
       renderSpellPanel();   // <--- INDISPENSABILE: carica gli incantesimi di dominio
-      renderPreview(); 
+      renderPreview();
       updateSteps();
     }
 
@@ -3976,8 +3995,25 @@
           }
           h += `</div></div>`;
         } else if (spec.type === 'ability_choice') {
-          // IL FIX È QUI: Disegna il blocco con i bottoni rotondi
           h += _renderAbilityChoiceBlock(spec);
+        } else if (spec.type === 'feat_cat') {
+          const sel = char.choices[spec.key] || null;
+          const sk = spec.key;
+          const feat = sel ? allFeats.find(f => f.name === sel) : null;
+          h += `<div class="choice-block" style="margin-bottom:1rem">
+            <div class="choice-block-hdr"><span>✦ ${esc(spec.label)}</span></div>
+            <input class="search-box" id="feat-search-${sk}" placeholder="Cerca talento…"
+              oninput="_renderFeatList('${sk}')" autocomplete="off" style="width:100%;margin-bottom:.5rem"/>
+            <div id="feat-list-${sk}" class="item-list" style="max-height:180px;overflow-y:auto"></div>
+            ${feat ? `<div class="feat-item open" style="margin-top:.5rem">
+              <div class="feat-item-hdr" onclick="tf(this.parentElement)">
+                <span class="feat-item-name ft">${esc(feat.name)}</span>
+                <span class="feat-cat-badge ${getFeatCatClass(feat.category)}">${esc(getFeatCatLabel(feat.category))}</span>
+                <span class="feat-arrow">▶</span>
+              </div>
+              <div class="feat-item-body">${rE(feat.entries)}</div>
+            </div>` : ''}
+          </div>`;
         } else {
           // Visualizzazione Standard per Lingue/Skill (Bottoni verdi)
           h += _renderChoiceBlock(spec);
@@ -3987,10 +4023,12 @@
 
       // Iniezione dei bottoni dopo che l'HTML è pronto
       specs.forEach(s => {
-        if (s.type !== 'option' && s.type !== 'ability_choice') {
-          _renderChoiceList(s.key, s.from, s.count, s.type);
+        if (s.type === 'feat_cat') {
+          _renderFeatList(s.key);
         } else if (s.type === 'ability_choice') {
           _renderAbilityChoiceList(s.key, s.from, s.label);
+        } else if (s.type !== 'option') {
+          _renderChoiceList(s.key, s.from, s.count, s.type);
         }
       });
     }
@@ -3998,56 +4036,18 @@
     // MOTORE SPECIE V5: LOGICA UNIFICATA (Regole 2024)
     // ========================================================================
 
-function deriveSpeciesChoices(species) {
+    function deriveSpeciesChoices(species) {
       if (!species) return [];
-      const baseName = species.name.includes('Elf') || species.name.includes('Elfo') ? 'Elf' : 
-                       species.name.includes('Tiefling') ? 'Tiefling' : 
-                       species.name.includes('Aasimar') ? 'Aasimar' : 
-                       species.name.includes('Dragonborn') || species.name.includes('Dragonide') ? 'Dragonborn' : species.name;
+      const baseName = species.name.includes('Elf') || species.name.includes('Elfo') ? 'Elf' :
+        species.name.includes('Tiefling') ? 'Tiefling' :
+          species.name.includes('Aasimar') ? 'Aasimar' :
+            species.name.includes('Dragonborn') || species.name.includes('Dragonide') ? 'Dragonborn' : species.name;
       const adapterKey = `${baseName}_${species.source}`.replace(/\s+/g, '');
       if (typeof SpeciesAdapters[adapterKey] === 'function') return SpeciesAdapters[adapterKey](species);
       return genericSpeciesParser(species);
     }
 
-    const SpeciesAdapters = {
-      "Elf_XPHB": function(s) {
-        let specs = genericSpeciesParser(s);
-        if (s._versions) {
-          const opts = s._versions.filter(v => v.name !== "Elf" && !v.name.endsWith("; Elf")).map(v => ({ key: v.name, label: v.name.includes(';') ? v.name.split(';')[1].trim() : v.name }));
-          specs.push({ key: `species_version`, label: "Lineaggio Elfico", type: 'option', options: opts, count: 1, level: 1 });
-        }
-        specs.push({ key: `species_spell_ability`, label: `Caratteristica da Incantatore (Elfo)`, type: 'ability_choice', from: ["int", "wis", "cha"], count: 1, level: 1 });
-        return specs;
-      },
-      "Tiefling_XPHB": function(s) {
-        let specs = genericSpeciesParser(s);
-        specs = specs.filter(x => !x.key.startsWith('species_resist'));
-        if (s._versions) {
-          const opts = s._versions.map(v => ({ key: v.name, label: v.name.includes(';') ? v.name.split(';')[1].trim() : v.name }));
-          specs.push({ key: `species_version`, label: "Eredità Immonda", type: 'option', options: opts, count: 1, level: 1 });
-        }
-        specs.push({ key: `species_spell_ability`, label: `Caratteristica da Incantatore (Tiefling)`, type: 'ability_choice', from: ["int", "wis", "cha"], count: 1, level: 1 });
-        return specs;
-      },
-      "Aasimar_XPHB": function(s) {
-        let specs = genericSpeciesParser(s);
-        specs = specs.filter(x => !x.key.startsWith('species_resist'));
-        specs.push({ key: `species_spell_ability`, label: `Caratteristica da Incantatore (Aasimar)`, type: 'ability_choice', from: ["int", "wis", "cha"], count: 1, level: 1 });
-        const revelationOpts = [{ key: "Heavenly Wings", label: "Ali Celestiali (Volo)" }, { key: "Inner Radiance", label: "Radianza Interiore (Luce)" }, { key: "Necrotic Shroud", label: "Sudario Necrotico (Paura)" }];
-        specs.push({ key: `species_version`, label: "Rivelazione Celestiale (Lv.3)", type: 'option', options: revelationOpts, count: 1, level: 3 });
-        return specs;
-      },
-      "Dragonborn_XPHB": function(s) {
-        let specs = genericSpeciesParser(s);
-        specs = specs.filter(x => !x.key.startsWith('species_resist'));
-        if (s._versions) {
-          const opts = [];
-          s._versions.forEach(v => v._abstract && v._implementations && v._implementations.forEach(i => { if (i._variables) opts.push({ key: i.name || Object.values(i._variables)[0], label: Object.values(i._variables)[0] }); }));
-          specs.push({ key: `species_version`, label: "Ascendenza Draconica", type: 'option', options: opts, count: 1, level: 1 });
-        }
-        return specs;
-      }
-    };
+    // SpeciesAdapters è ora definito in adapters/registry.js e popolato da adapters/species/*.js
 
     function genericSpeciesParser(species) {
       const specs = [];
@@ -4090,7 +4090,7 @@ function deriveSpeciesChoices(species) {
       return specs;
     }
 
-    
+
     function _renderAbilityChoiceBlock(spec) {
       const sel = char.choices[spec.key] || null;
       let h = `<div style="margin-bottom:1rem">
@@ -4692,7 +4692,8 @@ function deriveSpeciesChoices(species) {
           speed: char.speciesObj?.speed || 30,
           size: char.speciesObj?.size || ['M'],
           darkvision: char.speciesObj?.darkvision || 0,
-          resist: char.speciesObj?.resist || [], // <-- ECCO LA RESISTENZA VERA!
+          resist: char.speciesObj?.resist || [],
+          immune: char.speciesObj?.immune || [],
           entries: char.speciesObj?.entries || [],
         },
         bgSnapshot: {
@@ -4726,7 +4727,8 @@ function deriveSpeciesChoices(species) {
           .map(s => ({
             name: s.name, level: s.level, school: s.school, source: s.source,
             components: s.components, duration: s.duration, range: s.range,
-            ritual: s.ritual, concentration: s.concentration, entries: s.entries
+            ritual: s.ritual, concentration: s.concentration, entries: s.entries,
+            spellAttack: s.spellAttack || null, damageInflict: s.damageInflict || null,
           })),
       };
       localStorage.setItem('5e_current_char', JSON.stringify(saved));
@@ -4738,6 +4740,20 @@ function deriveSpeciesChoices(species) {
 
     /* ════════════════════════════════════ SCELTA PROFICIENZE ════════════════════════════════════ */
 
+    const _SKILL_EN_IT = {
+      'acrobatics': 'Acrobatica', 'animal handling': 'Animalesca', 'arcana': 'Arcana',
+      'athletics': 'Atletica', 'deception': 'Inganno', 'history': 'Storia',
+      'insight': 'Intuizione', 'intimidation': 'Intimidazione', 'investigation': 'Indagare',
+      'medicine': 'Medicina', 'nature': 'Natura', 'perception': 'Percezione',
+      'performance': 'Performance', 'persuasion': 'Persuasione', 'religion': 'Religione',
+      'sleight of hand': 'Destrezza Manuale', 'stealth': 'Furtività', 'survival': 'Sopravvivenza',
+    };
+    function _translateSkillIT(v) {
+      if (!v || typeof v !== 'string') return v;
+      const it = _SKILL_EN_IT[v.toLowerCase().trim()];
+      return it || v;
+    }
+
     function getSelectedSkillProficiencies() {
       const skills = new Set();
       const expertise = new Set();
@@ -4745,15 +4761,13 @@ function deriveSpeciesChoices(species) {
         Object.entries(char.choices).forEach(([key, val]) => {
           if (!val) return;
           const vals = Array.isArray(val) ? val : [val];
-          // Se la chiave contiene 'skill', è una competenza normale
           if (key.includes('skill') || key.startsWith('start_skills')) {
-            vals.forEach(v => skills.add(v.toLowerCase()));
+            vals.forEach(v => skills.add(_translateSkillIT(v)));
           }
-          // Se la chiave contiene 'exp' o 'expertise', è una maestria
           if (key.includes('exp') || key.includes('expertise')) {
             vals.forEach(v => {
-              const s = v.toLowerCase();
-              skills.add(s); // L'expertise garantisce sempre anche la competenza
+              const s = _translateSkillIT(v);
+              skills.add(s);
               expertise.add(s);
             });
           }
@@ -4773,6 +4787,20 @@ function deriveSpeciesChoices(species) {
         if (base === 'common') return 'Comune';
         if (base === 'elvish') return 'Elfico';
         if (base === 'dwarvish') return 'Nanico';
+        if (base === 'druidic') return 'Druidico';
+        if (base === "thieves' cant") return 'Gergo dei Ladri';
+        if (base === 'giant') return 'Gigante';
+        if (base === 'gnomish') return 'Gnomesco';
+        if (base === 'halfling') return 'Halfling';
+        if (base === 'orc') return 'Orchesco';
+        if (base === 'draconic') return 'Draconico';
+        if (base === 'infernal') return 'Infernale';
+        if (base === 'celestial') return 'Celestiale';
+        if (base === 'undercommon') return 'Sottocomune';
+        if (base === 'abyssal') return 'Abissale';
+        if (base === 'sylvan') return 'Silvano';
+        if (base === 'deep speech') return 'Gergo Profondo';
+        if (base === 'primordial') return 'Primordiale';
 
         return base.charAt(0).toUpperCase() + base.slice(1);
       };
@@ -5107,7 +5135,7 @@ function deriveSpeciesChoices(species) {
 
       // 3. Incantesimi da altre scelte (Talenti)
       Object.entries(choices).forEach(([key, val]) => {
-        if (key.includes('spell_choice') || key.startsWith('feat_')) {
+        if (key.includes('spell_choice') || key.includes('cantrip') || key.startsWith('feat_')) {
           if (Array.isArray(val)) val.forEach(v => allSpellNames.add(v.toLowerCase()));
           else if (typeof val === 'string' && spellDb.some(s => s.name === val)) allSpellNames.add(val.toLowerCase());
         }
@@ -5423,14 +5451,6 @@ function deriveSpeciesChoices(species) {
 
       let list = allItemsDb;
 
-      // DEBUG: Mostra la struttura dei primi 3 oggetti
-      if (invSearchFilter !== 'all' && list.length > 0) {
-        console.log('=== DEBUG FILTRO ===');
-        console.log('Filtro selezionato:', invSearchFilter);
-        console.log('Primi 3 oggetti:', list.slice(0, 3).map(i => ({ name: i.name, type: i.type, typeGroup: getItemTypeGroup(i), weapon: i.weapon, armor: i.armor })));
-        console.log('Total items:', list.length);
-      }
-
       if (invSearchFilter !== 'all') list = list.filter(i => getItemTypeGroup(i) === invSearchFilter);
       if (q) list = list.filter(i => i.name.toLowerCase().includes(q));
       list = list.slice(0, 60);
@@ -5477,7 +5497,7 @@ function deriveSpeciesChoices(species) {
           dmg1: item.dmg1 || null, dmgType: item.dmgType || null,
           ac: item.ac || null, bonusWeapon: item.bonusWeapon || null,
           bonusAc: item.bonusAc || null, property: item.property || [],
-          custom: false,
+          entries: item.entries || [], equipped: false, custom: false,
         });
       }
       renderInventoryList();
