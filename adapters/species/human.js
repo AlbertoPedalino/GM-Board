@@ -11,3 +11,9 @@ registerSpeciesAdapter("Human_XPHB", function (s) {
   });
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Human_XPHB", {
+  labels: {
+    species_origin_feat: 'Origin Feat (Human Versatile)',
+  },
+});

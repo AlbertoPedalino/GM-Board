@@ -16,6 +16,10 @@ const ClassSheetFeatureFilters = {};
 const SubclassSheetFeatureFilters = {};
 const ClassSheetChoiceMeta = {};
 const SubclassSheetChoiceMeta = {};
+const SpeciesSheetActions = {};
+const SpeciesSheetResources = {};
+const SpeciesSheetFeatureFilters = {};
+const SpeciesSheetChoiceMeta = {};
 
 function registerClassAdapter(name, fn)    { ClassAdapters[name]    = fn; }
 function registerSubclassAdapter(key, fn)  { SubclassAdapters[key]  = fn; }
@@ -64,6 +68,55 @@ function registerClassSheetChoiceMeta(name, meta) {
 }
 function registerSubclassSheetChoiceMeta(key, meta) {
   SubclassSheetChoiceMeta[key] = _mergeSheetChoiceMeta(SubclassSheetChoiceMeta[key], meta);
+}
+
+function registerSpeciesSheetActions(key, actions) {
+  SpeciesSheetActions[key] = Array.isArray(actions) ? actions : [];
+}
+
+function registerSpeciesSheetResources(key, resources) {
+  SpeciesSheetResources[key] = Array.isArray(resources) ? resources : [];
+}
+
+function registerSpeciesSheetFeatureFilter(key, fn) {
+  _pushSheetFilter(SpeciesSheetFeatureFilters, key, fn);
+}
+
+function registerSpeciesSheetChoiceMeta(key, meta) {
+  SpeciesSheetChoiceMeta[key] = _mergeSheetChoiceMeta(SpeciesSheetChoiceMeta[key], meta);
+}
+
+function registerSpeciesSheetCommonChoiceMeta(key, extraMeta) {
+  registerSpeciesSheetChoiceMeta(key, {
+    sectionTitle: 'Species Choices',
+    isChoiceKey: function (choiceKey) {
+      return /^species_/i.test(String(choiceKey || ''));
+    },
+    getLabel: function (choiceKey) {
+      const labels = {
+        species_version: 'Lineage/Ancestry',
+        species_spell_ability: 'Species Spellcasting Ability',
+        species_size: 'Size',
+        species_origin_feat: 'Origin Feat (Species)',
+        species_skill_tool_versatility: 'Skill Versatility',
+      };
+      const k = String(choiceKey || '');
+      if (labels[k]) return labels[k];
+      return k
+        .replace(/^species_/, '')
+        .replace(/_+/g, ' ')
+        .replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); })
+        .trim();
+    },
+    normalizeChoiceValue: function (value) {
+      return String(value || '')
+        .split('|')[0]
+        .replace(/\{@\w+ /g, '')
+        .replace(/\}/g, '')
+        .trim();
+    },
+    ...(extraMeta && typeof extraMeta === 'object' ? extraMeta : {}),
+  });
 }
 
 // Utility: rimuove tag 5etools ({@skill Foo|XPHB} -> "Foo")

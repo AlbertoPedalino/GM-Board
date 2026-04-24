@@ -10,3 +10,10 @@ registerSpeciesAdapter("Gnome_XPHB", function (s) {
   specs.push({ key: 'species_spell_ability', label: 'Spellcasting Ability (Gnome)', type: 'ability_choice', from: ['int', 'wis', 'cha'], count: 1, level: 1 });
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Gnome_XPHB", {
+  labels: {
+    species_version: 'Gnomish Lineage',
+    species_spell_ability: 'Spellcasting Ability (Gnome)',
+  },
+});

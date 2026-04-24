@@ -33,3 +33,14 @@ registerSpeciesAdapter("Khoravar_EFA", function (s) {
 
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Khoravar_EFA", {
+  isChoiceKey: function (choiceKey) {
+    const k = String(choiceKey || '');
+    return /^species_/i.test(k) || k === 'khoravar_skill_versatility';
+  },
+  labels: {
+    species_spell_ability: 'Spellcasting Ability (Khoravar)',
+    khoravar_skill_versatility: 'Skill Versatility',
+  },
+});

@@ -16,3 +16,29 @@ registerSpeciesAdapter("Dragonborn_XPHB", function (s) {
   }
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Dragonborn_XPHB", {
+  labels: {
+    species_version: 'Draconic Ancestry',
+  },
+});
+registerSpeciesSheetActions("Dragonborn_XPHB", [
+  {
+    name: 'Breath Weapon',
+    icon: '',
+    cat: 'action',
+    uses: 'PB / LR',
+    resKey: 'dragonborn_breath',
+    minLevel: 1,
+    desc: 'Exhale destructive draconic energy; damage type depends on your Draconic Ancestry.',
+  },
+]);
+registerSpeciesSheetResources("Dragonborn_XPHB", [
+  {
+    key: 'dragonborn_breath',
+    name: 'Breath Weapon',
+    icon: 'flame',
+    recharge: 'LR',
+    max: () => getPB(),
+  },
+]);

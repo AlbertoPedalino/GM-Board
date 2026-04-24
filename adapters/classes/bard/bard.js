@@ -31,3 +31,25 @@ registerClassAdapter("Bard", function (cls, lv, specs) {
   }
 });
 
+registerClassSheetActions("Bard", [
+  { name: "Bardic Inspiration", icon: "", cat: "bonus",  uses: "CHA mod / SR", resKey: "bardic_insp",
+    desc: "Bonus Action: give one Bardic Inspiration die to a creature within 60 ft (not yourself). Die size: d6 (lv.1–4), d8 (lv.5–9), d10 (lv.10–14), d12 (lv.15–20). Recipient adds the die to one attack roll, ability check, or saving throw within 10 minutes. Recharge: Short Rest (lv.5+) or Long Rest." },
+  { name: "Jack of All Trades", icon: "", cat: "action", uses: "Passive", minLevel: 2,
+    desc: "Add half your Proficiency Bonus (rounded down) to any ability check that doesn't already use your Proficiency Bonus." },
+  { name: "Expertise",          icon: "", cat: "action", uses: "Passive", minLevel: 2,
+    desc: "Choose two skill proficiencies: double your Proficiency Bonus for those skills (lv.2). Choose two more at lv.9." },
+  { name: "Font of Inspiration",icon: "", cat: "action", uses: "Passive", minLevel: 5,
+    desc: "Your Bardic Inspiration recharges on a Short Rest as well as a Long Rest." },
+  { name: "Countercharm",       icon: "", cat: "action", uses: "Passive", minLevel: 7,
+    desc: "As an Action, begin a performance that lasts until the end of your next turn. Friendly creatures within 30 ft who can hear you gain Advantage on saving throws against being Charmed or Frightened." },
+  { name: "Magical Secrets",    icon: "", cat: "action", uses: "Passive", minLevel: 10,
+    desc: "Learn 2 spells from any class's spell list (of a level you can cast). They count as Bard spells. Gain 2 more at lv.18." },
+  { name: "Words of Creation",  icon: "", cat: "action", uses: "Passive", minLevel: 20,
+    desc: "You learn Power Word Heal and Power Word Kill. Both are always prepared and count as Bard spells. You can cast each once per turn." },
+]);
+
+registerClassSheetResources("Bard", [
+  { key: 'bardic_insp', name: 'Bardic Inspiration', icon: 'music', recharge: 'SR',
+    actionName: 'Bardic Inspiration',
+    max: () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 3) },
+]);

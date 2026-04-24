@@ -12,3 +12,9 @@ registerSpeciesAdapter("Goliath_XPHB", function (s) {
   specs.push({ key: 'species_version', label: 'Giant Ancestry', type: 'option', options: ancestryOpts, count: 1, level: 1 });
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Goliath_XPHB", {
+  labels: {
+    species_version: 'Giant Ancestry',
+  },
+});

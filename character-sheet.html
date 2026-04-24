@@ -1839,12 +1839,7 @@ function _normSheetAdapterKey(v){
 
 function _sheetGetAdapterValue(store, key){
   if(!store || !key) return null;
-  if(Object.prototype.hasOwnProperty.call(store, key)) return store[key];
-  const target = _normSheetAdapterKey(key);
-  for(const [k, v] of Object.entries(store)){
-    if(_normSheetAdapterKey(k) === target) return v;
-  }
-  return null;
+  return Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null;
 }
 
 function _sheetGetClassActions(className){
@@ -1874,6 +1869,37 @@ function _sheetGetSubclassChoiceMeta(className, subclassShortName){
   return _sheetGetAdapterValue(typeof SubclassSheetChoiceMeta !== 'undefined' ? SubclassSheetChoiceMeta : {}, key) || {};
 }
 
+function _sheetSpeciesBaseName(name){
+  const n = String(name || '');
+  if (/elf|elfo/i.test(n)) return 'Elf';
+  if (/tiefling/i.test(n)) return 'Tiefling';
+  if (/aasimar/i.test(n)) return 'Aasimar';
+  if (/dragonborn|dragonide/i.test(n)) return 'Dragonborn';
+  return n.trim();
+}
+
+function _sheetGetSpeciesAdapterKey(speciesName, speciesSource){
+  const base = _sheetSpeciesBaseName(speciesName);
+  const src = String(speciesSource || '').trim();
+  if (!base || !src) return '';
+  return `${base}_${src}`;
+}
+
+function _sheetGetSpeciesActions(speciesName, speciesSource){
+  const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
+  return _sheetGetAdapterValue(typeof SpeciesSheetActions !== 'undefined' ? SpeciesSheetActions : {}, key) || [];
+}
+
+function _sheetGetSpeciesResources(speciesName, speciesSource){
+  const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
+  return _sheetGetAdapterValue(typeof SpeciesSheetResources !== 'undefined' ? SpeciesSheetResources : {}, key) || [];
+}
+
+function _sheetGetSpeciesChoiceMeta(speciesName, speciesSource){
+  const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
+  return _sheetGetAdapterValue(typeof SpeciesSheetChoiceMeta !== 'undefined' ? SpeciesSheetChoiceMeta : {}, key) || {};
+}
+
 function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
   let out = Array.isArray(features) ? features : [];
 
@@ -1890,6 +1916,17 @@ function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
     out = fn({ ...(ctx||{}), className, subclassShortName }, out) || out;
   }
 
+  return out;
+}
+
+function _applySpeciesSheetFeatureFilters(speciesName, speciesSource, features, ctx){
+  let out = Array.isArray(features) ? features : [];
+  const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
+  const filters = _sheetGetAdapterValue(typeof SpeciesSheetFeatureFilters !== 'undefined' ? SpeciesSheetFeatureFilters : {}, key) || [];
+  for(const fn of filters){
+    if(typeof fn !== 'function') continue;
+    out = fn({ ...(ctx||{}), speciesName, speciesSource, speciesKey:key }, out) || out;
+  }
   return out;
 }
 
@@ -1933,6 +1970,12 @@ function getSheetSubclassActions(subclassKey, classLevel, choicePrefix){
   }
 
   return actions;
+}
+
+function getSheetSpeciesActions(speciesName, speciesSource, charLevel){
+  const lv = Number(charLevel || C?.level || 1);
+  return _sheetGetSpeciesActions(speciesName, speciesSource)
+    .filter(a => !a?.minLevel || lv >= Number(a.minLevel));
 }
 function renderActionsTab(){
   const wrap=document.getElementById('attacks-table-wrap');
@@ -1981,7 +2024,9 @@ function renderActionsTab(){
     const ecSub=getSheetSubclassActions(ecSubKey,ecLv,ecPrefix).map(a=>({...a,_cls:ec.name}));
     extraActions.push(...ecBase,...ecSub);
   }
-  const allClassActions=[...classActions,...subActions,...extraActions];
+  const speciesActions=getSheetSpeciesActions(C?.speciesName||'', C?.speciesSource||'', lv)
+    .map(a=>({ ...a, _cls: C?.speciesName || 'Species' }));
+  const allClassActions=[...classActions,...subActions,...extraActions,...speciesActions];
 
   const isCaster = !!(C?.clsSnapshot?.casterProgression || cantrips.length ||
     Object.values(C?.selectedSpells||{}).flat().length);
@@ -2935,8 +2980,14 @@ function renderFeaturesTab(){
   }
 
   if(C.speciesName){
+    const speciesEntriesRaw = C.speciesSnapshot?.entries || [];
+    const speciesEntries = _applySpeciesSheetFeatureFilters(C.speciesName, C?.speciesSource || '', speciesEntriesRaw, {
+      character:C,
+      choices:C?.choices||{},
+      speciesKey:_sheetGetSpeciesAdapterKey(C.speciesName, C?.speciesSource || ''),
+    });
     h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(C.speciesName)}</div>`;
-    for(const e of (C.speciesSnapshot?.entries||[])){
+    for(const e of speciesEntries){
       if(typeof e==='object'&&e.name){
         const id='feat_'+Math.random().toString(36).slice(2);
         h+=`<div class="feature-item" id="${id}">
@@ -3069,7 +3120,61 @@ function renderFeaturesTab(){
         </div>`;
       }
     }
-  }  if(!h) h='<div class="phmsg">No features available.</div>';
+  }
+
+  // Adapter-driven species choices (labels + normalization)
+  if (C.speciesName) {
+    const speciesMeta = _sheetGetSpeciesChoiceMeta(C.speciesName, C?.speciesSource || '');
+    const labels = { ...(speciesMeta.labels || {}) };
+    const rows = [];
+    for (const [choiceKey, choiceVal] of Object.entries(C.choices || {})) {
+      if (!choiceVal || choiceKey.endsWith('_entry')) continue;
+      if (choiceKey.startsWith('mc')) continue;
+
+      const choiceCtx = {
+        choiceKey,
+        speciesName: C.speciesName,
+        speciesSource: C?.speciesSource || '',
+      };
+
+      if (typeof speciesMeta.isChoiceKey !== 'function' || !speciesMeta.isChoiceKey(choiceKey, choiceCtx)) continue;
+
+      const vals = (Array.isArray(choiceVal) ? choiceVal : [choiceVal])
+        .map(v => String(v || '').trim())
+        .filter(Boolean)
+        .map(v => typeof speciesMeta.normalizeChoiceValue === 'function' ? speciesMeta.normalizeChoiceValue(v, choiceKey, choiceCtx) : v)
+        .map(v => String(v || '').trim())
+        .filter(Boolean);
+      if (!vals.length) continue;
+
+      let label = labels[choiceKey] || '';
+      if (!label && typeof speciesMeta.getLabel === 'function') label = speciesMeta.getLabel(choiceKey, choiceCtx) || '';
+      if (!label) continue;
+
+      rows.push({ label, values: vals });
+    }
+
+    if (rows.length) {
+      const title = speciesMeta.sectionTitle || 'Species Choices';
+      h += `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(title)}</div>`;
+      for (const row of rows) {
+        const id = 'species_choice_' + Math.random().toString(36).slice(2);
+        const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
+        h += `<div class="feature-item" id="${id}">
+          <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+            <div style="flex:1;min-width:0">
+              <div class="feature-name" style="color:var(--teal)">${esc(row.label)}</div>
+              <div style="font-size:9px;color:var(--teal);opacity:.75;margin-top:1px">${row.values.length} selected</div>
+            </div>
+            <span class="feature-arrow">▶</span>
+          </div>
+          <div class="feature-body">${body}</div>
+        </div>`;
+      }
+    }
+  }
+
+  if(!h) h='<div class="phmsg">No features available.</div>';
   el.innerHTML = h;
   refreshIcons();
 }
@@ -3351,8 +3456,13 @@ let charResources = {};
 
 function getAllResDefs(){
   const cls=C?.className||'';
-  const subKey=cls+'_'+(C?.subclassShortName||'');
-  return [..._sheetGetClassResources(cls), ..._sheetGetSubclassResources(cls, C?.subclassShortName||'')];
+  const speciesName=C?.speciesName||'';
+  const speciesSource=C?.speciesSource||'';
+  return [
+    ..._sheetGetClassResources(cls),
+    ..._sheetGetSubclassResources(cls, C?.subclassShortName||''),
+    ..._sheetGetSpeciesResources(speciesName, speciesSource),
+  ];
 }
 
 // Key → action name mapping (so we know which action card gets pips)
@@ -3365,6 +3475,11 @@ const RESOURCE_ACTION_MAP = {
   divine_intervention:'Divine Intervention',
   war_priest:'War Priest',
   superiority_dice:'Combat Maneuvers', psi_dice:'Psionic Strike',
+  armorer_giant_stature:'Giant Stature',
+  dragonborn_breath:'Breath Weapon',
+  aasimar_revelation:'Celestial Revelation',
+  orc_adrenaline_rush:'Adrenaline Rush',
+  shifter_shift:'Shift',
 };
 
 function getResMax(res){

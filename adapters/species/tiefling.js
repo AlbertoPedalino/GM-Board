@@ -10,3 +10,10 @@ registerSpeciesAdapter("Tiefling_XPHB", function (s) {
   specs.push({ key: 'species_spell_ability', label: 'Spellcasting Ability (Tiefling)', type: 'ability_choice', from: ['int', 'wis', 'cha'], count: 1, level: 1 });
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Tiefling_XPHB", {
+  labels: {
+    species_version: 'Infernal Legacy',
+    species_spell_ability: 'Spellcasting Ability (Tiefling)',
+  },
+});

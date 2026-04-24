@@ -9,7 +9,8 @@
       "Bash(grep -v \"//.*tool\\\\|const tl\\\\|5700\\\\|5701\")",
       "Bash(taskkill *)",
       "PowerShell(Stop-Process *)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(xargs grep *)"
     ]
   }
 }

@@ -2921,6 +2921,48 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return out;
     }
 
+    function _normalizeArmorerModelChoiceValue(v) {
+      const raw = String(v || '')
+        .split('|')[0]
+        .replace(/\{@\w+ /g, '')
+        .replace(/\}/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+      if (!raw) return '';
+      if (raw === 'dreadnaught' || raw.includes('dreadnought')) return 'Dreadnaught';
+      if (raw.includes('guardian')) return 'Guardian';
+      if (raw.includes('infiltrator')) return 'Infiltrator';
+      return '';
+    }
+
+    function _syncCanonicalArmorerModelChoices() {
+      if (!char || !char.choices) return;
+
+      const syncPrefix = (prefix) => {
+        const canonicalKey = `${prefix}armorer_model`;
+        const current = char.choices[canonicalKey];
+        const currentVals = Array.isArray(current) ? current : [current];
+        let model = currentVals.map(_normalizeArmorerModelChoiceValue).find(Boolean) || '';
+
+        if (!model) {
+          for (const [k, v] of Object.entries(char.choices)) {
+            if (prefix && !k.startsWith(prefix)) continue;
+            const localKey = prefix ? k.slice(prefix.length) : k;
+            if (!/^auto_(primary|ec\d+)_feat_.*_opt_\d+$/i.test(localKey)) continue;
+            const vals = Array.isArray(v) ? v : [v];
+            const found = vals.map(_normalizeArmorerModelChoiceValue).find(Boolean);
+            if (found) { model = found; break; }
+          }
+        }
+
+        if (model) char.choices[canonicalKey] = [model];
+        else delete char.choices[canonicalKey];
+      };
+
+      syncPrefix('');
+      (char.extraClasses || []).forEach((_, i) => syncPrefix(`mc${i}_`));
+    }
+
     function selectChoice(key, value) {
       if (!char.choices) char.choices = {};
       const prev = char.choices[key];
@@ -2956,6 +2998,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
       }
 
+      _syncCanonicalArmorerModelChoices();
       renderSpeciesChoicesPanel();
       renderChoicesPanel();
       renderSpellPanel();
@@ -2972,6 +3015,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // Logica toggle: se c'è lo toglie, se non c'è lo aggiunge se non ha superato il maxCount
       char.choices[key] = idx >= 0 ? cur.filter(v => v !== value) : cur.length < maxCount ? [...cur, value] : cur;
+      _syncCanonicalArmorerModelChoices();
 
       // REFRESH TOTALE DELLO SCHERMO
       if (typeof renderSpeciesChoicesPanel === 'function') renderSpeciesChoicesPanel();
@@ -4978,6 +5022,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function selAbilityChoice(key, value) {
       if (!char.choices) char.choices = {};
       char.choices[key] = char.choices[key] === value ? null : value;
+      _syncCanonicalArmorerModelChoices();
       renderSpeciesChoicesPanel();
       renderSpellPanel();
       renderPreviewSpells();
@@ -5696,6 +5741,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     function saveAndOpenSheet() {
+      _syncCanonicalArmorerModelChoices();
       // Applica le scelte non-descrittive prima di salvare
       const skills = getSelectedSkillProficiencies();
       const languages = getSelectedLanguages();

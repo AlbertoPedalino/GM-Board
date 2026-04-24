@@ -20,3 +20,29 @@ registerSpeciesAdapter("Shifter_EFA", function (s) {
 
   return specs;
 });
+
+registerSpeciesSheetCommonChoiceMeta("Shifter_EFA", {
+  labels: {
+    species_version: 'Shifter Lineage',
+  },
+});
+registerSpeciesSheetActions("Shifter_EFA", [
+  {
+    name: 'Shift',
+    icon: '',
+    cat: 'bonus',
+    uses: 'PB / LR',
+    resKey: 'shifter_shift',
+    minLevel: 1,
+    desc: 'Shift for 1 minute and gain lineage-specific benefits.',
+  },
+]);
+registerSpeciesSheetResources("Shifter_EFA", [
+  {
+    key: 'shifter_shift',
+    name: 'Shift',
+    icon: 'moon',
+    recharge: 'LR',
+    max: () => getPB(),
+  },
+]);
