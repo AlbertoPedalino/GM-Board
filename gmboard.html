@@ -248,192 +248,31 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 </style>
 <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <script>
-(() => {
-  const EMOJI_TO_LUCIDE = Object.freeze({
-    '⚔️': 'swords', '⚔': 'swords',
-    '🎲': 'dice-5',
-    '🔍': 'search',
-    '☀️': 'sun', '☀': 'sun',
-    '🌧️': 'cloud-rain', '🌧': 'cloud-rain',
-    '❄️': 'snowflake', '❄': 'snowflake',
-    '⬡': 'hexagon',
-    '📖': 'book-open',
-    '⏱': 'timer',
-    '👁️': 'eye', '👁': 'eye',
-    '💥': 'sparkles',
-    '⚡': 'zap',
-    '✓': 'check',
-    '✦': 'sparkles',
-    '🎒': 'backpack',
-    '🛡': 'shield',
-    '🏹': 'crosshair',
-    '😡': 'angry',
-    '🎵': 'music',
-    '🐻': 'paw-print',
-    '🙏': 'hands',
-    '✝': 'cross',
-    '🌀': 'orbit',
-    '🏃': 'move-right',
-    '🤝': 'handshake',
-    '💨': 'wind',
-    '👊': 'hand',
-    '🤼': 'users-round',
-    '🗡': 'sword',
-    '🔥': 'flame',
-    '💀': 'skull',
-    '✨': 'sparkles',
-    '🕸': 'bug',
-    '🟢': 'circle',
-    '🕯': 'flame',
-    '🌿': 'leaf',
-    '🎭': 'masks',
-    '💚': 'heart',
-    '🌩': 'cloud-lightning',
-    '🎯': 'target',
-    '🏰': 'castle',
-    '📜': 'scroll-text',
-    '📋': 'clipboard-list',
-    '🔴': 'circle',
-    '🟠': 'circle',
-    '🟡': 'circle',
-    '🟢': 'circle',
-    '🔵': 'circle',
-    '🟣': 'circle',
-    '⭕': 'circle',
-    '✕': 'x',
-    '←': 'arrow-left',
-    '🗺️': 'map', '🗺': 'map',
-  });
-
-  const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'NOSCRIPT', 'SVG']);
-  const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const EMOJI_RE = new RegExp(
-    Object.keys(EMOJI_TO_LUCIDE)
-      .sort((a, b) => b.length - a.length)
-      .map(escapeRegex)
-      .join('|'),
-    'g'
-  );
-
-  function hasIconEmoji(text) {
-    if (!text) return false;
-    EMOJI_RE.lastIndex = 0;
-    return EMOJI_RE.test(text);
-  }
-
-  function makeIconNode(emoji) {
-    const iconName = EMOJI_TO_LUCIDE[emoji] || 'circle';
-    const i = document.createElement('i');
-    i.setAttribute('data-lucide', iconName);
-    i.className = 'lucide-emoji';
-    i.setAttribute('aria-hidden', 'true');
-    return i;
-  }
-
-  function replaceTextNode(node) {
-    const text = node.nodeValue || '';
-    if (!hasIconEmoji(text) || !node.parentNode) return;
-
-    const frag = document.createDocumentFragment();
-    let last = 0;
-
-    text.replace(EMOJI_RE, (match, offset) => {
-      if (offset > last) frag.appendChild(document.createTextNode(text.slice(last, offset)));
-      frag.appendChild(makeIconNode(match));
-      last = offset + match.length;
-      return match;
-    });
-
-    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
-    node.parentNode.replaceChild(frag, node);
-  }
-
-  function scanAndReplace(root) {
-    if (!root) return;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    const targets = [];
-
-    let n;
-    while ((n = walker.nextNode())) {
-      const p = n.parentElement;
-      if (!p) continue;
-      if (SKIP_TAGS.has(p.tagName)) continue;
-      if (p.closest('[data-no-iconify]')) continue;
-      if (hasIconEmoji(n.nodeValue || '')) targets.push(n);
-    }
-
-    targets.forEach(replaceTextNode);
-  }
-
-  function injectIconStyle() {
-    if (document.getElementById('lucide-emoji-style')) return;
-    const style = document.createElement('style');
-    style.id = 'lucide-emoji-style';
-    style.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
-    document.head.appendChild(style);
-  }
-
-  let observer = null;
-  let scheduled = false;
-
-  function refreshLucideIcons() {
-    if (scheduled) return;
-    scheduled = true;
-
-    requestAnimationFrame(() => {
-      scheduled = false;
-      if (!document.body) return;
-
-      if (observer) observer.disconnect();
-      scanAndReplace(document.body);
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
-      }
-      if (observer) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    });
-  }
-
-  function startObserver() {
-    if (observer || !document.body) return;
-    observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        if (m.type === 'childList' && m.addedNodes.length) {
-          refreshLucideIcons();
-          return;
-        }
-        if (m.type === 'characterData' && hasIconEmoji(m.target?.nodeValue || '')) {
-          refreshLucideIcons();
-          return;
-        }
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-  }
-
-  injectIconStyle();
-  document.addEventListener('DOMContentLoaded', () => {
-    refreshLucideIcons();
-    startObserver();
-  });
-  window.refreshLucideIcons = refreshLucideIcons;
+(function(){
+  var s = document.createElement('style');
+  s.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
+  document.head.appendChild(s);
 })();
+function luci(name){ return '<i data-lucide="'+name+'" class="lucide-emoji" aria-hidden="true"></i>'; }
+function refreshIcons(){ if(window.lucide && typeof window.lucide.createIcons==='function') window.lucide.createIcons({attrs:{'stroke-width':2}}); }
+document.addEventListener('DOMContentLoaded', refreshIcons);
 </script>
 </head>
 <body>
 <div class="container">
 
 <div class="page-header">
-  <span class="hex-icon">⬡</span>
+  <span class="hex-icon"><i data-lucide="hexagon" class="lucide-emoji" aria-hidden="true"></i></span>
   <h1>GM Board</h1>
   <div class="subtitle">HEXcrawl · Dungeon · Tables · Guide</div>
 </div>
 
 <div class="nav-tabs">
-  <button class="tab-btn active no-select" onclick="switchTab('hex')">⬡ HEXcrawl</button>
-  <button class="tab-btn no-select" onclick="switchTab('dungeon')">🏰 Dungeon</button>
-  <button class="tab-btn no-select" onclick="switchTab('quest')">📜 Quest</button>
-  <button class="tab-btn no-select" onclick="switchTab('editor')">📋 Tables</button>
-  <button class="tab-btn no-select" onclick="switchTab('guide')">📖 Guide</button>
+  <button class="tab-btn active no-select" onclick="switchTab('hex')"><i data-lucide="hexagon" class="lucide-emoji" aria-hidden="true"></i> HEXcrawl</button>
+  <button class="tab-btn no-select" onclick="switchTab('dungeon')"><i data-lucide="castle" class="lucide-emoji" aria-hidden="true"></i> Dungeon</button>
+  <button class="tab-btn no-select" onclick="switchTab('quest')"><i data-lucide="scroll-text" class="lucide-emoji" aria-hidden="true"></i> Quest</button>
+  <button class="tab-btn no-select" onclick="switchTab('editor')"><i data-lucide="clipboard-list" class="lucide-emoji" aria-hidden="true"></i> Tables</button>
+  <button class="tab-btn no-select" onclick="switchTab('guide')"><i data-lucide="book-open" class="lucide-emoji" aria-hidden="true"></i> Guide</button>
 </div>
 
 <div id="tab-hex" class="tab-panel active">
@@ -444,13 +283,13 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
       <div class="meteo-left">
         <div class="section-label">Season</div>
         <div class="btn-group" id="season-group" style="margin-bottom:12px;">
-          <button class="sel-btn no-select" onclick="selSeason(this,'Spring')">🌸 Spring</button>
-          <button class="sel-btn no-select" onclick="selSeason(this,'Summer')">☀️ Summer</button>
-          <button class="sel-btn no-select" onclick="selSeason(this,'Autumn')">🍂 Autumn</button>
-          <button class="sel-btn no-select" onclick="selSeason(this,'Winter')">❄️ Winter</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Spring')"><i data-lucide="flower" class="lucide-emoji" aria-hidden="true"></i> Spring</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Summer')"><i data-lucide="sun" class="lucide-emoji" aria-hidden="true"></i> Summer</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Autumn')"><i data-lucide="leafy-green" class="lucide-emoji" aria-hidden="true"></i> Autumn</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Winter')"><i data-lucide="snowflake" class="lucide-emoji" aria-hidden="true"></i> Winter</button>
         </div>
         <div class="meteo-display" id="meteo-display">
-          <div class="meteo-icon" id="meteo-icon">☀️</div>
+          <div class="meteo-icon" id="meteo-icon"><i data-lucide="sun" class="lucide-emoji" aria-hidden="true"></i></div>
           <div class="meteo-info">
             <div class="meteo-name" id="meteo-name">Clear</div>
             <div class="meteo-effect" id="meteo-effect">No effect</div>
@@ -463,16 +302,16 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
         <div class="section-label">Weather Override (GM Force)</div>
         <div style="display:flex;flex-direction:column;gap:5px;" id="meteo-group">
           <div class="btn-group">
-            <button class="sel-btn active no-select" data-meteo="Clear" data-int="" onclick="selMeteo(this,'Clear','')">☀️ Clear</button>
+            <button class="sel-btn active no-select" data-meteo="Clear" data-int="" onclick="selMeteo(this,'Clear','')"><i data-lucide="sun" class="lucide-emoji" aria-hidden="true"></i> Clear</button>
           </div>
           <div class="btn-group">
-            <span class="meteo-group-lbl">🌧️ Rain</span>
+            <span class="meteo-group-lbl"><i data-lucide="cloud-rain" class="lucide-emoji" aria-hidden="true"></i> Rain</span>
             <button class="sel-btn no-select" data-meteo="Rain" data-int="Light" onclick="selMeteo(this,'Rain','Light')">Light<span class="sub-lbl">×1 time</span></button>
             <button class="sel-btn no-select" data-meteo="Rain" data-int="Moderate" onclick="selMeteo(this,'Rain','Moderate')">Moderate<span class="sub-lbl">×2 time</span></button>
             <button class="sel-btn no-select" data-meteo="Rain" data-int="Heavy" onclick="selMeteo(this,'Rain','Heavy')">Heavy<span class="sub-lbl">×2 + Dis</span></button>
           </div>
           <div class="btn-group">
-            <span class="meteo-group-lbl">❄️ Snow</span>
+            <span class="meteo-group-lbl"><i data-lucide="snowflake" class="lucide-emoji" aria-hidden="true"></i> Snow</span>
             <button class="sel-btn no-select" data-meteo="Snow" data-int="Light" onclick="selMeteo(this,'Snow','Light')">Light<span class="sub-lbl">×2 time</span></button>
             <button class="sel-btn no-select" data-meteo="Snow" data-int="Moderate" onclick="selMeteo(this,'Snow','Moderate')">Moderate<span class="sub-lbl">×2 + Dis</span></button>
             <button class="sel-btn no-select" data-meteo="Snow" data-int="Heavy" onclick="selMeteo(this,'Snow','Heavy')">Heavy<span class="sub-lbl">×4 + Dis</span></button>
@@ -526,7 +365,7 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
         </div>
       </div>
       <div class="time-btns">
-        <button class="action-btn no-select" id="procedi-btn" onclick="procedi()">⬡ Proceed</button>
+        <button class="action-btn no-select" id="procedi-btn" onclick="procedi()"><i data-lucide="hexagon" class="lucide-emoji" aria-hidden="true"></i> Proceed</button>
         <button class="action-btn sec no-select" onclick="soloAvanza()">⏱ Advance Only</button>
         <div style="display:flex;gap:5px;">
           <button class="action-btn sec no-select" onclick="advTimeManual(1)" title="Advance 1 hour">+1h</button>
@@ -558,13 +397,13 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
       <div class="section-label" style="margin:0">Session Log</div>
-      <button class="small-btn no-select" onclick="clearLog()">✕ Clear</button>
+      <button class="small-btn no-select" onclick="clearLog()"><i data-lucide="x" class="lucide-emoji" aria-hidden="true"></i> Clear</button>
     </div>
     <div id="log-area"><div class="log-empty">No hexes explored yet.</div></div>
   </div>
 
 </div><div id="tab-dungeon" class="tab-panel">
-  <div class="section-header"><h2>🏰 Dungeon Explorer</h2><div class="sub">Room Generator</div></div>
+  <div class="section-header"><h2><i data-lucide="castle" class="lucide-emoji" aria-hidden="true"></i> Dungeon Explorer</h2><div class="sub">Room Generator</div></div>
 
   <div class="card">
     <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
@@ -592,8 +431,8 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
       </div>
     </div>
     <div style="display:flex;gap:7px;margin-top:12px;">
-      <button class="action-btn no-select" onclick="generateDungeon()">🏰 Generate</button>
-      <button class="action-btn sec no-select" onclick="clearDungeon()">✕ Clear</button>
+      <button class="action-btn no-select" onclick="generateDungeon()"><i data-lucide="castle" class="lucide-emoji" aria-hidden="true"></i> Generate</button>
+      <button class="action-btn sec no-select" onclick="clearDungeon()"><i data-lucide="x" class="lucide-emoji" aria-hidden="true"></i> Clear</button>
     </div>
   </div>
 
@@ -602,7 +441,7 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
 <!-- ═══ TAB QUEST ═══ -->
 <div id="tab-quest" class="tab-panel">
-  <div class="section-header"><h2>📜 Quest Generator</h2><div class="sub">Quest Generator</div></div>
+  <div class="section-header"><h2><i data-lucide="scroll-text" class="lucide-emoji" aria-hidden="true"></i> Quest Generator</h2><div class="sub">Quest Generator</div></div>
 
   <div class="card">
     <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
@@ -624,8 +463,8 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
           <button class="sel-btn tier-btn t4 no-select" onclick="selQTier(this,4)">🟣 T4<span class="sub-lbl">Lv 17–20</span></button>
         </div>
       </div>
-      <button class="action-btn no-select" onclick="generateQuests()">📜 Generate Quests</button>
-      <button class="action-btn sec no-select" onclick="clearQuests()">✕ Clear</button>
+      <button class="action-btn no-select" onclick="generateQuests()"><i data-lucide="scroll-text" class="lucide-emoji" aria-hidden="true"></i> Generate Quests</button>
+      <button class="action-btn sec no-select" onclick="clearQuests()"><i data-lucide="x" class="lucide-emoji" aria-hidden="true"></i> Clear</button>
     </div>
   </div>
 
@@ -633,7 +472,7 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 </div>
 
 <div id="tab-editor" class="tab-panel">
-  <div class="section-header"><h2>📋 Table Editor</h2><div class="sub">Changes saved in browser</div></div>
+  <div class="section-header"><h2><i data-lucide="clipboard-list" class="lucide-emoji" aria-hidden="true"></i> Table Editor</h2><div class="sub">Changes saved in browser</div></div>
 
   <div class="card" style="margin-bottom:8px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -675,11 +514,11 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <div id="ed-trap4" class="ed-panel card"><div class="section-label">Trap Table Tier 4</div><table class="ed-table" id="tbl-trap4"></table></div>
   <div id="ed-env"   class="ed-panel card"><div class="section-label">Environment Severity Table</div><table class="ed-table" id="tbl-env"></table></div>
 </div><div id="tab-guide" class="tab-panel">
-  <div class="section-header"><h2>📖 Roll Reference</h2><div class="sub">Complete Reference — GM Board</div></div>
+  <div class="section-header"><h2><i data-lucide="book-open" class="lucide-emoji" aria-hidden="true"></i> Roll Reference</h2><div class="sub">Complete Reference — GM Board</div></div>
 
   <!-- HEXcrawl -->
   <div class="card">
-    <div class="ref-section-title">⬡ HEXcrawl — Full Flow</div>
+    <div class="ref-section-title"><i data-lucide="hexagon" class="lucide-emoji" aria-hidden="true"></i> HEXcrawl — Full Flow</div>
     <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">For each hex explored press <strong>Advance</strong>. Time moves forward, weather is checked if needed, then the roll sequence begins. Use <strong>Advance Only</strong> to move time without any rolls.</p>
 
     <div class="ref-grid">
@@ -704,10 +543,10 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
             <tr><td>Clear</td><td>—</td><td>×1</td><td>No</td></tr>
             <tr><td>Rain</td><td>Light</td><td>×1</td><td>No</td></tr>
             <tr><td>Rain</td><td>Moderate</td><td>×2</td><td>No</td></tr>
-            <tr><td>Rain</td><td>Heavy</td><td>×2</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Rain</td><td>Heavy</td><td>×2</td><td><i data-lucide="check" class="lucide-emoji" aria-hidden="true"></i> Perc/Inv</td></tr>
             <tr><td>Snow</td><td>Light</td><td>×2</td><td>No</td></tr>
-            <tr><td>Snow</td><td>Moderate</td><td>×2</td><td>✓ Perc/Inv</td></tr>
-            <tr><td>Snow</td><td>Heavy</td><td>×4</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Snow</td><td>Moderate</td><td>×2</td><td><i data-lucide="check" class="lucide-emoji" aria-hidden="true"></i> Perc/Inv</td></tr>
+            <tr><td>Snow</td><td>Heavy</td><td>×4</td><td><i data-lucide="check" class="lucide-emoji" aria-hidden="true"></i> Perc/Inv</td></tr>
           </tbody>
         </table>
         <div class="ref-note">Check every 1d6+2 travel hours. Seasonal thresholds are editable in Tables → Seasonal Weather.</div>
@@ -793,7 +632,7 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
   <!-- Dungeon -->
   <div class="card">
-    <div class="ref-section-title">🏰 Dungeon Explorer — Full Flow</div>
+    <div class="ref-section-title"><i data-lucide="castle" class="lucide-emoji" aria-hidden="true"></i> Dungeon Explorer — Full Flow</div>
     <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">Set the number of rooms, population, and tier, then press <strong>Generate</strong>. All rooms are resolved at once.</p>
 
     <div class="ref-grid">
@@ -851,14 +690,14 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
   <!-- Editor note -->
   <div class="card">
-    <div class="ref-section-title">📋 Table Editor</div>
+    <div class="ref-section-title"><i data-lucide="clipboard-list" class="lucide-emoji" aria-hidden="true"></i> Table Editor</div>
     <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">All tables are editable from the <strong>Tables</strong> section. Changes are saved automatically to localStorage and take effect immediately. The <strong>↺ Restore</strong> button resets everything to original values.</p>
     <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">The <strong>type</strong> field in the Event Table uses fixed keywords: <code>encounter</code> · <code>loot</code> · <code>camp_nemico</code> · <code>other</code> · <code>nothing</code>.</p>
     <p style="font-size:.9rem;color:var(--text);line-height:1.65;">The <strong>type</strong> field in the Complication Table uses: <code>Encounter</code> · <code>Environment Damage</code> · <code>Environment</code> · <code>None</code> (case sensitive).</p>
   </div>
 
 </div></div>
-<div class="toast" id="toast">✓ Saved</div>
+<div class="toast" id="toast"><i data-lucide="check" class="lucide-emoji" aria-hidden="true"></i> Saved</div>
 
 <script>
 // ══════════════ DEFAULT DATA ══════════════
@@ -992,7 +831,7 @@ function saveTables(){
   localStorage.setItem('gm_co',JSON.stringify(T.compl));
   localStorage.setItem('gm_env',JSON.stringify(T.env));
   for(let i=0;i<4;i++){localStorage.setItem('gm_enc'+i,JSON.stringify(T.enc[i]));localStorage.setItem('gm_trap'+i,JSON.stringify(T.trap[i]));}
-  showToast('✓ Tables saved');
+  showToast(luci('check') + ' Tables saved');
 }
 function resetTables(){
   if(!confirm('Restore original tables?'))return;
@@ -1002,7 +841,7 @@ function resetTables(){
   for(let i=0;i<4;i++){localStorage.removeItem('gm_enc'+i);localStorage.removeItem('gm_trap'+i);}
   buildEditor();showToast('↺ Restored');
 }
-function showToast(m='✓'){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
+function showToast(m=luci('check')){const t=document.getElementById('toast');if(!t)return;t.innerHTML=m;t.style.display='block';refreshIcons();setTimeout(()=>t.style.display='none',2000);}
 
 function getEvent(s){readEditor();return T.events.find(e=>e.r===s)||{name:'—',type:'nothing'};}
 function getLoot(s){readEditor();return T.loot.find(e=>e.r===s)||{tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''};}
@@ -1132,7 +971,7 @@ function selSeason(btn, s){
 }
 
 function updMeteoDisplay(){
-  const icon = S.meteo==='Clear'?'☀️':S.meteo==='Rain'?'🌧️':'❄️';
+  const icon = S.meteo==='Clear'?luci('sun'):S.meteo==='Rain'?luci('cloud-rain'):luci('snowflake');
   const effH = getEffectiveHours();
   let effect = 'No effect';
   let color = 'var(--text-bright)';
@@ -1155,7 +994,7 @@ function updMeteoDisplay(){
   const nameEl=document.getElementById('meteo-name');
   const effEl=document.getElementById('meteo-effect');
   const timerEl=document.getElementById('meteo-timer');
-  if(iconEl) iconEl.textContent=icon;
+  if(iconEl){ iconEl.innerHTML=icon; refreshIcons(); }
   if(nameEl){ nameEl.textContent=name; nameEl.style.color=color; }
   if(effEl) effEl.textContent=effect;
   if(timerEl) timerEl.textContent=timerTxt;
@@ -1208,7 +1047,7 @@ function checkWeatherRoll(rsContainer) {
     selMeteo(null, m, intType);
     logChanges.push(`${m}${intText} [d20=${d20}]`);
 
-    const icon = m === 'Clear' ? '☀️' : m === 'Rain' ? '🌧️' : '❄️';
+    const icon = m === 'Clear' ? luci('sun') : m === 'Rain' ? luci('cloud-rain') : luci('snowflake');
     const color = m === 'Clear' ? 'var(--gold-light)' : m === 'Rain' ? '#70a0ff' : '#a0ffff';
 
     if (rsContainer) {
@@ -1273,7 +1112,7 @@ function diffIcon(d){return d==='High'?'🔴':d==='Moderate'?'🟠':'🟢';}
 // ══════════════ ENCOUNTER RESULT ══════════════
 async function resolveEncounter(con, tier, label='Encounter Table'){
   const ids=uid();
-  const s=addStep(con,'⚔️',label+' (2d20)',dHTMLEnc('a'+ids,'b'+ids,'c'+ids),0);
+  const s=addStep(con,luci('swords'),label+' (2d20)',dHTMLEnc('a'+ids,'b'+ids,'c'+ids),0);
   const res=await rollD20D20('a'+ids,'b'+ids,'c'+ids);
   const enc=getEnc(tier,res.sum);
   s.insertAdjacentHTML('beforeend',`<div style="margin-top:4px">
@@ -1339,7 +1178,7 @@ async function procedi(){
 
   // Calcolo per il badge svantaggio
   const isSvantaggio = (S.meteo === 'Rain' && S.intensita === 'Heavy') || (S.meteo === 'Snow' && (S.intensita === 'Moderate' || S.intensita === 'Heavy'));
-  const svaIcon = S.meteo === 'Rain' ? '🌧️' : '❄️';
+  const svaIcon = S.meteo === 'Rain' ? luci('cloud-rain') : luci('snowflake');
   const svaColor = S.meteo === 'Rain' ? '#70a0ff' : '#a0ffff';
   const svaHtml = isSvantaggio ? ` <span class="badge" style="background:rgba(160,255,255,0.15);border:1px solid ${svaColor};color:${svaColor};margin-left:4px">${svaIcon} WEATHER DISADVANTAGE</span>` : '';
   const svaLog = isSvantaggio ? ' (Weather Disadvantage)' : '';
@@ -1347,9 +1186,9 @@ async function procedi(){
   // d6 trigger
   const d6v=roll(6),trig=d6v<=S.popThr;
   const id6=uid();
-  const s1=addStep(rs,'🎲','Population Roll',`<div class="dice-row"><span class="dlbl">d6</span><span class="die" id="${id6}">?</span><span class="dlbl" style="margin-left:4px">threshold ≤${S.popThr}</span></div>`, 150);
+  const s1=addStep(rs,luci('dice-5'),'Population Roll',`<div class="dice-row"><span class="dlbl">d6</span><span class="die" id="${id6}">?</span><span class="dlbl" style="margin-left:4px">threshold ≤${S.popThr}</span></div>`, 150);
   await animDie(id6,6,d6v,440);
-  s1.insertAdjacentHTML('beforeend',` = <strong style="color:var(--gold-light)">${d6v}</strong> ${trig?'<span class="badge b-trig">⚡ TRIGGER</span>':'<span class="badge b-ok">✓ No Event</span>'}`);
+  s1.insertAdjacentHTML('beforeend',` = <strong style="color:var(--gold-light)">${d6v}</strong> ${trig?`<span class="badge b-trig">${luci('zap')} TRIGGER</span>`:`<span class="badge b-ok">${luci('check')} No Event</span>`}`);
 
   let logTxt=`${fDT()} · ${S.terrain} (${travelHours}h) · ${S.meteo} ${S.intensita} · d6=${d6v}${weatherLogTxt}`;
 
@@ -1457,7 +1296,7 @@ async function procedi(){
     }
   }
 
-  S.log.unshift(logTxt);if(S.log.length>50)S.log.length=50;renderLog();saveState();S.rolling=false;btn.disabled=false;
+  S.log.unshift(logTxt);if(S.log.length>50)S.log.length=50;renderLog();saveState();S.rolling=false;btn.disabled=false;refreshIcons();
 }
 
 // ══════════════ DUNGEON ══════════════
@@ -1468,6 +1307,7 @@ function generateDungeon(){
   if(!S.dTier){flashGroup('d-tier-group','⚠ Select Tier for Encounter and Trap tables');return;}
   const con=document.getElementById('dungeon-results');con.innerHTML='';
   for(let i=1;i<=n;i++) con.appendChild(buildRoom(i));
+  refreshIcons();
   con.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -1510,7 +1350,7 @@ function buildRoom(idx){
 
   let hdr=`<div class="room-hdr"><span class="room-num">ROOM ${idx}</span>
     <span class="badge b-env" style="font-size:.6rem">${popLabel} · ${thr} ${thr>1 ? 'rolls' : 'roll'}</span>`;
-  if(!anyComp) hdr+=`<span class="badge b-ok">✓ Safe room</span>`;
+  if(!anyComp) hdr+=`<span class="badge b-ok">${luci('check')} Safe room</span>`;
   hdr+=`</div>`;
 
   // Slots

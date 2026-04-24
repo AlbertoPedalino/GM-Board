@@ -1,4 +1,19 @@
 registerClassAdapter("Barbarian", function (cls, lv, specs) {
+  if (lv >= 1) {
+    const weapons = typeof allItemsDb !== 'undefined'
+      ? allItemsDb
+          .filter(function (i) { return (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'); })
+          .map(function (i) { return i.name; })
+      : [];
+    specs.push({
+      key: 'barbarian_weapon_mastery',
+      label: 'Weapon Mastery (choose 2)',
+      type: 'generic_choice',
+      from: weapons,
+      count: 2,
+      level: 1
+    });
+  }
   if (lv >= 3) {
     const allSkills = typeof SKILLS !== 'undefined'
       ? SKILLS.map(function (s) { return s.n; })

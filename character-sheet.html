@@ -533,10 +533,10 @@
     .slot-pips { display:flex;gap:4px;flex-wrap:wrap }
     .slot-pip {
       width:14px;height:14px;border-radius:50%;
-      border:1px solid var(--blue);background:var(--bluebg);
+      border:1px solid var(--bdr);background:transparent;
       transition:all .1s;cursor:pointer;
     }
-    .slot-pip.used { background:transparent;border-color:var(--bdr) }
+    .slot-pip.used { background:var(--blue);border-color:var(--blue) }
 
     /* ─── XP INTERACTIVE ─── */
     .xp-block { position:relative }
@@ -1182,10 +1182,19 @@ function calcMaxHP(){
 function calcAC(){
   if(!C) return 10;
   const dex = getMod(getFinal('dex'));
+  const con = getMod(getFinal('con'));
+  const wis = getMod(getFinal('wis'));
   const inv = sheetInventory || C.inventory || [];
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
   const shieldBonus = equippedShield ? (2 + (equippedShield.bonusAc ? parseInt(equippedShield.bonusAc)||0 : 0)) : 0;
+  const hasClass = (name) => {
+    const n = String(name || '').toLowerCase();
+    if ((C?.className || '').toLowerCase() === n) return true;
+    return (C?.extraClasses || []).some(ec => (ec?.name || '').toLowerCase() === n);
+  };
+  const hasBarbarian = hasClass('Barbarian');
+  const hasMonk = hasClass('Monk');
   let ac;
   if(equippedArmor){
     const baseAC = equippedArmor.ac || 10;
@@ -1193,19 +1202,16 @@ function calcAC(){
     if(equippedArmor.type==='LA') ac = baseAC + dex + magicBonus;
     else if(equippedArmor.type==='MA') ac = baseAC + Math.min(2,dex) + magicBonus;
     else ac = baseAC + magicBonus; // HA
-  } else {
-    const cls = C?.className||'';
-    if(cls==='Barbarian'){
-      // Unarmored Defense: 10 + DEX + STR
-      ac = 10 + dex + getMod(getFinal('str'));
-    } else if(cls==='Monk'){
-      // Unarmored Defense: 10 + DEX + WIS
-      ac = 10 + dex + getMod(getFinal('wis'));
-    } else {
-      ac = 10 + dex;
-    }
+    return ac + shieldBonus;
   }
-  return ac + shieldBonus;
+
+  // No armor: evaluate all legal formulas and use the best one.
+  // Barbarian UD allows shield; Monk UD requires no shield.
+  const candidates = [10 + dex + shieldBonus];
+  if (hasBarbarian) candidates.push(10 + dex + con + shieldBonus);
+  if (hasMonk && !equippedShield) candidates.push(10 + dex + wis);
+  ac = Math.max(...candidates);
+  return ac;
 }
 
 /* ═══════ RENDER ═══════ */
@@ -1283,7 +1289,7 @@ function renderScores(){
     const label = FULL_LBL[s]||SLBL[s];
     return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'${label} Check')" title="Roll ${label} Check">
       <div class="score-lbl">${SLBL[s]}</div>
-      <div class="score-mod">${modStr} ${luci('dice-5')}</div>
+      <div class="score-mod">${modStr}</div>
       <div class="score-base">${val}</div>
     </div>`;
   }).join('');
@@ -1401,7 +1407,37 @@ function renderProficiencies(){
   const bsp= C.bgSnapshot||{};
   const normalize = (v) => {
     if (!v || typeof v !== 'string') return '';
-    const base = v.split('|')[0].trim();
+    let base = String(v)
+      .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+      .replace(/\{@[a-z]+\s*/gi, '')
+      .replace(/[{}]/g, '')
+      .split('|')[0]
+      .trim();
+    if (!base) return '';
+    base = base.replace(/\.$/, '').replace(/\s+/g, ' ').trim();
+
+    // Ignore placeholder descriptors (not concrete proficiencies).
+    if (/^one type of /i.test(base)) return '';
+    if (/ of your choice$/i.test(base)) return '';
+    if (/^any/i.test(base)) return '';
+
+    const lc = base.toLowerCase();
+    const alias = {
+      "thieves' tools": "Thieves' Tools",
+      "thieves' tool": "Thieves' Tools",
+      "tinker's tools": "Tinker's Tools",
+      "tinker's tool": "Tinker's Tools",
+      "artisan's tools": "Artisan's Tools",
+      "herbalism kit": "Herbalism Kit",
+      "navigator's tools": "Navigator's Tools",
+      "poisoner's kit": "Poisoner's Kit",
+      "forgery kit": "Forgery Kit",
+      "disguise kit": "Disguise Kit",
+    };
+    if (alias[lc]) return alias[lc];
+
+    // If multiple values are packed in one string, caller should split first.
+    if (base.includes(',')) return '';
     if (!base) return '';
     return base.charAt(0).toUpperCase() + base.slice(1);
   };
@@ -1411,6 +1447,10 @@ function renderProficiencies(){
       .filter(k => !excluded.includes(k) && block[k] !== false)
       .map(normalize)
       .filter(Boolean);
+  };
+  const splitAndNormalize = (raw) => {
+    if (!raw || typeof raw !== 'string') return [];
+    return raw.split(/[;,]/).map(s => normalize(s)).filter(Boolean);
   };
   const collectFixedFeatureProfs = (field, excluded) => {
     const out = new Set();
@@ -1451,23 +1491,45 @@ function renderProficiencies(){
     });
     return out;
   };
+  const ARTIFICER_SUBCLASS_FIXED_TOOLS = {
+    'Alchemist': ["Alchemist's Supplies", 'Herbalism Kit'],
+    'Armorer': ["Smith's Tools"],
+    'Artillerist': ["Woodcarver's Tools"],
+    'Battle Smith': ["Smith's Tools"],
+    'Cartographer': ["Calligrapher's Supplies", "Cartographer's Tools"],
+  };
+  const addArtificerSubclassFixedToolProfs = (className, subclassShortName, classLevel, addFn) => {
+    if (className !== 'Artificer') return;
+    if ((classLevel || 0) < 3) return;
+    const fixed = ARTIFICER_SUBCLASS_FIXED_TOOLS[subclassShortName];
+    if (!fixed) return;
+    fixed.forEach(addFn);
+  };
 
   const armorSet = new Set((Array.isArray(sp.armor) ? sp.armor : [sp.armor]).map(normalize).filter(Boolean));
   const weaponSet = new Set((Array.isArray(sp.weapons) ? sp.weapons : [sp.weapons]).map(normalize).filter(Boolean));
+  const weaponMasterySet = new Set();
   collectFixedFeatureProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
   collectFixedFeatureProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
   if (C?.choices) {
     for (const [key, val] of Object.entries(C.choices)) {
       if (!val) continue;
-      if (key.toLowerCase().includes('mastery')) continue;
+      const lk = key.toLowerCase();
       const vals = Array.isArray(val) ? val : [val];
-      if (key.toLowerCase().includes('armor')) {
+      if (lk.includes('mastery') && lk.includes('weapon')) {
+        vals.forEach(v => {
+          const nv = normalize(v);
+          if (nv) weaponMasterySet.add(nv);
+        });
+        continue;
+      }
+      if (lk.includes('armor')) {
         vals.forEach(v => {
           const nv = normalize(v);
           if (nv) armorSet.add(nv);
         });
       }
-      if (key.toLowerCase().includes('weapon')) {
+      if (lk.includes('weapon')) {
         vals.forEach(v => {
           const nv = normalize(v);
           if (nv) weaponSet.add(nv);
@@ -1475,24 +1537,37 @@ function renderProficiencies(){
       }
     }
   }
+  if ((C?.classLevel || C?.level || 1) >= 3 && C?.className === 'Artificer') {
+    if (C.subclassShortName === 'Armorer') armorSet.add('Heavy');
+    if (C.subclassShortName === 'Artillerist') weaponSet.add('Firearms');
+  }
+  for (const ec of (C?.extraClasses || [])) {
+    if ((ec?.level || 1) < 3) continue;
+    if (ec?.name !== 'Artificer') continue;
+    if (ec.subclassShortName === 'Armorer') armorSet.add('Heavy');
+    if (ec.subclassShortName === 'Artillerist') weaponSet.add('Firearms');
+  }
   const armor   = armorSet.size ? Array.from(armorSet).join(', ') : '—';
   const weapons = weaponSet.size ? Array.from(weaponSet).join(', ') : '—';
+  const weaponMasteries = weaponMasterySet.size ? Array.from(weaponMasterySet).join(', ') : '—';
 
   // Tools: class starting + bg + adapter choices (monk_tool_proficiency, subclass_bm_student_tool, etc.)
   const toolSet = new Set();
-  (sp.tools ? (Array.isArray(sp.tools)?sp.tools:[String(sp.tools)]) : []).forEach(t => {
+  const addTool = (raw) => splitAndNormalize(String(raw || '')).forEach(v => toolSet.add(v));
+  const classToolBlocks = [];
+  if (sp.tools) classToolBlocks.push(...(Array.isArray(sp.tools) ? sp.tools : [sp.tools]));
+  if (sp.toolProficiencies) classToolBlocks.push(...(Array.isArray(sp.toolProficiencies) ? sp.toolProficiencies : [sp.toolProficiencies]));
+  classToolBlocks.forEach(t => {
     if (typeof t === 'string') {
-      const nt = normalize(t);
-      if (nt) toolSet.add(nt);
+      addTool(t);
       return;
     }
-    fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'any']).forEach(v => toolSet.add(v));
+    fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
   });
-  (bsp.toolProficiencies||[]).forEach(t => fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'any']).forEach(v => toolSet.add(v)));
-  collectFixedFeatureProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'any']).forEach(v => toolSet.add(v));
+  (bsp.toolProficiencies||[]).forEach(t => fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool));
+  collectFixedFeatureProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
   (C.selectedTools || []).forEach(t => {
-    const nt = normalize(t);
-    if (nt) toolSet.add(nt);
+    addTool(t);
   });
   if(C?.choices){
     for(const [key,val] of Object.entries(C.choices)){
@@ -1500,11 +1575,14 @@ function renderProficiencies(){
       if(key.includes('tool')||key.includes('instrument')){
         const vals = Array.isArray(val)?val:[val];
         vals.forEach(v=>{
-          const nv = normalize(v);
-          if(nv) toolSet.add(nv);
+          addTool(v);
         });
       }
     }
+  }
+  addArtificerSubclassFixedToolProfs(C?.className, C?.subclassShortName, C?.classLevel || C?.level || 1, addTool);
+  for (const ec of (C?.extraClasses || [])) {
+    addArtificerSubclassFixedToolProfs(ec?.name, ec?.subclassShortName, ec?.level || 1, addTool);
   }
   const tools = toolSet.size ? Array.from(toolSet).join(', ') : '—';
 
@@ -1521,6 +1599,10 @@ function renderProficiencies(){
     <div class="prof-section">
       <div class="prof-section-title">${luci('swords')} Weapons</div>
       <div class="prof-text">${esc(weapons)}</div>
+    </div>
+    <div class="prof-section">
+      <div class="prof-section-title">${luci('target')} Weapon Mastery</div>
+      <div class="prof-text">${esc(weaponMasteries)}</div>
     </div>
     <div class="prof-section">
       <div class="prof-section-title">${luci('wrench')} Tools</div>
@@ -1643,10 +1725,16 @@ function renderRightTop(){
   }
   if(C.speciesSnapshot?.darkvision) items.push({l:`Darkvision ${C.speciesSnapshot.darkvision} ft`,c:'t'});
   // Unarmored Defense badge
-  const cls = C?.className||'';
-  if(!( sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type))){
-    if(cls==='Barbarian') items.push({l:'Unarmored Defense (STR+CON)',c:'g'});
-    if(cls==='Monk')      items.push({l:'Unarmored Defense (DEX+WIS)',c:'g'});
+  const hasClass = (name) => {
+    const n = String(name || '').toLowerCase();
+    if ((C?.className || '').toLowerCase() === n) return true;
+    return (C?.extraClasses || []).some(ec => (ec?.name || '').toLowerCase() === n);
+  };
+  const hasArmor = !!(sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type));
+  const hasShield = !!(sheetInventory||[]).find(i=>i.equipped&&i.type==='S');
+  if(!hasArmor){
+    if(hasClass('Barbarian')) items.push({l:'Unarmored Defense (DEX+CON)',c:'g'});
+    if(hasClass('Monk') && !hasShield) items.push({l:'Unarmored Defense (DEX+WIS)',c:'g'});
   }
   if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
@@ -1689,8 +1777,8 @@ function getSpellAttackBonus(){ return getPB()+getSpellMod(); }
 /* ── CLASS ACTIONS — D&D 2024 (XPHB) ── */
 const CLASS_ACTIONS_MAP = {
   Barbarian:[
-    {name:"Rage",              icon:"",cat:"bonus",   uses:"2+ / LR",    resKey:"rage",
-     desc:"Bonus Action. Enter Rage for 1 minute: +2 damage on attacks (→+3 lv.9, →+4 lv.16), resistance to Bludgeoning/Piercing/Slashing, advantage on STR checks and saves. Uses: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17), unlimited (lv.20). Recharge: Long Rest."},
+    {name:"Rage",              icon:"",cat:"bonus",   uses:"2+ / LR (+1 SR)",    resKey:"rage",
+     desc:"Bonus Action. Enter Rage for 1 minute: +2 damage on attacks (→+3 lv.9, →+4 lv.16), resistance to Bludgeoning/Piercing/Slashing, advantage on STR checks and saves. Uses: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17), unlimited (lv.20). Recharge: Long Rest; recover 1 expended use on a Short Rest."},
     {name:"Reckless Attack",   icon:"",cat:"attack",  uses:"Unlimited",
      desc:"When you make your first attack on your turn, gain advantage on all weapon attack rolls using STR this turn. Enemies gain advantage on attack rolls against you until the start of your next turn."},
     {name:"Danger Sense",      icon:"",cat:"reaction",uses:"Passive",    minLevel:2,
@@ -1707,6 +1795,18 @@ const CLASS_ACTIONS_MAP = {
      desc:"Your Rage only ends early if you fall unconscious or choose to end it. No longer ends from not attacking or taking damage."},
     {name:"Indomitable Might", icon:"",cat:"action",  uses:"Passive",    minLevel:18,
      desc:"If your total for a STR check is lower than your STR score, use your STR score in its place."},
+  ],
+  Artificer:[
+    {name:"Tinker's Magic",     icon:"",cat:"action", uses:"Passive",
+     desc:"You can magically tinker with tools and objects, and you use Intelligence for your Artificer magic."},
+    {name:"Replicate Magic Item", icon:"",cat:"action", uses:"After Long Rest", minLevel:2,
+     desc:"After a Long Rest, create magic items from the plans you know. Plans known and active items increase with Artificer level."},
+    {name:"Flash of Genius",    icon:"",cat:"reaction", uses:"INT mod / LR", resKey:"flash_genius", minLevel:7,
+     desc:"When you or a creature you can see within 30 ft fails an ability check or saving throw, add your Intelligence modifier to the roll."},
+    {name:"Spell-Storing Item", icon:"",cat:"action", uses:"1 active item", minLevel:11,
+     desc:"After a Long Rest, store one Artificer spell (level 1-3) in a weapon or spellcasting focus item so it can be cast repeatedly from that item."},
+    {name:"Soul of Artifice",   icon:"",cat:"reaction", uses:"Passive", minLevel:20,
+     desc:"Your attuned magic items reinforce your defenses and help you cling to life in dire moments."},
   ],
   Bard:[
     {name:"Bardic Inspiration",icon:"",cat:"bonus",   uses:"CHA mod / SR", resKey:"bardic_insp",
@@ -1954,6 +2054,25 @@ const SUBCLASS_ACTIONS_MAP = {
   'Wizard_Abjurer': [{name:"Arcane Ward",                    icon:"",cat:"reaction",uses:"Ward HP",  minLevel:2,
                        desc:"Maintain an Arcane Ward (HP = level*2+INT). Use reaction to reduce damage taken by you or an ally within 30 ft by (Ward HP remaining). Recharges when you cast Abjuration spells or on a long rest."}],
   // ─── BARD ───
+  // ARTIFICER
+  'Artificer_Alchemist': [
+    {name:"Experimental Elixir",            icon:"",cat:"action", uses:"After Long Rest", minLevel:3,
+                       desc:"After a Long Rest, produce experimental elixirs with Alchemist's Supplies. You can also create additional elixirs by expending spell slots."}],
+  'Artificer_Armorer': [
+    {name:"Arcane Armor",                   icon:"",cat:"action", uses:"At will", minLevel:3,
+                       desc:"Turn worn armor into Arcane Armor and customize it. You can change armor model on a Short or Long Rest while using Smith's Tools."}],
+  'Artificer_Artillerist': [
+    {name:"Eldritch Cannon",                icon:"",cat:"action", uses:"Create/command", minLevel:3,
+                       desc:"Create a magical cannon and command it in combat. Cannon type (Flamethrower, Force Ballista, Protector) is chosen when you create it."}],
+  'Artificer_Battle Smith': [
+    {name:"Steel Defender",                 icon:"",cat:"bonus", uses:"Command each turn", minLevel:3,
+                       desc:"Your Steel Defender acts on your initiative and can be commanded in combat. It protects allies and can impose disadvantage on attacks."},
+    {name:"Arcane Jolt",                    icon:"",cat:"attack", uses:"Limited / LR", minLevel:9,
+                       desc:"When you or your Steel Defender hits, channel arcane energy to deal extra force damage or restore hit points."}],
+  'Artificer_Cartographer': [
+    {name:"Adventurer's Atlas",             icon:"",cat:"action", uses:"After Long Rest", minLevel:3,
+                       desc:"Create magical maps that support navigation and coordination for you and bonded creatures."}],
+  // BARD
   'Bard_Valor':     [{name:"Combat Inspiration",             icon:"",cat:"reaction",uses:"With Bardic Insp.",  minLevel:3,
                        desc:"Bardic Inspiration dice given to allies can also be used to: add to a weapon damage roll, or add to AC against a specific attack."}],
   'Bard_Lore':      [{name:"Stolen Secrets",                 icon:"",cat:"action", uses:"Passive",  minLevel:6,
@@ -1969,7 +2088,7 @@ const STANDARD_ACTIONS = [
   {name:"Dodge",            icon:"shield",      cat:"action",   universal:true,  desc:"Focus on avoiding attacks. Until the start of your next turn: attack rolls against you have Disadvantage (if you can see the attacker), and you make DEX saving throws with Advantage. Effect ends early if you're Incapacitated or your Speed drops to 0."},
   {name:"Help",             icon:"handshake",   cat:"action",   universal:true,  desc:"Choose one: (A) give an ally Advantage on their next ability check to perform a task you can assist with; or (B) give an ally Advantage on their next attack roll against a target within 5 ft of you."},
   {name:"Hide",             icon:"eye",         cat:"action",   universal:true,  desc:"Make a DEX (Stealth) check (DC set by DM, typically 15 in a lightly obscured area). On success and if you have cover or concealment, you gain the Hidden condition. You lose it if you make noise, are revealed, or make an attack."},
-  {name:"Influence",        icon:"masks",       cat:"action",   universal:true,  desc:"Attempt to sway a creature's attitude or actions using: CHA (Deception, Intimidation, Performance, or Persuasion) or WIS (Animal Handling). The DM determines the DC or opposing check."},
+  {name:"Influence",        icon:"drama",       cat:"action",   universal:true,  desc:"Attempt to sway a creature's attitude or actions using: CHA (Deception, Intimidation, Performance, or Persuasion) or WIS (Animal Handling). The DM determines the DC or opposing check."},
   {name:"Search",           icon:"search",      cat:"action",   universal:true,  desc:"Make a WIS (Perception) or INT (Investigation) check to locate hidden objects, creatures, or clues. The DM sets the DC."},
   {name:"Study",            icon:"book-open",   cat:"action",   universal:true,  desc:"Make an INT check (Arcana, History, Medicine, Nature, Religion, etc.) to recall lore or examine an object. The DM sets the DC and reveals what is known."},
   {name:"Ready",            icon:"timer",       cat:"action",   universal:true,  desc:"Describe a perceivable trigger and choose a reaction (one action or one attack). When the trigger occurs before the start of your next turn, you use your Reaction to execute it. Spell concentration must be maintained until the spell fires."},
@@ -2217,7 +2336,7 @@ function renderSpellsTab(){
   const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
   const HALF_SLOTS=[null,null,[2,0,0,0,0],[3,0,0,0,0],[3,0,0,0,0],[4,2,0,0,0],[4,2,0,0,0],[4,3,0,0,0],[4,3,0,0,0],[4,3,2,0,0],[4,3,2,0,0],[4,3,3,0,0],[4,3,3,0,0],[4,3,3,1,0],[4,3,3,1,0],[4,3,3,2,0],[4,3,3,2,0],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
   const PACT_SLOTS=[null,{n:1,l:1},{n:2,l:1},{n:2,l:2},{n:2,l:2},{n:3,l:3},{n:3,l:3},{n:3,l:4},{n:3,l:4},{n:3,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5}];
-  const MC_CASTER={'Bard':'full','Cleric':'full','Druid':'full','Sorcerer':'full','Wizard':'full','Paladin':'half','Ranger':'half'};
+  const MC_CASTER={'Bard':'full','Cleric':'full','Druid':'full','Sorcerer':'full','Wizard':'full','Paladin':'half','Ranger':'half','Artificer':'artificer'};
   const lv = C.level;
   const extra = C.extraClasses||[];
   const pLvSheet = C.classLevel || lv - extra.reduce((s,ec)=>s+(ec.level||1),0);
@@ -2225,6 +2344,7 @@ function renderSpellsTab(){
     const t=MC_CASTER[clsName];
     if(t==='full') return clsLv;
     if(t==='half') return Math.floor(clsLv/2);
+    if(t==='artificer') return Math.ceil(clsLv/2);
     if(clsName==='Fighter'&&scName==='EK') return Math.floor(clsLv/3);
     if(clsName==='Rogue'&&scName==='AT') return Math.floor(clsLv/3);
     return 0; // Warlock and non-casters = 0 (pact handled separately)
@@ -2243,7 +2363,8 @@ function renderSpellsTab(){
     cLv = Math.floor(cLv);
     slots = cLv>0 ? (FULL_SLOTS[Math.min(cLv,20)]||[]) : [];
   } else if(prog==='full') slots = FULL_SLOTS[lv]||[];
-  else if(prog==='1/2') slots = HALF_SLOTS[lv]||[];
+  else if(prog==='1/2' || prog==='half') slots = HALF_SLOTS[lv]||[];
+  else if(prog==='artificer') slots = FULL_SLOTS[Math.min(Math.ceil(lv/2),20)]||[];
   if(slots.length){
     h+=`<div style="margin-bottom:.75rem">
       <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Spell Slots</div>
@@ -2268,8 +2389,8 @@ function renderSpellsTab(){
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
         <div>
           <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
-          <div class="slot-pips" id="slot-pips-${ps.l}">
-            ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${ps.l},${k})"></div>`).join('')}
+          <div class="slot-pips" id="slot-pips-pact-${ps.l}">
+            ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="togglePactSlot(${ps.l},${ps.n},${k})"></div>`).join('')}
           </div>
         </div>
       </div>
@@ -2285,7 +2406,7 @@ function renderSpellsTab(){
         <div>
           <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
           <div class="slot-pips" id="slot-pips-pact-${ps.l}">
-            ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${ps.l},${k})"></div>`).join('')}
+            ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="togglePactSlot(${ps.l},${ps.n},${k})"></div>`).join('')}
           </div>
         </div>
       </div>
@@ -2424,18 +2545,27 @@ function getSpellSource(spellName){
   return null; // class choice = no badge (it's the default)
 }
 
+function togglePactSlot(lv, n, idx){
+  const used = spellSlotUsed[lv]||0;
+  if(idx < used) spellSlotUsed[lv] = Math.max(0, idx);
+  else spellSlotUsed[lv] = idx+1;
+  localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
+  const curUsed = spellSlotUsed[lv]||0;
+  const pipsEl = document.getElementById('slot-pips-pact-'+lv);
+  if(pipsEl) pipsEl.innerHTML = Array.from({length:n},(_,k)=>
+    `<div class="slot-pip${k<curUsed?' used':''}" onclick="togglePactSlot(${lv},${n},${k})"></div>`
+  ).join('');
+}
+
 function toggleSlot(lv, idx){
   const used = spellSlotUsed[lv]||0;
   if(idx < used) spellSlotUsed[lv] = Math.max(0, idx);
   else spellSlotUsed[lv] = idx+1;
   localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
-  // Re-render just the pips
-  const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
-  const prog = C?.clsSnapshot?.casterProgression;
-  const slots = prog==='full' ? (FULL_SLOTS[C.level]||[]) : [];
-  const tot = slots[lv-1]||0;
-  const curUsed = spellSlotUsed[lv]||0;
+  // Re-render using current DOM slot count (works for full/half/artificer/multiclass tables)
   const pipsEl = document.getElementById('slot-pips-'+lv);
+  const tot = pipsEl ? pipsEl.querySelectorAll('.slot-pip').length : 0;
+  const curUsed = spellSlotUsed[lv]||0;
   if(pipsEl) pipsEl.innerHTML = Array.from({length:tot},(_,k)=>
     `<div class="slot-pip${k<curUsed?' used':''}" onclick="toggleSlot(${lv},${k})"></div>`
   ).join('');
@@ -2958,6 +3088,63 @@ function renderFeaturesTab(){
     }
   }
 
+  // Artificer-specific builder selections (plans, armor model, bonus tool, etc.)
+  {
+    const ARTIFICER_CHOICE_LABELS = {
+      artificer_replicate_magic_item_plans: 'Replicate Magic Item Plans',
+      armorer_model: 'Armor Model',
+      alchemist_bonus_tool: 'Tools of the Trade (Alchemist)',
+      armorer_bonus_tool: 'Tools of the Trade (Armorer)',
+      artillerist_bonus_tool: 'Tools of the Trade (Artillerist)',
+      battlesmith_bonus_tool: 'Tools of the Trade (Battle Smith)',
+      cartographer_bonus_tool: 'Tools of the Trade (Cartographer)',
+    };
+    const artRows = [];
+    for (const [choiceKey, choiceVal] of Object.entries(C.choices || {})) {
+      if (!choiceVal) continue;
+      if (choiceKey.endsWith('_entry')) continue;
+
+      let k = choiceKey;
+      let scope = '';
+      const mcMatch = /^mc(\d+)_/.exec(choiceKey);
+      if (mcMatch) {
+        k = choiceKey.replace(/^mc\d+_/, '');
+        const ecIdx = parseInt(mcMatch[1], 10);
+        const ecName = C.extraClasses?.[ecIdx]?.name;
+        if (ecName) scope = '[' + ecName + '] ';
+      }
+
+      if (!/^(artificer_|alchemist_|armorer_|artillerist_|battlesmith_|cartographer_)/i.test(k)) continue;
+      if (/^artificer_feat_lv\d+$/i.test(k)) continue; // Already shown in feat section
+
+      const vals = (Array.isArray(choiceVal) ? choiceVal : [choiceVal])
+        .map(v => String(v || '').trim())
+        .filter(Boolean);
+      if (!vals.length) continue;
+
+      const label = ARTIFICER_CHOICE_LABELS[k] || k.replace(/^.*?_/, '').replace(/_/g, ' ');
+      artRows.push({ label: scope + label, values: vals });
+    }
+
+    if (artRows.length) {
+      h += `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('wrench')} Artificer Choices</div>`;
+      for (const row of artRows) {
+        const id = 'art_choice_' + Math.random().toString(36).slice(2);
+        const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
+        h += `<div class="feature-item" id="${id}">
+          <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+            <div style="flex:1;min-width:0">
+              <div class="feature-name" style="color:var(--teal)">${esc(row.label)}</div>
+              <div style="font-size:9px;color:var(--teal);opacity:.75;margin-top:1px">${row.values.length} selected</div>
+            </div>
+            <span class="feature-arrow">▶</span>
+          </div>
+          <div class="feature-body">${body}</div>
+        </div>`;
+      }
+    }
+  }
+
   if(!h) h='<div class="phmsg">No features available.</div>';
   el.innerHTML = h;
   refreshIcons();
@@ -3024,25 +3211,136 @@ function doRest(type){
     renderActionsTab();
     showDiceToast('Long Rest', [], 0, maxHP, 'HP, slots and resources restored!');
   } else {
-    const hdLeft = C.level - usedHD;
-    if(!hdLeft){ showDiceToast('Short Rest', [], 0, 0, 'No hit dice remaining!'); return; }
-    const hd = C.clsSnapshot?.hd;
-    let faces = 8;
-    if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
-    const roll = Math.floor(Math.random()*faces)+1;
-    const conMod = getMod(getFinal('con'));
-    const heal = Math.max(1, roll+conMod);
-    currentHP = Math.min(maxHP, currentHP+heal);
-    usedHD++;
-    recoverResources('SR');
+    _showShortRestModal();
+  }
+}
+
+function _getHdFaces(){
+  const hd = C?.clsSnapshot?.hd;
+  if(hd){ if(hd.faces) return hd.faces; if(Array.isArray(hd)&&hd[0]?.faces) return hd[0].faces; }
+  return 8;
+}
+
+function _showShortRestModal(){
+  const hdLeft = C.level - usedHD;
+  const faces = _getHdFaces();
+  let m = document.getElementById('sr-modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'sr-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem';
+    m.addEventListener('click', e=>{ if(e.target===m) _closeShortRestModal(); });
+    document.body.appendChild(m);
+  }
+  if(!hdLeft){
+    m.style.display = 'flex';
+    m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:340px;width:100%;text-align:center">
+      <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:1rem">${luci('sun')} Short Rest</div>
+      <div style="color:var(--text3);font-size:13px;margin-bottom:1rem">Nessun Dado Vita rimasto.</div>
+      <button onclick="_applyShortRest(0,${faces})" style="padding:7px 20px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--text2);cursor:pointer;font-family:inherit">Riposa (solo risorse)</button>
+      <button onclick="_closeShortRestModal()" style="margin-left:8px;padding:7px 20px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Annulla</button>
+    </div>`;
+    refreshIcons(); return;
+  }
+  m.style.display = 'flex';
+  m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:340px;width:100%">
+    <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:1rem">${luci('sun')} Short Rest</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">Dadi Vita disponibili: <b style="color:var(--gold2)">${hdLeft} d${faces}</b> &nbsp;·&nbsp; CON ${fbonus(getMod(getFinal('con')))}</div>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+      <span style="font-size:12px;color:var(--text2)">Dadi da usare:</span>
+      <button onclick="_srAdj(-1)" style="width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:16px;line-height:1">−</button>
+      <span id="sr-count" style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2);min-width:24px;text-align:center">1</span>
+      <button onclick="_srAdj(1)" style="width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:16px;line-height:1">+</button>
+    </div>
+    <div id="sr-preview" style="font-size:12px;color:var(--text3);margin-bottom:1rem;min-height:18px;font-style:italic"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="_applyShortRest(parseInt(document.getElementById('sr-count').textContent),${faces})"
+        style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:pointer;font-family:'Cinzel',serif;font-size:12px;font-weight:700">
+        ${luci('dice-5')} Riposa
+      </button>
+      <button onclick="_closeShortRestModal()" style="padding:8px 16px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Annulla</button>
+    </div>
+  </div>`;
+  refreshIcons();
+  _srMaxHd = hdLeft; _srFaces = faces;
+  _updateSrPreview();
+}
+
+let _srMaxHd = 1, _srFaces = 8;
+
+function _srAdj(delta){
+  const el = document.getElementById('sr-count');
+  if(!el) return;
+  let v = parseInt(el.textContent)||1;
+  v = Math.max(0, Math.min(_srMaxHd, v+delta));
+  el.textContent = v;
+  _updateSrPreview();
+}
+
+function _updateSrPreview(){
+  const el = document.getElementById('sr-preview');
+  const countEl = document.getElementById('sr-count');
+  if(!el||!countEl) return;
+  const n = parseInt(countEl.textContent)||1;
+  const conMod = getMod(getFinal('con'));
+  if(n===0){ el.textContent = 'Solo risorse recuperate, nessun HP.'; return; }
+  const avgRoll = Math.ceil(_srFaces/2);
+  const avgHeal = Math.max(n, n*avgRoll + n*conMod);
+  el.textContent = `~${avgHeal} HP di recupero (media ${avgRoll}+${conMod} per dado)`;
+}
+
+function _closeShortRestModal(){
+  const m = document.getElementById('sr-modal');
+  if(m) m.style.display = 'none';
+}
+
+function _applyShortRest(count, faces){
+  _closeShortRestModal();
+  const conMod = getMod(getFinal('con'));
+  const rolls = [];
+  let totalHeal = 0;
+  for(let i=0;i<count;i++){
+    const r = Math.floor(Math.random()*faces)+1;
+    rolls.push(r);
+    totalHeal += Math.max(1, r+conMod);
+  }
+  if(count>0){
+    currentHP = Math.min(maxHP, currentHP+totalHeal);
+    usedHD += count;
     localStorage.setItem('5e_hp_current', currentHP);
     localStorage.setItem('5e_hd_used', usedHD);
     const d = document.getElementById('hp-cur-display');
     if(d) d.textContent = currentHP;
     renderHitDice();
-    renderActionsTab();
-    showDiceToast('Short Rest', [roll], conMod, heal, `d${faces} + CON (${fbonus(conMod)}) = +${heal} HP`);
   }
+  // Recover SR resources (class features, maneuvers, etc.)
+  recoverResources('SR');
+  // Reset Warlock pact slots (recharge on SR)
+  _resetPactSlots();
+  renderSpellsTab();
+  renderActionsTab();
+  const rollDesc = rolls.length ? rolls.map(r=>`d${faces}(${r})`).join('+') + (conMod?' +'+conMod+'/dado':'') : '';
+  showDiceToast('Short Rest',
+    rolls.map(r=>({v:r,faces})),
+    count>0?conMod:0,
+    count>0?totalHeal:0,
+    count>0 ? `${rollDesc} = +${totalHeal} HP` : 'Risorse recuperate');
+}
+
+function _resetPactSlots(){
+  const PACT_SLOTS=[null,{n:1,l:1},{n:2,l:1},{n:2,l:2},{n:2,l:2},{n:3,l:3},{n:3,l:3},{n:3,l:4},{n:3,l:4},{n:3,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5}];
+  const extra = C?.extraClasses||[];
+  const pLv = C?.classLevel || C?.level || 1;
+  const isPact = p => p==='pact';
+  const resetPact = lv => {
+    const ps = PACT_SLOTS[Math.min(lv,20)];
+    if(ps) spellSlotUsed[ps.l] = 0;
+  };
+  if(isPact(C?.clsSnapshot?.casterProgression)) resetPact(pLv);
+  extra.forEach(ec => {
+    if(isPact(ec.clsSnapshot?.casterProgression)||ec.name==='Warlock') resetPact(ec.level||1);
+  });
+  localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
 }
 
 function saveNotes(){
@@ -3128,7 +3426,11 @@ let charResources = {};
 const CLASS_RESOURCES_DEF = {
   Barbarian:[
     {key:'rage',            name:'Rage',              icon:'angry',    recharge:'LR',
-     max:(lv)=>lv>=20?Infinity:lv>=17?6:lv>=12?5:lv>=6?4:lv>=3?3:2 },
+     max:(lv)=>lv>=20?Infinity:lv>=17?6:lv>=12?5:lv>=6?4:lv>=3?3:2, srRecover:1 },
+  ],
+  Artificer:[
+    {key:'flash_genius',    name:'Flash of Genius',   icon:'brain',    recharge:'LR',
+     max:()=>Math.max(1,getMod(getFinal('int'))) },
   ],
   Bard:[
     {key:'bardic_insp',     name:'Bardic Inspiration', icon:'music',  recharge:'SR',
@@ -3197,6 +3499,7 @@ const RESOURCE_ACTION_MAP = {
   wild_shape:'Wild Shape', second_wind:'Second Wind', action_surge:'Action Surge',
   ki:'Discipline Points', lay_on_hands:'Lay on Hands', divine_sense:'Divine Sense',
   sorc_pts:'Sorcery Points', arc_recovery:'Arcane Recovery',
+  flash_genius:'Flash of Genius',
   divine_intervention:'Divine Intervention',
   war_priest:'War Priest',
   superiority_dice:'Combat Maneuvers', psi_dice:'Psionic Strike',
@@ -3245,11 +3548,33 @@ function setResourcePip(key, idx, max){
 
 function recoverResources(type){
   for(const r of getAllResDefs()){
-    if(type==='LR' || r.recharge==='SR'){
-      charResources[r.key] = getResMax(r);
+    const max = getResMax(r);
+    if(type==='LR'){
+      charResources[r.key] = max;
+      continue;
+    }
+    if(r.recharge==='SR'){
+      charResources[r.key] = max;
+      continue;
+    }
+    if(type==='SR' && r.srRecover){
+      const gain = typeof r.srRecover === 'function' ? Number(r.srRecover(C?.classLevel || C?.level || 1)) : Number(r.srRecover);
+      if (gain > 0) {
+        const cur = charResources[r.key] ?? max;
+        charResources[r.key] = Math.min(max, cur + gain);
+      }
     }
   }
   saveResources();
+}
+
+function _getResourceRechargeLabel(res){
+  if (res.recharge === 'SR') return 'RS';
+  if (res.srRecover) {
+    const gain = typeof res.srRecover === 'function' ? Number(res.srRecover(C?.classLevel || C?.level || 1)) : Number(res.srRecover);
+    if (gain > 0) return `RL+${gain}RS`;
+  }
+  return 'RL';
 }
 
 function buildResourceBlock(actionName){
@@ -3260,7 +3585,7 @@ function buildResourceBlock(actionName){
   const max = getResMax(res);
   if(max===0) return '';
   const cur = charResources[res.key]??max;
-  const rechargeLabel = res.recharge==='SR'?'RS':'RL';
+  const rechargeLabel = _getResourceRechargeLabel(res);
 
   if(res.pool){
     // Show as number +/- for pools (Ki, Lay on Hands, etc.)
@@ -3312,7 +3637,7 @@ function buildWeaponCard(item){
     +(rc?`<span class="action-tag" style="border-color:${rc};color:${rc}">${esc(rarity)}</span>`:'');
   const sub=[src, bonus>0?'Magica +'+bonus:'', propStr].filter(Boolean).join(' · ');
   return `<div class="action-card" id="${id}">
-    <div class="action-card-hdr" onclick="toggleCard('${id}')">
+    <div class="action-card-hdr">
       <span class="action-card-icon">${icon}</span>
       <div style="flex:1;min-width:0">
         <div class="action-card-name">${wName}${sub?`<span class="sub">${esc(sub)}</span>`:''}</div>
@@ -3320,15 +3645,13 @@ function buildWeaponCard(item){
       <div class="action-card-tags">${tagHtml}</div>
       <div class="action-stat">${fbonus(atkMod)}</div>
     </div>
-    <div class="action-card-body">
-      <div class="action-info-row">
-        <button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkMod},'Attack: ${wName}')">${luci('dice-5')} Hits ${fbonus(atkMod)}</button>
-        <button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','Damage: ${wName}')">${luci('sword')} ${esc(dmgLabel)}</button>
-        ${versDie?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${versDie}${dmgSign}${dmgMod}','Damage (vers.): ${wName}')">${luci('swords')} ${versDie} vers.</button>`:''}
-        <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
-        ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
-        ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">${luci('sparkles')} Magica +${bonus}</div>`:''}
-      </div>
+    <div class="action-card-bar">
+      <button class="roll-btn" onclick="rollD20(${atkMod},'Attack: ${wName}')">${luci('dice-5')} Hits ${fbonus(atkMod)}</button>
+      <button class="roll-btn dmg" onclick="rollDamage('${dmgFormula}','Damage: ${wName}')">${luci('sword')} ${esc(dmgLabel)}</button>
+      ${versDie?`<button class="roll-btn dmg" onclick="rollDamage('${versDie}${dmgSign}${dmgMod}','Damage (vers.): ${wName}')">${luci('swords')} ${versDie} vers.</button>`:''}
+      <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
+      ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
+      ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">${luci('sparkles')} +${bonus}</div>`:''}
     </div>
   </div>`;
 }
@@ -3339,17 +3662,15 @@ function buildCantripCard(name){
   const id='ac_'+Math.random().toString(36).slice(2);
   if(!d){
     return `<div class="action-card" id="${id}">
-      <div class="action-card-hdr" onclick="toggleCard('${id}')">
+      <div class="action-card-hdr">
         <span class="action-card-icon">${luci('sparkles')}</span>
         <div style="flex:1;min-width:0"><div class="action-card-name">${esc(name)}<span class="sub">Cantrip</span></div></div>
         <div class="action-card-tags"><span class="action-tag atk">SPELL</span></div>
         <div class="action-stat">${fbonus(sm+pb)}</div>
       </div>
-      <div class="action-card-body">
-        <div class="action-info-row">
-          <button class="roll-btn" onclick="event.stopPropagation();rollD20(${sm+pb},'${esc(name)}')">${luci('dice-5')} Attack ${fbonus(sm+pb)}</button>
-          <div class="action-dmg-pill">${luci('ruler')} varies</div>
-        </div>
+      <div class="action-card-bar">
+        <button class="roll-btn" onclick="rollD20(${sm+pb},'${esc(name)}')">${luci('dice-5')} Attack ${fbonus(sm+pb)}</button>
+        <div class="action-dmg-pill">${luci('ruler')} varies</div>
       </div>
     </div>`;
   }
@@ -3359,7 +3680,7 @@ function buildCantripCard(name){
   const hitStr=d.toHit?fbonus(atkBonus):`CD ${saveDC}`;
   const nEsc=esc(name);
   return `<div class="action-card" id="${id}">
-    <div class="action-card-hdr" onclick="toggleCard('${id}')">
+    <div class="action-card-hdr">
       <span class="action-card-icon">${luci(d.icon)}</span>
       <div style="flex:1;min-width:0">
         <div class="action-card-name">${nEsc}<span class="sub">Cantrip · ${esc(d.dmgType||'utility')} · ${esc(d.range)}</span></div>
@@ -3367,16 +3688,14 @@ function buildCantripCard(name){
       <div class="action-card-tags"><span class="action-tag ${d.toHit?'atk':'save'}">${d.toHit?'ATK':'SAV'}</span></div>
       <div class="action-stat">${hitStr}</div>
     </div>
-    <div class="action-card-body">
-      <div class="action-info-row">
-        ${d.toHit
-          ?`<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'${nEsc}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`
-          :`<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>`}
-        ${dmgFormula!=='—'?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${nEsc}')">${luci('flame')} ${esc(dmgLabel)}</button>`:''}
-        <div class="action-dmg-pill">${luci('ruler')} <b>${esc(d.range)}</b></div>
-        <div class="action-dmg-pill">${luci('trending-up')} Scales at lv. 5/11/17</div>
-        ${d.notes?`<div class="action-dmg-pill" style="color:var(--text3)">${esc(d.notes)}</div>`:''}
-      </div>
+    <div class="action-card-bar">
+      ${d.toHit
+        ?`<button class="roll-btn" onclick="rollD20(${atkBonus},'${nEsc}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`
+        :`<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>`}
+      ${dmgFormula!=='—'?`<button class="roll-btn dmg" onclick="rollDamage('${dmgFormula}','${nEsc}')">${luci('flame')} ${esc(dmgLabel)}</button>`:''}
+      <div class="action-dmg-pill">${luci('ruler')} <b>${esc(d.range)}</b></div>
+      <div class="action-dmg-pill">${luci('trending-up')} ×5/11/17</div>
+      ${d.notes?`<div class="action-dmg-pill" style="color:var(--text3)">${esc(d.notes)}</div>`:''}
     </div>
   </div>`;
 }
@@ -3496,18 +3815,16 @@ function buildUnarmedCard(opt){
   const tag=opt.cat==='attack'?'atk':'util';
   const catLbl=opt.cat==='attack'?'ATK':'ACTION';
   const stat=opt.cat==='attack'?fbonus(strMod+pb):isGrSh?`DC ${dc}`:null;
-  let infoRow='';
+  let barContent='';
   if(opt.cat==='attack'){
-    infoRow=`<div class="action-info-row">
-      <button class="roll-btn" onclick="event.stopPropagation();rollD20(${strMod+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(strMod+pb)}</button>
-      <button class="roll-btn dmg" onclick="event.stopPropagation();showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">${luci('sword')} ${Math.max(1,1+strMod)} bludg.</button>
-      <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>
-    </div>`;
+    barContent=`
+      <button class="roll-btn" onclick="rollD20(${strMod+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(strMod+pb)}</button>
+      <button class="roll-btn dmg" onclick="showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">${luci('sword')} ${Math.max(1,1+strMod)} bludg.</button>
+      <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>`;
   } else if(isGrSh){
-    infoRow=`<div class="action-info-row">
+    barContent=`
       <div class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></div>
-      <div class="action-dmg-pill">${luci('ruler')} 5 ft (reach)</div>
-    </div>`;
+      <div class="action-dmg-pill">${luci('ruler')} 5 ft (reach)</div>`;
   }
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
@@ -3516,8 +3833,8 @@ function buildUnarmedCard(opt){
       <div class="action-card-tags"><span class="action-tag ${tag}">${catLbl}</span></div>
       ${stat!==null?`<div class="action-stat">${stat}</div>`:''}
     </div>
+    ${barContent?`<div class="action-card-bar">${barContent}</div>`:''}
     <div class="action-card-body">
-      ${infoRow}
       <div class="action-desc">${esc(opt.desc)}</div>
     </div>
   </div>`;
@@ -3550,7 +3867,7 @@ function buildResourceBlockInline(actionName){
   const max=getResMax(res);
   if(max===0) return '';
   const cur=charResources[res.key]??max;
-  const rechargeLabel=res.recharge==='SR'?'RS':'RL';
+  const rechargeLabel=_getResourceRechargeLabel(res);
   if(res.pool){
     return `<div class="res-inline">
       <span class="res-inline-label">${esc(res.name)}</span>
@@ -3624,13 +3941,31 @@ function _getPickerModal(){
   return m;
 }
 
+function _getMaxCastableLevel(){
+  const prog = C?.clsSnapshot?.casterProgression;
+  const lv = Math.min(C?.classLevel||C?.level||1, 20);
+  if(!prog) return 0;
+  const PACT_LV=[0,1,1,2,2,3,3,4,4,5,5,5,5,5,5,5,5,5,5,5,5];
+  if(prog==='pact') return PACT_LV[lv];
+  const FS=[null,[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
+  const HS=[null,null,[2],[3],[3],[4,2],[4,2],[4,3],[4,3],[4,3,2],[4,3,2],[4,3,3],[4,3,3],[4,3,3,1],[4,3,3,1],[4,3,3,2],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
+  const AS=[null,[2],[2],[3],[3],[4,2],[4,2],[4,3],[4,3],[4,3,2],[4,3,2],[4,3,3],[4,3,3],[4,3,3,1],[4,3,3,1],[4,3,3,2],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
+  const slots=prog==='full'?FS[lv]:(prog==='1/2'||prog==='half')?HS[lv]:prog==='artificer'?AS[lv]:null;
+  if(!slots) return 0;
+  let max=0; for(let i=0;i<slots.length;i++) if(slots[i]>0) max=i+1;
+  return max;
+}
+
 function _buildPickerTabs(){
   const el = document.getElementById('spl-tabs');
   if(!el) return;
   const labels = ['Cantrip','1°','2°','3°','4°','5°','6°','7°','8°','9°'];
+  const maxCast = _getMaxCastableLevel();
   const cantripCount = (C.selectedCantrips||[]).length;
   const spellCount = Object.values(C.selectedSpells||{}).flat().length;
   el.innerHTML = labels.map((l,i)=>{
+    const hasSelected = i===0 ? cantripCount>0 : ((C.selectedSpells||{})[i]||[]).length>0;
+    if(i>0 && i>maxCast && !hasSelected) return '';
     const lim = _getSpellLimit(i===0);
     const badge = lim.max!==null ? ` (${i===0?cantripCount:spellCount}/${lim.max})` : '';
     return `<button class="af-btn${_splFilter.level===i?' on':''}"

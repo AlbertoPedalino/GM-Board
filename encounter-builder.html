@@ -1900,176 +1900,14 @@
   </style>
   <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
   <script>
-    (() => {
-      const EMOJI_TO_LUCIDE = Object.freeze({
-        '⚔️': 'swords', '⚔': 'swords',
-        '🎲': 'dice-5',
-        '🔍': 'search',
-        '☀️': 'sun', '☀': 'sun',
-        '🌧️': 'cloud-rain', '🌧': 'cloud-rain',
-        '❄️': 'snowflake', '❄': 'snowflake',
-        '⬡': 'hexagon',
-        '📖': 'book-open',
-        '⏱': 'timer',
-        '👁️': 'eye', '👁': 'eye',
-        '💥': 'sparkles',
-        '⚡': 'zap',
-        '✓': 'check',
-        '✦': 'sparkles',
-        '🎒': 'backpack',
-        '🛡': 'shield',
-        '🏹': 'crosshair',
-        '😡': 'angry',
-        '🎵': 'music',
-        '🐻': 'paw-print',
-        '🙏': 'hands',
-        '✝': 'cross',
-        '🌀': 'orbit',
-        '🏃': 'move-right',
-        '🤝': 'handshake',
-        '💨': 'wind',
-        '👊': 'hand',
-        '🤼': 'users-round',
-        '🗡': 'sword',
-        '🔥': 'flame',
-        '💀': 'skull',
-        '✨': 'sparkles',
-        '🕸': 'bug',
-        '🟢': 'circle',
-        '🕯': 'flame',
-        '🌿': 'leaf',
-        '🎭': 'masks',
-        '💚': 'heart',
-        '🌩': 'cloud-lightning',
-        '🎯': 'target',
-        '🏰': 'castle',
-        '📜': 'scroll-text',
-        '📋': 'clipboard-list',
-        '🔴': 'circle',
-        '🟠': 'circle',
-        '🟡': 'circle',
-        '🔵': 'circle',
-        '🟣': 'circle',
-        '⭕': 'circle',
-        '📦': 'package',
-        '🗑': 'trash-2',
-        '←': 'arrow-left',
-        '✕': 'x',
-        '📜': 'scroll-text',
-      });
-
-      const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'NOSCRIPT', 'SVG']);
-      const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const EMOJI_RE = new RegExp(
-        Object.keys(EMOJI_TO_LUCIDE)
-          .sort((a, b) => b.length - a.length)
-          .map(escapeRegex)
-          .join('|'),
-        'g'
-      );
-
-      function hasIconEmoji(text) {
-        if (!text) return false;
-        EMOJI_RE.lastIndex = 0;
-        return EMOJI_RE.test(text);
-      }
-
-      function makeIconNode(emoji) {
-        const iconName = EMOJI_TO_LUCIDE[emoji] || 'circle';
-        const i = document.createElement('i');
-        i.setAttribute('data-lucide', iconName);
-        i.className = 'lucide-emoji';
-        i.setAttribute('aria-hidden', 'true');
-        return i;
-      }
-
-      function replaceTextNode(node) {
-        const text = node.nodeValue || '';
-        if (!hasIconEmoji(text) || !node.parentNode) return;
-
-        const frag = document.createDocumentFragment();
-        let last = 0;
-
-        text.replace(EMOJI_RE, (match, offset) => {
-          if (offset > last) frag.appendChild(document.createTextNode(text.slice(last, offset)));
-          frag.appendChild(makeIconNode(match));
-          last = offset + match.length;
-          return match;
-        });
-
-        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
-        node.parentNode.replaceChild(frag, node);
-      }
-
-      function scanAndReplace(root) {
-        if (!root) return;
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        const targets = [];
-
-        let n;
-        while ((n = walker.nextNode())) {
-          const p = n.parentElement;
-          if (!p) continue;
-          if (SKIP_TAGS.has(p.tagName)) continue;
-          if (p.closest('[data-no-iconify]')) continue;
-          if (hasIconEmoji(n.nodeValue || '')) targets.push(n);
-        }
-
-        targets.forEach(replaceTextNode);
-      }
-
-      function injectIconStyle() {
-        if (document.getElementById('lucide-emoji-style')) return;
-        const style = document.createElement('style');
-        style.id = 'lucide-emoji-style';
-        style.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
-        document.head.appendChild(style);
-      }
-
-      let observer = null;
-      let scheduled = false;
-
-      function refreshLucideIcons() {
-        if (scheduled) return;
-        scheduled = true;
-
-        requestAnimationFrame(() => {
-          scheduled = false;
-          if (!document.body) return;
-
-          if (observer) observer.disconnect();
-          scanAndReplace(document.body);
-          if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
-          }
-          if (observer) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-        });
-      }
-
-      function startObserver() {
-        if (observer || !document.body) return;
-        observer = new MutationObserver((mutations) => {
-          for (const m of mutations) {
-            if (m.type === 'childList' && m.addedNodes.length) {
-              refreshLucideIcons();
-              return;
-            }
-            if (m.type === 'characterData' && hasIconEmoji(m.target?.nodeValue || '')) {
-              refreshLucideIcons();
-              return;
-            }
-          }
-        });
-        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-      }
-
-      injectIconStyle();
-      document.addEventListener('DOMContentLoaded', () => {
-        refreshLucideIcons();
-        startObserver();
-      });
-      window.refreshLucideIcons = refreshLucideIcons;
-    })();
+(function(){
+  var s = document.createElement('style');
+  s.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
+  document.head.appendChild(s);
+})();
+function luci(name){ return '<i data-lucide="'+name+'" class="lucide-emoji" aria-hidden="true"></i>'; }
+function refreshIcons(){ if(window.lucide && typeof window.lucide.createIcons==='function') window.lucide.createIcons({attrs:{'stroke-width':2}}); }
+document.addEventListener('DOMContentLoaded', refreshIcons);
   </script>
 </head>
 
@@ -2079,7 +1917,7 @@
     <header>
       <h1>Encounter Builder</h1>
       <div class="sub">D&amp;D 5e · 5etools</div>
-      <div class="header-mark" aria-hidden="true">⚔</div>
+      <div class="header-mark" aria-hidden="true"><i data-lucide="swords" class="lucide-emoji" aria-hidden="true"></i></div>
     </header>
 
     <div class="tabs">
@@ -2205,8 +2043,8 @@
               <div class="save-enc-form">
                 <input type="text" id="enc-name" placeholder="Encounter name (e.g. Forest Ambush)…" />
                 <div class="save-enc-btns">
-                  <button class="btn-save-enc" id="btn-salva" onclick="saveEncounter()" disabled>📋 Save Encounter</button>
-                  <button class="btn-launch-now" id="btn-avvia" onclick="avvia()" disabled title="Launch without saving">⚔ Launch</button>
+                  <button class="btn-save-enc" id="btn-salva" onclick="saveEncounter()" disabled><i data-lucide="clipboard-list" class="lucide-emoji" aria-hidden="true"></i> Save Encounter</button>
+                  <button class="btn-launch-now" id="btn-avvia" onclick="avvia()" disabled title="Launch without saving"><i data-lucide="swords" class="lucide-emoji" aria-hidden="true"></i> Launch</button>
                 </div>
                 <div class="save-confirm" id="save-confirm"></div>
               </div>
@@ -2256,12 +2094,12 @@
 
   <!-- Log tiri -->
   <button id="log-toggle" onclick="toggleLog()" title="Dice roll log">
-    🎲
+    <i data-lucide="dice-5" class="lucide-emoji" aria-hidden="true"></i>
     <span id="log-badge"></span>
   </button>
   <div id="log-panel">
     <div class="log-header">
-      <span class="log-title">📜 Roll Log</span>
+      <span class="log-title"><i data-lucide="scroll-text" class="lucide-emoji" aria-hidden="true"></i> Roll Log</span>
       <button class="log-clear" onclick="clearLog()">Clear</button>
     </div>
     <div class="log-entries" id="log-entries">
@@ -2612,7 +2450,7 @@
       const cimm = Array.isArray(m.conditionImmune) ? m.conditionImmune.join(', ') : (m.conditionImmune || '');
 
       let h = `<div class="sbbar"></div>
-    <button class="sbclose" onclick="closeOverlay()">✕</button>
+    <button class="sbclose" onclick="closeOverlay()"><i data-lucide="x" class="lucide-emoji" aria-hidden="true"></i></button>
     <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px; padding:0 10px">
       <img src="${getMonIcon(m)}" style="width:70px; height:70px; border-radius:50%; border:2px solid var(--gold); background:var(--bg3); object-fit:contain" onerror="this.src='https://5etools-mirror-3.github.io/5etools-img/token/mm/skeleton.webp';">
       <div>
@@ -2683,6 +2521,7 @@
       if (showAdd) h += `<button class="sbaddbtn" onclick="addFromModal()">+ Add to Encounter</button>`;
       h += `<div class="sbbar bot"></div>`;
       document.getElementById('sbcontent').innerHTML = h;
+      refreshIcons();
     }
 
     function addFromModal() { if (selMon) { addMonObj(selMon); closeOverlay(); } }
@@ -2880,7 +2719,7 @@
       html += `
   <div class="add-quick-wrapper" style="margin-bottom:18px">
     <button class="collapsible-trigger" onclick="toggleQuickComp()">
-      <span>⚔&nbsp; Reinforcements &amp; Database</span>
+      <span><i data-lucide="swords" class="lucide-emoji" aria-hidden="true"></i>&nbsp; Reinforcements &amp; Database</span>
       <span class="trig-arrow">▼ expand</span>
     </button>
 
@@ -2978,12 +2817,13 @@
           <button class="hbtn d" onclick="modHP(${c.id},-5)">-5</button>
           <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
           <button class="hbtn h" onclick="modHP(${c.id},10)">+10</button>
-          <button class="cbtn" style="border-color: var(--red); color: var(--red2); margin-left: 8px; width: 28px; height: 28px;" onclick="removeCombatant(${c.id})">✕</button>
+          <button class="cbtn" style="border-color: var(--red); color: var(--red2); margin-left: 8px; width: 28px; height: 28px;" onclick="removeCombatant(${c.id})">${luci('x')}</button>
         </div>
       </div>`;
       }).join('');
 
       document.getElementById('clist').innerHTML = html;
+      refreshIcons();
 
       // Ripristina lo stato aperto del pannello rinforzi se era aperto
       if (wasOpen) {
@@ -3414,7 +3254,7 @@
 
       nameInput.value = '';
       const confirm = document.getElementById('save-confirm');
-      confirm.textContent = `✓ "${name}" saved to Library`;
+      confirm.innerHTML = `${luci('check')} "${name}" saved to Library`; refreshIcons();
       setTimeout(() => { confirm.textContent = ''; }, 3000);
     }
 
@@ -3479,12 +3319,13 @@
           </div>
           <div class="lib-card-monsters">${monsStr}</div>
           <div class="lib-card-actions">
-            <button class="btn-avvia" onclick="launchEncounter(${e.id})" style="flex:1;padding:8px;font-size:13px">⚔ Launch</button>
+            <button class="btn-avvia" onclick="launchEncounter(${e.id})" style="flex:1;padding:8px;font-size:13px">${luci('swords')} Launch</button>
             <button class="btn-sec danger" onclick="deleteEncounter(${e.id})" style="font-size:12px">🗑</button>
             <span class="lib-card-date">${dateStr}</span>
           </div>
         </div>`;
       }).join('') + '</div>';
+      refreshIcons();
     }
 
   </script>

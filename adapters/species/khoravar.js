@@ -1,6 +1,20 @@
 registerSpeciesAdapter("Khoravar_EFA", function (s) {
   const specs = genericSpeciesParser(s);
 
+  // Skill Versatility: choose 1 skill or tool (replaceable on Long Rest)
+  const skillsAndTools = [
+    ...(typeof SKILLS !== 'undefined' ? SKILLS.map(function(sk){ return sk.n; }) : []),
+    ...(typeof _ALL_TOOLS !== 'undefined' ? _ALL_TOOLS : []),
+  ];
+  specs.push({
+    key: 'khoravar_skill_versatility',
+    label: 'Skill Versatility — Skill o Tool (sostituibile dopo Long Rest)',
+    type: 'generic_choice',
+    from: skillsAndTools,
+    count: 1,
+    level: 1,
+  });
+
   const abilityChoices = (s.additionalSpells || [])
     .flatMap(g => g?.ability?.choose || [])
     .filter(Boolean);

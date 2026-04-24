@@ -29,7 +29,11 @@ const ADAPTER_MANIFEST = [
   'adapters/classes/wizard/wizard-stubs.js',
 
   'adapters/classes/artificer/artificer.js',
-  'adapters/classes/artificer/artificer-stubs.js',
+  'adapters/classes/artificer/alchemist.js',
+  'adapters/classes/artificer/armorer.js',
+  'adapters/classes/artificer/artillerist.js',
+  'adapters/classes/artificer/battle-smith.js',
+  'adapters/classes/artificer/cartographer.js',
 
   'adapters/classes/druid/druid.js',
   'adapters/classes/druid/land.js',
