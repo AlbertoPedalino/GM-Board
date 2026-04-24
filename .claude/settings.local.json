@@ -5,7 +5,8 @@
       "Bash(powershell -Command \"Remove-Item 'C:\\\\Users\\\\alber\\\\Documents\\\\DND\\\\GM-Board\\\\class-adapters.js'\")",
       "Bash(python3 *)",
       "Bash(node *)",
-      "Bash(grep -v \"^.*//.*extraClasses\")"
+      "Bash(grep -v \"^.*//.*extraClasses\")",
+      "Bash(grep -v \"//.*tool\\\\|const tl\\\\|5700\\\\|5701\")"
     ]
   }
 }

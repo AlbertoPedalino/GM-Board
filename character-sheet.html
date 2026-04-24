@@ -795,6 +795,174 @@
       border:1px solid var(--bdr);border-radius:3px;padding:0 4px;margin-left:2px;
     }
   </style>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script>
+(() => {
+  const EMOJI_TO_LUCIDE = Object.freeze({
+    '⚔️': 'swords', '⚔': 'swords',
+    '🎲': 'dice-5',
+    '🔍': 'search',
+    '☀️': 'sun', '☀': 'sun',
+    '🌧️': 'cloud-rain', '🌧': 'cloud-rain',
+    '❄️': 'snowflake', '❄': 'snowflake',
+    '⬡': 'hexagon',
+    '📖': 'book-open',
+    '⏱': 'timer',
+    '👁️': 'eye', '👁': 'eye',
+    '💥': 'sparkles',
+    '⚡': 'zap',
+    '✓': 'check',
+    '✦': 'sparkles',
+    '🎒': 'backpack',
+    '🛡': 'shield',
+    '🏹': 'crosshair',
+    '😡': 'angry',
+    '🎵': 'music',
+    '🐻': 'paw-print',
+    '🙏': 'hands',
+    '✝': 'cross',
+    '🌀': 'orbit',
+    '🏃': 'move-right',
+    '🤝': 'handshake',
+    '💨': 'wind',
+    '👊': 'hand',
+    '🤼': 'users-round',
+    '🗡': 'sword',
+    '🔥': 'flame',
+    '💀': 'skull',
+    '✨': 'sparkles',
+    '🕸': 'bug',
+    '🟢': 'circle',
+    '🕯': 'flame',
+    '🌿': 'leaf',
+    '🎭': 'masks',
+    '💚': 'heart',
+    '🌩': 'cloud-lightning',
+    '🎯': 'target',
+    '🌙': 'moon',
+    '⬇': 'download',
+    '📦': 'package',
+    '←': 'arrow-left',
+    '✕': 'x',
+    '📏': 'ruler',
+    '📈': 'trending-up',
+    '🔧': 'wrench',
+    '⛨': 'shield',
+  });
+
+  const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'NOSCRIPT', 'SVG']);
+  const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const EMOJI_RE = new RegExp(
+    Object.keys(EMOJI_TO_LUCIDE)
+      .sort((a, b) => b.length - a.length)
+      .map(escapeRegex)
+      .join('|'),
+    'g'
+  );
+
+  function hasIconEmoji(text) {
+    if (!text) return false;
+    EMOJI_RE.lastIndex = 0;
+    return EMOJI_RE.test(text);
+  }
+
+  function makeIconNode(emoji) {
+    const iconName = EMOJI_TO_LUCIDE[emoji] || 'circle';
+    const i = document.createElement('i');
+    i.setAttribute('data-lucide', iconName);
+    i.className = 'lucide-emoji';
+    i.setAttribute('aria-hidden', 'true');
+    return i;
+  }
+
+  function replaceTextNode(node) {
+    const text = node.nodeValue || '';
+    if (!hasIconEmoji(text) || !node.parentNode) return;
+
+    const frag = document.createDocumentFragment();
+    let last = 0;
+
+    text.replace(EMOJI_RE, (match, offset) => {
+      if (offset > last) frag.appendChild(document.createTextNode(text.slice(last, offset)));
+      frag.appendChild(makeIconNode(match));
+      last = offset + match.length;
+      return match;
+    });
+
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  }
+
+  function scanAndReplace(root) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const targets = [];
+
+    let n;
+    while ((n = walker.nextNode())) {
+      const p = n.parentElement;
+      if (!p) continue;
+      if (SKIP_TAGS.has(p.tagName)) continue;
+      if (p.closest('[data-no-iconify]')) continue;
+      if (hasIconEmoji(n.nodeValue || '')) targets.push(n);
+    }
+
+    targets.forEach(replaceTextNode);
+  }
+
+  function injectIconStyle() {
+    if (document.getElementById('lucide-emoji-style')) return;
+    const style = document.createElement('style');
+    style.id = 'lucide-emoji-style';
+    style.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
+    document.head.appendChild(style);
+  }
+
+  let observer = null;
+  let scheduled = false;
+
+  function refreshLucideIcons() {
+    if (scheduled) return;
+    scheduled = true;
+
+    requestAnimationFrame(() => {
+      scheduled = false;
+      if (!document.body) return;
+
+      if (observer) observer.disconnect();
+      scanAndReplace(document.body);
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
+      }
+      if (observer) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    });
+  }
+
+  function startObserver() {
+    if (observer || !document.body) return;
+    observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type === 'childList' && m.addedNodes.length) {
+          refreshLucideIcons();
+          return;
+        }
+        if (m.type === 'characterData' && hasIconEmoji(m.target?.nodeValue || '')) {
+          refreshLucideIcons();
+          return;
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+
+  injectIconStyle();
+  document.addEventListener('DOMContentLoaded', () => {
+    refreshLucideIcons();
+    startObserver();
+  });
+  window.refreshLucideIcons = refreshLucideIcons;
+})();
+</script>
 </head>
 <body>
 
@@ -1572,123 +1740,189 @@ function getSpellMod(){
 function getSpellSaveDC(){ return 8+getPB()+getSpellMod(); }
 function getSpellAttackBonus(){ return getPB()+getSpellMod(); }
 
-/* ── CLASS ACTIONS ── */
+/* ── CLASS ACTIONS — D&D 2024 (XPHB) ── */
 const CLASS_ACTIONS_MAP = {
   Barbarian:[
-    {name:"Rage",                icon:"",cat:"bonus",   uses:"2-6 / LR",  resKey:"rage",
-     desc:"Bonus action. Enter Rage for 1 minute: +2 damage with weapons (scales: +3 lv.9, +4 lv.16), resistance to bludgeoning/piercing/slashing damage, advantage on STR checks and saves. Uses: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17). Recharge: long rest."},
-    {name:"Reckless Attack",     icon:"",cat:"attack",  uses:"Unlimited",
-     desc:"Before attacking: gain advantage on all physical attacks this turn. Downside: all attacks against you have advantage until your next turn."},
-    {name:"Danger Sense",        icon:"",cat:"reaction",uses:"Passive",
-     desc:"You cannot be surprised while conscious. Advantage on DEX saves against traps and spells you can see."},
-    {name:"Reckless Charge",     icon:"",cat:"bonus",   uses:"While Raging",
-     desc:"While Raging: use Dash without provoking opportunity attacks for the rest of the turn."},
-    {name:"Relentless Endurance",icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
-     desc:"Advantage on all STR and CON saves while Raging."},
+    {name:"Rage",              icon:"",cat:"bonus",   uses:"2+ / LR",    resKey:"rage",
+     desc:"Bonus Action. Enter Rage for 1 minute: +2 damage on attacks (→+3 lv.9, →+4 lv.16), resistance to Bludgeoning/Piercing/Slashing, advantage on STR checks and saves. Uses: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17), unlimited (lv.20). Recharge: Long Rest."},
+    {name:"Reckless Attack",   icon:"",cat:"attack",  uses:"Unlimited",
+     desc:"When you make your first attack on your turn, gain advantage on all weapon attack rolls using STR this turn. Enemies gain advantage on attack rolls against you until the start of your next turn."},
+    {name:"Danger Sense",      icon:"",cat:"reaction",uses:"Passive",    minLevel:2,
+     desc:"You have advantage on DEX saving throws against effects you can see. You can't be surprised while you are conscious."},
+    {name:"Fast Movement",     icon:"",cat:"action",  uses:"Passive",    minLevel:5,
+     desc:"Your Speed increases by 10 ft while you aren't wearing Heavy Armor."},
+    {name:"Feral Instinct",    icon:"",cat:"action",  uses:"Passive",    minLevel:7,
+     desc:"Advantage on Initiative rolls. If you are surprised at the start of combat, you can act normally on your first turn as long as you enter your Rage before doing anything else."},
+    {name:"Brutal Strike",     icon:"",cat:"attack",  uses:"While Raging", minLevel:9,
+     desc:"When you use Reckless Attack and have advantage, forgo the advantage on one attack to deal +1d10 damage and trigger a Brutal Strike effect: Forceful Blow (push 15 ft or knock Prone) or Hamstring Blow (target's Speed halved until start of your next turn)."},
+    {name:"Relentless Rage",   icon:"",cat:"reaction",uses:"DC 10+ CON", minLevel:11,
+     desc:"When you are reduced to 0 HP while Raging and don't die outright, you can make a DC 10 CON save to drop to 1 HP instead. Each time you use this feature the DC increases by 5, resetting on a Long Rest."},
+    {name:"Persistent Rage",   icon:"",cat:"action",  uses:"Passive",    minLevel:15,
+     desc:"Your Rage only ends early if you fall unconscious or choose to end it. No longer ends from not attacking or taking damage."},
+    {name:"Indomitable Might", icon:"",cat:"action",  uses:"Passive",    minLevel:18,
+     desc:"If your total for a STR check is lower than your STR score, use your STR score in its place."},
   ],
   Bard:[
-    {name:"Bardic Inspiration",  icon:"",cat:"bonus",   uses:"CHA mod / SR", resKey:"bardic_insp",
-     desc:"Bonus action: give a Bardic Inspiration die (d6 lv.1-4, d8 lv.5-9, d10 lv.10-14, d12 lv.15-20) to a creature within 60 ft. Within 10 minutes they can add it to an ability check, attack, or save. Recharge: short rest (lv.5+) or long rest."},
-    {name:"Song of Rest",        icon:"",cat:"action",  uses:"Passive",   minLevel:2,
-     desc:"During a short rest: you and allies add 1d6 (lv.2), 1d8 (lv.9), 1d10 (lv.13), 1d12 (lv.17) extra HP when spending Hit Dice."},
-    {name:"Countercharm",        icon:"",cat:"reaction",uses:"Bardic Insp.",minLevel:6,
-     desc:"Use a Bardic Inspiration die to interfere with a spellcaster: impose disadvantage on their concentration check or disrupt an effect."},
+    {name:"Bardic Inspiration",icon:"",cat:"bonus",   uses:"CHA mod / SR", resKey:"bardic_insp",
+     desc:"Bonus Action: give one Bardic Inspiration die to a creature within 60 ft other than yourself. Die size: d6 (lv.1–4), d8 (lv.5–9), d10 (lv.10–14), d12 (lv.15–20). Recipient can add the die to one attack roll, ability check, or saving throw within 10 minutes. Recharge: Short Rest (lv.5+) or Long Rest."},
+    {name:"Jack of All Trades",icon:"",cat:"action",  uses:"Passive",    minLevel:2,
+     desc:"Add half your Proficiency Bonus (rounded down) to any ability check that doesn't already use your Proficiency Bonus."},
+    {name:"Expertise",         icon:"",cat:"action",  uses:"Passive",    minLevel:2,
+     desc:"Double your Proficiency Bonus for two skills you are proficient in (lv.2). Choose two more at lv.9."},
+    {name:"Countercharm",      icon:"",cat:"action",  uses:"Passive",    minLevel:7,
+     desc:"As an Action, begin a performance that lasts until the end of your next turn. During that time, any friendly creature within 30 ft who can hear you has Advantage on saving throws against being Charmed or Frightened."},
+    {name:"Magical Secrets",   icon:"",cat:"action",  uses:"Passive",    minLevel:11,
+     desc:"Learn 2 spells from any class's spell list. These count as Bard spells for you. Gain 2 more at lv.13, lv.15, lv.17, and lv.19."},
   ],
   Cleric:[
-    {name:"Channel Divinity",    icon:"",cat:"action",  uses:"1-3 / SR",  resKey:"channel_div",
-     desc:"Channel your deity's power. Uses: 1 (lv.1-5), 2 (lv.6-17), 3 (lv.18+). Recharge: short rest. Base option: Turn Undead — or your Domain's specific option (see subclass)."},
-    {name:"Turn Undead",         icon:"",cat:"action",  uses:"1 Channel",  resKey:"channel_div",
-     desc:"Every undead within 30 ft that can see or hear you must succeed on a WIS save (DC = 8+PB+WIS) or flee for 1 minute. Undead with CR <= half your level are Destroyed instead."},
-    {name:"Divine Intervention", icon:"",cat:"action",  uses:"1 / LR",    resKey:"divine_intervention",
-     desc:"Call on your deity for direct aid. Success chance = Cleric level %. At lv.20 it always succeeds. Recharge: long rest."},
+    {name:"Channel Divinity",  icon:"",cat:"action",  uses:"1-3 / SR",  resKey:"channel_div",   minLevel:2,
+     desc:"Channel your deity's power. Uses: 1 (lv.2–5), 2 (lv.6–17), 3 (lv.18+). Recharge: Short Rest. Options include Turn Undead and your Domain's feature (see subclass)."},
+    {name:"Turn Undead",       icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",   minLevel:2,
+     desc:"Channel Divinity option. Each Undead within 30 ft that can see or hear you must succeed on a WIS save (DC = 8+PB+WIS) or have the Frightened and Incapacitated condition for 1 minute (flees). Undead with CR ≤ your Proficiency Bonus are Destroyed instead."},
+    {name:"Divine Intervention",icon:"",cat:"action", uses:"1 / LR",   resKey:"divine_intervention", minLevel:10,
+     desc:"Implore your deity's aid. Roll 1d20: if the result ≤ your Cleric level, your deity intervenes (effect determined by the DM). At lv.20, this succeeds automatically. Recharge: Long Rest."},
+    {name:"Blessed Strikes",   icon:"",cat:"action",  uses:"Passive",   minLevel:7,
+     desc:"Gain one of two benefits: Divine Strike (add 1d8 of your domain's damage type once per turn) or Potent Spellcasting (add WIS mod to Cleric cantrip damage)."},
   ],
   Druid:[
-    {name:"Wild Shape",          icon:"",cat:"action",  uses:"2 / SR",    resKey:"wild_shape",  minLevel:2,
-     desc:"Transform into an observed beast. Max CR: lv.2=CR1/4 (no fly), lv.4=CR1/2 (no fly), lv.8=CR1. Gain the beast's HP. Lasts hours = half level. Recharge: short or long rest."},
-    {name:"Speak with Beasts",   icon:"",cat:"action",  uses:"Ritual / Passive",
-     desc:"You can communicate with beasts through sounds and gestures. You can cast Speak with Animals for free once per long rest."},
+    {name:"Wild Shape",        icon:"",cat:"bonus",   uses:"2 / LR",   resKey:"wild_shape",    minLevel:2,
+     desc:"Bonus Action. Transform into a Beast you have seen. Max CR: 1/4 (lv.2), 1/2 (lv.4), 1 (lv.8). Retain INT/WIS/CHA scores and class features. Gain the beast's HP, attacks, and physical traits. Lasts until reduced to 0 HP, you end it (Bonus Action), or you fall unconscious. Recharge: Long Rest (2 uses)."},
+    {name:"Wild Resurgence",   icon:"",cat:"bonus",   uses:"Situational", minLevel:5,
+     desc:"If you have no Wild Shape uses left, you can spend a spell slot of lv.1 or higher to regain one. Alternatively, you can expend one Wild Shape use to regain a lv.1 spell slot (once per LR)."},
+    {name:"Elemental Fury",    icon:"",cat:"action",  uses:"Passive",   minLevel:9,
+     desc:"Choose a damage type: Fire or Cold. While in Wild Shape or when you make an Unarmed Strike, you deal +1d6 of that damage type to creatures you hit once per turn."},
+    {name:"Improved Wild Shape",icon:"",cat:"bonus",  uses:"Passive",   minLevel:9,
+     desc:"Beast CR limit: lv.9 = CR 2, lv.10 = CR 3, and so on (CR = Druid level ÷ 3, rounded down, max CR 10)."},
   ],
   Fighter:[
-    {name:"Second Wind",         icon:"",cat:"bonus",   uses:"1 / SR",    resKey:"second_wind",
-     desc:"Bonus action: regain 1d10 + Fighter level HP. Recharge: short or long rest."},
-    {name:"Action Surge",        icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"action_surge",  minLevel:2,
-     desc:"Gain one additional action this turn. Uses: 1 (lv.2-16), 2 (lv.17+). Recharge: short or long rest."},
-    {name:"Fighting Style",      icon:"",cat:"action",  uses:"Passive",
-     desc:"Defense (+1 AC), Dueling (+2 damage 1H), Great Weapon (reroll 1-2), Protection (disadvantage on ally attacks), Archery (ignore long range penalty), Two-Weapon (+ability mod to offhand damage)."},
-    {name:"Extra Attack",        icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
-     desc:"Second attack with the Attack action (lv.5). Third at lv.11, fourth at lv.20."},
-    {name:"Indomitable",         icon:"",cat:"action",  uses:"1-3 / LR",  resKey:"indomitable",  minLevel:9,
-     desc:"When you fail a saving throw, you may choose to succeed instead. Uses: 1 (lv.9-12), 2 (lv.13-19), 3 (lv.20). Recharge: long rest."},
+    {name:"Second Wind",       icon:"",cat:"bonus",   uses:"1-3 / SR",  resKey:"second_wind",
+     desc:"Bonus Action: regain 1d10 + Fighter level HP. Uses: 1 (lv.1–2), 2 (lv.3–14), 3 (lv.15+). Recharge: Short or Long Rest."},
+    {name:"Action Surge",      icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"action_surge",  minLevel:2,
+     desc:"Take one additional action on your turn. Uses: 1 (lv.2–16), 2 (lv.17+). Recharge: Short or Long Rest."},
+    {name:"Tactical Mind",     icon:"",cat:"reaction",uses:"Second Wind", minLevel:2,
+     desc:"When you fail an ability check, you can expend a use of Second Wind (as a Reaction) to add 1d10 to the check result, possibly changing the outcome."},
+    {name:"Fighting Style",    icon:"",cat:"action",  uses:"Passive",
+     desc:"Archery (+2 ranged attack rolls), Defense (+1 AC), Dueling (+2 damage 1H), Great Weapon (reroll 1–2 damage), Protection (impose Disadvantage on attacker vs ally within 5 ft), Two-Weapon Fighting (add ability modifier to off-hand damage), Blind Fighting (10-ft blindsight), Interception (Reaction: reduce damage to ally by 1d10+PB)."},
+    {name:"Extra Attack",      icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
+     desc:"Attack twice when you take the Attack action (lv.5). Three times at lv.11. Four times at lv.20."},
+    {name:"Indomitable",       icon:"",cat:"reaction",uses:"1-3 / LR",  resKey:"indomitable",  minLevel:9,
+     desc:"When you fail a saving throw, you can reroll it and must use the new result. Uses: 1 (lv.9–12), 2 (lv.13–16), 3 (lv.17+). Recharge: Long Rest."},
+    {name:"Tactical Shift",    icon:"",cat:"bonus",   uses:"While Action Surge", minLevel:17,
+     desc:"When you use Action Surge, you can move up to half your Speed without provoking Opportunity Attacks."},
   ],
   Monk:[
-    {name:"Martial Arts",        icon:"",cat:"attack",  uses:"Passive",
-     desc:"With simple weapons or unarmed: use DEX instead of STR. Martial Arts die: d6 (lv.1-4), d8 (lv.5-10), d10 (lv.11-16), d12 (lv.17-20). Bonus action after Attack: additional unarmed strike."},
-    {name:"Flurry of Blows",     icon:"",cat:"bonus",   uses:"1 Ki",      resKey:"ki",  minLevel:2,
-     desc:"After the Attack action: make 2 additional unarmed strikes as a bonus action. Cost: 1 Ki point."},
-    {name:"Step of the Wind",    icon:"",cat:"bonus",   uses:"1 Ki",      resKey:"ki",  minLevel:2,
-     desc:"Bonus action: Disengage or Dash. Jump distance doubles for the turn. Cost: 1 Ki point."},
-    {name:"Stunning Strike",     icon:"",cat:"attack",  uses:"1 Ki",      resKey:"ki",  minLevel:2,
-     desc:"After hitting with a weapon or unarmed: spend 1 Ki to force a CON save (DC = 8+PB+WIS). Fail: stunned until your next turn."},
-    {name:"Deflect Missiles",    icon:"",cat:"reaction",uses:"Unlimited / 1 Ki redirect",  minLevel:3,
-     desc:"Reaction to a ranged attack: reduce damage by 1d10+DEX+level. If reduced to 0: spend 1 Ki to redirect the missile (range 20/60 ft)."},
-    {name:"Stillness of Mind",   icon:"",cat:"bonus",   uses:"Passive",   minLevel:5,
-     desc:"Bonus action: end one effect causing incapacitated, paralyzed, stunned, deafened, or blinded. At lv.10: also Frightened or Poisoned."},
+    {name:"Martial Arts",      icon:"",cat:"attack",  uses:"Passive",
+     desc:"With Simple weapons, Monk weapons, or Unarmed Strikes: use DEX instead of STR for attack and damage. Unarmed Strike die: d6 (lv.1–4), d8 (lv.5–10), d10 (lv.11–16), d12 (lv.17–20). After the Attack action: make one Unarmed Strike as a Bonus Action (free, no Discipline Point cost)."},
+    {name:"Flurry of Blows",   icon:"",cat:"bonus",   uses:"1 Discipline Point", resKey:"ki", minLevel:2,
+     desc:"After the Attack action, spend 1 Discipline Point to make 2 Unarmed Strikes as a Bonus Action."},
+    {name:"Patient Defense",   icon:"",cat:"bonus",   uses:"1 Discipline Point", resKey:"ki", minLevel:2,
+     desc:"Spend 1 Discipline Point (Bonus Action) to take the Dodge action."},
+    {name:"Step of the Wind",  icon:"",cat:"bonus",   uses:"1 Discipline Point", resKey:"ki", minLevel:2,
+     desc:"Spend 1 Discipline Point (Bonus Action) to take the Dash or Disengage action. Your jump distance doubles for the turn."},
+    {name:"Deflect Attacks",   icon:"",cat:"reaction",uses:"Free / 1 DP redirect", resKey:"ki", minLevel:3,
+     desc:"Reaction when you take damage from an attack. Reduce the damage by 1d10 + DEX modifier + Monk level. If reduced to 0: you can spend 1 Discipline Point to redirect the attack as a ranged attack (20/60 ft range, damage = Martial Arts die + DEX)."},
+    {name:"Slow Fall",         icon:"",cat:"reaction",uses:"Passive",   minLevel:4,
+     desc:"Reaction when falling: reduce falling damage by an amount equal to your Monk level × 5."},
+    {name:"Stunning Strike",   icon:"",cat:"attack",  uses:"1 Discipline Point", resKey:"ki", minLevel:5,
+     desc:"When you hit a creature with a weapon or Unarmed Strike, spend 1 Discipline Point to force a CON save (DC = 8+PB+WIS). Failure: the target has the Stunned condition until the start of your next turn."},
+    {name:"Ki-Empowered Strikes",icon:"",cat:"attack",uses:"Passive",   minLevel:6,
+     desc:"Your Unarmed Strikes count as magical for the purpose of overcoming Resistance and Immunity to nonmagical attacks."},
+    {name:"Evasion",           icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
+     desc:"When you are subjected to an effect that allows a DEX save for half damage: take no damage on success, half on failure. Doesn't work if you have the Incapacitated condition."},
+    {name:"Stillness of Mind", icon:"",cat:"action",  uses:"Passive",   minLevel:8,
+     desc:"You can use your Action to end one effect on yourself causing the Charmed or Frightened condition."},
+    {name:"Acrobatic Movement",icon:"",cat:"action",  uses:"Passive",   minLevel:9,
+     desc:"You gain Climb Speed and Swim Speed equal to your Speed. Difficult terrain costs no extra movement."},
+    {name:"Heightened Discipline",icon:"",cat:"action",uses:"Passive",  minLevel:10,
+     desc:"Your Flurry of Blows, Patient Defense, and Step of the Wind each gain a bonus effect when you spend the Discipline Point (chosen at level 10): Flurry stuns, Patient Defense knocks prone, Step of the Wind pushes."},
   ],
   Paladin:[
-    {name:"Divine Sense",        icon:"",cat:"action",  uses:"CHA+1 / LR",resKey:"divine_sense",
-     desc:"For 1 minute: aware of Celestials, Fiends, Undead, and consecrated/desecrated creatures within 60 ft, even through obstacles. Uses = CHA mod+1 per long rest."},
-    {name:"Lay on Hands",        icon:"",cat:"action",  uses:"Pool 5*lv / LR",resKey:"lay_on_hands",
-     desc:"Touch a creature: spend points from pool to restore HP (1 point = 1 HP), or 5 points to remove one disease or poison. Pool = 5 x Paladin level. Recharge: long rest."},
-    {name:"Divine Smite",        icon:"",cat:"attack",  uses:"Spell slot",
-     desc:"When you hit with a melee weapon: expend a spell slot to deal extra radiant damage. 2d8 for a 1st-level slot, +1d8 per slot level above 1st. Max 5d8."},
-    {name:"Channel Divinity",    icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"paladin_channel_div",  minLevel:3,
-     desc:"Oath-specific effect (see subclass). Uses: 1 (lv.3-10), 2 (lv.11+). Recharge: short rest."},
-    {name:"Aura of Protection",  icon:"",cat:"action",  uses:"Passive",   minLevel:6,
-     desc:"10-ft aura (30 ft at lv.18): you and conscious allies gain +CHA mod to saving throws (min +1)."},
+    {name:"Divine Sense",      icon:"",cat:"action",  uses:"CHA+1 / LR",resKey:"divine_sense",
+     desc:"Action: for 10 minutes, detect the presence of any Aberration, Celestial, Fiend, Fiendish objects, Undead, or consecrated/desecrated ground within 60 ft. Uses = 1 + CHA modifier per Long Rest."},
+    {name:"Lay on Hands",      icon:"",cat:"action",  uses:"Pool / LR", resKey:"lay_on_hands",
+     desc:"Touch a creature to restore HP from your pool (1 HP per point spent), or spend 5 points to remove one disease or neutralize one poison. Pool = 5 × Paladin level. Recharge: Long Rest."},
+    {name:"Divine Smite",      icon:"",cat:"reaction",uses:"Spell slot",  minLevel:1,
+     desc:"Reaction when you hit with a Melee weapon. Expend a spell slot: deal 2d8 Radiant damage (+1d8 per slot level above 1st, max 6d8). Critical hit: extra 1d8. Once per turn."},
+    {name:"Sacred Weapon",     icon:"",cat:"bonus",   uses:"CHA mod+1 / LR", resKey:"paladin_channel_div", minLevel:3,
+     desc:"Bonus Action: imbue a weapon with holy power for 1 minute. The weapon is magical, emits bright light (20 ft) and dim light (20 ft more), and you add your CHA modifier to attack rolls. Ends if you're Incapacitated."},
+    {name:"Channel Divinity",  icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"paladin_channel_div", minLevel:3,
+     desc:"Subclass-specific option (see your Oath). Uses: 1 (lv.3–10), 2 (lv.11+). Recharge: Short Rest."},
+    {name:"Aura of Protection",icon:"",cat:"action",  uses:"Passive",   minLevel:7,
+     desc:"While conscious: you and friendly creatures within 10 ft gain +CHA modifier to saving throws (min +1). Range increases to 30 ft at lv.18."},
+    {name:"Aura of Courage",   icon:"",cat:"action",  uses:"Passive",   minLevel:10,
+     desc:"While conscious: friendly creatures within your aura can't have the Frightened condition."},
+    {name:"Radiant Strikes",   icon:"",cat:"attack",  uses:"Passive",   minLevel:11,
+     desc:"Your weapon and Unarmed Strike attacks deal an extra 1d8 Radiant damage."},
   ],
   Ranger:[
-    {name:"Hunter's Mark",       icon:"",cat:"bonus",   uses:"Conc., free lv.3",
-     desc:"Bonus action: mark a target within 90 ft. +1d6 damage against it each turn, advantage on PER/Survival to find it. At lv.3 no longer requires concentration."},
-    {name:"Primal Awareness",    icon:"",cat:"action",  uses:"Passive",
-     desc:"Cannot be surprised in natural terrain. Advantage on PER checks in natural environments. Can find food/water for 5 creatures without a roll."},
-    {name:"Extra Attack",        icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
-     desc:"Second attack with the Attack action (lv.5)."},
-    {name:"Evasion",             icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
-     desc:"DEX save: on success take no damage; on failure take half. Does not work in heavy armor."},
+    {name:"Favored Enemy",     icon:"",cat:"bonus",   uses:"Passive",
+     desc:"You always have Hunter's Mark prepared (doesn't count against spells known). You can cast it without expending a spell slot a number of times equal to your WIS modifier (min 1) per Long Rest."},
+    {name:"Hunter's Mark",     icon:"",cat:"bonus",   uses:"WIS mod free / LR",
+     desc:"Bonus Action (Concentration): mark a creature you can see within 90 ft. +1d6 damage on every hit against it. Advantage on PER/Survival checks to find it. Can move the mark (Bonus Action) if the marked creature dies. At lv.17: no longer requires Concentration."},
+    {name:"Deft Explorer",     icon:"",cat:"action",  uses:"Passive",   minLevel:2,
+     desc:"Expertise in one skill. Learn one language. At lv.6: learn a second language and gain a +10 ft Speed increase in one terrain type. At lv.10: Tireless—Exhaustion not granted from traveling; reduce Exhaustion after short rest."},
+    {name:"Roving",            icon:"",cat:"action",  uses:"Passive",   minLevel:6,
+     desc:"Your Speed increases by 10 ft. You gain Climb Speed and Swim Speed equal to your Speed."},
+    {name:"Extra Attack",      icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
+     desc:"Attack twice when you take the Attack action."},
+    {name:"Evasion",           icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
+     desc:"DEX save: take no damage on success, half on failure. Doesn't work if you have the Incapacitated condition."},
+    {name:"Feral Senses",      icon:"",cat:"action",  uses:"Passive",   minLevel:18,
+     desc:"No Disadvantage on attack rolls against creatures you can't see. You can hear invisible creatures in combat."},
   ],
   Rogue:[
-    {name:"Sneak Attack",        icon:"",cat:"attack",  uses:"1 / turn",
-     desc:"Once per turn, with a Finesse or ranged weapon: add Xd6 damage if you have advantage OR an ally is adjacent to the target. Dice: 1d6 at lv.1, +1d6 every 2 levels."},
-    {name:"Cunning Action",      icon:"",cat:"bonus",   uses:"Unlimited",
-     desc:"Bonus action each turn: Dash, Disengage, or Hide. At lv.3 add Deft Hands. At lv.17 add Agile (ignore difficult terrain)."},
-    {name:"Evasion",             icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
-     desc:"DEX save: on success take no damage; on failure take half. Does not work in heavy armor."},
-    {name:"Devastating Strike",  icon:"",cat:"attack",  uses:"1 / LR",   minLevel:14,
-     desc:"Once per long rest: deal maximum damage instead of rolling dice."},
+    {name:"Sneak Attack",      icon:"",cat:"attack",  uses:"1 / turn",
+     desc:"Once per turn, deal extra damage with a Finesse or ranged weapon if you have Advantage on the attack OR a conscious ally is within 5 ft of the target (you must not have Disadvantage). Dice: 1d6 at lv.1, +1d6 every 2 levels."},
+    {name:"Cunning Action",    icon:"",cat:"bonus",   uses:"Unlimited",  minLevel:2,
+     desc:"Bonus Action each turn: take the Dash, Disengage, or Hide action."},
+    {name:"Cunning Strike",    icon:"",cat:"attack",  uses:"Sneak Attack die", minLevel:5,
+     desc:"When you deal Sneak Attack damage, you can forgo one Sneak Attack die to apply one Cunning Strike option: Disarm (DEX save or drops one item), Poison (CON save or Poisoned 1 min), Trip (DEX save or Prone), or Withdraw (your movement doesn't provoke OA this turn)."},
+    {name:"Evasion",           icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
+     desc:"DEX save: take no damage on success, half on failure. Doesn't work if Incapacitated."},
+    {name:"Reliable Talent",   icon:"",cat:"action",  uses:"Passive",   minLevel:11,
+     desc:"When you make an ability check using a skill you are proficient in, treat a d20 roll of 9 or lower as a 10."},
+    {name:"Blindsense",        icon:"",cat:"action",  uses:"Passive",   minLevel:14,
+     desc:"If you are able to hear, you are aware of the location of any hidden or invisible creature within 10 ft of you."},
+    {name:"Slippery Mind",     icon:"",cat:"action",  uses:"Passive",   minLevel:15,
+     desc:"Proficiency in WIS and CHA saving throws."},
+    {name:"Stroke of Luck",    icon:"",cat:"action",  uses:"1 / LR",   minLevel:20,
+     desc:"Once per Long Rest: turn a failed ability check into a success, or turn a miss into a hit."},
   ],
   Sorcerer:[
-    {name:"Sorcerous Restoration",icon:"",cat:"bonus",  uses:"1 / LR",   minLevel:1,
-     desc:"After a short rest: regain spell slots with total levels equal to or less than half your level (min 1). Recharge: long rest."},
-    {name:"Font of Magic",       icon:"",cat:"action",  uses:"Sorcery Points",resKey:"sorc_pts",  minLevel:2,
-     desc:"Convert spell slots into Sorcery Points (1 point per level) or vice versa. Max 6 points per long rest."},
-    {name:"Metamagic",           icon:"",cat:"action",  uses:"Sorcery Points",resKey:"sorc_pts",  minLevel:2,
-     desc:"Modify spells with Sorcery Points: Careful (2pt, allies safe), Distant (1pt, double range), Empowered (1pt, reroll 3 dice), Extended (1pt, double duration), Quickened (2pt, cast as bonus action), Subtle (1pt, no V/S), Twinned (1pt, 2 targets)."},
+    {name:"Innate Sorcery",    icon:"",cat:"bonus",   uses:"2 / LR",   resKey:"sorc_pts", minLevel:1,
+     desc:"Bonus Action: unleash magical energy for 1 minute. During this time your spell save DC increases by 1, and you have Advantage on the attack rolls of Sorcerer spells you cast. Uses: 2 per Long Rest."},
+    {name:"Font of Magic",     icon:"",cat:"action",  uses:"Sorcery Points", resKey:"sorc_pts", minLevel:2,
+     desc:"Sorcery Points = Sorcerer level (replenish on Long Rest). Spend points to create spell slots or convert slots into points. Creating a slot: lv.1=2pt, lv.2=3pt, lv.3=5pt, lv.4=6pt, lv.5=7pt."},
+    {name:"Metamagic",         icon:"",cat:"action",  uses:"Sorcery Points", resKey:"sorc_pts", minLevel:2,
+     desc:"Modify spells with Sorcery Points. Options: Careful (2pt, allies auto-succeed save), Distant (1pt, double range), Empowered (1pt, reroll damage dice up to CHA mod), Extended (1pt, double duration), Heightened (3pt, target has Disadvantage on first save), Quickened (2pt, cast as Bonus Action), Seeking (1pt/miss, reroll attack), Subtle (1pt, no V or S component), Transmuted (1pt, change damage type), Twinned (1pt, second target same spell)."},
+    {name:"Sorcerous Restoration", icon:"",cat:"action",uses:"Passive", minLevel:5,
+     desc:"Regain expended Sorcery Points when you finish a Short Rest. Number restored = half your Sorcerer level (rounded down)."},
+    {name:"Sorcery Incarnate",  icon:"",cat:"action", uses:"Innate Sorcery", minLevel:20,
+     desc:"While your Innate Sorcery feature is active: if you have no uses of Metamagic, you can use two Metamagic options simultaneously on a spell; additionally, each Metamagic option can be applied twice."},
   ],
   Warlock:[
-    {name:"Hex",                 icon:"",cat:"bonus",   uses:"Conc.",
-     desc:"Bonus action: curse a creature within 90 ft. +1d6 damage from Eldritch Blast and attacks; advantage on ability checks against it. If it dies, move the hex (bonus action). Lasts 1h (lv.5), 10h (lv.10), 24h no conc. (lv.15). Recharge: short or long rest."},
-    {name:"Eldritch Blast",      icon:"",cat:"attack",  uses:"Invocation",
-     desc:"Enhanced by invocations: Agonizing Blast (+CHA damage), Repelling Blast (push 10ft), Eldritch Spear (+1 beam at lv.5/11/17). Choose invocations at lv.2 and each odd level."},
-    {name:"Mystic Arcanum",      icon:"",cat:"action",  uses:"Recharge short rest",
-     desc:"Your spell slots recharge on a short rest. At lv.3 choose your Pact Boon: Chain (familiar), Blade (bonded weapon), Tome (book with cantrips and rituals)."},
+    {name:"Eldritch Invocations",icon:"",cat:"action",uses:"Passive",
+     desc:"Learn 1 invocation at lv.1 (more at odd levels). Key options: Agonizing Blast (add CHA to Eldritch Blast damage), Armor of Shadows (Mage Armor at will), Devil's Sight (see 120 ft in magical darkness), Repelling Blast (push target 10 ft), One with Shadows (Invisible in dim/dark as Action)."},
+    {name:"Pact Magic",         icon:"",cat:"action", uses:"Short Rest recharge",
+     desc:"Your spell slots recharge on a Short Rest (not Long Rest). All your slots are the same level (lv.1–5, scales with Warlock level). You learn a limited number of spells from the Warlock list."},
+    {name:"Pact Boon",          icon:"",cat:"action", uses:"Passive",    minLevel:3,
+     desc:"Choose your Pact Boon: Pact of the Chain (Find Familiar, special familiar forms), Pact of the Blade (summon magical melee weapon, add CHA to attacks), or Pact of the Tome (Book of Shadows with 3 cantrips from any list + 2 rituals)."},
+    {name:"Mystic Arcanum",     icon:"",cat:"action", uses:"1 / LR each",minLevel:11,
+     desc:"A 6th-level spell known without a slot, usable once per LR (lv.11). Gain a 7th-level spell at lv.13, 8th at lv.15, 9th at lv.17. Recharge: Long Rest for each."},
+    {name:"Eldritch Master",    icon:"",cat:"action", uses:"1 / LR",     minLevel:20,
+     desc:"Once per Long Rest, you can spend 1 minute communing with your patron to regain all your Pact Magic spell slots."},
   ],
   Wizard:[
-    {name:"Arcane Recovery",     icon:"",cat:"action",  uses:"1 / LR",   resKey:"arc_recovery",
-     desc:"After a short rest: regain spell slots with total levels <= half Wizard level (min 1, max 6th-level slots). Recharge: long rest."},
-    {name:"Spellbook",           icon:"",cat:"action",  uses:"Ritual / Always",
-     desc:"Cast rituals from your book without slots (+10 min). Copy spells: 50 gp and 2h per level. Gain 2 spells each level."},
-    {name:"Spell Mastery",       icon:"",cat:"action",  uses:"Passive",   minLevel:18,
-     desc:"Choose 1 spell of 1st and 1 of 2nd level from your book: you can cast them at their minimum level without expending a slot, once per long rest."},
+    {name:"Arcane Recovery",   icon:"",cat:"action",  uses:"1 / LR",   resKey:"arc_recovery",
+     desc:"After a Short Rest: recover spell slots with a combined level equal to or less than half your Wizard level (rounded up, max 6th-level slots). Recharge: Long Rest."},
+    {name:"Spellbook",         icon:"",cat:"action",  uses:"Always",
+     desc:"Contains your known Wizard spells. Cast prepared rituals without using a slot (+10 min). Copy new spells: costs 50 gp and 2 hours per spell level. Gain 2 free spells at each Wizard level."},
+    {name:"Memorize Spell",    icon:"",cat:"bonus",   uses:"1 / SR",   minLevel:5,
+     desc:"After a Short Rest: replace one prepared spell with another Wizard spell from your spellbook. Recharge: Short Rest."},
+    {name:"Spell Mastery",     icon:"",cat:"action",  uses:"1 / LR",   minLevel:18,
+     desc:"Choose 1 spell of 1st level and 1 of 2nd level from your spellbook: cast each at their lowest level without expending a spell slot, once per Long Rest each."},
+    {name:"Signature Spells",  icon:"",cat:"action",  uses:"1 / SR each", minLevel:20,
+     desc:"Choose two 3rd-level Wizard spells: they are always prepared (don't count toward limit) and you can cast each once per Short Rest without a spell slot."},
   ],
 };
 
@@ -1774,27 +2008,29 @@ const SUBCLASS_ACTIONS_MAP = {
 
 
 const STANDARD_ACTIONS = [
-  // Universal actions — always available to all characters
-  {name:"Attack",                icon:"⚔", cat:"action",   universal:true,  desc:"Attack with a weapon. With Extra Attack (Lv.5+) you can attack multiple times in the same action."},
-  {name:"Dash",                  icon:"🏃",cat:"action",   universal:true,  desc:"Your maximum movement speed doubles for this turn."},
-  {name:"Disengage",             icon:"💨",cat:"action",   universal:true,  desc:"Your movement doesn't provoke opportunity attacks for the rest of the turn."},
-  {name:"Dodge",                 icon:"🛡",cat:"action",   universal:true,  desc:"Attacks against you have disadvantage (if you can see the attacker). Advantage on DEX saves."},
-  {name:"Help",                  icon:"🤝",cat:"action",   universal:true,  desc:"Give advantage to an ally's next attack roll against a target, or on an ability check."},
-  {name:"Hide",                  icon:"👁",cat:"action",   universal:true,  desc:"Make a Stealth check (DC set by DM): if you succeed, you become hidden."},
-  {name:"Search",                icon:"🔍",cat:"action",   universal:true,  desc:"Make a Perception or Investigation check to locate hidden objects or creatures."},
-  {name:"Ready",                 icon:"⏱",cat:"action",   universal:true,  desc:"Describe a trigger and hold your action: it fires as a Reaction when the trigger occurs."},
-  {name:"Use an Object",         icon:"🎒",cat:"action",   universal:true,  desc:"Use an item that requires an action, or interact with a second object on your turn."},
+  // Universal actions
+  {name:"Attack",           icon:"⚔", cat:"action",   universal:true,  desc:"Make one weapon attack. With Extra Attack (Lv.5+) you can attack multiple times. Any attack can be replaced with a Grapple or Shove special attack (see Unarmed section below)."},
+  {name:"Dash",             icon:"🏃",cat:"action",   universal:true,  desc:"Your maximum Speed doubles for the turn (including movement already spent). Some classes can also Dash as a Bonus Action."},
+  {name:"Disengage",        icon:"💨",cat:"action",   universal:true,  desc:"Your movement doesn't provoke Opportunity Attacks for the rest of the turn. Some classes can also Disengage as a Bonus Action."},
+  {name:"Dodge",            icon:"🛡",cat:"action",   universal:true,  desc:"Focus on avoiding attacks. Until the start of your next turn: attack rolls against you have Disadvantage (if you can see the attacker), and you make DEX saving throws with Advantage. Effect ends early if you're Incapacitated or your Speed drops to 0."},
+  {name:"Help",             icon:"🤝",cat:"action",   universal:true,  desc:"Choose one: (A) give an ally Advantage on their next ability check to perform a task you can assist with; or (B) give an ally Advantage on their next attack roll against a target within 5 ft of you."},
+  {name:"Hide",             icon:"👁",cat:"action",   universal:true,  desc:"Make a DEX (Stealth) check (DC set by DM, typically 15 in a lightly obscured area). On success and if you have cover or concealment, you gain the Hidden condition. You lose it if you make noise, are revealed, or make an attack."},
+  {name:"Influence",        icon:"🎭",cat:"action",   universal:true,  desc:"Attempt to sway a creature's attitude or actions using: CHA (Deception, Intimidation, Performance, or Persuasion) or WIS (Animal Handling). The DM determines the DC or opposing check."},
+  {name:"Search",           icon:"🔍",cat:"action",   universal:true,  desc:"Make a WIS (Perception) or INT (Investigation) check to locate hidden objects, creatures, or clues. The DM sets the DC."},
+  {name:"Study",            icon:"📖",cat:"action",   universal:true,  desc:"Make an INT check (Arcana, History, Medicine, Nature, Religion, etc.) to recall lore or examine an object. The DM sets the DC and reveals what is known."},
+  {name:"Ready",            icon:"⏱",cat:"action",   universal:true,  desc:"Describe a perceivable trigger and choose a reaction (one action or one attack). When the trigger occurs before the start of your next turn, you use your Reaction to execute it. Spell concentration must be maintained until the spell fires."},
+  {name:"Utilize",          icon:"🎒",cat:"action",   universal:true,  desc:"Activate a non-magical item that requires an action (e.g. Healer's Kit, a trap). You can also use this to interact with a second object on your turn (the first object interaction is free)."},
   // Casters only
-  {name:"Cast a Spell",          icon:"✨",cat:"action",   universal:false, casterOnly:true,  desc:"Cast a spell with a casting time of 1 action."},
-  {name:"Spell (Reaction)",      icon:"✨",cat:"reaction", universal:false, casterOnly:true,  desc:"Shield, Absorb Elements, Counterspell and other spells use your Reaction."},
+  {name:"Cast a Spell",     icon:"✨",cat:"action",   universal:false, casterOnly:true,  desc:"Cast a spell with a casting time of 1 Action. Also covers activating a spell-like feature or magic item that requires an Action (Magic action)."},
+  {name:"Spell (Reaction)", icon:"✨",cat:"reaction", universal:false, casterOnly:true,  desc:"Some spells use your Reaction in response to a trigger: Shield (damage), Absorb Elements (elemental damage), Counterspell (spell being cast), Hellish Rebuke, etc."},
   // Universal reaction
-  {name:"Opportunity Attack",    icon:"⚡",cat:"reaction", universal:true,  desc:"When a creature leaves your reach without Disengaging, you can attack it as a Reaction."},
+  {name:"Opportunity Attack",icon:"⚡",cat:"reaction",universal:true,  desc:"When a hostile creature that you can see voluntarily leaves your reach, you can use your Reaction to make one melee attack against it. Forced movement (shoves, spells, etc.) does NOT trigger an Opportunity Attack."},
 ];
 
 const UNARMED_OPTIONS = [
-  {name:"Unarmed Strike - Damage",icon:"👊", desc:"Attack with a punch, kick, or headbutt. Damage = 1 + STR mod (bludgeoning). Main action.", cat:"attack"},
-  {name:"Unarmed Strike - Grapple",icon:"🤼", desc:"Grab a creature within 5 ft: STR (Athletics) check contested by target's STR/DEX. Condition: Grappled.", cat:"action"},
-  {name:"Unarmed Strike - Shove", icon:"💥", desc:"Push or knock prone a creature within 5 ft: same contested check. Pushes 5 ft or knocks Prone.", cat:"action"},
+  {name:"Unarmed Strike",icon:"👊", desc:"Attack with a punch, kick, or headbutt. Replaces one attack in the Attack action. Damage = 1 + STR modifier (bludgeoning). Monks: use the Martial Arts die instead and can make a free Unarmed Strike as a Bonus Action.", cat:"attack"},
+  {name:"Grapple",       icon:"🤼", desc:"Replaces one attack in the Attack action. Target must be within reach and Large or smaller. Target makes a STR or DEX saving throw (target's choice) — DC = 8 + your PB + your STR modifier. Failure: target gains the Grappled condition. Requires a free hand. You move at half Speed while grappling unless your Speed exceeds the target's.", cat:"action"},
+  {name:"Shove",         icon:"💥", desc:"Replaces one attack in the Attack action. Target must be within 5 ft and Large or smaller. Target makes a STR or DEX saving throw (target's choice) — DC = 8 + your PB + your STR modifier. Failure: you either push the target 5 ft away OR knock it Prone (your choice).", cat:"action"},
 ];
 function toggleCard(id){ document.getElementById(id)?.classList.toggle('open'); }
 
@@ -2116,7 +2352,10 @@ function renderSpellsTab(){
     h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[slv]}</div>`;
     for(const name of combined){
       const isAuto = autoAtLv.includes(name);
-      h+=_spellRow(name, isAuto?`<span class="spell-badge auto">✦ Auto</span>`:'');
+      const src = getSpellSource(name);
+      const srcLbl = String(src?.label || '').trim().toLowerCase();
+      const showAutoBadge = isAuto && srcLbl !== 'auto';
+      h+=_spellRow(name, showAutoBadge ? `<span class="spell-badge auto">✦ Auto</span>` : '');
     }
     h+=`</div>`;
   }
@@ -3079,17 +3318,17 @@ function buildCantripCard(name){
       <div style="flex:1;min-width:0">
         <div class="action-card-name">${nEsc}<span class="sub">Cantrip · ${esc(d.dmgType||'utility')} · ${esc(d.range)}</span></div>
       </div>
-      <div class="action-card-tags"><span class="action-tag ${d.toHit?'atk':'save'}">${d.toHit?'ATK':'SAL'}</span></div>
+      <div class="action-card-tags"><span class="action-tag ${d.toHit?'atk':'save'}">${d.toHit?'ATK':'SAV'}</span></div>
       <div class="action-stat">${hitStr}</div>
     </div>
     <div class="action-card-body">
       <div class="action-info-row">
         ${d.toHit
-          ?`<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'${nEsc}')">🎲 Attacco ${fbonus(atkBonus)}</button>`
-          :`<div class="action-dmg-pill">🎲 CD Sal.: <b>${saveDC}</b></div>`}
+          ?`<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'${nEsc}')">🎲 Attack ${fbonus(atkBonus)}</button>`
+          :`<div class="action-dmg-pill">🎲 Save DC: <b>${saveDC}</b></div>`}
         ${dmgFormula!=='—'?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${nEsc}')">💥 ${esc(dmgLabel)}</button>`:''}
         <div class="action-dmg-pill">📏 <b>${esc(d.range)}</b></div>
-        <div class="action-dmg-pill">📈 Scala a lv. 5/11/17</div>
+        <div class="action-dmg-pill">📈 Scales at lv. 5/11/17</div>
         ${d.notes?`<div class="action-dmg-pill" style="color:var(--text3)">${esc(d.notes)}</div>`:''}
       </div>
     </div>
@@ -3142,15 +3381,22 @@ function buildClassActionCard(a){
 function buildUnarmedCard(opt){
   const strMod=getMod(getFinal('str')), pb=getPB();
   const id='ac_'+Math.random().toString(36).slice(2);
+  const isGrSh=opt.name==='Grapple'||opt.name==='Shove';
+  const dc=8+pb+strMod;
   const tag=opt.cat==='attack'?'atk':'util';
   const catLbl=opt.cat==='attack'?'ATK':'ACTION';
-  const stat=opt.cat==='attack'?fbonus(strMod+pb):null;
+  const stat=opt.cat==='attack'?fbonus(strMod+pb):isGrSh?`DC ${dc}`:null;
   let infoRow='';
   if(opt.cat==='attack'){
     infoRow=`<div class="action-info-row">
       <button class="roll-btn" onclick="event.stopPropagation();rollD20(${strMod+pb},'Unarmed Strike')">🎲 Hits ${fbonus(strMod+pb)}</button>
       <button class="roll-btn dmg" onclick="event.stopPropagation();showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">💥 ${Math.max(1,1+strMod)} bludg.</button>
       <div class="action-dmg-pill">📏 5 ft</div>
+    </div>`;
+  } else if(isGrSh){
+    infoRow=`<div class="action-info-row">
+      <div class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></div>
+      <div class="action-dmg-pill">📏 5 ft (reach)</div>
     </div>`;
   }
   return `<div class="action-card" id="${id}">

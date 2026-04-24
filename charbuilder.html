@@ -82,8 +82,7 @@
       position: relative
     }
 
-    header::after {
-      content: '✦';
+    .header-mark {
       position: absolute;
       bottom: -.65em;
       left: 50%;
@@ -91,7 +90,11 @@
       background: var(--bg);
       padding: 0 1rem;
       color: var(--gold);
-      font-size: 13px
+      font-size: 13px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center
     }
 
     h1 {
@@ -1876,6 +1879,185 @@
       border-bottom-color: var(--gold)
     }
   </style>
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <script>
+    (() => {
+      const EMOJI_TO_LUCIDE = Object.freeze({
+        '⚔️': 'swords', '⚔': 'swords',
+        '🎲': 'dice-5',
+        '🔍': 'search',
+        '☀️': 'sun', '☀': 'sun',
+        '🌧️': 'cloud-rain', '🌧': 'cloud-rain',
+        '❄️': 'snowflake', '❄': 'snowflake',
+        '⬡': 'hexagon',
+        '📖': 'book-open',
+        '⏱': 'timer',
+        '👁️': 'eye', '👁': 'eye',
+        '💥': 'sparkles',
+        '⚡': 'zap',
+        '✓': 'check',
+        '✦': 'sparkles',
+        '🎒': 'backpack',
+        '🛡': 'shield',
+        '🏹': 'crosshair',
+        '😡': 'angry',
+        '🎵': 'music',
+        '🐻': 'paw-print',
+        '🙏': 'hands',
+        '✝': 'cross',
+        '🌀': 'orbit',
+        '🏃': 'move-right',
+        '🤝': 'handshake',
+        '💨': 'wind',
+        '👊': 'hand',
+        '🤼': 'users-round',
+        '🗡': 'sword',
+        '🔥': 'flame',
+        '💀': 'skull',
+        '✨': 'sparkles',
+        '🕸': 'bug',
+        '🟢': 'circle',
+        '🕯': 'flame',
+        '🌿': 'leaf',
+        '🎭': 'masks',
+        '💚': 'heart',
+        '🌩': 'cloud-lightning',
+        '🎯': 'target',
+        '🏰': 'castle',
+        '📜': 'scroll-text',
+        '📋': 'clipboard-list',
+        '🔴': 'circle',
+        '🟠': 'circle',
+        '🟡': 'circle',
+        '🔵': 'circle',
+        '🟣': 'circle',
+        '⭕': 'circle',
+        '💰': 'coins',
+        '📄': 'file-text',
+        '←': 'arrow-left',
+        '✕': 'x',
+        '📏': 'ruler',
+        '📈': 'trending-up',
+        '🔧': 'wrench',
+        '⛨': 'shield',
+        '🗺️': 'map', '🗺': 'map',
+        '🌙': 'moon',
+        '⬇': 'arrow-down',
+      });
+
+      const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'NOSCRIPT', 'SVG']);
+      const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const EMOJI_RE = new RegExp(
+        Object.keys(EMOJI_TO_LUCIDE)
+          .sort((a, b) => b.length - a.length)
+          .map(escapeRegex)
+          .join('|'),
+        'g'
+      );
+
+      function hasIconEmoji(text) {
+        if (!text) return false;
+        EMOJI_RE.lastIndex = 0;
+        return EMOJI_RE.test(text);
+      }
+
+      function makeIconNode(emoji) {
+        const iconName = EMOJI_TO_LUCIDE[emoji] || 'circle';
+        const i = document.createElement('i');
+        i.setAttribute('data-lucide', iconName);
+        i.className = 'lucide-emoji';
+        i.setAttribute('aria-hidden', 'true');
+        return i;
+      }
+
+      function replaceTextNode(node) {
+        const text = node.nodeValue || '';
+        if (!hasIconEmoji(text) || !node.parentNode) return;
+
+        const frag = document.createDocumentFragment();
+        let last = 0;
+
+        text.replace(EMOJI_RE, (match, offset) => {
+          if (offset > last) frag.appendChild(document.createTextNode(text.slice(last, offset)));
+          frag.appendChild(makeIconNode(match));
+          last = offset + match.length;
+          return match;
+        });
+
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+      }
+
+      function scanAndReplace(root) {
+        if (!root) return;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const targets = [];
+
+        let n;
+        while ((n = walker.nextNode())) {
+          const p = n.parentElement;
+          if (!p) continue;
+          if (SKIP_TAGS.has(p.tagName)) continue;
+          if (p.closest('[data-no-iconify]')) continue;
+          if (hasIconEmoji(n.nodeValue || '')) targets.push(n);
+        }
+
+        targets.forEach(replaceTextNode);
+      }
+
+      function injectIconStyle() {
+        if (document.getElementById('lucide-emoji-style')) return;
+        const style = document.createElement('style');
+        style.id = 'lucide-emoji-style';
+        style.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
+        document.head.appendChild(style);
+      }
+
+      let observer = null;
+      let scheduled = false;
+
+      function refreshLucideIcons() {
+        if (scheduled) return;
+        scheduled = true;
+
+        requestAnimationFrame(() => {
+          scheduled = false;
+          if (!document.body) return;
+
+          if (observer) observer.disconnect();
+          scanAndReplace(document.body);
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
+          }
+          if (observer) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+        });
+      }
+
+      function startObserver() {
+        if (observer || !document.body) return;
+        observer = new MutationObserver((mutations) => {
+          for (const m of mutations) {
+            if (m.type === 'childList' && m.addedNodes.length) {
+              refreshLucideIcons();
+              return;
+            }
+            if (m.type === 'characterData' && hasIconEmoji(m.target?.nodeValue || '')) {
+              refreshLucideIcons();
+              return;
+            }
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      }
+
+      injectIconStyle();
+      document.addEventListener('DOMContentLoaded', () => {
+        refreshLucideIcons();
+        startObserver();
+      });
+      window.refreshLucideIcons = refreshLucideIcons;
+    })();
+  </script>
 </head>
 
 <body>
@@ -1883,6 +2065,7 @@
     <header>
       <h1>Character Builder</h1>
       <div class="sub">D&amp;D 5e 2024 · 5etools</div>
+      <div class="header-mark" aria-hidden="true">✦</div>
     </header>
 
     <div class="steps">
@@ -2804,8 +2987,20 @@
     function _renderProficiencyGrants(feat, slotKey) {
       let h = '';
 
-      // Helper: all XPHB skill names
       const ALL_SKILLS = SKILLS.map(s => s.n);
+      const ALL_ARTISAN_TOOLS = [
+        "Alchemist's Supplies","Brewer's Supplies","Calligrapher's Supplies",
+        "Carpenter's Tools","Cartographer's Tools","Cobbler's Tools",
+        "Cook's Utensils","Glassblower's Tools","Jeweler's Tools",
+        "Leatherworker's Tools","Mason's Tools","Painter's Supplies",
+        "Potter's Tools","Smith's Tools","Tinker's Tools",
+        "Weaver's Tools","Woodcarver's Tools",
+      ];
+      const ALL_INSTRUMENTS = [
+        'Bagpipes','Drum','Dulcimer','Flute','Hand Drum',
+        'Horn','Lute','Lyre','Pan Flute','Shawm','Viol',
+      ];
+      const ALL_TOOLS = [...ALL_ARTISAN_TOOLS, ...ALL_INSTRUMENTS, "Thieves' Tools", "Disguise Kit", "Forgery Kit", "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit"];
 
       // Helper: render a "choose N from list" picker
       function profPicker(key, label, items, count, color = 'var(--orange)') {
@@ -2843,18 +3038,12 @@
         // Fixed skills (tutti true) → solo display, nessuna scelta
       }
 
-      // toolProficiencies — solo fixed per ora (es. Chef → Cook's Utensils), nessuna UI
-      // Se "any" tool, mostriamo picker
       for (const [idx, block] of (feat.toolProficiencies || []).entries()) {
-        if (block.any || block.choose) {
+        if (block.anyArtisansTool || block.any || block.choose) {
           const key = `${slotKey}_tool_${idx}`;
-          // Lista strumenti semplificata (dati non caricati — usiamo placeholder)
-          const count = block.any || block.choose?.count || 1;
-          h += `<div style="margin-top:.75rem">
-        <div class="feat-section-hdr" style="color:var(--purple)">✧ ${esc(feat.name)} — Tool Proficiency</div>
-        <div style="font-size:12px;color:var(--text3);font-style:italic">
-          Choose ${count} tool proficiency${count > 1 ? ' (×' + count + ')' : ''} (manage on the sheet).
-        </div></div>`;
+          const count = block.anyArtisansTool || block.any || block.choose?.count || 1;
+          const pool = block.anyArtisansTool ? ALL_ARTISAN_TOOLS : ALL_TOOLS;
+          h += profPicker(key, `${feat.name} — Tool Proficiency`, pool, count, 'var(--purple)');
         }
       }
 
@@ -2867,7 +3056,7 @@
           const from = ch.from || [];
           let items = [];
           if (from.includes('anySkill')) items = [...items, ...ALL_SKILLS];
-          if (from.includes('anyTool')) items = [...items, 'Tool (choose)'];
+          if (from.includes('anyTool')) items = [...items, ...ALL_TOOLS];
           if (from.includes('anyLanguage')) items = [...items, 'Language (choose)'];
           if (items.length) h += profPicker(key, `${feat.name} — Proficiency`, items, count, 'var(--teal)');
         }
@@ -3182,7 +3371,7 @@
       const seen = new Set();
       const curLv = char.level || 1;
 
-      for (const { grant } of collectSpellGrants()) {
+      for (const { grant, source, sourceType } of collectSpellGrants()) {
         for (const mode of ['prepared', 'expanded', 'innate', 'known']) {
           const section = grant[mode];
           if (!section) continue;
@@ -3203,7 +3392,7 @@
 
                 const spell = spellDb.find(x => x.name.toLowerCase() === rawName.toLowerCase());
                 if (spell && !seen.has(spell.name.toLowerCase())) {
-                  result.push({ name: spell.name, level: spell.level, mode });
+                  result.push({ name: spell.name, level: spell.level, mode, source, sourceType });
                   seen.add(spell.name.toLowerCase());
                 }
               }
@@ -5438,7 +5627,15 @@
 
     function getClassSpells(className) {
       const result = spellDb.filter(s => spellBelongsToClass(s, className));
-      if (result.length > 0) return result.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+      if (result.length > 0) {
+        const sorted = result.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+        const byName = new Map();
+        for (const sp of sorted) {
+          const key = sp.name.toLowerCase();
+          if (!byName.has(key)) byName.set(key, sp);
+        }
+        return Array.from(byName.values());
+      }
       console.warn(`[getClassSpells] Nessuna spell per "${className}" — uso tutto il database`);
       return spellDb;
     }
