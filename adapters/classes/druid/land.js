@@ -10,3 +10,17 @@ registerSubclassAdapter("Druid_Land", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Druid_Land", [
+  {
+    "name": "Natural Recovery",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "resKey": "natural_recovery",
+    "minLevel": 2,
+    "desc": "After a short rest: regain spell slots with total levels <= half Druid level (min 1)."
+  }
+]);
+// [SheetRuntime] END

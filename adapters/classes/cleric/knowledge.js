@@ -33,3 +33,16 @@ registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Cleric_Knowledge", [
+  {
+    "name": "Channel: Knowledge of the Ages",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "channel_div",
+    "desc": "Choose a skill or tool: for 10 minutes gain proficiency (or double proficiency if already proficient)."
+  }
+]);
+// [SheetRuntime] END

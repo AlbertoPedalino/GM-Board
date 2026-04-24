@@ -204,3 +204,103 @@ registerClassAdapter("Artificer", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerClassSheetActions("Artificer", [
+  {
+    "name": "Tinker's Magic",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "desc": "You can magically tinker with tools and objects, and you use Intelligence for your Artificer magic."
+  },
+  {
+    "name": "Replicate Magic Item",
+    "icon": "",
+    "cat": "action",
+    "uses": "After Long Rest",
+    "minLevel": 2,
+    "desc": "After a Long Rest, create magic items from the plans you know. Plans known and active items increase with Artificer level."
+  },
+  {
+    "name": "Flash of Genius",
+    "icon": "",
+    "cat": "reaction",
+    "uses": "INT mod / LR",
+    "resKey": "flash_genius",
+    "minLevel": 7,
+    "desc": "When you or a creature you can see within 30 ft fails an ability check or saving throw, add your Intelligence modifier to the roll."
+  },
+  {
+    "name": "Spell-Storing Item",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 active item",
+    "minLevel": 11,
+    "desc": "After a Long Rest, store one Artificer spell (level 1-3) in a weapon or spellcasting focus item so it can be cast repeatedly from that item."
+  },
+  {
+    "name": "Soul of Artifice",
+    "icon": "",
+    "cat": "reaction",
+    "uses": "Passive",
+    "minLevel": 20,
+    "desc": "Your attuned magic items reinforce your defenses and help you cling to life in dire moments."
+  }
+]);
+registerClassSheetResources("Artificer", [
+  {
+    "key": "flash_genius",
+    "name": "Flash of Genius",
+    "icon": "brain",
+    "recharge": "LR",
+    "max": ()=>Math.max(1,getMod(getFinal('int')))
+  }
+]);
+registerClassSheetChoiceMeta("Artificer", {
+  sectionTitle: "Artificer Choices",
+  labels: {
+    artificer_replicate_magic_item_plans: "Replicate Magic Item Plans",
+    armorer_model: "Armor Model",
+    alchemist_bonus_tool: "Tools of the Trade (Alchemist)",
+    armorer_bonus_tool: "Tools of the Trade (Armorer)",
+    artillerist_bonus_tool: "Tools of the Trade (Artillerist)",
+    battlesmith_bonus_tool: "Tools of the Trade (Battle Smith)",
+    cartographer_bonus_tool: "Tools of the Trade (Cartographer)",
+  },
+  isChoiceKey: (key) => {
+    const k = String(key || "");
+    if (/^artificer_feat_lv\d+$/i.test(k)) return false;
+    if (/^(artificer_|alchemist_|armorer_|artillerist_|battlesmith_|cartographer_)/i.test(k)) return true;
+    if (/^auto_(primary|ec\d+)_feat_/i.test(k)) return true;
+    return false;
+  },
+  getLabel: (key) => {
+    const k = String(key || "");
+    if (/^auto_(primary|ec\d+)_feat_/i.test(k)) {
+      let s = k.replace(/^auto_(primary|ec\d+)_feat_/i, "");
+      s = s.replace(/_skill_\d+$/i, " Skill Proficiency");
+      s = s.replace(/_lang_\d+$/i, " Language");
+      s = s.replace(/_tool_\d+$/i, " Tool Proficiency");
+      s = s.replace(/_stl_\d+_\d+$/i, " Proficiency Choice");
+      s = s.replace(/_weaponProficiencies_\d+$/i, " Weapon Proficiency");
+      s = s.replace(/_armorProficiencies_\d+$/i, " Armor Proficiency");
+      s = s.replace(/_opt_\d+$/i, " Option");
+      return s.replace(/_/g, " ").replace(/\b[a-z]/g, c => c.toUpperCase()).trim();
+    }
+    return k.replace(/^.*?_/, "").replace(/_/g, " ").replace(/\b[a-z]/g, c => c.toUpperCase()).trim();
+  },
+  normalizeChoiceValue: (value, key) => {
+    const k = String(key || "");
+    const raw = String(value || "").split("|")[0].replace(/\{@\w+ /g, "").replace(/\}/g, "").trim();
+    if (!raw) return "";
+    if (k === "armorer_model" || /^auto_(primary|ec\d+)_feat_.*_opt_\d+$/i.test(k)) {
+      const nk = raw.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (nk === "dreadnaught" || nk.includes("dreadnought")) return "Dreadnought";
+      if (nk.includes("guardian")) return "Guardian";
+      if (nk.includes("infiltrator")) return "Infiltrator";
+    }
+    return raw;
+  },
+});
+// [SheetRuntime] END

@@ -10,3 +10,16 @@ registerSubclassAdapter("Paladin_Noble Genies", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Paladin_Noble Genies", [
+  {
+    "name": "Channel: Genie's Flight",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "paladin_channel_div",
+    "desc": "You and allies within 30 ft gain a flying speed equal to your walking speed for 1 minute."
+  }
+]);
+// [SheetRuntime] END

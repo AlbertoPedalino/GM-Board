@@ -60,3 +60,26 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
     }
   });
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Fighter_Battle Master", [
+  {
+    "name": "Combat Maneuvers",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Superiority Dice d8",
+    "resKey": "superiority_dice",
+    "desc": "Spend a Superiority Die (d8 to d10 to d12) to add effects to attacks: Disarm, Push, Distract, Command, Taunt, Riposte, Feint, Precision Attack, etc. Recharge: short or long rest."
+  }
+]);
+registerSubclassSheetResources("Fighter_Battle Master", [
+  {
+    "key": "superiority_dice",
+    "name": "Superiority Dice",
+    "icon": "swords",
+    "recharge": "SR",
+    "max": (lv)=>lv>=15?6:lv>=7?5:4,
+    "pool": true
+  }
+]);
+// [SheetRuntime] END

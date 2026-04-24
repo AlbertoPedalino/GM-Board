@@ -3428,7 +3428,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _renderSpellChoiceBlock(choice) {
       // Support both choice.spellFilter (old) and direct spellLevel/classes (new)
       const filter = choice.spellFilter || choice;
-      if (filter.spellLevel == null && !filter.classes && !filter.schools) return ''; // Safety check - no spell data
+      if (filter.spellLevel == null && !filter.classes && !filter.schools && !filter.allSpells) return ''; // Safety check - no spell data
       const choiceKey = choice.key || choice.storeKey; // Support both old and new structure
       const selected = Array.isArray(char.choices[choiceKey]) ? char.choices[choiceKey] : [];
       const spells = getSpellsForChoice({
@@ -5452,6 +5452,149 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
       }
 
+      // Artificer selections mirrored in preview (primary + multiclass)
+      {
+        const ARTIFICER_CHOICE_LABELS = {
+          artificer_replicate_magic_item_plans: 'Replicate Magic Item Plans',
+          armorer_model: 'Armor Model',
+          alchemist_bonus_tool: 'Tools of the Trade (Alchemist)',
+          armorer_bonus_tool: 'Tools of the Trade (Armorer)',
+          artillerist_bonus_tool: 'Tools of the Trade (Artillerist)',
+          battlesmith_bonus_tool: 'Tools of the Trade (Battle Smith)',
+          cartographer_bonus_tool: 'Tools of the Trade (Cartographer)',
+        };
+        const _normFeatureKey = (v) => clean(String(v || '')).toLowerCase().replace(/[^a-z0-9]/g, '');
+        const _canonArmorerModelKey = (v) => {
+          const key = _normFeatureKey(v);
+          if (!key) return '';
+          if (key === 'dreadnaught') return 'dreadnought';
+          if (key.includes('dreadnought')) return 'dreadnought';
+          if (key.includes('guardian')) return 'guardian';
+          if (key.includes('infiltrator')) return 'infiltrator';
+          return key;
+        };
+        const _titleCase = (s) => String(s || '').replace(/_/g, ' ').replace(/\b[a-z]/g, c => c.toUpperCase()).trim();
+        const _looksLikeArmorerModelChoice = (key, values) => {
+          const keyHit = key === 'armorer_model' || /^auto_(primary|ec\d+)_feat_.*_opt_\d+$/i.test(key);
+          if (!keyHit) return false;
+          return (values || []).some(v => ['dreadnought', 'guardian', 'infiltrator'].includes(_canonArmorerModelKey(v)));
+        };
+        const _extractArmorerModelDetailHtml = (subFeatures, modelName) => {
+          const target = _canonArmorerModelKey(modelName);
+          if (!target || !Array.isArray(subFeatures) || !subFeatures.length) return '';
+          const ordered = [...subFeatures].sort((a, b) => (a?.level || 0) - (b?.level || 0));
+          const byName = new Map();
+          for (const f of ordered) {
+            const key = _canonArmorerModelKey(f?.name);
+            if (key && !byName.has(key)) byName.set(key, f);
+          }
+          const armorModelFeature = ordered.find(f => _normFeatureKey(f?.name) === 'armormodel');
+          function _resolveRefFeature(node) {
+            if (!node || typeof node !== 'object') return null;
+            const raw = node.subclassFeature || node.classFeature;
+            if (!raw) return null;
+            const refName = String(raw).split('|')[0].trim();
+            return byName.get(_canonArmorerModelKey(refName)) || null;
+          }
+          function _walk(node) {
+            if (!node) return null;
+            if (Array.isArray(node)) {
+              for (const item of node) {
+                const found = _walk(item);
+                if (found) return found;
+              }
+              return null;
+            }
+            if (typeof node !== 'object') return null;
+            const maybeRef = _resolveRefFeature(node);
+            if (maybeRef && _canonArmorerModelKey(maybeRef.name) === target) return maybeRef;
+            if (node.name && _canonArmorerModelKey(node.name) === target) return node;
+            const candidates = [node.entries, node.entry, node.items, node.rows];
+            for (const c of candidates) {
+              const found = _walk(c);
+              if (found) return found;
+            }
+            return null;
+          }
+          let found = byName.get(target) || null;
+          if (!found && armorModelFeature) found = _walk(armorModelFeature.entries || armorModelFeature);
+          if (!found) found = _walk(ordered.map(f => f.entries));
+          if (!found) return '';
+          const entries = found.entries || found.entry;
+          if (!entries) return '';
+          const detailName = found.name || modelName;
+          return `<div style="margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--bdr)">
+            <div style="font-size:10px;color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
+            <div style="margin-top:.2rem">${rE(entries)}</div>
+          </div>`;
+        };
+        const _isArtificerChoice = (baseKey, ownerClass) => {
+          if (ownerClass !== 'Artificer') return false;
+          if (/^(artificer_|alchemist_|armorer_|artillerist_|battlesmith_|cartographer_)/i.test(baseKey)) return true;
+          if (/^auto_(primary|ec\d+)_feat_/i.test(baseKey)) return true;
+          return false;
+        };
+        const _labelForArtificerChoice = (baseKey) => {
+          if (ARTIFICER_CHOICE_LABELS[baseKey]) return ARTIFICER_CHOICE_LABELS[baseKey];
+          if (/^auto_(primary|ec\d+)_feat_/i.test(baseKey)) {
+            let s = baseKey.replace(/^auto_(primary|ec\d+)_feat_/i, '');
+            s = s.replace(/_skill_\d+$/i, ' Skill Proficiency');
+            s = s.replace(/_lang_\d+$/i, ' Language');
+            s = s.replace(/_tool_\d+$/i, ' Tool Proficiency');
+            s = s.replace(/_stl_\d+_\d+$/i, ' Proficiency Choice');
+            s = s.replace(/_weaponProficiencies_\d+$/i, ' Weapon Proficiency');
+            s = s.replace(/_armorProficiencies_\d+$/i, ' Armor Proficiency');
+            s = s.replace(/_opt_\d+$/i, ' Option');
+            return _titleCase(s);
+          }
+          return _titleCase(baseKey.replace(/^.*?_/, ''));
+        };
+
+        const artRows = [];
+        for (const [choiceKey, choiceVal] of Object.entries(char.choices || {})) {
+          if (!choiceVal || choiceKey.endsWith('_entry')) continue;
+
+          let k = choiceKey;
+          let scope = '';
+          let ownerClass = char.className || '';
+          let ownerSubclass = char.subclassShortName || '';
+          let ownerLevel = getPrimaryClassLevel();
+          let ownerSubFeatures = (char.allSubFeatures || []).filter(f => f.subclassShortName === ownerSubclass && !f.isReprinted && (f.level || 0) <= ownerLevel);
+          const mcMatch = /^mc(\d+)_/.exec(choiceKey);
+          if (mcMatch) {
+            k = choiceKey.replace(/^mc\d+_/, '');
+            const ecIdx = parseInt(mcMatch[1], 10);
+            const ec = char.extraClasses?.[ecIdx];
+            const ecName = ec?.name;
+            if (ecName) scope = '[' + ecName + '] ';
+            ownerClass = ec?.name || '';
+            ownerSubclass = ec?.subclassShortName || '';
+            ownerLevel = ec?.level || 1;
+            ownerSubFeatures = (ec?.allSubFeatures || []).filter(f => f.subclassShortName === ownerSubclass && !f.isReprinted && (f.level || 0) <= ownerLevel);
+          }
+
+          if (!_isArtificerChoice(k, ownerClass)) continue;
+          if (/^artificer_feat_lv\d+$/i.test(k)) continue;
+
+          const vals = (Array.isArray(choiceVal) ? choiceVal : [choiceVal]).map(v => String(v || '').trim()).filter(Boolean);
+          if (!vals.length) continue;
+
+          let detailHtml = '';
+          if (ownerClass === 'Artificer' && ownerSubclass === 'Armorer' && _looksLikeArmorerModelChoice(k, vals)) {
+            detailHtml = vals.map(v => _extractArmorerModelDetailHtml(ownerSubFeatures, v)).filter(Boolean).join('');
+          }
+          artRows.push({ label: scope + _labelForArtificerChoice(k), values: vals, detailHtml });
+        }
+
+        if (artRows.length) {
+          html += `<div class="feat-section-hdr cls">${luci('wrench')} Artificer Choices</div>`;
+          for (const row of artRows) {
+            const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>${row.detailHtml || ''}`;
+            html += fi({ name: row.label, entries: [body] }, 'sub');
+          }
+        }
+      }
       el.innerHTML = html || '<div class="phmsg">No features yet.</div>';
     }
 

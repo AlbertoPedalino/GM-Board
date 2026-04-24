@@ -1004,6 +1004,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
   </div>
 </div>
 
+<!-- ── Adapter system (same files as charbuilder) ── -->
+<script src="adapters/registry.js"></script>
+<script src="adapters/manifest.js"></script>
+<script src="adapters/loader.js"></script>
+
 <script>
 /* ═══════ CONSTANTS ═══════ */
 const PB_TABLE = [null,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6];
@@ -1775,309 +1780,7 @@ function getSpellSaveDC(){ return 8+getPB()+getSpellMod(); }
 function getSpellAttackBonus(){ return getPB()+getSpellMod(); }
 
 /* ── CLASS ACTIONS — D&D 2024 (XPHB) ── */
-const CLASS_ACTIONS_MAP = {
-  Barbarian:[
-    {name:"Rage",              icon:"",cat:"bonus",   uses:"2+ / LR (+1 SR)",    resKey:"rage",
-     desc:"Bonus Action. Enter Rage for 1 minute: +2 damage on attacks (→+3 lv.9, →+4 lv.16), resistance to Bludgeoning/Piercing/Slashing, advantage on STR checks and saves. Uses: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17), unlimited (lv.20). Recharge: Long Rest; recover 1 expended use on a Short Rest."},
-    {name:"Reckless Attack",   icon:"",cat:"attack",  uses:"Unlimited",
-     desc:"When you make your first attack on your turn, gain advantage on all weapon attack rolls using STR this turn. Enemies gain advantage on attack rolls against you until the start of your next turn."},
-    {name:"Danger Sense",      icon:"",cat:"reaction",uses:"Passive",    minLevel:2,
-     desc:"You have advantage on DEX saving throws against effects you can see. You can't be surprised while you are conscious."},
-    {name:"Fast Movement",     icon:"",cat:"action",  uses:"Passive",    minLevel:5,
-     desc:"Your Speed increases by 10 ft while you aren't wearing Heavy Armor."},
-    {name:"Feral Instinct",    icon:"",cat:"action",  uses:"Passive",    minLevel:7,
-     desc:"Advantage on Initiative rolls. If you are surprised at the start of combat, you can act normally on your first turn as long as you enter your Rage before doing anything else."},
-    {name:"Brutal Strike",     icon:"",cat:"attack",  uses:"While Raging", minLevel:9,
-     desc:"When you use Reckless Attack and have advantage, forgo the advantage on one attack to deal +1d10 damage and trigger a Brutal Strike effect: Forceful Blow (push 15 ft or knock Prone) or Hamstring Blow (target's Speed halved until start of your next turn)."},
-    {name:"Relentless Rage",   icon:"",cat:"reaction",uses:"DC 10+ CON", minLevel:11,
-     desc:"When you are reduced to 0 HP while Raging and don't die outright, you can make a DC 10 CON save to drop to 1 HP instead. Each time you use this feature the DC increases by 5, resetting on a Long Rest."},
-    {name:"Persistent Rage",   icon:"",cat:"action",  uses:"Passive",    minLevel:15,
-     desc:"Your Rage only ends early if you fall unconscious or choose to end it. No longer ends from not attacking or taking damage."},
-    {name:"Indomitable Might", icon:"",cat:"action",  uses:"Passive",    minLevel:18,
-     desc:"If your total for a STR check is lower than your STR score, use your STR score in its place."},
-  ],
-  Artificer:[
-    {name:"Tinker's Magic",     icon:"",cat:"action", uses:"Passive",
-     desc:"You can magically tinker with tools and objects, and you use Intelligence for your Artificer magic."},
-    {name:"Replicate Magic Item", icon:"",cat:"action", uses:"After Long Rest", minLevel:2,
-     desc:"After a Long Rest, create magic items from the plans you know. Plans known and active items increase with Artificer level."},
-    {name:"Flash of Genius",    icon:"",cat:"reaction", uses:"INT mod / LR", resKey:"flash_genius", minLevel:7,
-     desc:"When you or a creature you can see within 30 ft fails an ability check or saving throw, add your Intelligence modifier to the roll."},
-    {name:"Spell-Storing Item", icon:"",cat:"action", uses:"1 active item", minLevel:11,
-     desc:"After a Long Rest, store one Artificer spell (level 1-3) in a weapon or spellcasting focus item so it can be cast repeatedly from that item."},
-    {name:"Soul of Artifice",   icon:"",cat:"reaction", uses:"Passive", minLevel:20,
-     desc:"Your attuned magic items reinforce your defenses and help you cling to life in dire moments."},
-  ],
-  Bard:[
-    {name:"Bardic Inspiration",icon:"",cat:"bonus",   uses:"CHA mod / SR", resKey:"bardic_insp",
-     desc:"Bonus Action: give one Bardic Inspiration die to a creature within 60 ft other than yourself. Die size: d6 (lv.1–4), d8 (lv.5–9), d10 (lv.10–14), d12 (lv.15–20). Recipient can add the die to one attack roll, ability check, or saving throw within 10 minutes. Recharge: Short Rest (lv.5+) or Long Rest."},
-    {name:"Jack of All Trades",icon:"",cat:"action",  uses:"Passive",    minLevel:2,
-     desc:"Add half your Proficiency Bonus (rounded down) to any ability check that doesn't already use your Proficiency Bonus."},
-    {name:"Expertise",         icon:"",cat:"action",  uses:"Passive",    minLevel:2,
-     desc:"Double your Proficiency Bonus for two skills you are proficient in (lv.2). Choose two more at lv.9."},
-    {name:"Countercharm",      icon:"",cat:"action",  uses:"Passive",    minLevel:7,
-     desc:"As an Action, begin a performance that lasts until the end of your next turn. During that time, any friendly creature within 30 ft who can hear you has Advantage on saving throws against being Charmed or Frightened."},
-    {name:"Magical Secrets",   icon:"",cat:"action",  uses:"Passive",    minLevel:11,
-     desc:"Learn 2 spells from any class's spell list. These count as Bard spells for you. Gain 2 more at lv.13, lv.15, lv.17, and lv.19."},
-  ],
-  Cleric:[
-    {name:"Channel Divinity",  icon:"",cat:"action",  uses:"1-3 / SR",  resKey:"channel_div",   minLevel:2,
-     desc:"Channel your deity's power. Uses: 1 (lv.2–5), 2 (lv.6–17), 3 (lv.18+). Recharge: Short Rest. Options include Turn Undead and your Domain's feature (see subclass)."},
-    {name:"Turn Undead",       icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",   minLevel:2,
-     desc:"Channel Divinity option. Each Undead within 30 ft that can see or hear you must succeed on a WIS save (DC = 8+PB+WIS) or have the Frightened and Incapacitated condition for 1 minute (flees). Undead with CR ≤ your Proficiency Bonus are Destroyed instead."},
-    {name:"Divine Spark",      icon:"",cat:"action",  uses:"1+ Channel",resKey:"channel_div",   minLevel:2,
-     desc:"Channel Divinity option. Choose a creature within 30 ft: it either regains HP or takes Radiant or Necrotic damage (your choice) equal to 2d8 + your WIS modifier. For each additional Channel Divinity use spent (beyond the first), add 1d8. The maximum additional uses scales with level: +1 at lv.2, +2 at lv.5, +3 at lv.8, +4 at lv.11, +5 at lv.14, +6 at lv.17."},
-    {name:"Divine Intervention",icon:"",cat:"action", uses:"1 / LR",   resKey:"divine_intervention", minLevel:10,
-     desc:"Implore your deity's aid. Roll 1d20: if the result ≤ your Cleric level, your deity intervenes (effect determined by the DM). At lv.20, this succeeds automatically. Recharge: Long Rest."},
-    {name:"Blessed Strikes",   icon:"",cat:"action",  uses:"Passive",   minLevel:7,
-     desc:"Gain one of two benefits: Divine Strike (add 1d8 of your domain's damage type once per turn) or Potent Spellcasting (add WIS mod to Cleric cantrip damage)."},
-  ],
-  Druid:[
-    {name:"Wild Shape",        icon:"",cat:"bonus",   uses:"2 / LR",   resKey:"wild_shape",    minLevel:2,
-     desc:"Bonus Action. Transform into a Beast you have seen. Max CR: 1/4 (lv.2), 1/2 (lv.4), 1 (lv.8). Retain INT/WIS/CHA scores and class features. Gain the beast's HP, attacks, and physical traits. Lasts until reduced to 0 HP, you end it (Bonus Action), or you fall unconscious. Recharge: Long Rest (2 uses)."},
-    {name:"Wild Resurgence",   icon:"",cat:"bonus",   uses:"Situational", minLevel:5,
-     desc:"If you have no Wild Shape uses left, you can spend a spell slot of lv.1 or higher to regain one. Alternatively, you can expend one Wild Shape use to regain a lv.1 spell slot (once per LR)."},
-    {name:"Elemental Fury",    icon:"",cat:"action",  uses:"Passive",   minLevel:9,
-     desc:"Choose a damage type: Fire or Cold. While in Wild Shape or when you make an Unarmed Strike, you deal +1d6 of that damage type to creatures you hit once per turn."},
-    {name:"Improved Wild Shape",icon:"",cat:"bonus",  uses:"Passive",   minLevel:9,
-     desc:"Beast CR limit: lv.9 = CR 2, lv.10 = CR 3, and so on (CR = Druid level ÷ 3, rounded down, max CR 10)."},
-  ],
-  Fighter:[
-    {name:"Second Wind",       icon:"",cat:"bonus",   uses:"1-3 / SR",  resKey:"second_wind",
-     desc:"Bonus Action: regain 1d10 + Fighter level HP. Uses: 1 (lv.1–2), 2 (lv.3–14), 3 (lv.15+). Recharge: Short or Long Rest."},
-    {name:"Action Surge",      icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"action_surge",  minLevel:2,
-     desc:"Take one additional action on your turn. Uses: 1 (lv.2–16), 2 (lv.17+). Recharge: Short or Long Rest."},
-    {name:"Tactical Mind",     icon:"",cat:"reaction",uses:"Second Wind", minLevel:2,
-     desc:"When you fail an ability check, you can expend a use of Second Wind (as a Reaction) to add 1d10 to the check result, possibly changing the outcome."},
-    {name:"Fighting Style",    icon:"",cat:"action",  uses:"Passive",
-     desc:"Archery (+2 ranged attack rolls), Defense (+1 AC), Dueling (+2 damage 1H), Great Weapon (reroll 1–2 damage), Protection (impose Disadvantage on attacker vs ally within 5 ft), Two-Weapon Fighting (add ability modifier to off-hand damage), Blind Fighting (10-ft blindsight), Interception (Reaction: reduce damage to ally by 1d10+PB)."},
-    {name:"Extra Attack",      icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
-     desc:"Attack twice when you take the Attack action (lv.5). Three times at lv.11. Four times at lv.20."},
-    {name:"Indomitable",       icon:"",cat:"reaction",uses:"1-3 / LR",  resKey:"indomitable",  minLevel:9,
-     desc:"When you fail a saving throw, you can reroll it and must use the new result. Uses: 1 (lv.9–12), 2 (lv.13–16), 3 (lv.17+). Recharge: Long Rest."},
-    {name:"Tactical Shift",    icon:"",cat:"bonus",   uses:"While Action Surge", minLevel:17,
-     desc:"When you use Action Surge, you can move up to half your Speed without provoking Opportunity Attacks."},
-  ],
-  Monk:[
-    {name:"Martial Arts",      icon:"",cat:"attack",  uses:"Passive",
-     desc:"With Simple weapons, Monk weapons, or Unarmed Strikes: use DEX instead of STR for attack and damage. Unarmed Strike die: d6 (lv.1–4), d8 (lv.5–10), d10 (lv.11–16), d12 (lv.17–20). After the Attack action: make one Unarmed Strike as a Bonus Action (free, no Discipline Point cost)."},
-    {name:"Flurry of Blows",   icon:"",cat:"bonus",   uses:"1 Discipline Point", resKey:"ki", minLevel:2,
-     desc:"After the Attack action, spend 1 Discipline Point to make 2 Unarmed Strikes as a Bonus Action."},
-    {name:"Patient Defense",   icon:"",cat:"bonus",   uses:"1 Discipline Point", resKey:"ki", minLevel:2,
-     desc:"Spend 1 Discipline Point (Bonus Action) to take the Dodge action."},
-    {name:"Step of the Wind",  icon:"",cat:"bonus",   uses:"1 Discipline Point", resKey:"ki", minLevel:2,
-     desc:"Spend 1 Discipline Point (Bonus Action) to take the Dash or Disengage action. Your jump distance doubles for the turn."},
-    {name:"Deflect Attacks",   icon:"",cat:"reaction",uses:"Free / 1 DP redirect", resKey:"ki", minLevel:3,
-     desc:"Reaction when you take damage from an attack. Reduce the damage by 1d10 + DEX modifier + Monk level. If reduced to 0: you can spend 1 Discipline Point to redirect the attack as a ranged attack (20/60 ft range, damage = Martial Arts die + DEX)."},
-    {name:"Slow Fall",         icon:"",cat:"reaction",uses:"Passive",   minLevel:4,
-     desc:"Reaction when falling: reduce falling damage by an amount equal to your Monk level × 5."},
-    {name:"Stunning Strike",   icon:"",cat:"attack",  uses:"1 Discipline Point", resKey:"ki", minLevel:5,
-     desc:"When you hit a creature with a weapon or Unarmed Strike, spend 1 Discipline Point to force a CON save (DC = 8+PB+WIS). Failure: the target has the Stunned condition until the start of your next turn."},
-    {name:"Ki-Empowered Strikes",icon:"",cat:"attack",uses:"Passive",   minLevel:6,
-     desc:"Your Unarmed Strikes count as magical for the purpose of overcoming Resistance and Immunity to nonmagical attacks."},
-    {name:"Evasion",           icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
-     desc:"When you are subjected to an effect that allows a DEX save for half damage: take no damage on success, half on failure. Doesn't work if you have the Incapacitated condition."},
-    {name:"Stillness of Mind", icon:"",cat:"action",  uses:"Passive",   minLevel:8,
-     desc:"You can use your Action to end one effect on yourself causing the Charmed or Frightened condition."},
-    {name:"Acrobatic Movement",icon:"",cat:"action",  uses:"Passive",   minLevel:9,
-     desc:"You gain Climb Speed and Swim Speed equal to your Speed. Difficult terrain costs no extra movement."},
-    {name:"Heightened Discipline",icon:"",cat:"action",uses:"Passive",  minLevel:10,
-     desc:"Your Flurry of Blows, Patient Defense, and Step of the Wind each gain a bonus effect when you spend the Discipline Point (chosen at level 10): Flurry stuns, Patient Defense knocks prone, Step of the Wind pushes."},
-  ],
-  Paladin:[
-    {name:"Divine Sense",      icon:"",cat:"action",  uses:"CHA+1 / LR",resKey:"divine_sense",
-     desc:"Action: for 10 minutes, detect the presence of any Aberration, Celestial, Fiend, Fiendish objects, Undead, or consecrated/desecrated ground within 60 ft. Uses = 1 + CHA modifier per Long Rest."},
-    {name:"Lay on Hands",      icon:"",cat:"action",  uses:"Pool / LR", resKey:"lay_on_hands",
-     desc:"Touch a creature to restore HP from your pool (1 HP per point spent), or spend 5 points to remove one disease or neutralize one poison. Pool = 5 × Paladin level. Recharge: Long Rest."},
-    {name:"Divine Smite",      icon:"",cat:"reaction",uses:"Spell slot",  minLevel:1,
-     desc:"Reaction when you hit with a Melee weapon. Expend a spell slot: deal 2d8 Radiant damage (+1d8 per slot level above 1st, max 6d8). Critical hit: extra 1d8. Once per turn."},
-    {name:"Sacred Weapon",     icon:"",cat:"bonus",   uses:"CHA mod+1 / LR", resKey:"paladin_channel_div", minLevel:3,
-     desc:"Bonus Action: imbue a weapon with holy power for 1 minute. The weapon is magical, emits bright light (20 ft) and dim light (20 ft more), and you add your CHA modifier to attack rolls. Ends if you're Incapacitated."},
-    {name:"Channel Divinity",  icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"paladin_channel_div", minLevel:3,
-     desc:"Subclass-specific option (see your Oath). Uses: 1 (lv.3–10), 2 (lv.11+). Recharge: Short Rest."},
-    {name:"Aura of Protection",icon:"",cat:"action",  uses:"Passive",   minLevel:7,
-     desc:"While conscious: you and friendly creatures within 10 ft gain +CHA modifier to saving throws (min +1). Range increases to 30 ft at lv.18."},
-    {name:"Aura of Courage",   icon:"",cat:"action",  uses:"Passive",   minLevel:10,
-     desc:"While conscious: friendly creatures within your aura can't have the Frightened condition."},
-    {name:"Radiant Strikes",   icon:"",cat:"attack",  uses:"Passive",   minLevel:11,
-     desc:"Your weapon and Unarmed Strike attacks deal an extra 1d8 Radiant damage."},
-  ],
-  Ranger:[
-    {name:"Favored Enemy",     icon:"",cat:"bonus",   uses:"Passive",
-     desc:"You always have Hunter's Mark prepared (doesn't count against spells known). You can cast it without expending a spell slot a number of times equal to your WIS modifier (min 1) per Long Rest."},
-    {name:"Hunter's Mark",     icon:"",cat:"bonus",   uses:"WIS mod free / LR",
-     desc:"Bonus Action (Concentration): mark a creature you can see within 90 ft. +1d6 damage on every hit against it. Advantage on PER/Survival checks to find it. Can move the mark (Bonus Action) if the marked creature dies. At lv.17: no longer requires Concentration."},
-    {name:"Deft Explorer",     icon:"",cat:"action",  uses:"Passive",   minLevel:2,
-     desc:"Expertise in one skill. Learn one language. At lv.6: learn a second language and gain a +10 ft Speed increase in one terrain type. At lv.10: Tireless—Exhaustion not granted from traveling; reduce Exhaustion after short rest."},
-    {name:"Roving",            icon:"",cat:"action",  uses:"Passive",   minLevel:6,
-     desc:"Your Speed increases by 10 ft. You gain Climb Speed and Swim Speed equal to your Speed."},
-    {name:"Extra Attack",      icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
-     desc:"Attack twice when you take the Attack action."},
-    {name:"Evasion",           icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
-     desc:"DEX save: take no damage on success, half on failure. Doesn't work if you have the Incapacitated condition."},
-    {name:"Feral Senses",      icon:"",cat:"action",  uses:"Passive",   minLevel:18,
-     desc:"No Disadvantage on attack rolls against creatures you can't see. You can hear invisible creatures in combat."},
-  ],
-  Rogue:[
-    {name:"Sneak Attack",      icon:"",cat:"attack",  uses:"1 / turn",
-     desc:"Once per turn, deal extra damage with a Finesse or ranged weapon if you have Advantage on the attack OR a conscious ally is within 5 ft of the target (you must not have Disadvantage). Dice: 1d6 at lv.1, +1d6 every 2 levels."},
-    {name:"Cunning Action",    icon:"",cat:"bonus",   uses:"Unlimited",  minLevel:2,
-     desc:"Bonus Action each turn: take the Dash, Disengage, or Hide action."},
-    {name:"Cunning Strike",    icon:"",cat:"attack",  uses:"Sneak Attack die", minLevel:5,
-     desc:"When you deal Sneak Attack damage, you can forgo one Sneak Attack die to apply one Cunning Strike option: Disarm (DEX save or drops one item), Poison (CON save or Poisoned 1 min), Trip (DEX save or Prone), or Withdraw (your movement doesn't provoke OA this turn)."},
-    {name:"Evasion",           icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
-     desc:"DEX save: take no damage on success, half on failure. Doesn't work if Incapacitated."},
-    {name:"Reliable Talent",   icon:"",cat:"action",  uses:"Passive",   minLevel:11,
-     desc:"When you make an ability check using a skill you are proficient in, treat a d20 roll of 9 or lower as a 10."},
-    {name:"Blindsense",        icon:"",cat:"action",  uses:"Passive",   minLevel:14,
-     desc:"If you are able to hear, you are aware of the location of any hidden or invisible creature within 10 ft of you."},
-    {name:"Slippery Mind",     icon:"",cat:"action",  uses:"Passive",   minLevel:15,
-     desc:"Proficiency in WIS and CHA saving throws."},
-    {name:"Stroke of Luck",    icon:"",cat:"action",  uses:"1 / LR",   minLevel:20,
-     desc:"Once per Long Rest: turn a failed ability check into a success, or turn a miss into a hit."},
-  ],
-  Sorcerer:[
-    {name:"Innate Sorcery",    icon:"",cat:"bonus",   uses:"2 / LR",   resKey:"sorc_pts", minLevel:1,
-     desc:"Bonus Action: unleash magical energy for 1 minute. During this time your spell save DC increases by 1, and you have Advantage on the attack rolls of Sorcerer spells you cast. Uses: 2 per Long Rest."},
-    {name:"Font of Magic",     icon:"",cat:"action",  uses:"Sorcery Points", resKey:"sorc_pts", minLevel:2,
-     desc:"Sorcery Points = Sorcerer level (replenish on Long Rest). Spend points to create spell slots or convert slots into points. Creating a slot: lv.1=2pt, lv.2=3pt, lv.3=5pt, lv.4=6pt, lv.5=7pt."},
-    {name:"Metamagic",         icon:"",cat:"action",  uses:"Sorcery Points", resKey:"sorc_pts", minLevel:2,
-     desc:"Modify spells with Sorcery Points. Options: Careful (2pt, allies auto-succeed save), Distant (1pt, double range), Empowered (1pt, reroll damage dice up to CHA mod), Extended (1pt, double duration), Heightened (3pt, target has Disadvantage on first save), Quickened (2pt, cast as Bonus Action), Seeking (1pt/miss, reroll attack), Subtle (1pt, no V or S component), Transmuted (1pt, change damage type), Twinned (1pt, second target same spell)."},
-    {name:"Sorcerous Restoration", icon:"",cat:"action",uses:"Passive", minLevel:5,
-     desc:"Regain expended Sorcery Points when you finish a Short Rest. Number restored = half your Sorcerer level (rounded down)."},
-    {name:"Sorcery Incarnate",  icon:"",cat:"action", uses:"Innate Sorcery", minLevel:20,
-     desc:"While your Innate Sorcery feature is active: if you have no uses of Metamagic, you can use two Metamagic options simultaneously on a spell; additionally, each Metamagic option can be applied twice."},
-  ],
-  Warlock:[
-    {name:"Eldritch Invocations",icon:"",cat:"action",uses:"Passive",
-     desc:"Learn 1 invocation at lv.1 (more at odd levels). Key options: Agonizing Blast (add CHA to Eldritch Blast damage), Armor of Shadows (Mage Armor at will), Devil's Sight (see 120 ft in magical darkness), Repelling Blast (push target 10 ft), One with Shadows (Invisible in dim/dark as Action)."},
-    {name:"Pact Magic",         icon:"",cat:"action", uses:"Short Rest recharge",
-     desc:"Your spell slots recharge on a Short Rest (not Long Rest). All your slots are the same level (lv.1–5, scales with Warlock level). You learn a limited number of spells from the Warlock list."},
-    {name:"Pact Boon",          icon:"",cat:"action", uses:"Passive",    minLevel:3,
-     desc:"Choose your Pact Boon: Pact of the Chain (Find Familiar, special familiar forms), Pact of the Blade (summon magical melee weapon, add CHA to attacks), or Pact of the Tome (Book of Shadows with 3 cantrips from any list + 2 rituals)."},
-    {name:"Mystic Arcanum",     icon:"",cat:"action", uses:"1 / LR each",minLevel:11,
-     desc:"A 6th-level spell known without a slot, usable once per LR (lv.11). Gain a 7th-level spell at lv.13, 8th at lv.15, 9th at lv.17. Recharge: Long Rest for each."},
-    {name:"Eldritch Master",    icon:"",cat:"action", uses:"1 / LR",     minLevel:20,
-     desc:"Once per Long Rest, you can spend 1 minute communing with your patron to regain all your Pact Magic spell slots."},
-  ],
-  Wizard:[
-    {name:"Arcane Recovery",   icon:"",cat:"action",  uses:"1 / LR",   resKey:"arc_recovery",
-     desc:"After a Short Rest: recover spell slots with a combined level equal to or less than half your Wizard level (rounded up, max 6th-level slots). Recharge: Long Rest."},
-    {name:"Spellbook",         icon:"",cat:"action",  uses:"Always",
-     desc:"Contains your known Wizard spells. Cast prepared rituals without using a slot (+10 min). Copy new spells: costs 50 gp and 2 hours per spell level. Gain 2 free spells at each Wizard level."},
-    {name:"Memorize Spell",    icon:"",cat:"bonus",   uses:"1 / SR",   minLevel:5,
-     desc:"After a Short Rest: replace one prepared spell with another Wizard spell from your spellbook. Recharge: Short Rest."},
-    {name:"Spell Mastery",     icon:"",cat:"action",  uses:"1 / LR",   minLevel:18,
-     desc:"Choose 1 spell of 1st level and 1 of 2nd level from your spellbook: cast each at their lowest level without expending a spell slot, once per Long Rest each."},
-    {name:"Signature Spells",  icon:"",cat:"action",  uses:"1 / SR each", minLevel:20,
-     desc:"Choose two 3rd-level Wizard spells: they are always prepared (don't count toward limit) and you can cast each once per Short Rest without a spell slot."},
-  ],
-};
-
-const SUBCLASS_ACTIONS_MAP = {
-  // ─── CLERIC ───
-  'Cleric_Life':     [{name:"Channel: Preserve Life",       icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",
-                       desc:"Within 30 ft: distribute HP equal to 5 x Cleric level among any creatures of your choice (excluding Undead and Constructs), without exceeding each creature's maximum."}],
-  'Cleric_Light':    [{name:"Channel: Radiance of the Dawn",icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",
-                       desc:"Every Undead within 30 ft must succeed on a CON save or take 2d10+level radiant damage (half on success). Creatures that cannot see the light have disadvantage."}],
-  'Cleric_Trickery': [{name:"Channel: Invoke Duplicity",    icon:"",cat:"action",  uses:"1 Channel / Conc.", resKey:"channel_div",
-                       desc:"Create an illusory duplicate of yourself within 30 ft. As a bonus action you can move it (up to 30 ft). You can cast spells as if you were in its space."}],
-  'Cleric_War':      [
-    {name:"War Priest",                  icon:"",cat:"bonus",   uses:"PB / LR",   resKey:"war_priest",   minLevel:3,
-     desc:"After taking the Attack action on your turn, you can make one weapon attack as a Bonus Action. Uses = your Proficiency Bonus per Long Rest."},
-    {name:"Channel: Guided Strike",      icon:"",cat:"reaction",uses:"1 Channel", resKey:"channel_div",  minLevel:3,
-     desc:"Reaction when you or an ally within 30 ft misses an attack: expend one Channel Divinity use to add +10 to the roll, potentially turning a miss into a hit."},
-    {name:"Channel: War God's Blessing", icon:"",cat:"reaction",uses:"1 Channel", resKey:"channel_div",  minLevel:6,
-     desc:"Reaction when an ally within 30 ft makes an attack roll: expend one Channel Divinity use to add +10 to that roll. Can turn a miss into a hit."},
-  ],
-  'Cleric_Knowledge':[{name:"Channel: Knowledge of the Ages",icon:"",cat:"action",uses:"1 Channel", resKey:"channel_div",
-                       desc:"Choose a skill or tool: for 10 minutes gain proficiency (or double proficiency if already proficient)."}],
-  // ─── PALADIN ───
-  'Paladin_Devotion':[{name:"Channel: Sacred Weapon",       icon:"",cat:"bonus",  uses:"1 Channel", resKey:"paladin_channel_div",
-                       desc:"Bonus action: infuse your held weapon for 1 minute. Add CHA mod to attack rolls (min +1). The weapon sheds bright light in a 20-ft radius."}],
-  'Paladin_Vengeance':[{name:"Channel: Vow of Enmity",      icon:"",cat:"bonus",  uses:"1 Channel", resKey:"paladin_channel_div",
-                       desc:"Bonus action: advantage on all attacks against one visible creature within 10 ft for 1 minute (or until it dies or hides)."}],
-  'Paladin_Ancients':[{name:"Channel: Nature's Wrath",      icon:"",cat:"action", uses:"1 Channel", resKey:"paladin_channel_div",
-                       desc:"Fey and Celestials within 30 ft regain 2d6+CHA HP. Undead and Fiends must succeed on a WIS save (DC=8+PB+CHA) or be Frightened for 1 minute."}],
-  'Paladin_Glory':   [{name:"Channel: Gift of the Brave",   icon:"",cat:"action", uses:"1 Channel", resKey:"paladin_channel_div",
-                       desc:"Chosen creatures within 30 ft gain for 1 minute: +PB to Athletics/Acrobatics checks, +10 ft movement speed."}],
-  'Paladin_Noble Genies':[{name:"Channel: Genie's Flight",  icon:"",cat:"action", uses:"1 Channel", resKey:"paladin_channel_div",
-                       desc:"You and allies within 30 ft gain a flying speed equal to your walking speed for 1 minute."}],
-  // ─── FIGHTER ───
-  'Fighter_Battle Master':[{name:"Combat Maneuvers",         icon:"",cat:"attack", uses:"Superiority Dice d8",resKey:"superiority_dice",
-                       desc:"Spend a Superiority Die (d8 to d10 to d12) to add effects to attacks: Disarm, Push, Distract, Command, Taunt, Riposte, Feint, Precision Attack, etc. Recharge: short or long rest."}],
-  'Fighter_Eldritch Knight':[{name:"Weapon Bond",            icon:"",cat:"bonus",  uses:"Passive",  minLevel:3,
-                       desc:"You can summon a bonded weapon from within 60 ft as a bonus action. You cannot be disarmed of bonded weapons."}],
-  'Fighter_Champion':[{name:"Improved Critical",             icon:"",cat:"attack", uses:"Passive",  minLevel:3,
-                       desc:"Critical hit on 19-20 (lv.3). On 18-20 at lv.15."}],
-  'Fighter_Psi Warrior':[{name:"Psionic Strike",             icon:"",cat:"attack", uses:"Psi Dice", resKey:"psi_dice",  minLevel:3,
-                       desc:"After hitting with a weapon: spend a Psi Die (d6 to d12) to add psychic damage and potentially incapacitate the target until the end of its turn."}],
-  // ─── MONK ───
-  'Monk_Open Hand': [{name:"Open Hand Technique",            icon:"",cat:"attack", uses:"With Flurry",
-                       desc:"When using Flurry of Blows, add one of these effects: knock prone (DEX save), push 15ft (STR save), prevent reactions until your next turn."}],
-  'Monk_Shadow':    [{name:"Shadow Arts",                    icon:"",cat:"bonus",  uses:"1-3 Ki",  resKey:"ki",  minLevel:3,
-                       desc:"Spend Ki to cast: Darkness (2Ki), Silence (2Ki), Pass Without Trace (2Ki). At lv.6: Dominate Beast (3Ki), Dimension Door (4Ki)."}],
-  'Monk_Elements':  [{name:"Elemental Disciplines",          icon:"",cat:"action", uses:"1+ Ki",   resKey:"ki",  minLevel:3,
-                       desc:"Spend Ki to shape elements: waves of water, columns of fire, earth tremors, gusts of wind. Each discipline requires specific Ki amounts."}],
-  // ─── ROGUE ───
-  'Rogue_Assassin': [{name:"Assassinate",                    icon:"",cat:"attack", uses:"Passive",  minLevel:3,
-                       desc:"Advantage on all attacks against creatures that have not yet acted in combat. Attacks against unaware creatures that result in a hit are automatic critical hits."}],
-  'Rogue_Soulknife':[{name:"Psychic Blades",                 icon:"",cat:"attack", uses:"Psychic",  minLevel:3,
-                       desc:"Materialize psychic blades (finesse, throwable): 1d6 psychic damage + DEX. Materialize a second blade as bonus action. Blades disappear after the attack."}],
-  // ─── RANGER ───
-  'Ranger_Hunter':  [{name:"Hunter's Prey",                  icon:"",cat:"attack", uses:"Passive",  minLevel:3,
-                       desc:"Choose: Colossus Slayer (+1d8 vs wounded creatures, 1/turn), Giant Killer (reaction to attack giants that hit you), Horde Breaker (extra attack on creature adjacent to your target)."}],
-  'Ranger_Beast Master':[{name:"Animal Companion",           icon:"",cat:"bonus",  uses:"Commands / turn",  minLevel:3,
-                       desc:"Bonus action: command your beast companion to attack, move, or use special abilities. If it dies: find a new one (8h ritual)."}],
-  // ─── DRUID ───
-  'Druid_Moon':     [{name:"Enhanced Wild Shape",            icon:"",cat:"action", uses:"2 / SR",  resKey:"wild_shape",  minLevel:2,
-                       desc:"Wild Shape: CR 1 (lv.2), CR 2 (lv.6), etc. At lv.10 you can assume Elemental form. Cost is always 1 Wild Shape use."}],
-  'Druid_Land':     [{name:"Natural Recovery",               icon:"",cat:"action", uses:"1 / LR",  resKey:"natural_recovery",  minLevel:2,
-                       desc:"After a short rest: regain spell slots with total levels <= half Druid level (min 1)."}],
-  // ─── SORCERER ───
-  'Sorcerer_Wild Magic':[{name:"Wild Magic Surge",           icon:"",cat:"action", uses:"DM discretion",
-                       desc:"Each time you cast a 1st-level or higher spell, the DM may have you roll a Wild Magic Surge (1d100). At lv.1 you can use Tides of Chaos for advantage on one roll (then automatic surge)."}],
-  'Sorcerer_Draconic':[{name:"Draconic Presence",            icon:"",cat:"action", uses:"1 / LR",  minLevel:18,
-                       desc:"Action: emanate draconic awe in 60 ft. Each creature must succeed on a WIS save (spell save DC) or be frightened/charmed for 1 minute."}],
-  // ─── WARLOCK ───
-  'Warlock_Fiend':  [{name:"Dark One's Blessing",            icon:"",cat:"action", uses:"Passive",
-                       desc:"When you kill a creature with CR >= 1: gain temporary HP equal to your Warlock level + CHA mod."}],
-  'Warlock_Great Old One':[{name:"Awakened Mind",            icon:"",cat:"action", uses:"Passive",
-                       desc:"Telepathically communicate with any creature within 30 ft that knows at least one language, even if it doesn't speak yours."}],
-  'Warlock_Archfey': [{name:"Fey Step",                      icon:"",cat:"bonus",  uses:"1 / SR",  resKey:"fey_step",  minLevel:1,
-                       desc:"Bonus action: teleport to an unoccupied space within 30 ft. The old space is cloaked in illusion until your next turn."}],
-  // ─── WIZARD ───
-  'Wizard_Evoker':  [{name:"Sculpt Spells",                  icon:"",cat:"action", uses:"Passive",  minLevel:2,
-                       desc:"When you cast an evocation spell that affects an area: choose up to PB visible creatures — they take no damage from the slot (they may still take minimum damage if applicable)."}],
-  'Wizard_Diviner': [{name:"Portent",                        icon:"",cat:"action", uses:"2 / LR",  resKey:"portent",  minLevel:2,
-                       desc:"After a long rest: roll 2d20, keep the results. Before any creature makes a roll, you can replace it with one of your Portent dice (used or unused)."}],
-  'Wizard_Abjurer': [{name:"Arcane Ward",                    icon:"",cat:"reaction",uses:"Ward HP",  minLevel:2,
-                       desc:"Maintain an Arcane Ward (HP = level*2+INT). Use reaction to reduce damage taken by you or an ally within 30 ft by (Ward HP remaining). Recharges when you cast Abjuration spells or on a long rest."}],
-  // ─── BARD ───
-  // ARTIFICER
-  'Artificer_Alchemist': [
-    {name:"Experimental Elixir",            icon:"",cat:"action", uses:"After Long Rest", minLevel:3,
-                       desc:"After a Long Rest, produce experimental elixirs with Alchemist's Supplies. You can also create additional elixirs by expending spell slots."}],
-  'Artificer_Armorer': [
-    {name:"Arcane Armor",                   icon:"",cat:"action", uses:"At will", minLevel:3,
-                       desc:"Turn worn armor into Arcane Armor and customize it. You can change armor model on a Short or Long Rest while using Smith's Tools."}],
-  'Artificer_Artillerist': [
-    {name:"Eldritch Cannon",                icon:"",cat:"action", uses:"Create/command", minLevel:3,
-                       desc:"Create a magical cannon and command it in combat. Cannon type (Flamethrower, Force Ballista, Protector) is chosen when you create it."}],
-  'Artificer_Battle Smith': [
-    {name:"Steel Defender",                 icon:"",cat:"bonus", uses:"Command each turn", minLevel:3,
-                       desc:"Your Steel Defender acts on your initiative and can be commanded in combat. It protects allies and can impose disadvantage on attacks."},
-    {name:"Arcane Jolt",                    icon:"",cat:"attack", uses:"Limited / LR", minLevel:9,
-                       desc:"When you or your Steel Defender hits, channel arcane energy to deal extra force damage or restore hit points."}],
-  'Artificer_Cartographer': [
-    {name:"Adventurer's Atlas",             icon:"",cat:"action", uses:"After Long Rest", minLevel:3,
-                       desc:"Create magical maps that support navigation and coordination for you and bonded creatures."}],
-  // BARD
-  'Bard_Valor':     [{name:"Combat Inspiration",             icon:"",cat:"reaction",uses:"With Bardic Insp.",  minLevel:3,
-                       desc:"Bardic Inspiration dice given to allies can also be used to: add to a weapon damage roll, or add to AC against a specific attack."}],
-  'Bard_Lore':      [{name:"Stolen Secrets",                 icon:"",cat:"action", uses:"Passive",  minLevel:6,
-                       desc:"Choose 2 spells from any class list (of a level you can cast): they are added to your Bard spell list and treated as Bard spells."}],
-};
+// Actions maps moved to class/subclass adapters.
 
 
 const STANDARD_ACTIONS = [
@@ -2130,6 +1833,107 @@ function _dmg(...pills){
   return `<div class="action-dmg-row">${pills.map(p=>`<div class="action-dmg-pill">${p}</div>`).join('')}</div>`;
 }
 
+function _normSheetAdapterKey(v){
+  return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function _sheetGetAdapterValue(store, key){
+  if(!store || !key) return null;
+  if(Object.prototype.hasOwnProperty.call(store, key)) return store[key];
+  const target = _normSheetAdapterKey(key);
+  for(const [k, v] of Object.entries(store)){
+    if(_normSheetAdapterKey(k) === target) return v;
+  }
+  return null;
+}
+
+function _sheetGetClassActions(className){
+  return _sheetGetAdapterValue(typeof ClassSheetActions !== 'undefined' ? ClassSheetActions : {}, className) || [];
+}
+
+function _sheetGetSubclassActions(className, subclassShortName){
+  const key = className && subclassShortName ? `${className}_${subclassShortName}` : '';
+  return _sheetGetAdapterValue(typeof SubclassSheetActions !== 'undefined' ? SubclassSheetActions : {}, key) || [];
+}
+
+function _sheetGetClassResources(className){
+  return _sheetGetAdapterValue(typeof ClassSheetResources !== 'undefined' ? ClassSheetResources : {}, className) || [];
+}
+
+function _sheetGetSubclassResources(className, subclassShortName){
+  const key = className && subclassShortName ? `${className}_${subclassShortName}` : '';
+  return _sheetGetAdapterValue(typeof SubclassSheetResources !== 'undefined' ? SubclassSheetResources : {}, key) || [];
+}
+
+function _sheetGetClassChoiceMeta(className){
+  return _sheetGetAdapterValue(typeof ClassSheetChoiceMeta !== 'undefined' ? ClassSheetChoiceMeta : {}, className) || {};
+}
+
+function _sheetGetSubclassChoiceMeta(className, subclassShortName){
+  const key = className && subclassShortName ? `${className}_${subclassShortName}` : '';
+  return _sheetGetAdapterValue(typeof SubclassSheetChoiceMeta !== 'undefined' ? SubclassSheetChoiceMeta : {}, key) || {};
+}
+
+function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
+  let out = Array.isArray(features) ? features : [];
+
+  const classFilters = _sheetGetAdapterValue(typeof ClassSheetFeatureFilters !== 'undefined' ? ClassSheetFeatureFilters : {}, className) || [];
+  for(const fn of classFilters){
+    if(typeof fn !== 'function') continue;
+    out = fn({ ...(ctx||{}), className, subclassShortName }, out) || out;
+  }
+
+  const subKey = className && subclassShortName ? `${className}_${subclassShortName}` : '';
+  const subclassFilters = _sheetGetAdapterValue(typeof SubclassSheetFeatureFilters !== 'undefined' ? SubclassSheetFeatureFilters : {}, subKey) || [];
+  for(const fn of subclassFilters){
+    if(typeof fn !== 'function') continue;
+    out = fn({ ...(ctx||{}), className, subclassShortName }, out) || out;
+  }
+
+  return out;
+}
+
+function _sheetNormalizeArmorerModel(value){
+  const nk = String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!nk) return '';
+  if (nk === 'dreadnaught' || nk.includes('dreadnought')) return 'dreadnought';
+  if (nk.includes('guardian')) return 'guardian';
+  if (nk.includes('infiltrator')) return 'infiltrator';
+  return nk;
+}
+
+function _sheetGetArmorerModelFromChoices(choicePrefix){
+  const key = String(choicePrefix || '') + 'armorer_model';
+  const raw = C?.choices?.[key];
+  const first = Array.isArray(raw) ? raw[0] : raw;
+  return _sheetNormalizeArmorerModel(first);
+}
+
+function getSheetClassActions(className, classLevel){
+  const lv = Number(classLevel || C?.classLevel || C?.level || 1);
+  return _sheetGetClassActions(className).filter(a => !a?.minLevel || lv >= Number(a.minLevel));
+}
+
+function getSheetSubclassActions(subclassKey, classLevel, choicePrefix){
+  const lv = Number(classLevel || C?.classLevel || C?.level || 1);
+  const rawKey = String(subclassKey || '');
+  const cut = rawKey.indexOf('_');
+  const className = cut >= 0 ? rawKey.slice(0, cut) : rawKey;
+  const subclassShortName = cut >= 0 ? rawKey.slice(cut + 1) : '';
+
+  let actions = _sheetGetSubclassActions(className, subclassShortName)
+    .filter(a => !a?.minLevel || lv >= Number(a.minLevel));
+
+  // Optional conditional filter for model-based subclass actions (e.g. Armorer).
+  if (_normSheetAdapterKey(className) === 'artificer' && _normSheetAdapterKey(subclassShortName) === 'armorer') {
+    const selectedModel = _sheetGetArmorerModelFromChoices(choicePrefix || '');
+    if (selectedModel) {
+      actions = actions.filter(a => !a?.model || _sheetNormalizeArmorerModel(a.model) === selectedModel);
+    }
+  }
+
+  return actions;
+}
 function renderActionsTab(){
   const wrap=document.getElementById('attacks-table-wrap');
   if(!wrap) return;
@@ -2161,18 +1965,20 @@ function renderActionsTab(){
 
   // Primary class level (not total character level)
   const pLv=C?.classLevel||lv;
-  // Primary class actions filtered by primary class level
-  const classActions=(CLASS_ACTIONS_MAP[cls]||[]).filter(a=>!a.minLevel||pLv>=a.minLevel);
-  // Subclass actions filtered by primary class level
+  // Primary class actions — filtered by level AND conditional feature filters
   const subKey=cls+'_'+(C?.subclassShortName||'');
-  const subActions=(SUBCLASS_ACTIONS_MAP[subKey]||[]).filter(a=>!a.minLevel||pLv>=a.minLevel);
+  const classActions=getSheetClassActions(cls, pLv);
+  const subActions=getSheetSubclassActions(subKey, pLv);
   // Extra (multiclass) actions
   const extraActions=[];
-  for(const ec of (C?.extraClasses||[])){
+  for(let _ecIdx=0;_ecIdx<(C?.extraClasses||[]).length;_ecIdx++){
+    const ec=(C.extraClasses||[])[_ecIdx];
     if(!ec.name) continue;
     const ecLv=ec.level||1;
-    const ecBase=(CLASS_ACTIONS_MAP[ec.name]||[]).filter(a=>!a.minLevel||ecLv>=a.minLevel).map(a=>({...a,_cls:ec.name}));
-    const ecSub=(SUBCLASS_ACTIONS_MAP[ec.name+'_'+(ec.subclassShortName||'')]||[]).filter(a=>!a.minLevel||ecLv>=a.minLevel).map(a=>({...a,_cls:ec.name}));
+    const ecSubKey=ec.name+'_'+(ec.subclassShortName||'');
+    const ecPrefix=`mc${_ecIdx}_`;
+    const ecBase=getSheetClassActions(ec.name,ecLv).map(a=>({...a,_cls:ec.name}));
+    const ecSub=getSheetSubclassActions(ecSubKey,ecLv,ecPrefix).map(a=>({...a,_cls:ec.name}));
     extraActions.push(...ecBase,...ecSub);
   }
   const allClassActions=[...classActions,...subActions,...extraActions];
@@ -2954,9 +2760,10 @@ function renderFeaturesTab(){
   const el = document.getElementById('features-wrap');
   const lv = C.classLevel || C.level; // livello classe primaria, non totale
   const allF = (C.allClassFeatures||[]).filter(f=>f.level<=lv&&!f.isReprinted);
-  const allSF= C.subclassShortName
+  const allSFRaw= C.subclassShortName
     ? (C.allSubFeatures||[]).filter(f=>f.subclassShortName===C.subclassShortName&&f.level<=lv&&!f.isReprinted)
     : [];
+  const allSF = _applySheetFeatureFilters(C.className, C.subclassShortName, allSFRaw, { character:C, choices:C?.choices||{}, choicePrefix:'', classLevel:lv });
   const feats = C.allFeatSnapshots||[];
 
   // Determine which feat slot gave each feat (choice keys like feat_asi_lv4, bg_feat_origin, etc.)
@@ -2973,6 +2780,80 @@ function renderFeaturesTab(){
       }
     }
     return 'Feat';
+  }
+
+  function _normFeatureKey(v){
+    return clean(String(v || '')).toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function _canonArmorerModelKey(v){
+    const key = _normFeatureKey(v);
+    if(!key) return '';
+    if(key === 'dreadnaught') return 'dreadnought';
+    if(key.includes('dreadnought')) return 'dreadnought';
+    if(key.includes('guardian')) return 'guardian';
+    if(key.includes('infiltrator')) return 'infiltrator';
+    return key;
+  }
+
+  function _extractArmorerModelDetailHtml(subFeatures, modelName){
+    const target = _canonArmorerModelKey(modelName);
+    if(!target || !Array.isArray(subFeatures) || !subFeatures.length) return '';
+
+    const ordered = [...subFeatures].sort((a,b)=>(a?.level||0)-(b?.level||0));
+    const byName = new Map();
+    for(const f of ordered){
+      const key = _canonArmorerModelKey(f?.name);
+      if(key && !byName.has(key)) byName.set(key, f);
+    }
+
+    const armorModelFeature = ordered.find(f => _normFeatureKey(f?.name) === 'armormodel');
+
+    function _resolveRefFeature(node){
+      if(!node || typeof node !== 'object') return null;
+      const raw = node.subclassFeature || node.classFeature;
+      if(!raw) return null;
+      const refName = String(raw).split('|')[0].trim();
+      return byName.get(_canonArmorerModelKey(refName)) || null;
+    }
+
+    function _walk(node){
+      if(!node) return null;
+      if(Array.isArray(node)){
+        for(const item of node){
+          const found = _walk(item);
+          if(found) return found;
+        }
+        return null;
+      }
+      if(typeof node !== 'object') return null;
+
+      const maybeRef = _resolveRefFeature(node);
+      if(maybeRef && _canonArmorerModelKey(maybeRef.name) === target) return maybeRef;
+
+      if(node.name && _canonArmorerModelKey(node.name) === target) return node;
+
+      const candidates = [node.entries, node.entry, node.items, node.rows];
+      for(const c of candidates){
+        const found = _walk(c);
+        if(found) return found;
+      }
+      return null;
+    }
+
+    let found = byName.get(target) || null;
+    if(!found && armorModelFeature) found = _walk(armorModelFeature.entries || armorModelFeature);
+    if(!found) found = _walk(ordered.map(f => f.entries));
+    if(!found) return '';
+
+    const entries = found.entries || found.entry;
+    if(!entries) return '';
+    const detailName = found.name || modelName;
+    return `<div style="margin-top:.55rem;padding-top:.55rem;border-top:1px solid var(--bdr)">
+      <div style="font-size:10px;color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
+      <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
+      <div style="margin-top:.25rem">${rE(entries)}</div>
+    </div>`;
   }
 
   function _featItem(id, name, badge, badgeStyle, body){
@@ -3024,7 +2905,10 @@ function renderFeaturesTab(){
   for(const ec of (C.extraClasses||[])){
     if(!ec.name) continue;
     const ecAllF  = (ec.allClassFeatures||[]).filter(f=>f.level<=(ec.level||1));
-    const ecAllSF = ec.subclassShortName ? (ec.allSubFeatures||[]).filter(f=>f.subclassShortName===ec.subclassShortName&&f.level<=(ec.level||1)) : [];
+    const ecAllSFRaw = ec.subclassShortName ? (ec.allSubFeatures||[]).filter(f=>f.subclassShortName===ec.subclassShortName&&f.level<=(ec.level||1)) : [];
+    const ecIdx = (C.extraClasses || []).indexOf(ec);
+    const ecPrefix = ecIdx >= 0 ? `mc${ecIdx}_` : '';
+    const ecAllSF = _applySheetFeatureFilters(ec.name, ec.subclassShortName, ecAllSFRaw, { character:C, choices:C?.choices||{}, choicePrefix:ecPrefix, classLevel:ec.level||1 });
     if(!ecAllF.length && !ecAllSF.length) continue;
     const ecSc = ec.subclassShortName ? ` (${ec.subclassShortName})` : '';
     h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:.75rem 0 .5rem">${luci('swords')} ${esc(ec.name)}${esc(ecSc)}</div>`;
@@ -3088,49 +2972,91 @@ function renderFeaturesTab(){
     }
   }
 
-  // Artificer-specific builder selections (plans, armor model, bonus tool, etc.)
+  // Adapter-driven class/subclass choices (labels + normalization)
   {
-    const ARTIFICER_CHOICE_LABELS = {
-      artificer_replicate_magic_item_plans: 'Replicate Magic Item Plans',
-      armorer_model: 'Armor Model',
-      alchemist_bonus_tool: 'Tools of the Trade (Alchemist)',
-      armorer_bonus_tool: 'Tools of the Trade (Armorer)',
-      artillerist_bonus_tool: 'Tools of the Trade (Artillerist)',
-      battlesmith_bonus_tool: 'Tools of the Trade (Battle Smith)',
-      cartographer_bonus_tool: 'Tools of the Trade (Cartographer)',
-    };
-    const artRows = [];
+    const rows = [];
     for (const [choiceKey, choiceVal] of Object.entries(C.choices || {})) {
       if (!choiceVal) continue;
       if (choiceKey.endsWith('_entry')) continue;
 
       let k = choiceKey;
       let scope = '';
+      let ownerClass = C.className || '';
+      let ownerSubclass = C.subclassShortName || '';
+      let ownerLevel = C.classLevel || C.level || 1;
+      let ownerPrefix = '';
+      let ownerSubFeaturesRaw = (C.allSubFeatures || []).filter(f => f.subclassShortName === ownerSubclass && !f.isReprinted && (f.level || 0) <= ownerLevel);
+
       const mcMatch = /^mc(\d+)_/.exec(choiceKey);
       if (mcMatch) {
         k = choiceKey.replace(/^mc\d+_/, '');
         const ecIdx = parseInt(mcMatch[1], 10);
-        const ecName = C.extraClasses?.[ecIdx]?.name;
+        const ec = C.extraClasses?.[ecIdx];
+        const ecName = ec?.name;
         if (ecName) scope = '[' + ecName + '] ';
+        ownerClass = ec?.name || '';
+        ownerSubclass = ec?.subclassShortName || '';
+        ownerLevel = ec?.level || 1;
+        ownerPrefix = `mc${ecIdx}_`;
+        ownerSubFeaturesRaw = (ec?.allSubFeatures || []).filter(f => f.subclassShortName === ownerSubclass && !f.isReprinted && (f.level || 0) <= ownerLevel);
       }
 
-      if (!/^(artificer_|alchemist_|armorer_|artillerist_|battlesmith_|cartographer_)/i.test(k)) continue;
-      if (/^artificer_feat_lv\d+$/i.test(k)) continue; // Already shown in feat section
+      const clsMeta = _sheetGetClassChoiceMeta(ownerClass);
+      const subMeta = _sheetGetSubclassChoiceMeta(ownerClass, ownerSubclass);
+      const labels = { ...(clsMeta.labels || {}), ...(subMeta.labels || {}) };
+      const choiceCtx = { choiceKey:k, ownerClass, ownerSubclass, ownerLevel, choicePrefix:ownerPrefix };
+
+      const isChoice = [clsMeta.isChoiceKey, subMeta.isChoiceKey]
+        .some(fn => typeof fn === 'function' && fn(k, choiceCtx));
+      if (!isChoice) continue;
+
+      const normalizers = [clsMeta.normalizeChoiceValue, subMeta.normalizeChoiceValue]
+        .filter(fn => typeof fn === 'function');
 
       const vals = (Array.isArray(choiceVal) ? choiceVal : [choiceVal])
         .map(v => String(v || '').trim())
+        .filter(Boolean)
+        .map(v => {
+          let out = v;
+          for (const fn of normalizers) out = fn(out, k, choiceCtx);
+          return String(out || '').trim();
+        })
         .filter(Boolean);
       if (!vals.length) continue;
 
-      const label = ARTIFICER_CHOICE_LABELS[k] || k.replace(/^.*?_/, '').replace(/_/g, ' ');
-      artRows.push({ label: scope + label, values: vals });
+      let label = labels[k] || '';
+      if (!label) {
+        for (const fn of [clsMeta.getLabel, subMeta.getLabel]) {
+          if (typeof fn !== 'function') continue;
+          label = fn(k, choiceCtx) || '';
+          if (label) break;
+        }
+      }
+      if (!label) label = k.replace(/^.*?_/, '').replace(/_/g, ' ');
+
+      let detailHtml = '';
+      if (ownerClass === 'Artificer' && ownerSubclass === 'Armorer') {
+        const ownerSubFeatures = _applySheetFeatureFilters(ownerClass, ownerSubclass, ownerSubFeaturesRaw, {
+          character:C,
+          choices:C?.choices||{},
+          choicePrefix:ownerPrefix,
+          classLevel:ownerLevel,
+        });
+        const looksLikeModelChoice = k === 'armorer_model' || /^auto_(primary|ec\d+)_feat_.*_opt_\d+$/i.test(k);
+        if (looksLikeModelChoice) {
+          detailHtml = vals.map(v => _extractArmorerModelDetailHtml(ownerSubFeatures, v)).filter(Boolean).join('');
+        }
+      }
+
+      rows.push({ label: scope + label, values: vals, detailHtml, sectionTitle: subMeta.sectionTitle || clsMeta.sectionTitle || 'Class Choices' });
     }
 
-    if (artRows.length) {
-      h += `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('wrench')} Artificer Choices</div>`;
-      for (const row of artRows) {
-        const id = 'art_choice_' + Math.random().toString(36).slice(2);
-        const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
+    if (rows.length) {
+      const title = rows[0].sectionTitle || 'Class Choices';
+      h += `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('wrench')} ${esc(title)}</div>`;
+      for (const row of rows) {
+        const id = 'choice_' + Math.random().toString(36).slice(2);
+        const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>${row.detailHtml || ''}`;
         h += `<div class="feature-item" id="${id}">
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
             <div style="flex:1;min-width:0">
@@ -3143,9 +3069,7 @@ function renderFeaturesTab(){
         </div>`;
       }
     }
-  }
-
-  if(!h) h='<div class="phmsg">No features available.</div>';
+  }  if(!h) h='<div class="phmsg">No features available.</div>';
   el.innerHTML = h;
   refreshIcons();
 }
@@ -3423,79 +3347,17 @@ function showDiceToast(label, rolls, mod, total, extra){
 /* ════════════════════ RESOURCES ════════════════════ */
 let charResources = {};
 
-const CLASS_RESOURCES_DEF = {
-  Barbarian:[
-    {key:'rage',            name:'Rage',              icon:'angry',    recharge:'LR',
-     max:(lv)=>lv>=20?Infinity:lv>=17?6:lv>=12?5:lv>=6?4:lv>=3?3:2, srRecover:1 },
-  ],
-  Artificer:[
-    {key:'flash_genius',    name:'Flash of Genius',   icon:'brain',    recharge:'LR',
-     max:()=>Math.max(1,getMod(getFinal('int'))) },
-  ],
-  Bard:[
-    {key:'bardic_insp',     name:'Bardic Inspiration', icon:'music',  recharge:'SR',
-     max:(lv,s)=>Math.max(1,getMod(getFinal('cha'))) },
-  ],
-  Cleric:[
-    {key:'channel_div',          name:'Channel Divinity',   icon:'sun',   recharge:'SR',
-     max:(lv)=>lv>=18?3:lv>=6?2:1 },
-    {key:'divine_intervention',  name:'Divine Intervention',icon:'hands', recharge:'LR',
-     max:(lv)=>lv>=10?1:0 },
-  ],
-  Druid:[
-    {key:'wild_shape',      name:'Wild Shape',        icon:'paw-print', recharge:'SR',
-     max:()=>2 },
-  ],
-  Fighter:[
-    {key:'second_wind',     name:'Second Wind',       icon:'wind',   recharge:'SR',
-     max:(lv)=>lv>=15?3:lv>=3?2:1 },
-    {key:'action_surge',    name:'Action Surge',      icon:'zap',    recharge:'SR',
-     max:(lv)=>lv>=17?2:1 },
-  ],
-  Monk:[
-    {key:'ki',              name:'Discipline Points',  icon:'orbit',  recharge:'SR',
-     max:(lv)=>lv, pool:true },
-  ],
-  Paladin:[
-    {key:'lay_on_hands',    name:'Lay on Hands',      icon:'hands',  recharge:'LR',
-     max:(lv)=>lv*5, pool:true },
-    {key:'divine_sense',    name:'Divine Sense',       icon:'cross',  recharge:'LR',
-     max:()=>Math.max(1,getMod(getFinal('cha')))+1 },
-  ],
-  Sorcerer:[
-    {key:'sorc_pts',        name:'Sorcery Points',    icon:'orbit',  recharge:'LR',
-     max:(lv)=>lv, pool:true },
-  ],
-  Wizard:[
-    {key:'arc_recovery',    name:'Arcane Recovery',   icon:'book-open', recharge:'LR',
-     max:()=>1 },
-  ],
-};
-
-const SUBCLASS_RESOURCES_DEF = {
-  'Cleric_War': [
-    {key:'war_priest',       name:'War Priest',       icon:'swords',  recharge:'LR',
-     max:()=>getPB() },
-  ],
-  'Fighter_Battle Master': [
-    {key:'superiority_dice', name:'Superiority Dice', icon:'swords',  recharge:'SR',
-     max:(lv)=>lv>=15?6:lv>=7?5:4, pool:true },
-  ],
-  'Fighter_Psi Warrior': [
-    {key:'psi_dice',         name:'Psi Points',       icon:'orbit',   recharge:'SR',
-     max:(lv)=>lv>=11?12:lv>=5?8:6, pool:true },
-  ],
-};
+// Resource definitions moved to class/subclass adapters.
 
 function getAllResDefs(){
   const cls=C?.className||'';
   const subKey=cls+'_'+(C?.subclassShortName||'');
-  return [...(CLASS_RESOURCES_DEF[cls]||[]),...(SUBCLASS_RESOURCES_DEF[subKey]||[])];
+  return [..._sheetGetClassResources(cls), ..._sheetGetSubclassResources(cls, C?.subclassShortName||'')];
 }
 
 // Key → action name mapping (so we know which action card gets pips)
 const RESOURCE_ACTION_MAP = {
-  rage:'Rage', bardic_insp:'Bardic Inspiration', channel_div:'Channel Divinity',
+  rage:'Rage', channel_div:'Channel Divinity',
   wild_shape:'Wild Shape', second_wind:'Second Wind', action_surge:'Action Surge',
   ki:'Discipline Points', lay_on_hands:'Lay on Hands', divine_sense:'Divine Sense',
   sorc_pts:'Sorcery Points', arc_recovery:'Arcane Recovery',

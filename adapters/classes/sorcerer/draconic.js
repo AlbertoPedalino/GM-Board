@@ -16,3 +16,16 @@ registerSubclassAdapter("Sorcerer_Draconic", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Sorcerer_Draconic", [
+  {
+    "name": "Draconic Presence",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "minLevel": 18,
+    "desc": "Action: emanate draconic awe in 60 ft. Each creature must succeed on a WIS save (spell save DC) or be frightened/charmed for 1 minute."
+  }
+]);
+// [SheetRuntime] END

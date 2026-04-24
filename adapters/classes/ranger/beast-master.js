@@ -10,3 +10,16 @@ registerSubclassAdapter("Ranger_Beast Master", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Ranger_Beast Master", [
+  {
+    "name": "Animal Companion",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "Commands / turn",
+    "minLevel": 3,
+    "desc": "Bonus action: command your beast companion to attack, move, or use special abilities. If it dies: find a new one (8h ritual)."
+  }
+]);
+// [SheetRuntime] END

@@ -13,3 +13,24 @@ registerSubclassAdapter("Artificer_Battle Smith", function (cls, lv, specs) {
     level: 3
   });
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Artificer_Battle Smith", [
+  {
+    "name": "Steel Defender",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "Command each turn",
+    "minLevel": 3,
+    "desc": "Your Steel Defender acts on your initiative and can be commanded in combat. It protects allies and can impose disadvantage on attacks."
+  },
+  {
+    "name": "Arcane Jolt",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Limited / LR",
+    "minLevel": 9,
+    "desc": "When you or your Steel Defender hits, channel arcane energy to deal extra force damage or restore hit points."
+  }
+]);
+// [SheetRuntime] END

@@ -5,3 +5,16 @@
 registerSubclassAdapter("Cleric_Light", function (cls, lv, specs) {
   // nessuna spec
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Cleric_Light", [
+  {
+    "name": "Channel: Radiance of the Dawn",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "channel_div",
+    "desc": "Every Undead within 30 ft must succeed on a CON save or take 2d10+level radiant damage (half on success). Creatures that cannot see the light have disadvantage."
+  }
+]);
+// [SheetRuntime] END

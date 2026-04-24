@@ -18,7 +18,16 @@ registerClassAdapter("Bard", function (cls, lv, specs) {
     specs.push({ key: 'bard_expertise_3', label: 'Expertise 3 (Bard)', type: 'expertise', from: [], count: 1, level: 9 });
     specs.push({ key: 'bard_expertise_4', label: 'Expertise 4 (Bard)', type: 'expertise', from: [], count: 1, level: 9 });
   }
+  if (lv >= 10) {
+    specs.push({ key: 'bard_magical_secrets_1', label: 'Magical Secrets 1 (Lv.10)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 10 });
+    specs.push({ key: 'bard_magical_secrets_2', label: 'Magical Secrets 2 (Lv.10)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 10 });
+  }
+  if (lv >= 18) {
+    specs.push({ key: 'bard_magical_secrets_3', label: 'Magical Secrets 3 (Lv.18)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 18 });
+    specs.push({ key: 'bard_magical_secrets_4', label: 'Magical Secrets 4 (Lv.18)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 18 });
+  }
   if (lv >= 19) {
     specs.push({ key: 'bard_epic_boon', label: 'Epic Boon', type: 'feat_cat', categories: ['EB'], count: 1, level: 19 });
   }
 });
+

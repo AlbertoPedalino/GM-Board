@@ -30,3 +30,16 @@ registerSubclassAdapter("Ranger_Hunter", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Ranger_Hunter", [
+  {
+    "name": "Hunter's Prey",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "Choose: Colossus Slayer (+1d8 vs wounded creatures, 1/turn), Giant Killer (reaction to attack giants that hit you), Horde Breaker (extra attack on creature adjacent to your target)."
+  }
+]);
+// [SheetRuntime] END

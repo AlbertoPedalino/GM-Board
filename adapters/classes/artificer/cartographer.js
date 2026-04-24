@@ -13,3 +13,16 @@ registerSubclassAdapter("Artificer_Cartographer", function (cls, lv, specs) {
     level: 3
   });
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Artificer_Cartographer", [
+  {
+    "name": "Adventurer's Atlas",
+    "icon": "",
+    "cat": "action",
+    "uses": "After Long Rest",
+    "minLevel": 3,
+    "desc": "Create magical maps that support navigation and coordination for you and bonded creatures."
+  }
+]);
+// [SheetRuntime] END

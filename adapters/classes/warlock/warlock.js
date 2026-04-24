@@ -50,3 +50,46 @@ registerClassAdapter("Warlock", function (cls, lv, specs) {
     specs.push({ key: 'warlock_epic_boon', label: 'Epic Boon', type: 'feat_cat', categories: ['EB'], count: 1, level: 19 });
   }
 });
+
+// [SheetRuntime] START
+registerClassSheetActions("Warlock", [
+  {
+    "name": "Eldritch Invocations",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "desc": "Learn 1 invocation at lv.1 (more at odd levels). Key options: Agonizing Blast (add CHA to Eldritch Blast damage), Armor of Shadows (Mage Armor at will), Devil's Sight (see 120 ft in magical darkness), Repelling Blast (push target 10 ft), One with Shadows (Invisible in dim/dark as Action)."
+  },
+  {
+    "name": "Pact Magic",
+    "icon": "",
+    "cat": "action",
+    "uses": "Short Rest recharge",
+    "desc": "Your spell slots recharge on a Short Rest (not Long Rest). All your slots are the same level (lv.1–5, scales with Warlock level). You learn a limited number of spells from the Warlock list."
+  },
+  {
+    "name": "Pact Boon",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "Choose your Pact Boon: Pact of the Chain (Find Familiar, special familiar forms), Pact of the Blade (summon magical melee weapon, add CHA to attacks), or Pact of the Tome (Book of Shadows with 3 cantrips from any list + 2 rituals)."
+  },
+  {
+    "name": "Mystic Arcanum",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR each",
+    "minLevel": 11,
+    "desc": "A 6th-level spell known without a slot, usable once per LR (lv.11). Gain a 7th-level spell at lv.13, 8th at lv.15, 9th at lv.17. Recharge: Long Rest for each."
+  },
+  {
+    "name": "Eldritch Master",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "minLevel": 20,
+    "desc": "Once per Long Rest, you can spend 1 minute communing with your patron to regain all your Pact Magic spell slots."
+  }
+]);
+// [SheetRuntime] END

@@ -18,3 +18,16 @@ registerSubclassAdapter("Fighter_Eldritch Knight", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Fighter_Eldritch Knight", [
+  {
+    "name": "Weapon Bond",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "You can summon a bonded weapon from within 60 ft as a bonus action. You cannot be disarmed of bonded weapons."
+  }
+]);
+// [SheetRuntime] END

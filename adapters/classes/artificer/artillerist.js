@@ -13,3 +13,16 @@ registerSubclassAdapter("Artificer_Artillerist", function (cls, lv, specs) {
     level: 3
   });
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Artificer_Artillerist", [
+  {
+    "name": "Eldritch Cannon",
+    "icon": "",
+    "cat": "action",
+    "uses": "Create/command",
+    "minLevel": 3,
+    "desc": "Create a magical cannon and command it in combat. Cannon type (Flamethrower, Force Ballista, Protector) is chosen when you create it."
+  }
+]);
+// [SheetRuntime] END

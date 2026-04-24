@@ -13,3 +13,16 @@ registerSubclassAdapter("Artificer_Alchemist", function (cls, lv, specs) {
     level: 3
   });
 });
+
+// [SheetRuntime] START
+registerSubclassSheetActions("Artificer_Alchemist", [
+  {
+    "name": "Experimental Elixir",
+    "icon": "",
+    "cat": "action",
+    "uses": "After Long Rest",
+    "minLevel": 3,
+    "desc": "After a Long Rest, produce experimental elixirs with Alchemist's Supplies. You can also create additional elixirs by expending spell slots."
+  }
+]);
+// [SheetRuntime] END

@@ -10,3 +10,4 @@ registerSubclassAdapter("Bard_Swords", function (cls, lv, specs) {
     });
   }
 });
+

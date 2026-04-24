@@ -41,3 +41,68 @@ registerClassAdapter("Cleric", function (cls, lv, specs) {
     });
   }
 });
+
+// [SheetRuntime] START
+registerClassSheetActions("Cleric", [
+  {
+    "name": "Channel Divinity",
+    "icon": "",
+    "cat": "action",
+    "uses": "1-3 / SR",
+    "resKey": "channel_div",
+    "minLevel": 2,
+    "desc": "Channel your deity's power. Uses: 1 (lv.2–5), 2 (lv.6–17), 3 (lv.18+). Recharge: Short Rest. Options include Turn Undead and your Domain's feature (see subclass)."
+  },
+  {
+    "name": "Turn Undead",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "channel_div",
+    "minLevel": 2,
+    "desc": "Channel Divinity option. Each Undead within 30 ft that can see or hear you must succeed on a WIS save (DC = 8+PB+WIS) or have the Frightened and Incapacitated condition for 1 minute (flees). Undead with CR ≤ your Proficiency Bonus are Destroyed instead."
+  },
+  {
+    "name": "Divine Spark",
+    "icon": "",
+    "cat": "action",
+    "uses": "1+ Channel",
+    "resKey": "channel_div",
+    "minLevel": 2,
+    "desc": "Channel Divinity option. Choose a creature within 30 ft: it either regains HP or takes Radiant or Necrotic damage (your choice) equal to 2d8 + your WIS modifier. For each additional Channel Divinity use spent (beyond the first), add 1d8. The maximum additional uses scales with level: +1 at lv.2, +2 at lv.5, +3 at lv.8, +4 at lv.11, +5 at lv.14, +6 at lv.17."
+  },
+  {
+    "name": "Divine Intervention",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "resKey": "divine_intervention",
+    "minLevel": 10,
+    "desc": "Implore your deity's aid. Roll 1d20: if the result ≤ your Cleric level, your deity intervenes (effect determined by the DM). At lv.20, this succeeds automatically. Recharge: Long Rest."
+  },
+  {
+    "name": "Blessed Strikes",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 7,
+    "desc": "Gain one of two benefits: Divine Strike (add 1d8 of your domain's damage type once per turn) or Potent Spellcasting (add WIS mod to Cleric cantrip damage)."
+  }
+]);
+registerClassSheetResources("Cleric", [
+  {
+    "key": "channel_div",
+    "name": "Channel Divinity",
+    "icon": "sun",
+    "recharge": "SR",
+    "max": (lv)=>lv>=18?3:lv>=6?2:1
+  },
+  {
+    "key": "divine_intervention",
+    "name": "Divine Intervention",
+    "icon": "hands",
+    "recharge": "LR",
+    "max": (lv)=>lv>=10?1:0
+  }
+]);
+// [SheetRuntime] END
