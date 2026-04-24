@@ -4,15 +4,15 @@ registerClassAdapter("Bard", function (cls, lv, specs) {
   if (lv >= 2) {
     specs.push({
       key: 'bard_expertise_1',
-      label: 'Expertise (Bardo)',
+      label: 'Expertise (Bard)',
       type: 'expertise',
-      from: [], // [] = tutte le skill competenti
+      from: [],
       count: 1,
       level: 2
     });
     specs.push({
       key: 'bard_expertise_2',
-      label: 'Expertise (Bardo)',
+      label: 'Expertise (Bard)',
       type: 'expertise',
       from: [],
       count: 1,
@@ -22,7 +22,7 @@ registerClassAdapter("Bard", function (cls, lv, specs) {
   if (lv >= 9) {
     specs.push({
       key: 'bard_expertise_3',
-      label: 'Expertise Lv9 (Bardo)',
+      label: 'Expertise Lv9 (Bard)',
       type: 'expertise',
       from: [],
       count: 1,
@@ -30,7 +30,7 @@ registerClassAdapter("Bard", function (cls, lv, specs) {
     });
     specs.push({
       key: 'bard_expertise_4',
-      label: 'Expertise Lv9 (Bardo)',
+      label: 'Expertise Lv9 (Bard)',
       type: 'expertise',
       from: [],
       count: 1,

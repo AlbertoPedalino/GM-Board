@@ -5,7 +5,7 @@ const _BANNERET_LANGUAGES = [
 ];
 
 // Royal Envoy: se già competenti in Persuasione, si sceglie 1 tra queste
-const _BANNERET_ENVOY_SKILLS = ['Animalesca', 'Intuizione', 'Intimidazione', 'Perform'];
+const _BANNERET_ENVOY_SKILLS = ['Animal Handling', 'Insight', 'Intimidation', 'Performance'];
 
 registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
   if (lv >= 3) {
@@ -20,7 +20,7 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
     });
     specs.push({
       key: 'subclass_banneret_language',
-      label: 'Royal Envoy — Lingua',
+      label: 'Royal Envoy — Language',
       type: 'language_choice',
       from: _BANNERET_LANGUAGES,
       count: 1,

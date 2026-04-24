@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -559,6 +559,32 @@
       display: block;
       margin-top: 1px
     }
+
+    .mc-tabbar {
+      display: flex; gap: 0; align-items: flex-end;
+      flex-wrap: wrap; margin-bottom: 12px;
+      border-bottom: 2px solid var(--bdr);
+    }
+    .mc-tab {
+      padding: 5px 13px; border: 1px solid var(--bdr); border-bottom: none;
+      border-radius: var(--r) var(--r) 0 0; background: var(--bg3);
+      color: var(--text2); font-family: 'Cinzel', serif; font-size: 11px;
+      cursor: pointer; margin-right: 3px; white-space: nowrap;
+      position: relative; bottom: -2px;
+    }
+    .mc-tab.active {
+      background: var(--bg2); color: var(--gold); border-color: var(--gold);
+      border-bottom: 2px solid var(--bg2); z-index: 1; font-weight: 700;
+    }
+    .mc-tab:hover:not(.active) { color: var(--text); border-color: var(--bdr2); }
+    .mc-tab-close { margin-left: 6px; font-size: 9px; color: var(--text3); }
+    .mc-tab-close:hover { color: var(--red2); }
+    .mc-tab-add {
+      padding: 4px 11px; border: 1px dashed var(--bdr2); border-radius: var(--r);
+      background: transparent; color: var(--text3); font-size: 18px; line-height: 1;
+      cursor: pointer; margin-bottom: 4px; margin-left: 4px;
+    }
+    .mc-tab-add:hover { color: var(--gold); border-color: var(--gold); }
 
     .slot-table {
       width: 100%;
@@ -1862,11 +1888,11 @@
     <div class="steps">
       <div class="step active" id="st-1" onclick="gotoTab(1)">
         <div class="step-num">1</div>
-        <div class="step-label">Classe</div>
+        <div class="step-label">Class</div>
       </div>
       <div class="step" id="st-2" onclick="gotoTab(2)">
         <div class="step-num">2</div>
-        <div class="step-label">Specie</div>
+        <div class="step-label">Species</div>
       </div>
       <div class="step" id="st-3" onclick="gotoTab(3)">
         <div class="step-num">3</div>
@@ -1874,19 +1900,19 @@
       </div>
       <div class="step" id="st-4" onclick="gotoTab(4)">
         <div class="step-num">4</div>
-        <div class="step-label">Caratteristiche</div>
+        <div class="step-label">Ability Scores</div>
       </div>
       <div class="step" id="st-5" onclick="gotoTab(5)">
         <div class="step-num">5</div>
-        <div class="step-label">Equipaggiamento</div>
+        <div class="step-label">Equipment</div>
       </div>
       <div class="step" id="st-6" onclick="gotoTab(6)">
         <div class="step-num">6</div>
-        <div class="step-label">Talenti</div>
+        <div class="step-label">Feats</div>
       </div>
       <div class="step" id="st-7" onclick="gotoTab(7)">
         <div class="step-num">7</div>
-        <div class="step-label">Scheda</div>
+        <div class="step-label">Sheet</div>
       </div>
     </div>
 
@@ -1897,24 +1923,35 @@
         <div id="tab-1" class="tab-pane active">
           <!-- Nome -->
           <div class="panel">
-            <div class="ph"><span class="pt">Nome Personaggio</span></div>
-            <div class="pb"><input type="text" id="char-name" placeholder="Es. Aldric il Grigio…"
+            <div class="ph"><span class="pt">Character Name</span></div>
+            <div class="pb"><input type="text" id="char-name" placeholder="E.g. Aldric the Grey…"
                 oninput="char.name=this.value;renderPreviewHeader()" /></div>
           </div>
 
-          <!-- Classe -->
+          <!-- Classe (tab multiclasse) -->
           <div class="panel">
-            <div class="ph"><span class="pt">Classe</span><span id="cls-loading" class="ph-note">Caricamento…</span>
-            </div>
+            <div class="ph"><span class="pt">Class</span><span id="cls-loading" class="ph-note">Loading…</span></div>
             <div class="pb">
-              <div class="chips" id="cls-chips"></div>
-              <div id="cls-card"></div>
+              <div class="mc-tabbar" id="mc-tabbar"></div>
+              <!-- Pane 0: classe primaria -->
+              <div id="mc-pane-0">
+                <div class="chips" id="cls-chips"></div>
+                <div id="cls-card"></div>
+              </div>
+              <!-- Pane extra: riusato per ogni tab extra attivo -->
+              <div id="mc-pane-extra" style="display:none">
+                <div class="chips" id="mc-ex-chips"></div>
+                <div id="mc-ex-card" style="margin-top:6px"></div>
+              </div>
             </div>
           </div>
 
-          <!-- Livello -->
+          <!-- Livello (classe attiva nel tab) -->
           <div class="panel" id="panel-level" style="display:none">
-            <div class="ph"><span class="pt">Livello</span></div>
+            <div class="ph">
+              <span class="pt" id="level-panel-title">Level</span>
+              <span class="ph-note" id="level-panel-note"></span>
+            </div>
             <div class="pb">
               <div class="level-grid" id="level-grid"></div>
               <div class="lvl-stats" id="lvl-stats"></div>
@@ -1923,20 +1960,20 @@
 
           <!-- XP -->
           <div class="panel" id="panel-xp" style="display:none">
-            <div class="ph"><span class="pt">Esperienza (XP)</span><span id="xp-next-label" class="ph-note"></span>
+            <div class="ph"><span class="pt">Experience (XP)</span><span id="xp-next-label" class="ph-note"></span>
             </div>
             <div class="pb">
               <div class="xp-bar-wrap">
                 <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
               </div>
-              <input type="number" class="xp-input" id="xp-input" min="0" value="0" placeholder="XP totali…"
+              <input type="number" class="xp-input" id="xp-input" min="0" value="0" placeholder="Total XP…"
                 oninput="updateXP(this.value)" />
             </div>
           </div>
 
           <!-- Sottoclasse -->
           <div class="panel" id="panel-subclass" style="display:none">
-            <div class="ph"><span class="pt" id="sc-title">Sottoclasse</span><span class="ph-note"
+            <div class="ph"><span class="pt" id="sc-title">Subclass</span><span class="ph-note"
                 id="sc-unlock-note"></span></div>
             <div class="pb">
               <div class="sc-grid" id="sc-grid"></div>
@@ -1945,19 +1982,19 @@
 
           <!-- Slot -->
           <div class="panel" id="panel-slots" style="display:none">
-            <div class="ph"><span class="pt">Slot Incantesimo</span></div>
+            <div class="ph"><span class="pt">Spell Slots</span></div>
             <div class="pb" id="slots-body"></div>
           </div>
 
           <!-- Scelte di Classe -->
           <div class="panel" id="panel-class-choices" style="display:none">
-            <div class="ph"><span class="pt">Scelte di Classe</span><span id="cc-loading" class="ph-note"></span></div>
+            <div class="ph"><span class="pt">Class Choices</span><span id="cc-loading" class="ph-note"></span></div>
             <div class="pb" id="cc-body"></div>
           </div>
 
           <!-- Incantesimi -->
           <div class="panel" id="panel-spells" style="display:none">
-            <div class="ph"><span class="pt">Incantesimi</span><span id="spell-loading" class="ph-note"></span></div>
+            <div class="ph"><span class="pt">Spells</span><span id="spell-loading" class="ph-note"></span></div>
             <div class="pb" id="spell-body"></div>
           </div>
         </div>
@@ -1966,9 +2003,9 @@
         <div id="tab-2" class="tab-pane">
           <!-- Specie -->
           <div class="panel" id="panel-species" style="display:none">
-            <div class="ph"><span class="pt">Specie</span><span id="spc-loading" class="ph-note"></span></div>
+            <div class="ph"><span class="pt">Species</span><span id="spc-loading" class="ph-note"></span></div>
             <div class="pb">
-              <input class="search-box" id="spc-search" placeholder="Cerca specie…" oninput="renderSpeciesList()"
+              <input class="search-box" id="spc-search" placeholder="Search species…" oninput="renderSpeciesList()"
                 autocomplete="off" />
               <div class="item-list" id="spc-list"></div>
               <div id="spc-card"></div>
@@ -1978,7 +2015,7 @@
 
           <!-- Scelte Specie -->
           <div class="panel" id="panel-species-choices" style="display:none">
-            <div class="ph"><span class="pt">✦ Scelte Specie</span></div>
+            <div class="ph"><span class="pt">✦ Species Choices</span></div>
             <div class="pb" id="species-choices-body"></div>
           </div>
         </div>
@@ -1989,7 +2026,7 @@
           <div class="panel" id="panel-bg" style="display:none">
             <div class="ph"><span class="pt">Background</span><span id="bg-loading" class="ph-note"></span></div>
             <div class="pb">
-              <input class="search-box" id="bg-search" placeholder="Cerca background…" oninput="renderBgList()"
+              <input class="search-box" id="bg-search" placeholder="Search background…" oninput="renderBgList()"
                 autocomplete="off" />
               <div class="item-list" id="bg-list"></div>
               <div id="bg-card"></div>
@@ -1998,7 +2035,7 @@
 
           <!-- Bonus caratteristiche background -->
           <div class="panel" id="panel-bg-ability" style="display:none">
-            <div class="ph"><span class="pt">Bonus Caratteristiche da Background</span></div>
+            <div class="ph"><span class="pt">Background Ability Bonus</span></div>
             <div class="pb" id="bg-ability-body"></div>
           </div>
         </div>
@@ -2007,12 +2044,12 @@
         <div id="tab-4" class="tab-pane">
           <!-- Punteggi -->
           <div class="panel" id="panel-scores" style="display:none">
-            <div class="ph"><span class="pt">Punteggi Caratteristiche</span></div>
+            <div class="ph"><span class="pt">Ability Scores</span></div>
             <div class="pb">
               <div class="score-tabs">
                 <button class="score-tab on" onclick="setScoreMethod('pointbuy')">Point Buy</button>
-                <button class="score-tab" onclick="setScoreMethod('standard')">Array Standard</button>
-                <button class="score-tab" onclick="setScoreMethod('dice')">Tira Dadi</button>
+                <button class="score-tab" onclick="setScoreMethod('standard')">Standard Array</button>
+                <button class="score-tab" onclick="setScoreMethod('dice')">Roll Dice</button>
               </div>
               <div id="scores-ui"></div>
             </div>
@@ -2023,37 +2060,37 @@
         <div id="tab-5" class="tab-pane">
           <!-- Equipaggiamento iniziale (read-only) -->
           <div class="panel" id="panel-equip" style="display:none">
-            <div class="ph"><span class="pt">Equipaggiamento Iniziale</span></div>
+            <div class="ph"><span class="pt">Starting Equipment</span></div>
             <div class="pb" id="equip-body"></div>
           </div>
 
           <!-- Valuta -->
           <div class="panel" id="panel-currency">
-            <div class="ph"><span class="pt">💰 Valuta</span></div>
+            <div class="ph"><span class="pt">💰 Currency</span></div>
             <div class="pb">
               <div class="currency-grid">
                 <div class="currency-cell">
-                  <div class="currency-lbl" style="color:#b87333">Rame (MR)</div>
+                  <div class="currency-lbl" style="color:#b87333">Copper (CP)</div>
                   <input type="number" class="currency-inp" id="cur-cp" value="0" min="0"
                     oninput="updateCurrency('cp',this.value)">
                 </div>
                 <div class="currency-cell">
-                  <div class="currency-lbl" style="color:#aaa">Argento (MA)</div>
+                  <div class="currency-lbl" style="color:#aaa">Silver (SP)</div>
                   <input type="number" class="currency-inp" id="cur-sp" value="0" min="0"
                     oninput="updateCurrency('sp',this.value)">
                 </div>
                 <div class="currency-cell">
-                  <div class="currency-lbl" style="color:#888">Electrum (ME)</div>
+                  <div class="currency-lbl" style="color:#888">Electrum (EP)</div>
                   <input type="number" class="currency-inp" id="cur-ep" value="0" min="0"
                     oninput="updateCurrency('ep',this.value)">
                 </div>
                 <div class="currency-cell">
-                  <div class="currency-lbl" style="color:var(--gold)">Oro (MO)</div>
+                  <div class="currency-lbl" style="color:var(--gold)">Gold (GP)</div>
                   <input type="number" class="currency-inp" id="cur-gp" value="10" min="0"
                     oninput="updateCurrency('gp',this.value)">
                 </div>
                 <div class="currency-cell">
-                  <div class="currency-lbl" style="color:#e0e0ff">Platino (MP)</div>
+                  <div class="currency-lbl" style="color:#e0e0ff">Platinum (PP)</div>
                   <input type="number" class="currency-inp" id="cur-pp" value="0" min="0"
                     oninput="updateCurrency('pp',this.value)">
                 </div>
@@ -2069,28 +2106,28 @@
             </div>
             <div class="pb">
               <!-- Search -->
-              <input class="search-box" id="inv-search" placeholder="Cerca oggetti (es. Spada Lunga, Torcia, Pozione…)"
+              <input class="search-box" id="inv-search" placeholder="Search items (e.g. Longsword, Torch, Potion…)"
                 oninput="renderItemSearch()" autocomplete="off" style="margin-bottom:.5rem" />
               <!-- Filter chips -->
               <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem">
-                <button class="chip on" id="inv-f-all" onclick="setItemFilter('all',this)">Tutto</button>
-                <button class="chip" id="inv-f-weapon" onclick="setItemFilter('weapon',this)">Armi</button>
-                <button class="chip" id="inv-f-armor" onclick="setItemFilter('armor',this)">Armature</button>
-                <button class="chip" id="inv-f-gear" onclick="setItemFilter('gear',this)">Equipagg.</button>
-                <button class="chip" id="inv-f-magic" onclick="setItemFilter('magic',this)">Magici</button>
+                <button class="chip on" id="inv-f-all" onclick="setItemFilter('all',this)">All</button>
+                <button class="chip" id="inv-f-weapon" onclick="setItemFilter('weapon',this)">Weapons</button>
+                <button class="chip" id="inv-f-armor" onclick="setItemFilter('armor',this)">Armor</button>
+                <button class="chip" id="inv-f-gear" onclick="setItemFilter('gear',this)">Gear</button>
+                <button class="chip" id="inv-f-magic" onclick="setItemFilter('magic',this)">Magic</button>
               </div>
               <!-- Search results -->
               <div id="inv-search-results" class="item-list" style="max-height:200px;margin-bottom:.75rem"></div>
               <!-- Current inventory -->
               <div
                 style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem">
-                Inventario Corrente</div>
+                Current Inventory</div>
               <div id="inv-list"></div>
               <!-- Add custom item -->
               <div style="margin-top:.6rem;display:flex;gap:6px">
-                <input class="search-box" id="inv-custom-name" placeholder="Oggetto personalizzato…"
+                <input class="search-box" id="inv-custom-name" placeholder="Custom item…"
                   style="margin-bottom:0;flex:1" />
-                <button class="chip" onclick="addCustomItem()" style="white-space:nowrap">+ Aggiungi</button>
+                <button class="chip" onclick="addCustomItem()" style="white-space:nowrap">+ Add</button>
               </div>
             </div>
           </div>
@@ -2100,7 +2137,7 @@
         <div id="tab-6" class="tab-pane">
           <!-- Talenti -->
           <div class="panel" id="panel-feats" style="display:none">
-            <div class="ph"><span class="pt">Talenti</span><span id="feat-loading" class="ph-note"></span></div>
+            <div class="ph"><span class="pt">Feats</span><span id="feat-loading" class="ph-note"></span></div>
             <div class="pb" id="feats-body"></div>
           </div>
         </div>
@@ -2108,14 +2145,14 @@
         <!-- ── TAB 7: SCHEDA ── -->
         <div id="tab-7" class="tab-pane">
           <div class="panel">
-            <div class="ph"><span class="pt">Genera Scheda</span></div>
+            <div class="ph"><span class="pt">Generate Sheet</span></div>
             <div class="pb" style="text-align:center;padding:2rem 1.2rem">
               <p style="color:var(--text2);font-size:14px;margin-bottom:1.5rem">
-                Hai completato tutte le scelte? Genera la tua scheda personaggio!
+                Finished all your choices? Generate your character sheet!
               </p>
-              <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()">📋 Genera Scheda
-                Personaggio</button>
-              <div style="margin-top:1rem"><a class="btn-sec" href="index.html">← Torna all'Encounter Builder</a></div>
+              <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()">📋 Generate Character
+                Sheet</button>
+              <div style="margin-top:1rem"><a class="btn-sec" href="index.html">← Back to Encounter Builder</a></div>
             </div>
           </div>
         </div>
@@ -2125,7 +2162,7 @@
       <!-- Preview -->
       <div>
         <div class="panel" style="position:sticky;top:1rem;max-height:90vh;overflow-y:auto">
-          <div class="ph"><span class="pt">Anteprima</span></div>
+          <div class="ph"><span class="pt">Preview</span></div>
           <div class="pb">
             <div id="preview-header"
               style="margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)">
@@ -2142,15 +2179,14 @@
             <div id="prev-languages"
               style="display:none;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)"></div>
             <div id="feat-list">
-              <div class="phmsg">Seleziona una classe per vedere le feature.</div>
+              <div class="phmsg">Select a class to see features.</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <footer>Dati da <a href="https://5e.tools" target="_blank">5etools</a> via mirror GitHub · D&amp;D 5e è marchio
-      registrato di Wizards of the Coast</footer>
+    <footer>Data from <a href="https://5e.tools" target="_blank">5etools</a> via GitHub mirror · D&amp;D 5e is a trademark of Wizards of the Coast</footer>
   </div>
   <script src="adapters/registry.js"></script>
   <script src="adapters/manifest.js"></script>
@@ -2163,10 +2199,21 @@
     const HALF_SLOTS = [null, null, [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 2, 0, 0, 0], [4, 2, 0, 0, 0], [4, 3, 0, 0, 0], [4, 3, 0, 0, 0], [4, 3, 2, 0, 0], [4, 3, 2, 0, 0], [4, 3, 3, 0, 0], [4, 3, 3, 0, 0], [4, 3, 3, 1, 0], [4, 3, 3, 1, 0], [4, 3, 3, 2, 0], [4, 3, 3, 2, 0], [4, 3, 3, 3, 1], [4, 3, 3, 3, 1], [4, 3, 3, 3, 2], [4, 3, 3, 3, 2]];
     const WLOCK = [null, { n: 1, l: 1 }, { n: 2, l: 1 }, { n: 2, l: 2 }, { n: 2, l: 2 }, { n: 3, l: 3 }, { n: 3, l: 3 }, { n: 3, l: 4 }, { n: 3, l: 4 }, { n: 3, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }];
     const CASTER_FB = { Bard: 'full', Cleric: 'full', Druid: 'full', Sorcerer: 'full', Wizard: 'full', Paladin: '1/2', Ranger: '1/2', Warlock: 'pact', Artificer: '1/2' };
+    // Multiclass prerequisites XPHB 2024: each group is AND'd; multiple groups are OR'd
+    const MC_PREREQUISITES = {
+      Barbarian:[{str:13}], Bard:[{cha:13}], Cleric:[{wis:13}], Druid:[{wis:13}],
+      Fighter:[{str:13},{dex:13}], Monk:[{dex:13,wis:13}], Paladin:[{str:13,cha:13}],
+      Ranger:[{dex:13,wis:13}], Rogue:[{dex:13}], Sorcerer:[{cha:13}],
+      Warlock:[{cha:13}], Wizard:[{int:13}],
+    };
+    const MC_CASTER_TYPE = {
+      Bard:'full',Cleric:'full',Druid:'full',Sorcerer:'full',Wizard:'full',
+      Paladin:'half',Ranger:'half',Warlock:'pact',
+    };
     const PB = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
     const PB_COST = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
     const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-    const SLBL = { str: 'FOR', dex: 'DES', con: 'COS', int: 'INT', wis: 'SAG', cha: 'CAR' };
+    const SLBL = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
     const STD_ARR = [15, 14, 13, 12, 10, 8];
     const CLASS_FILES = ['class-barbarian.json', 'class-bard.json', 'class-cleric.json', 'class-druid.json', 'class-fighter.json', 'class-monk.json', 'class-paladin.json', 'class-ranger.json', 'class-rogue.json', 'class-sorcerer.json', 'class-warlock.json', 'class-wizard.json'];
 
@@ -2196,16 +2243,16 @@
     };
 
     const SPELL_FILES = ['spells-xphb.json', 'spells-fraif.json', 'spells-frhof.json', 'spells-efa.json'];
-    const SCHOOL_LABELS = { A: 'Abiurazione', C: 'Ammaliamento', D: 'Divinazione', E: 'Evocazione', I: 'Illusione', N: 'Necromanzia', T: 'Trasmutazione', V: 'Veggenza' };
-    const SPELL_LEVEL_LABELS = ['Cantrip', '1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°', '9°'];
+    const SCHOOL_LABELS = { A: 'Abjuration', C: 'Enchantment', D: 'Divination', E: 'Evocation', I: 'Illusion', N: 'Necromancy', T: 'Transmutation', V: 'Divination' };
+    const SPELL_LEVEL_LABELS = ['Cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
     /* ─ Skills ─ */
     const SKILLS = [
-      { n: 'Acrobatica', a: 'dex' }, { n: 'Animalesca', a: 'wis' }, { n: 'Arcana', a: 'int' }, { n: 'Atletica', a: 'str' },
-      { n: 'Consapevolezza', a: 'wis' }, { n: 'Destrezza Manuale', a: 'dex' }, { n: 'Furtività', a: 'dex' },
-      { n: 'Indagare', a: 'int' }, { n: 'Inganno', a: 'cha' }, { n: 'Intuizione', a: 'wis' }, { n: 'Intimidazione', a: 'cha' },
-      { n: 'Medicina', a: 'wis' }, { n: 'Natura', a: 'int' }, { n: 'Percezione', a: 'wis' }, { n: 'Performance', a: 'cha' }, { n: 'Persuasione', a: 'cha' },
-      { n: 'Religione', a: 'int' }, { n: 'Sopravvivenza', a: 'wis' }
+      { n: 'Acrobatics', a: 'dex' }, { n: 'Animal Handling', a: 'wis' }, { n: 'Arcana', a: 'int' }, { n: 'Athletics', a: 'str' },
+      { n: 'Perception', a: 'wis' }, { n: 'Sleight of Hand', a: 'dex' }, { n: 'Stealth', a: 'dex' },
+      { n: 'Investigation', a: 'int' }, { n: 'Deception', a: 'cha' }, { n: 'Insight', a: 'wis' }, { n: 'Intimidation', a: 'cha' },
+      { n: 'Medicine', a: 'wis' }, { n: 'Nature', a: 'int' }, { n: 'History', a: 'int' }, { n: 'Performance', a: 'cha' }, { n: 'Persuasion', a: 'cha' },
+      { n: 'Religion', a: 'int' }, { n: 'Survival', a: 'wis' }
     ];
 
     /* ════════════════════════════════════ STATO */
@@ -2242,10 +2289,10 @@
         .replace(/\{@hit ([^}]+)\}/g, (_, v) => `<b>${+v >= 0 ? '+' + v : v}</b>`)
         .replace(/\{@damage ([^}]+)\}/g, (_, v) => `<b>${v}</b>`)
         .replace(/\{@d20 ([^}]+)\}/g, (_, v) => `<b>${+v >= 0 ? '+' + v : v}</b>`)
-        .replace(/\{@dc ([^}]+)\}/g, 'CD $1')
-        .replace(/\{@h\}/g, '<i>Colpisce:</i> ')
-        .replace(/\{@atk ([^}]+)\}/g, '<i>Attacco $1:</i>')
-        .replace(/\{@recharge ([^}]+)\}/g, '(Ricarica $1–6)')
+        .replace(/\{@dc ([^}]+)\}/g, 'DC $1')
+        .replace(/\{@h\}/g, '<i>Hit:</i> ')
+        .replace(/\{@atk ([^}]+)\}/g, '<i>$1 Attack:</i>')
+        .replace(/\{@recharge ([^}]+)\}/g, '(Recharge $1–6)')
         .replace(/\{@chance ([^|}]+)[^}]*\}/g, '$1%')
         .replace(/\{@spell ([^|}]+)[^}]*\}/g, '<i>$1</i>')
         .replace(/\{@item ([^|}]+)[^}]*\}/g, '<i>$1</i>')
@@ -2293,13 +2340,13 @@
       let ok = 0;
       for (const f of CLASS_FILES) {
         try {
-          el.textContent = `Caricamento ${ok}/${CLASS_FILES.length}…`;
+          el.textContent = `Loading ${ok}/${CLASS_FILES.length}…`;
           const r = await fetch(BASE + 'class/' + f);
           if (!r.ok) continue;
           classCache[f] = await r.json(); ok++;
         } catch (e) { }
       }
-      el.textContent = ok ? `${ok} classi` : 'Errore';
+      el.textContent = ok ? `${ok} classes` : 'Error';
       renderClassChips();
     }
     async function loadSpecies() {
@@ -2309,9 +2356,9 @@
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
         allSpecies = (d.race || d.species || []).filter(s => ALLOWED.includes(s.source)).sort((a, b) => a.name.localeCompare(b.name));
-        el.textContent = allSpecies.length + ' specie';
+        el.textContent = allSpecies.length + ' species';
         renderSpeciesList();
-      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Errore: ' + e.message; }
+      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Error: ' + e.message; }
     }
     async function loadBgs() {
       const el = document.getElementById('bg-loading');
@@ -2320,14 +2367,14 @@
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
         allBgs = (d.background || []).filter(b => ALLOWED.includes(b.source)).sort((a, b) => a.name.localeCompare(b.name));
-        el.textContent = allBgs.length + ' background';
+        el.textContent = allBgs.length + ' backgrounds';
         renderBgList();
-      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Errore: ' + e.message; }
+      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Error: ' + e.message; }
     }
 
     async function loadFeats() {
       const el = document.getElementById('feat-loading');
-      el.textContent = 'Caricamento…';
+      el.textContent = 'Loading…';
       try {
         const r = await fetch(BASE + 'feats.json');
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -2335,13 +2382,12 @@
         allFeats = (d.feat || []).filter(f => ALLOWED.includes(f.source)).sort((a, b) => a.name.localeCompare(b.name));
         if (!allFeats.length) {
           allFeats = (d.feat || []).sort((a, b) => a.name.localeCompare(b.name));
-          console.warn('Nessun feat ALLOWED, uso tutto il database');
+          console.warn('No allowed feats, using full database');
         }
-        el.textContent = allFeats.length + ' talenti';
-        // Rilancia se background già selezionato
+        el.textContent = allFeats.length + ' feats';
         if (char.bgObj) renderFeatsPanel();
         else if (char.className) renderFeatsPanel();
-      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Errore: ' + e.message; console.error(e); }
+      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Error: ' + e.message; console.error(e); }
     }
 
     /* ════════════════════════════════════ TALENTI */
@@ -2357,8 +2403,8 @@
     }
 
     function getFeatCatLabel(cat) {
-      if (!cat) return 'Generale';
-      const map = { 'O': 'Origine', 'G': 'Generale', 'FS': 'Stile Combattimento', 'FS:P': 'Stile (Paladino)', 'FS:R': 'Stile (Ranger)', 'EB': 'Dono Epico', 'D': 'Druidico' };
+      if (!cat) return 'General';
+      const map = { 'O': 'Origin', 'G': 'General', 'FS': 'Fighting Style', 'FS:P': 'Style (Paladin)', 'FS:R': 'Style (Ranger)', 'EB': 'Epic Boon', 'D': 'Druidic' };
       return map[cat] || cat;
     }
 
@@ -2451,7 +2497,7 @@
     function deriveAllChoices() {
       const cls = char.cls;
       if (!cls) return [];
-      const lv = char.level;
+      const lv = getPrimaryClassLevel(); // livello classe primaria, non totale
       const specs = [];
       if (!char.choices) char.choices = {};
 
@@ -2460,7 +2506,7 @@
         cls.startingProficiencies.skills.forEach((sc, idx) => {
           if (sc.choose) {
             specs.push({
-              key: `start_skills_lv1_${idx}`, label: `Competenze di Classe`,
+              key: `start_skills_lv1_${idx}`, label: `Class Skills`,
               type: 'skill_choice', from: sc.choose.from || [], count: sc.choose.count || 1, level: 1
             });
           }
@@ -2471,18 +2517,35 @@
       const bgf = getBgOriginFeat();
       if (bgf.fixed) {
         if (!char.choices.feat_origin) char.choices.feat_origin = bgf.fixed;
-        specs.push({ key: 'feat_origin', label: 'Talento Origine', type: 'feat_fixed', fixed: bgf.fixed, count: 1, level: 0 });
+        specs.push({ key: 'feat_origin', label: 'Origin Feat', type: 'feat_fixed', fixed: bgf.fixed, count: 1, level: 0 });
       }
 
-      // 3. Logica Ibrida: ClassAdapters + SubclassAdapters
+      // 3. Logica Ibrida: ClassAdapters + SubclassAdapters (classe primaria)
+      const _primaryLv = getPrimaryClassLevel();
       if (typeof ClassAdapters !== 'undefined' && typeof ClassAdapters[char.className] === 'function') {
-        ClassAdapters[char.className](cls, lv, specs);
+        ClassAdapters[char.className](cls, _primaryLv, specs);
       }
       if (char.subclassShortName && typeof SubclassAdapters !== 'undefined') {
         const _subKey = char.className + '_' + char.subclassShortName;
         if (typeof SubclassAdapters[_subKey] === 'function') {
-          SubclassAdapters[_subKey](cls, lv, specs);
+          SubclassAdapters[_subKey](cls, _primaryLv, specs);
         }
+      }
+      // Extra classes adapters
+      for (const _ec of (char.extraClasses||[])) {
+        if (!_ec.name || !_ec.cls) continue;
+        const _ecIdx = char.extraClasses.indexOf(_ec);
+        const _pfx = `mc${_ecIdx}_`;
+        const _ecSpecs = [];
+        if (typeof ClassAdapters !== 'undefined' && typeof ClassAdapters[_ec.name] === 'function')
+          ClassAdapters[_ec.name](_ec.cls, _ec.level||1, _ecSpecs);
+        if (_ec.subclassShortName && typeof SubclassAdapters !== 'undefined') {
+          const _k = _ec.name + '_' + _ec.subclassShortName;
+          if (typeof SubclassAdapters[_k] === 'function')
+            SubclassAdapters[_k](_ec.cls, _ec.level||1, _ecSpecs);
+        }
+        _ecSpecs.forEach(s => { s.key = _pfx + s.key; s.label = `[${_ec.name}] ${s.label||''}`; });
+        specs.push(..._ecSpecs);
       }
 
       // 4. Expertise e Skill extra dalle Feature caricate
@@ -2596,8 +2659,8 @@
       const panel = document.getElementById('panel-feats');
       const body = document.getElementById('feats-body');
       panel.style.display = 'block';
-      if (!allFeats.length) { body.innerHTML = '<div class="phmsg">Caricamento talenti…</div>'; return; }
-      if (!specs.length) { body.innerHTML = '<div class="phmsg">Nessun slot talento a questo livello.</div>'; return; }
+      if (!allFeats.length) { body.innerHTML = '<div class="phmsg">Loading feats…</div>'; return; }
+      if (!specs.length) { body.innerHTML = '<div class="phmsg">No feat slots at this level.</div>'; return; }
       let h = '';
       for (const spec of specs) {
         h += `<div style="margin-bottom:1.2rem"><div class="feat-section-hdr ft">${esc(spec.label)}</div>`;
@@ -2614,7 +2677,7 @@
         } else {
           const sel = char.choices[spec.key] || null;
           const sk = spec.key;
-          h += `<input class="search-box" id="feat-search-${sk}" placeholder="Cerca talento…"
+          h += `<input class="search-box" id="feat-search-${sk}" placeholder="Search feat…"
           oninput="_renderFeatList('${sk}')" autocomplete="off" style="margin-bottom:.5rem"/>
         <div id="feat-list-${sk}" class="item-list" style="max-height:180px"></div>`;
           if (sel) {
@@ -2657,7 +2720,7 @@
       });
       if (q) list = list.filter(f => f.name.toLowerCase().includes(q));
       list = list.slice(0, 40);
-      if (!list.length) { el.innerHTML = '<div class="phmsg">Nessun talento trovato.</div>'; return; }
+      if (!list.length) { el.innerHTML = '<div class="phmsg">No feats found.</div>'; return; }
       el.innerHTML = list.map(f => {
         const catCls = getFeatCatClass(f.category);
         const prereq = (f.prerequisite || []).map(p => {
@@ -2772,10 +2835,10 @@
         const key = `${slotKey}_skill_${idx}`;
         if (block.any || block.choose) {
           const count = block.any || block.choose?.count || 1;
-          h += profPicker(key, `${feat.name} — Competenza Abilità`, ALL_SKILLS, count, 'var(--teal)');
+          h += profPicker(key, `${feat.name} — Skill Proficiency`, ALL_SKILLS, count, 'var(--teal)');
         } else if (block.choose?.from) {
           const items = block.choose.from.map(s => s.charAt(0).toUpperCase() + s.slice(1));
-          h += profPicker(key, `${feat.name} — Competenza Abilità`, items, block.choose.count || 1, 'var(--teal)');
+          h += profPicker(key, `${feat.name} — Skill Proficiency`, items, block.choose.count || 1, 'var(--teal)');
         }
         // Fixed skills (tutti true) → solo display, nessuna scelta
       }
@@ -2788,9 +2851,9 @@
           // Lista strumenti semplificata (dati non caricati — usiamo placeholder)
           const count = block.any || block.choose?.count || 1;
           h += `<div style="margin-top:.75rem">
-        <div class="feat-section-hdr" style="color:var(--purple)">✧ ${esc(feat.name)} — Competenza Strumento</div>
+        <div class="feat-section-hdr" style="color:var(--purple)">✧ ${esc(feat.name)} — Tool Proficiency</div>
         <div style="font-size:12px;color:var(--text3);font-style:italic">
-          Scegli ${count} strumento${count > 1 ? 'i' : ''} di competenza (gestisci nella scheda).
+          Choose ${count} tool proficiency${count > 1 ? ' (×' + count + ')' : ''} (manage on the sheet).
         </div></div>`;
         }
       }
@@ -2804,9 +2867,9 @@
           const from = ch.from || [];
           let items = [];
           if (from.includes('anySkill')) items = [...items, ...ALL_SKILLS];
-          if (from.includes('anyTool')) items = [...items, 'Strumento (scegli)'];
-          if (from.includes('anyLanguage')) items = [...items, 'Lingua (scegli)'];
-          if (items.length) h += profPicker(key, `${feat.name} — Competenza`, items, count, 'var(--teal)');
+          if (from.includes('anyTool')) items = [...items, 'Tool (choose)'];
+          if (from.includes('anyLanguage')) items = [...items, 'Language (choose)'];
+          if (items.length) h += profPicker(key, `${feat.name} — Proficiency`, items, count, 'var(--teal)');
         }
       }
 
@@ -2854,7 +2917,7 @@
           el.innerHTML = '';
           const sel = char.choices[s.key] || null;
           const sk = s.key;
-          let inner = `<input class="search-box" id="feat-search-${sk}" placeholder="Cerca talento…"
+          let inner = `<input class="search-box" id="feat-search-${sk}" placeholder="Search feat…"
             oninput="_renderFeatList('${sk}')" autocomplete="off" style="width:100%;margin-bottom:.5rem"/>
           <div id="feat-list-${sk}" class="item-list" style="max-height:160px;overflow-y:auto"></div>`;
           if (sel) {
@@ -2903,9 +2966,9 @@
       const remaining = spec.count - sel.length;
       let h = `<div class="choice-block">
         <div class="choice-block-hdr"><span>${esc(spec.label)}</span>
-          <span class="choice-count">Scegli ${spec.count}</span></div>`;
+          <span class="choice-count">Choose ${spec.count}</span></div>`;
 
-      if (remaining > 0) h += `<div style="font-size:12px;color:var(--text3);margin-bottom:.4rem;font-style:italic">Seleziona ancora ${remaining}</div>`;
+      if (remaining > 0) h += `<div style="font-size:12px;color:var(--text3);margin-bottom:.4rem;font-style:italic">Select ${remaining} more</div>`;
 
       // FIX: Inserito 'expertise' nell'elenco per creare il contenitore dei bottoni
       if (['skill_choice', 'language_choice', 'generic_choice', 'expertise'].includes(spec.type)) {
@@ -2916,6 +2979,31 @@
       return h;
     }
 
+    // Returns lowercase-English set of skills already taken from all sources EXCEPT excludeKey
+    function _getAlreadyTakenSkills(excludeKey) {
+      const taken = new Set();
+      if (char.choices) {
+        Object.entries(char.choices).forEach(([k, v]) => {
+          if (k === excludeKey) return;
+          if (!v) return;
+          if (!(k.includes('skill') || k.startsWith('start_skills') || k.includes('exp') || k.includes('expertise'))) return;
+          const vals = Array.isArray(v) ? v : [v];
+          vals.forEach(s => { if (s) taken.add(s.toLowerCase().trim()); });
+        });
+      }
+      if (char.bgObj && char.bgObj.skillProficiencies) {
+        char.bgObj.skillProficiencies.forEach(function(block) {
+          Object.keys(block).filter(function(k){ return k !== 'choose'; }).forEach(function(k){ taken.add(k.toLowerCase().trim()); });
+        });
+      }
+      if (char.speciesObj && char.speciesObj.skillProficiencies) {
+        char.speciesObj.skillProficiencies.forEach(function(block) {
+          Object.keys(block).filter(function(k){ return k !== 'choose'; }).forEach(function(k){ taken.add(k.toLowerCase().trim()); });
+        });
+      }
+      return taken;
+    }
+
     // Renderer lista per skill/language choices
     function _renderChoiceList(key, items, count, type) {
       const el = document.getElementById(`cb_${key}`);
@@ -2923,15 +3011,18 @@
       const sel = Array.isArray(char.choices[key]) ? char.choices[key] : [];
       const sk = key.replace(/'/g, "\\'")
       const colorVar = type === 'language_choice' ? 'var(--teal)' : 'var(--green)';
+      const takenElsewhere = type === 'skill_choice' ? _getAlreadyTakenSkills(key) : null;
       el.innerHTML = items.slice(0, 80).map(item => {
         const on = sel.includes(item);
         const full = sel.length >= count && !on;
+        const takenByOther = takenElsewhere && !on && takenElsewhere.has(item.toLowerCase().trim());
+        const disabled = full || takenByOther;
         const itemClean = item.replace(/'/g, "\\'");
-        const onclickStr = full ? '' : `toggleChoiceItem('${sk}','${itemClean}',${count})`;
-        return `<div class="choice-row${on ? ' on' : ''}"
-      onclick="${onclickStr}">
-      <div class="choice-check${on ? ' on' : ''}">\u221A</div>
-      <span style="flex:1;min-width:0;color:${on ? 'var(--purple)' : 'var(--text2)'}">${esc(item)}</span>
+        const onclickStr = disabled ? '' : `toggleChoiceItem('${sk}','${itemClean}',${count})`;
+        return `<div class="choice-row${on ? ' on' : ''}${takenByOther ? ' taken' : ''}"
+      onclick="${onclickStr}" style="${takenByOther ? 'opacity:0.4;cursor:default' : ''}">
+      <div class="choice-check${on ? ' on' : ''}">√</div>
+      <span style="flex:1;min-width:0;color:${on ? 'var(--purple)' : takenByOther ? 'var(--text3)' : 'var(--text2)'}">${esc(item)}${takenByOther ? ' <em style="font-size:10px">(already taken)</em>' : ''}</span>
       <span style="font-size:10px;color:var(--text3);flex-shrink:0">${esc(item.split('|')[1] || '')}</span>
     </div>`;
       }).join('');
@@ -3246,7 +3337,7 @@
         h += `</div>`;
       }
 
-      if (!h) h = '<div class="phmsg">Seleziona classe e background per vedere l\'equipaggiamento.</div>';
+      if (!h) h = '<div class="phmsg">Select class and background to see starting equipment.</div>';
       body.innerHTML = h;
     }
 
@@ -3279,7 +3370,7 @@
       collectRaw(eq);
       const fullText = rawParts.map(t => clean(t)).join(' ').trim();
 
-      if (!fullText) return '<div class="phmsg">Nessun dato disponibile.</div>';
+      if (!fullText) return '<div class="phmsg">No data available.</div>';
 
       // Prova a estrarre scelte multiple: "(A) ... or (B) ..." o "(A)...; or (B)..."
       // Pattern: (A) contenuto ; or (B) contenuto [; or (C) contenuto ...]
@@ -3400,7 +3491,7 @@
         }
       }
       processNode(eq);
-      return h || '<div class="phmsg" style="padding:.5rem 0">Nessun dato disponibile.</div>';
+      return h || '<div class="phmsg" style="padding:.5rem 0">No data available.</div>';
     }
 
     function selEquip(key, val) {
@@ -3665,11 +3756,13 @@
       if (!cls) return;
       char.className = name; char.classSource = source; char.cls = cls; char.subclassShortName = null;
       char.allFeatures = (d.classFeature || []).filter(f => f.className === name && (f.classSource === source || !f.classSource) && !f.isReprinted);
-      // Carica tutte le sottoclassi e le loro feature
       char.subclasses = (d.subclass || []).filter(s => s.className === name && (s.classSource === source || !s.classSource) && ALLOWED.includes(s.source));
       char.allSubFeatures = (d.subclassFeature || []).filter(f => f.className === name && (f.classSource === source || !f.classSource) && ALLOWED.includes(f.source || source));
+      if (!char.classLevel) char.classLevel = char.level || 1;
+      char.activeClassTab = 0;
+      updateTotalLevel();
 
-      renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderSlotsPanel();
+      renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderMCTabBar(); renderSlotsPanel();
       ['panel-level', 'panel-xp', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
       document.getElementById('btn-next').disabled = false;
       char.choices = {}; char.selectedCantrips = []; char.selectedSpells = {};
@@ -3704,33 +3797,34 @@
     }
     function calcMaxHP() {
       if (!char.cls) return 0;
-      const hdInfo = char.cls.hd;
-      let faces = 8;
-      if (hdInfo) {
-        if (hdInfo.faces) faces = hdInfo.faces;
-        else if (Array.isArray(hdInfo) && hdInfo[0].faces) faces = hdInfo[0].faces;
-      }
-
-      const lv = char.level;
+      const primaryFaces = getHdFaces(char.cls);
       const conMod = Math.floor((getFinal('con') - 10) / 2);
+      const pLv = getPrimaryClassLevel();
 
-      // LIVELLO 1: Sempre il massimo del dado + CON
-      let totalHP = faces + conMod;
+      // Livello 1: massimo dado primario + CON
+      let totalHP = primaryFaces + conMod;
 
-      // LIVELLI 2+: Media automatica o Somma manuale
-      if (lv > 1) {
+      // Livelli 2+ della classe primaria
+      if (pLv > 1) {
         if (char.hpMode === 'average' || !char.hpMode) {
-          const avg = Math.floor(faces / 2) + 1;
-          totalHP += (avg + conMod) * (lv - 1);
+          totalHP += (Math.floor(primaryFaces / 2) + 1 + conMod) * (pLv - 1);
         } else {
-          for (let i = 2; i <= lv; i++) {
-            const val = parseInt(char.hpManualRolls[i]);
-            // Se la casella è vuota, usa temporaneamente la media per non azzerare gli HP
-            const roll = isNaN(val) ? (Math.floor(faces / 2) + 1) : val;
+          for (let i = 2; i <= pLv; i++) {
+            const val = parseInt(char.hpManualRolls?.[i]);
+            const roll = isNaN(val) ? (Math.floor(primaryFaces / 2) + 1) : val;
             totalHP += roll + conMod;
           }
         }
       }
+
+      // Classi extra: media dado + CON per ogni livello
+      for (const ec of (char.extraClasses||[])) {
+        if (!ec.cls) continue;
+        const ecFaces = getHdFaces(ec.cls);
+        totalHP += (Math.floor(ecFaces / 2) + 1 + conMod) * (ec.level||1);
+      }
+
+      const lv = char.level;
 
       // Bonus extra (Sottoclassi, Specie e Talenti come Robusto)
       let bonusPerLv = 0;
@@ -3762,10 +3856,16 @@
 
     /* ════════════════════════════════════ LIVELLO */
     function renderLevelGrid() {
-      const sc = char.cls ? (char.cls.subclassLevel || 3) : 3;
+      const tab = char.activeClassTab || 0;
+      if (tab > 0) { renderExtraLevelGrid(tab - 1); return; }
+      // Primary class level grid
+      const sc  = char.cls ? (char.cls.subclassLevel || 3) : 3;
+      const pLv = char.classLevel || char.level || 1;
+      const extraTotal = (char.extraClasses||[]).reduce((s,c)=>s+(c.level||1),0);
+      const maxLv = Math.max(pLv, 20 - extraTotal);
       let h = '';
-      for (let i = 1; i <= 20; i++) {
-        const on = i === char.level ? ' on' : '', hasSub = i === sc && char.level !== i ? ' has-sub' : '';
+      for (let i = 1; i <= maxLv; i++) {
+        const on = i === pLv ? ' on' : '', hasSub = i === sc && pLv !== i ? ' has-sub' : '';
         h += `<button class="lvl-btn${on}${hasSub}" onclick="selectLevel(${i})">${i}${i === sc ? '<br><span style="font-size:7px">◆</span>' : ''}</button>`;
       }
       document.getElementById('level-grid').innerHTML = h;
@@ -3785,9 +3885,9 @@
         </div>
       `;
 
-      if (char.hpMode === 'rolled' && char.level > 1) {
+      if (char.hpMode === 'rolled' && pLv > 1) {
         hpHtml += `<div style="display:flex; flex-wrap:wrap; gap:6px;">`;
-        for (let i = 2; i <= char.level; i++) {
+        for (let i = 2; i <= pLv; i++) {
           const val = char.hpManualRolls[i] || "";
           hpHtml += `
           <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r); padding:4px; text-align:center; width:45px;">
@@ -3850,23 +3950,29 @@
     }
 
     function selectLevel(n) {
-      char.level = n;
+      // Sets primary class level
+      char.classLevel = n;
+      updateTotalLevel();
       renderLevelGrid();
       renderSubclassPanel();
+      renderMCTabBar();
       renderSlotsPanel();
       renderChoicesPanel();
       renderSpellPanel();
-      renderPreviewSpells(); // <--- AGGIUNTO: Aggiorna le magie della specie in tempo reale
+      renderPreviewSpells();
       renderPreview();
       updateSteps();
     }
 
     /* ════════════════════════════════════ SOTTOCLASSE */
     function renderSubclassPanel() {
+      const tab = char.activeClassTab || 0;
+      if (tab > 0) { renderExtraSubclassInPanel(tab - 1); return; }
       const p = document.getElementById('panel-subclass');
-      if (!char.cls || !char.subclasses.length) { p.style.display = 'none'; return; }
+      if (!char.cls || !char.subclasses.length) { if(p) p.style.display = 'none'; return; }
       const scLv = char.cls.subclassLevel || 3;
-      if (char.level < scLv) { p.style.display = 'none'; return; }
+      if ((char.classLevel||char.level||1) < scLv) { if(p) p.style.display = 'none'; return; }
+      if (!p) return;
       p.style.display = 'block';
       document.getElementById('sc-title').textContent = char.cls.subclassTitle || 'Sottoclasse';
       document.getElementById('sc-unlock-note').textContent = 'Liv. ' + scLv;
@@ -3879,27 +3985,277 @@
     function selSC(n) {
       char.subclassShortName = char.subclassShortName === n ? null : n;
       if (char.choices) {
-        // Pulisce le vecchie scelte della sottoclasse precedente
-        // include chiavi 'subclass_*' degli adapter e le chiavi legacy
         for (const k of Object.keys(char.choices)) {
           if (k.startsWith('subclass_') || k.includes('_skill_') || k.includes('_exp_')) delete char.choices[k];
         }
       }
       renderSubclassPanel();
-      renderChoicesPanel(); // <--- INDISPENSABILE: ricalcola le scelte (Competenze/Expertise)
-      renderSpellPanel();   // <--- INDISPENSABILE: carica gli incantesimi di dominio
+      renderChoicesPanel();
+      renderSpellPanel();
       renderPreview();
       updateSteps();
     }
 
+    /* ════════════════════════════════════ MULTICLASSE */
+    function getPrimaryClassLevel() {
+      return char.classLevel || Math.max(1, (char.level||1) - (char.extraClasses||[]).reduce((s,c)=>s+(c.level||1),0));
+    }
+    function getHdFaces(cls) {
+      const hd = cls?.hd;
+      if (!hd) return 8;
+      if (hd.faces) return hd.faces;
+      if (Array.isArray(hd) && hd[0]?.faces) return hd[0].faces;
+      return 8;
+    }
+    function getMCCasterLevel(clsName, lv, scName) {
+      const t = MC_CASTER_TYPE[clsName];
+      if (t === 'full') return lv;
+      if (t === 'half') return Math.floor(lv / 2);
+      if (t === 'pact') return 0;
+      if (clsName === 'Fighter' && scName === 'EK') return Math.floor(lv / 3);
+      if (clsName === 'Rogue'   && scName === 'AT') return Math.floor(lv / 3);
+      return 0;
+    }
+    function getMCSlots() {
+      if (!(char.extraClasses||[]).length) return null;
+      const pLv = getPrimaryClassLevel();
+      let cLv = getMCCasterLevel(char.className||'', pLv, char.subclassShortName||'');
+      for (const ec of (char.extraClasses||[]))
+        cLv += getMCCasterLevel(ec.name||'', ec.level||1, ec.subclassShortName||'');
+      cLv = Math.floor(cLv);
+      return cLv > 0 ? FULL_SLOTS[Math.min(cLv, 20)] : null;
+    }
+    function checkMCPrerequisite(clsName) {
+      const reqs = MC_PREREQUISITES[clsName];
+      if (!reqs) return true;
+      const sc = { str:getFinal('str'),dex:getFinal('dex'),con:getFinal('con'),int:getFinal('int'),wis:getFinal('wis'),cha:getFinal('cha') };
+      return reqs.some(grp => Object.entries(grp).every(([ab,min]) => sc[ab] >= min));
+    }
+
+    function updateTotalLevel() {
+      char.level = (char.classLevel||1) + (char.extraClasses||[]).reduce((s,c)=>s+(c.level||1),0);
+    }
+    function renderMulticlassPanel() { renderMCTabBar(); }
+    function renderMCTabBar() {
+      const el = document.getElementById('mc-tabbar');
+      if (!el) return;
+      if (!char.cls) { el.innerHTML = ''; return; }
+      const tab = char.activeClassTab || 0;
+      const pName = char.className || 'Classe';
+      const pLv   = char.classLevel || 1;
+      let h = `<button class="mc-tab${tab===0?' active':''}" onclick="switchMCTab(0)">${esc(pName)} ${pLv}</button>`;
+      (char.extraClasses||[]).forEach((ec, i) => {
+        const eName = ec.name || '?';
+        const eLv   = ec.level || 1;
+        h += `<button class="mc-tab${tab===i+1?' active':''}" onclick="switchMCTab(${i+1})">
+          ${esc(eName)} ${eLv}<span class="mc-tab-close" onclick="event.stopPropagation();removeExtraClass(${i})">✕</span>
+        </button>`;
+      });
+      h += `<button class="mc-tab-add" onclick="addExtraClass()" title="Aggiungi classe secondaria">+</button>`;
+      el.innerHTML = h;
+    }
+    function switchMCTab(i) {
+      char.activeClassTab = i;
+      const pane0  = document.getElementById('mc-pane-0');
+      const paneEx = document.getElementById('mc-pane-extra');
+      const lp     = document.getElementById('panel-level');
+      if (i === 0) {
+        if (pane0)  pane0.style.display  = '';
+        if (paneEx) paneEx.style.display = 'none';
+        const title = document.getElementById('level-panel-title');
+        const note  = document.getElementById('level-panel-note');
+        if (title) title.textContent = 'Livello';
+        if (note)  note.textContent  = '';
+        if (lp) lp.style.display = char.cls ? 'block' : 'none';
+        renderSubclassPanel();
+      } else {
+        if (pane0)  pane0.style.display  = 'none';
+        if (paneEx) paneEx.style.display = '';
+        const ec = (char.extraClasses||[])[i-1];
+        renderExtraClassInPane(i-1);
+        if (lp) lp.style.display = (ec && ec.cls) ? 'block' : 'none';
+        const title = document.getElementById('level-panel-title');
+        const note  = document.getElementById('level-panel-note');
+        if (title) title.textContent = `Livello — ${ec?.name||''}`;
+        const otherExtra = (char.extraClasses||[]).filter((_,j)=>j!==i-1).reduce((s,c)=>s+(c.level||1),0);
+        const maxLv = Math.max(1, 20-(char.classLevel||1)-otherExtra);
+        if (note)  note.textContent  = `max Lv.${maxLv}`;
+        renderExtraSubclassInPanel(i-1);
+      }
+      renderLevelGrid();
+      renderMCTabBar();
+    }
+    function renderExtraClassInPane(i) {
+      const chipsEl = document.getElementById('mc-ex-chips');
+      const cardEl  = document.getElementById('mc-ex-card');
+      if (!chipsEl) return;
+      const ec = (char.extraClasses||[])[i];
+      const taken = new Set([(char.className||''), ...(char.extraClasses||[]).filter((_,j)=>j!==i).map(c=>c.name||'')]);
+      const cls = [];
+      for (const d of Object.values(classCache))
+        for (const c of (d.class||[]))
+          if (ALLOWED.includes(c.source) && !taken.has(c.name)) cls.push(c);
+      cls.sort((a,b)=>a.name.localeCompare(b.name));
+      chipsEl.innerHTML = cls.map(c => {
+        const ok  = checkMCPrerequisite(c.name);
+        const sel = ec && ec.name === c.name;
+        return `<button class="chip${sel?' on':''}" style="${!ok?'opacity:.4;cursor:not-allowed;':''}"
+          title="${ok?'':'Prerequisites not met (13 in required ability)'}"
+          onclick="${ok?`selectExtraClass(${i},'${c.name.replace(/'/g,"\\'")}','${c.source}')`:''}">${esc(c.name)}</button>`;
+      }).join('');
+      if (cardEl) {
+        cardEl.innerHTML = (ec && ec.cls) ? `<div class="info-card">
+          <div class="info-card-name">${esc(ec.cls.name)}</div>
+          <div class="info-tags">
+            <span class="info-tag g">d${ec.cls.hd?.faces||'?'} Dado Vita</span>
+            <span class="info-tag gr">${(ec.cls.proficiency||[]).map(s=>s.toUpperCase()).join(', ')} Tiri Salv.</span>
+          </div></div>` : '';
+      }
+    }
+    function renderExtraLevelGrid(i) {
+      const ec = (char.extraClasses||[])[i];
+      if (!ec || !ec.cls) { document.getElementById('level-grid').innerHTML = ''; document.getElementById('lvl-stats').innerHTML = ''; return; }
+      const sc  = ec.cls.subclassLevel || 3;
+      const otherExtra = (char.extraClasses||[]).filter((_,j)=>j!==i).reduce((s,c)=>s+(c.level||1),0);
+      const maxLv = Math.max(1, 20 - (char.classLevel||1) - otherExtra);
+      let h = '';
+      for (let n = 1; n <= maxLv; n++) {
+        const on = n===(ec.level||1)?' on':'', hasSub = n===sc&&(ec.level||1)!==n?' has-sub':'';
+        h += `<button class="lvl-btn${on}${hasSub}" onclick="setExtraClassLevel(${i},${n})">${n}${n===sc?'<br><span style="font-size:7px">◆</span>':''}</button>`;
+      }
+      document.getElementById('level-grid').innerHTML = h;
+      const caster = ec.cls.casterProgression || CASTER_FB[ec.name] || null;
+      const cLbl = caster==='full'?'Full':caster==='1/2'?'½':caster==='pact'?'Patto':'';
+      const faces = ec.cls?.hd?.faces || '?';
+      document.getElementById('lvl-stats').innerHTML = `
+        <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Livello</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
+        ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:14px">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}
+      `;
+    }
+    function renderExtraSubclassInPanel(i) {
+      const p = document.getElementById('panel-subclass');
+      const ec = (char.extraClasses||[])[i];
+      if (!ec || !ec.cls || !ec.subclasses || !ec.subclasses.length) { if(p) p.style.display='none'; return; }
+      const scLv = ec.cls.subclassLevel || 3;
+      if ((ec.level||1) < scLv) { if(p) p.style.display='none'; return; }
+      if (!p) return;
+      p.style.display = 'block';
+      document.getElementById('sc-title').textContent = ec.cls.subclassTitle || 'Sottoclasse';
+      document.getElementById('sc-unlock-note').textContent = 'Liv. ' + scLv;
+      document.getElementById('sc-grid').innerHTML = ec.subclasses.map(sc => {
+        const sel = ec.subclassShortName === (sc.shortName||sc.name);
+        return `<button class="sc-btn${sel?' on':''}" onclick="selExtraSC(${i},'${(sc.shortName||sc.name).replace(/'/g,"\\'")}')">
+          ${esc(sc.name||sc.shortName)}<span class="sc-src">${esc(sc.source||'')}</span></button>`;
+      }).join('');
+    }
+    function addExtraClass() {
+      if (!char.extraClasses) char.extraClasses = [];
+      const extraTotal = (char.extraClasses||[]).reduce((s,c)=>s+(c.level||1),0);
+      if ((char.classLevel||1) + extraTotal >= 20) { alert('Livello totale massimo 20 raggiunto.'); return; }
+      char.extraClasses.push({ name:null,source:null,cls:null,level:1,subclassShortName:null,subclasses:[],allFeatures:[],allSubFeatures:[] });
+      updateTotalLevel();
+      switchMCTab(char.extraClasses.length); // switch to new tab
+    }
+    function removeExtraClass(i) {
+      if (!char.extraClasses) return;
+      const pfx = `mc${i}_`;
+      char.extraClasses.splice(i, 1);
+      if (char.choices) for (const k of Object.keys(char.choices)) if (k.startsWith(pfx)) delete char.choices[k];
+      updateTotalLevel();
+      switchMCTab(0);
+      renderChoicesPanel();
+      renderSlotsPanel();
+      renderPreview();
+    }
+    function selectExtraClass(i, name, source) {
+      if (!char.extraClasses || !char.extraClasses[i]) return;
+      let cls = null, d = null;
+      for (const data of Object.values(classCache)) {
+        const f = (data.class||[]).find(c => c.name===name && c.source===source);
+        if (f) { cls=f; d=data; break; }
+      }
+      if (!cls) return;
+      const ec = char.extraClasses[i];
+      ec.name=name; ec.source=source; ec.cls=cls; ec.subclassShortName=null;
+      ec.allFeatures = (d.classFeature||[]).filter(f=>f.className===name&&(f.classSource===source||!f.classSource)&&!f.isReprinted);
+      ec.subclasses  = (d.subclass||[]).filter(s=>s.className===name&&(s.classSource===source||!s.classSource)&&ALLOWED.includes(s.source));
+      ec.allSubFeatures = (d.subclassFeature||[]).filter(f=>f.className===name&&(f.classSource===source||!f.classSource)&&ALLOWED.includes(f.source||source));
+      switchMCTab(i + 1); // refresh current tab
+      renderChoicesPanel();
+      renderSlotsPanel();
+      renderPreview();
+    }
+    function setExtraClassLevel(i, n) {
+      if (!char.extraClasses || !char.extraClasses[i]) return;
+      const otherExtra = (char.extraClasses||[]).filter((_,j)=>j!==i).reduce((s,c)=>s+(c.level||1),0);
+      if ((char.classLevel||1) + n + otherExtra > 20) return;
+      char.extraClasses[i].level = n;
+      updateTotalLevel();
+      renderExtraLevelGrid(i); // refresh level grid only
+      renderMCTabBar();
+      renderExtraSubclassInPanel(i);
+      renderChoicesPanel();
+      renderSlotsPanel();
+      renderPreview();
+    }
+    function selExtraSC(i, name) {
+      if (!char.extraClasses || !char.extraClasses[i]) return;
+      const ec = char.extraClasses[i];
+      ec.subclassShortName = ec.subclassShortName === name ? null : name;
+      renderExtraSubclassInPanel(i);
+      renderMCTabBar();
+      renderChoicesPanel();
+      renderPreview();
+    }
+
     /* ════════════════════════════════════ SLOT */
+    function _warlockLevels() {
+      let wLv = 0;
+      const pName = char.className || '';
+      const pCaster = char.cls ? (char.cls.casterProgression || CASTER_FB[pName] || null) : null;
+      if (pCaster === 'pact') wLv += getPrimaryClassLevel();
+      for (const ec of (char.extraClasses||[])) {
+        const t = MC_CASTER_TYPE[ec.name] || (ec.cls ? (ec.cls.casterProgression || CASTER_FB[ec.name] || null) : null);
+        if (t === 'pact') wLv += (ec.level||1);
+      }
+      return wLv;
+    }
     function renderSlotsPanel() {
       const p = document.getElementById('panel-slots');
       if (!char.cls) { p.style.display = 'none'; return; }
+      const body = document.getElementById('slots-body'), lv = char.level;
+      const hasExtraClasses = (char.extraClasses||[]).length > 0;
+
+      if (hasExtraClasses) {
+        // Combined spell slot table from all non-Warlock casters
+        const mcSlots = getMCSlots(); // Warlock contributes 0, correct per 5e rules
+        const wLv = _warlockLevels();
+        const pactRow = wLv > 0 ? WLOCK[Math.min(wLv, 20)] : null;
+
+        if (!mcSlots && !pactRow) { p.style.display = 'none'; return; }
+        p.style.display = 'block';
+        let h = '';
+        if (mcSlots) {
+          h += `<table class="slot-table"><thead><tr><th>MC</th>`;
+          for (let i = 1; i <= mcSlots.length; i++) h += `<th>${i}°</th>`;
+          h += `</tr></thead><tbody><tr><td style="font-family:'Cinzel',serif;color:var(--gold2)">${lv}</td>`;
+          for (const n of mcSlots) h += `<td class="${n>0?'has':'zero'}">${n>0?n:'—'}</td>`;
+          h += `</tr></tbody></table>`;
+        }
+        if (pactRow) {
+          h += `<div style="margin-top:${mcSlots?'8px':'0'};font-size:13px;color:var(--text2)">
+            <b style="color:var(--purple)">Patto (Warlock Lv.${wLv}):</b>
+            <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
+        }
+        body.innerHTML = h;
+        return;
+      }
+
+      // Single class
       const caster = char.cls.casterProgression || CASTER_FB[char.cls.name] || null;
       if (!caster) { p.style.display = 'none'; return; }
       p.style.display = 'block';
-      const body = document.getElementById('slots-body'), lv = char.level;
       if (caster === 'pact') {
         const w = WLOCK[lv];
         body.innerHTML = w ? `<span style="font-size:14px;color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recuperati con riposo breve</span>` : '<div class="phmsg">Nessuno slot</div>';
@@ -3909,9 +4265,9 @@
       const slots = tbl[lv];
       if (!slots) { body.innerHTML = '<div class="phmsg">Nessuno slot a questo livello</div>'; return; }
       let h = `<table class="slot-table"><thead><tr><th>Lv</th>`;
-      for (let i = 1; i <= slots.length; i++)h += `<th>${i}°</th>`;
+      for (let i = 1; i <= slots.length; i++) h += `<th>${i}°</th>`;
       h += `</tr></thead><tbody><tr><td style="font-family:'Cinzel',serif;color:var(--gold2)">${lv}</td>`;
-      for (const n of slots) h += `<td class="${n > 0 ? 'has' : 'zero'}">${n > 0 ? n : '—'}</td>`;
+      for (const n of slots) h += `<td class="${n>0?'has':'zero'}">${n>0?n:'—'}</td>`;
       h += `</tr></tbody></table>`;
       body.innerHTML = h;
     }
@@ -3958,9 +4314,9 @@
       el.innerHTML = `<div class="info-card">
     <div class="info-card-name">${esc(s.name)}</div>
     <div class="info-tags">
-      <span class="info-tag g">Velocità ${esc(spd)}</span>
-      <span class="info-tag">Taglia ${esc(sizes)}</span>
-      ${s.darkvision ? `<span class="info-tag t">Scurovisione ${s.darkvision} ft</span>` : ''}
+      <span class="info-tag g">Speed ${esc(spd)}</span>
+      <span class="info-tag">Size ${esc(sizes)}</span>
+      ${s.darkvision ? `<span class="info-tag t">Darkvision ${s.darkvision} ft</span>` : ''}
       ${resHtml}
     </div></div>`;
     }
@@ -4002,7 +4358,7 @@
           const feat = sel ? allFeats.find(f => f.name === sel) : null;
           h += `<div class="choice-block" style="margin-bottom:1rem">
             <div class="choice-block-hdr"><span>✦ ${esc(spec.label)}</span></div>
-            <input class="search-box" id="feat-search-${sk}" placeholder="Cerca talento…"
+            <input class="search-box" id="feat-search-${sk}" placeholder="Search feat…"
               oninput="_renderFeatList('${sk}')" autocomplete="off" style="width:100%;margin-bottom:.5rem"/>
             <div id="feat-list-${sk}" class="item-list" style="max-height:180px;overflow-y:auto"></div>
             ${feat ? `<div class="feat-item open" style="margin-top:.5rem">
@@ -4057,7 +4413,7 @@
           if (sp.choose || sp.any) {
             const count = sp.choose?.count || sp.any || 1;
             const from = sp.choose?.from ? sp.choose.from.map(s => s.charAt(0).toUpperCase() + s.slice(1)) : SKILLS.map(s => s.n);
-            specs.push({ key: `species_skill_${idx}`, label: `Scegli Abilità`, type: 'skill_choice', from: from, count: count, level: 1 });
+            specs.push({ key: `species_skill_${idx}`, label: `Choose Skill`, type: 'skill_choice', from: from, count: count, level: 1 });
           }
         });
       }
@@ -4288,7 +4644,7 @@
       let spent = 0; for (const s of STATS) spent += PB_COST[char.pbScores[s]] || 0;
       const left = 27 - spent, pct = Math.min(100, Math.round(spent / 27 * 100));
       let h = `<div class="pb-bar">
-    <div class="pb-label"><span>Spesi: <b>${spent}/27</b></span><span style="color:${left < 0 ? 'var(--red2)' : left === 0 ? 'var(--green)' : 'var(--text2)'}">Rimanenti: <b>${left}</b></span></div>
+    <div class="pb-label"><span>Spent: <b>${spent}/27</b></span><span style="color:${left < 0 ? 'var(--red2)' : left === 0 ? 'var(--green)' : 'var(--text2)'}">Remaining: <b>${left}</b></span></div>
     <div class="pb-track"><div class="pb-fill${left < 0 ? ' over' : ''}" style="width:${pct}%"></div></div>
   </div><div class="score-grid">`;
       for (const s of STATS) {
@@ -4321,7 +4677,7 @@
     /* Standard Array */
     function renderStd(el) {
       const assigned = Object.values(char.arrAssign).filter(v => v !== null);
-      let h = `<p style="font-size:13px;color:var(--text2);margin-bottom:.5rem">Seleziona un valore, poi premi Assegna sulla caratteristica.</p>
+      let h = `<p style="font-size:13px;color:var(--text2);margin-bottom:.5rem">Select a value, then press Assign on the ability score.</p>
   <div class="array-pool">`;
       // conta quante volte ogni valore è già assegnato
       const useCnt = {}; for (const v of STD_ARR) useCnt[v] = (useCnt[v] || 0);
@@ -4344,7 +4700,7 @@
       ${v !== null ? `<div class="score-mod">${fmod(fin)}</div>` : ''}
       ${bon && v !== null ? `<div class="score-bonus">+${bon} bg</div>` : ''}
       <div style="display:flex;gap:4px;justify-content:center;margin-top:4px">
-        ${canAssign ? `<button class="assign-btn" onclick="assArr('${s}')">Assegna</button>` : ''}
+        ${canAssign ? `<button class="assign-btn" onclick="assArr('${s}')">Assign</button>` : ''}
         ${v !== null ? `<button class="unassign-btn" onclick="unArr('${s}')">✕</button>` : ''}
       </div>
     </div>`;
@@ -4360,14 +4716,14 @@
     function renderDice(el) {
       let h = '';
       if (!char.dicePool.length) {
-        h = `<button class="btn-roll" onclick="rollStats()">🎲 Tira 6 volte (4d6 scarta il minore)</button>`;
+        h = `<button class="btn-roll" onclick="rollStats()">🎲 Roll 6 times (4d6 drop lowest)</button>`;
       } else {
         h = `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem">`;
         char.dicePool.forEach((v, i) => {
           const isSel = char.selDiceIdx === i;
           h += `<div class="dice-val${isSel ? ' sel' : ''}" onclick="selDice(${i})">${v}</div>`;
         });
-        h += `</div><button class="btn-roll" onclick="rollStats()">🎲 Ritira tutto</button>
+        h += `</div><button class="btn-roll" onclick="rollStats()">🎲 Reroll all</button>
     <div class="score-grid">`;
         for (const s of STATS) {
           const v = char.diceAssign[s], bon = bgBonus(s), fin = (v !== null ? v : 8) + bon;
@@ -4378,7 +4734,7 @@
         ${v !== null ? `<div class="score-mod">${fmod(fin)}</div>` : ''}
         ${bon && v !== null ? `<div class="score-bonus">+${bon} bg</div>` : ''}
         <div style="display:flex;gap:4px;justify-content:center;margin-top:4px">
-          ${canAssign ? `<button class="assign-btn" onclick="assDice('${s}')">Assegna</button>` : ''}
+          ${canAssign ? `<button class="assign-btn" onclick="assDice('${s}')">Assign</button>` : ''}
           ${v !== null ? `<button class="unassign-btn" onclick="unDice('${s}')">✕</button>` : ''}
         </div>
       </div>`;
@@ -4404,7 +4760,18 @@
       document.getElementById('prev-name').textContent = char.name || '—';
       const parts = [];
       if (char.speciesName) parts.push(char.speciesName);
-      if (char.className) parts.push(`${char.className}${char.subclassShortName ? ' (' + char.subclassShortName + ')' : ''} Lv.${char.level}`);
+      if (char.className) {
+        const extra = char.extraClasses||[];
+        const pLv = char.classLevel||char.level||1;
+        const sc = char.subclassShortName ? ` (${char.subclassShortName})` : '';
+        if (extra.length) {
+          const clsParts = [`${char.className}${sc} ${pLv}`];
+          extra.forEach(ec => { if (ec.name) { const s=ec.subclassShortName?` (${ec.subclassShortName})`:''; clsParts.push(`${ec.name}${s} ${ec.level||1}`); } });
+          parts.push(clsParts.join(' / ') + ` [Lv.${char.level}]`);
+        } else {
+          parts.push(`${char.className}${sc} Lv.${char.level}`);
+        }
+      }
       if (char.bgName) parts.push(char.bgName);
 
       let metaStr = parts.join(' · ');
@@ -4447,13 +4814,13 @@
       const items = char.inventory;
 
       // Mostriamo i primi 15 oggetti per non intasare l'anteprima
-      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c39bd3;margin-bottom:5px">⚔ Equipaggiamento</div>
+      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c39bd3;margin-bottom:5px">⚔ Equipment</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">
       ${items.slice(0, 15).map(i => {
         const qty = i.qty > 1 ? ` (x${i.qty})` : '';
         return `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(i.name)}${qty}</span>`;
       }).join('')}
-      ${items.length > 15 ? `<span style="font-size:11px;color:var(--text3)">+${items.length - 15} altri…</span>` : ''}
+      ${items.length > 15 ? `<span style="font-size:11px;color:var(--text3)">+${items.length - 15} more…</span>` : ''}
     </div>`;
     }
 
@@ -4470,7 +4837,7 @@
 
       el.style.display = 'block';
       el.innerHTML = `
-        <div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px">🗣 Lingue Conosciute</div>
+        <div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px">🗣 Known Languages</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
           ${list.map(l => `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(l)}</span>`).join('')}
         </div>`;
@@ -4479,14 +4846,14 @@
     function renderPreview() {
       renderPreviewHeader(); renderPreviewScores(); renderPreviewEquip(); renderPreviewSpells(); renderPreviewLanguages();
       const el = document.getElementById('feat-list');
-      if (!char.cls && !char.speciesObj && !char.bgObj) { el.innerHTML = '<div class="phmsg">Seleziona una classe per vedere le feature.</div>'; return; }
+      if (!char.cls && !char.speciesObj && !char.bgObj) { el.innerHTML = '<div class="phmsg">Select a class to see features.</div>'; return; }
       let html = '';
 
-      // Classe
+      // Classe primaria
       if (char.cls) {
-        const lv = char.level;
-        const cf = char.allFeatures.filter(f => f.level <= lv && !f.isReprinted);
-        const sf = char.subclassShortName ? char.allSubFeatures.filter(f => f.subclassShortName === char.subclassShortName && f.level <= lv && !f.isReprinted) : [];
+        const pLv = getPrimaryClassLevel();
+        const cf = char.allFeatures.filter(f => f.level <= pLv && !f.isReprinted);
+        const sf = char.subclassShortName ? char.allSubFeatures.filter(f => f.subclassShortName === char.subclassShortName && f.level <= pLv && !f.isReprinted) : [];
         const by = {};
         for (const f of cf) { if (!by[f.level]) by[f.level] = { c: [], s: [] }; by[f.level].c.push(f); }
         for (const f of sf) { if (!by[f.level]) by[f.level] = { c: [], s: [] }; by[f.level].s.push(f); }
@@ -4495,7 +4862,29 @@
           html += `<div class="feat-section-hdr cls">⚔ ${esc(char.className)}</div>`;
           for (const lv of lvs) {
             const g = by[lv]; if (!g.c.length && !g.s.length) continue;
-            html += `<div class="feat-level-group"><div class="feat-level-hdr"><span class="lv-badge">Liv. ${lv}</span>${g.s.length ? `<span class="sub-badge">${esc(char.subclassShortName)}</span>` : ''}</div>`;
+            html += `<div class="feat-level-group"><div class="feat-level-hdr"><span class="lv-badge">Lv. ${lv}</span>${g.s.length ? `<span class="sub-badge">${esc(char.subclassShortName)}</span>` : ''}</div>`;
+            for (const f of g.c) html += fi(f, '');
+            for (const f of g.s) html += fi(f, 'sub');
+            html += `</div>`;
+          }
+        }
+      }
+
+      // Classi extra (multiclasse)
+      for (const ec of (char.extraClasses || [])) {
+        if (!ec.cls || !ec.name) continue;
+        const ecLv = ec.level || 1;
+        const ecCf = (ec.allFeatures || []).filter(f => f.level <= ecLv && !f.isReprinted);
+        const ecSf = ec.subclassShortName ? (ec.allSubFeatures || []).filter(f => f.subclassShortName === ec.subclassShortName && f.level <= ecLv && !f.isReprinted) : [];
+        const ecBy = {};
+        for (const f of ecCf) { if (!ecBy[f.level]) ecBy[f.level] = { c: [], s: [] }; ecBy[f.level].c.push(f); }
+        for (const f of ecSf) { if (!ecBy[f.level]) ecBy[f.level] = { c: [], s: [] }; ecBy[f.level].s.push(f); }
+        const ecLvs = Object.keys(ecBy).map(Number).sort((a, b) => a - b);
+        if (ecLvs.length) {
+          html += `<div class="feat-section-hdr cls">⚔ ${esc(ec.name)}</div>`;
+          for (const lv of ecLvs) {
+            const g = ecBy[lv]; if (!g.c.length && !g.s.length) continue;
+            html += `<div class="feat-level-group"><div class="feat-level-hdr"><span class="lv-badge">Lv. ${lv}</span>${g.s.length ? `<span class="sub-badge">${esc(ec.subclassShortName)}</span>` : ''}</div>`;
             for (const f of g.c) html += fi(f, '');
             for (const f of g.s) html += fi(f, 'sub');
             html += `</div>`;
@@ -4513,14 +4902,14 @@
         // MOSTRA CARATTERISTICA MAGICA
         const spellAbility = char.choices['species_spell_ability'];
         if (spellAbility) {
-          const abilityLabels = { int: "Intelligenza", wis: "Saggezza", cha: "Carisma" };
-          html += `<div style="font-size:12px; color:var(--gold); margin-bottom:10px; padding:0 10px;">✦ Caratteristica Magica: <strong>${abilityLabels[spellAbility]}</strong></div>`;
+          const abilityLabels = { int: "Intelligence", wis: "Wisdom", cha: "Charisma" };
+          html += `<div style="font-size:12px; color:var(--gold); margin-bottom:10px; padding:0 10px;">✦ Spellcasting Ability: <strong>${abilityLabels[spellAbility]}</strong></div>`;
         }
 
         // MOSTRA LINEAGGIO SCELTO (Drow, Infernal, etc.)
         const lineage = char.choices['species_version'];
         if (lineage) {
-          html += `<div style="font-size:12px; color:var(--text2); margin-bottom:10px; padding:0 10px;">✦ Lineaggio: <strong>${esc(lineage)}</strong></div>`;
+          html += `<div style="font-size:12px; color:var(--text2); margin-bottom:10px; padding:0 10px;">✦ Lineage: <strong>${esc(lineage)}</strong></div>`;
         }
 
         if (entries.length) {
@@ -4546,7 +4935,7 @@
       // Talenti selezionati
       const selFeats = Object.entries(char.choices || {}).filter(([k, v]) => v && typeof v === 'string' && deriveAllChoices().some(s => s.key === k && ['feat_fixed', 'feat_cat'].includes(s.type)));
       if (selFeats.length) {
-        html += `<div class="feat-section-hdr ft">✧ Talenti</div>`;
+        html += `<div class="feat-section-hdr ft">✧ Feats</div>`;
         for (const [key, name] of selFeats) {
           const feat = allFeats.find(f => f.name === name);
           const spec = deriveAllChoices().find(s => s.key === key);
@@ -4555,7 +4944,7 @@
         }
       }
 
-      el.innerHTML = html || '<div class="phmsg">Nessuna feature ancora.</div>';
+      el.innerHTML = html || '<div class="phmsg">No features yet.</div>';
     }
 
     let _featCtr = 0;
@@ -4567,7 +4956,7 @@
       <span class="feat-item-name${nameCls}">${esc(clean(f.name || ''))}</span>
       <span class="feat-arrow">▶</span>
     </div>
-    <div class="feat-item-body">${rE(f.entries) || '<i style="color:var(--text3)">Nessuna descrizione disponibile.</i>'}</div>
+    <div class="feat-item-body">${rE(f.entries) || '<i style="color:var(--text3)">No description available.</i>'}</div>
   </div>`;
     }
     function tf(target) { (typeof target === 'string' ? document.getElementById(target) : target)?.classList.toggle('open'); }
@@ -4665,9 +5054,15 @@
 
       // Costruisce oggetto serializzabile (senza funzioni o riferimenti circolari)
       const saved = {
-        name: char.name, level: char.level,
+        name: char.name, level: char.level, classLevel: char.classLevel||char.level,
         className: char.className, classSource: char.classSource,
         subclassShortName: char.subclassShortName,
+        extraClasses: (char.extraClasses||[]).filter(ec=>ec.name).map(ec=>({
+          name: ec.name, source: ec.source, level: ec.level||1,
+          subclassShortName: ec.subclassShortName||null,
+          clsSnapshot: { hd:ec.cls?.hd, proficiency:ec.cls?.proficiency||[], casterProgression:ec.cls?.casterProgression||null },
+          allClassFeatures: ec.allFeatures||[], allSubFeatures: ec.allSubFeatures||[],
+        })),
         speciesName: char.speciesName, speciesSource: char.speciesSource,
         bgName: char.bgName, bgSource: char.bgSource,
         bgAbility: char.bgAbility,
@@ -4735,24 +5130,41 @@
       localStorage.setItem('5e_inventory', JSON.stringify(inventory || []));
       localStorage.setItem('5e_currency', JSON.stringify(char.currency || { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 }));
       localStorage.setItem('5e_xp', String(char.xp || 0));
+      localStorage.setItem('5e_builder_state', JSON.stringify({
+        name: char.name,
+        level: char.level,
+        classLevel: char.classLevel || char.level,
+        className: char.className,
+        classSource: char.classSource,
+        subclassShortName: char.subclassShortName,
+        extraClasses: (char.extraClasses||[]).filter(ec=>ec.name).map(ec=>({name:ec.name,source:ec.source,level:ec.level||1,subclassShortName:ec.subclassShortName||null})),
+        speciesName: char.speciesName,
+        speciesSource: char.speciesSource,
+        bgName: char.bgName,
+        bgSource: char.bgSource,
+        bgAbility: char.bgAbility,
+        bgPatternIdx: char.bgPatternIdx||0,
+        scoreMethod: char.scoreMethod,
+        hpMode: char.hpMode,
+        hpManualRolls: char.hpManualRolls||{},
+        pbScores: {...char.pbScores},
+        arrAssign: {...char.arrAssign},
+        dicePool: [...(char.dicePool||[])],
+        diceAssign: {...char.diceAssign},
+        choices: {...(char.choices||{})},
+        equipChoices: {...(char.equipChoices||{})},
+        selectedCantrips: [...char.selectedCantrips],
+        selectedSpells: JSON.parse(JSON.stringify(char.selectedSpells||{})),
+        inventory: [...(char.inventory||[])],
+        currency: {...(char.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})},
+        xp: char.xp||0,
+      }));
       window.open('character-sheet.html', '_blank');
     }
 
     /* ════════════════════════════════════ SCELTA PROFICIENZE ════════════════════════════════════ */
 
-    const _SKILL_EN_IT = {
-      'acrobatics': 'Acrobatica', 'animal handling': 'Animalesca', 'arcana': 'Arcana',
-      'athletics': 'Atletica', 'deception': 'Inganno', 'history': 'Storia',
-      'insight': 'Intuizione', 'intimidation': 'Intimidazione', 'investigation': 'Indagare',
-      'medicine': 'Medicina', 'nature': 'Natura', 'perception': 'Percezione',
-      'performance': 'Performance', 'persuasion': 'Persuasione', 'religion': 'Religione',
-      'sleight of hand': 'Destrezza Manuale', 'stealth': 'Furtività', 'survival': 'Sopravvivenza',
-    };
-    function _translateSkillIT(v) {
-      if (!v || typeof v !== 'string') return v;
-      const it = _SKILL_EN_IT[v.toLowerCase().trim()];
-      return it || v;
-    }
+    function _translateSkillIT(v) { return v; }
 
     function getSelectedSkillProficiencies() {
       const skills = new Set();
@@ -4781,32 +5193,11 @@
 
       const normalize = (l) => {
         if (!l || typeof l !== 'string') return '';
-        let base = l.split('|')[0].trim().toLowerCase();
-
-        // Traduzioni automatiche dai file JSON inglesi
-        if (base === 'common') return 'Comune';
-        if (base === 'elvish') return 'Elfico';
-        if (base === 'dwarvish') return 'Nanico';
-        if (base === 'druidic') return 'Druidico';
-        if (base === "thieves' cant") return 'Gergo dei Ladri';
-        if (base === 'giant') return 'Gigante';
-        if (base === 'gnomish') return 'Gnomesco';
-        if (base === 'halfling') return 'Halfling';
-        if (base === 'orc') return 'Orchesco';
-        if (base === 'draconic') return 'Draconico';
-        if (base === 'infernal') return 'Infernale';
-        if (base === 'celestial') return 'Celestiale';
-        if (base === 'undercommon') return 'Sottocomune';
-        if (base === 'abyssal') return 'Abissale';
-        if (base === 'sylvan') return 'Silvano';
-        if (base === 'deep speech') return 'Gergo Profondo';
-        if (base === 'primordial') return 'Primordiale';
-
+        const base = l.split('|')[0].trim();
         return base.charAt(0).toUpperCase() + base.slice(1);
       };
 
-      // 0. AGGIUNGI SEMPRE IL COMUNE (Regola Base di D&D)
-      langs.add("Comune");
+      langs.add("Common");
 
       // 1. Cerca lingue FISSE nella Specie
       if (char.speciesObj && char.speciesObj.languageProficiencies) {
@@ -4817,16 +5208,34 @@
         });
       }
 
-      // 2. Cerca lingue FISSE nella Classe (es. Druidico, Gergo dei Ladri)
-      if (char.cls && char.cls.startingProficiencies && char.cls.startingProficiencies.languages) {
-        char.cls.startingProficiencies.languages.forEach(l => {
+      // 2. Lingue FISSE della Classe — controlla tutti i possibili campi del JSON 5etools
+      const _addClsLangs = (cls) => {
+        if (!cls) return;
+        // a) startingProficiencies.languages
+        (cls.startingProficiencies?.languages||[]).forEach(l => {
           if (typeof l === 'string') langs.add(normalize(l));
-          else if (typeof l === 'object') {
-            Object.keys(l).forEach(k => {
-              if (!['choose', 'anyStandard'].includes(k)) langs.add(normalize(k));
-            });
-          }
+          else if (typeof l === 'object')
+            Object.keys(l).forEach(k => { if (!['choose','anyStandard','anyExotic'].includes(k)) langs.add(normalize(k)); });
         });
+        // b) languageProficiencies (formato alternativo XPHB)
+        (cls.languageProficiencies||[]).forEach(lp => {
+          Object.keys(lp).forEach(k => { if (!['choose','anyStandard','anyExotic'].includes(k)) langs.add(normalize(k)); });
+        });
+        // c) feature di classe Lv.1 con languageProficiencies
+        (cls.classFeatures||[]).filter(f=>f.level===1).forEach(f => {
+          (f.languageProficiencies||[]).forEach(lp => {
+            Object.keys(lp).forEach(k => { if (!['choose','anyStandard','anyExotic'].includes(k)) langs.add(normalize(k)); });
+          });
+        });
+      };
+      _addClsLangs(char.cls);
+      // d) fallback hardcoded XPHB (druidico e gergo ladri sono sempre garantiti)
+      const _CLS_LANG = { Druid:"Druidic", Rogue:"Thieves' Cant" };
+      if (char.className && _CLS_LANG[char.className]) langs.add(_CLS_LANG[char.className]);
+      // anche per extra classi
+      for (const _ec of (char.extraClasses||[])) {
+        _addClsLangs(_ec.cls);
+        if (_ec.name && _CLS_LANG[_ec.name]) langs.add(_CLS_LANG[_ec.name]);
       }
 
       // 3. Cerca tutte le lingue SCELTE dall'utente (i bottoni verdi che clicchi)
@@ -4862,17 +5271,16 @@
         allOptFeats = (d.optionalfeature || []).filter(f => ALLOWED.includes(f.source));
         el.textContent = allOptFeats.length + ' feature';
         if (char.className) renderClassChoicesPanel();
-      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Errore: ' + e.message; }
+      } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Error: ' + e.message; }
     }
 
-    // renderClassChoicesPanel = alias per compatibilità con eventuali chiamate residue
     function renderClassChoicesPanel() { renderChoicesPanel(); }
 
-    /* ════════════════════════════════════ INCANTESIMI */
+    /* ════════════════════════════════════ SPELLS */
 
     async function loadSpells() {
       const el = document.getElementById('spell-loading');
-      el.textContent = 'Caricamento…';
+      el.textContent = 'Loading…';
 
       // 1. Carica gendata-spell-source-lookup.json e costruisce l'indice classe→spell
       try {
@@ -4934,10 +5342,97 @@
       return false;
     }
 
+    // ═══════════════════════════════════════ RESTORE DAL BUILDER STATE ═══════════════════════════════════════
+    async function restoreBuilderState(state) {
+      char.name = state.name || '';
+      char.level = state.level || 1;
+      char.classLevel = state.classLevel || state.level || 1;
+      char.scoreMethod = state.scoreMethod || 'pointbuy';
+      char.hpMode = state.hpMode || 'average';
+      char.hpManualRolls = state.hpManualRolls || {};
+      char.pbScores = state.pbScores || { str:8,dex:8,con:8,int:8,wis:8,cha:8 };
+      char.arrAssign = state.arrAssign || { str:null,dex:null,con:null,int:null,wis:null,cha:null };
+      char.dicePool = state.dicePool || [];
+      char.diceAssign = state.diceAssign || { str:null,dex:null,con:null,int:null,wis:null,cha:null };
+      char.bgAbility = state.bgAbility || [];
+      char.bgPatternIdx = state.bgPatternIdx || 0;
+      char.activeClassTab = 0;
+      char.choices = state.choices || {};
+      char.equipChoices = state.equipChoices || {};
+      char.selectedCantrips = state.selectedCantrips || [];
+      char.selectedSpells = state.selectedSpells || {};
+      char.inventory = state.inventory || [];
+      char.currency = state.currency || { cp:0,sp:0,ep:0,gp:10,pp:0 };
+      char.xp = state.xp || 0;
+
+      if (state.className && state.classSource) {
+        for (const data of Object.values(classCache)) {
+          const f = (data.class||[]).find(c => c.name===state.className && c.source===state.classSource);
+          if (f) {
+            char.className = state.className;
+            char.classSource = state.classSource;
+            char.cls = f;
+            char.subclassShortName = state.subclassShortName || null;
+            char.allFeatures = (data.classFeature||[]).filter(feat => feat.className===state.className && (feat.classSource===state.classSource||!feat.classSource) && !feat.isReprinted);
+            char.subclasses = (data.subclass||[]).filter(s => s.className===state.className && (s.classSource===state.classSource||!s.classSource) && ALLOWED.includes(s.source));
+            char.allSubFeatures = (data.subclassFeature||[]).filter(feat => feat.className===state.className && (feat.classSource===state.classSource||!feat.classSource) && ALLOWED.includes(feat.source||state.classSource));
+            break;
+          }
+        }
+      }
+
+      char.extraClasses = [];
+      for (const ec of (state.extraClasses||[])) {
+        const entry = { name:null,source:null,cls:null,level:ec.level||1,subclassShortName:ec.subclassShortName||null,subclasses:[],allFeatures:[],allSubFeatures:[] };
+        for (const data of Object.values(classCache)) {
+          const f = (data.class||[]).find(c => c.name===ec.name && c.source===ec.source);
+          if (f) {
+            entry.name=ec.name; entry.source=ec.source; entry.cls=f;
+            entry.allFeatures=(data.classFeature||[]).filter(feat=>feat.className===ec.name&&(feat.classSource===ec.source||!feat.classSource)&&!feat.isReprinted);
+            entry.subclasses=(data.subclass||[]).filter(s=>s.className===ec.name&&(s.classSource===ec.source||!s.classSource)&&ALLOWED.includes(s.source));
+            entry.allSubFeatures=(data.subclassFeature||[]).filter(feat=>feat.className===ec.name&&ALLOWED.includes(feat.source||ec.source));
+            break;
+          }
+        }
+        char.extraClasses.push(entry);
+      }
+
+      if (state.speciesName && state.speciesSource) {
+        char.speciesName = state.speciesName;
+        char.speciesSource = state.speciesSource;
+        char.speciesObj = allSpecies.find(s=>s.name===state.speciesName&&s.source===state.speciesSource)||null;
+      }
+
+      if (state.bgName && state.bgSource) {
+        char.bgName = state.bgName;
+        char.bgSource = state.bgSource;
+        char.bgObj = allBgs.find(b=>b.name===state.bgName&&b.source===state.bgSource)||null;
+      }
+
+      const nameEl = document.getElementById('char-name');
+      if (nameEl) nameEl.value = char.name;
+
+      updateTotalLevel();
+      renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderMCTabBar(); renderSlotsPanel();
+      ['panel-level','panel-xp','panel-species','panel-species-choices','panel-bg','panel-bg-ability','panel-scores','panel-class-choices','panel-feats','panel-spells','panel-equip'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='block';});
+      const btnNext = document.getElementById('btn-next');
+      if (btnNext) btnNext.disabled = false;
+      renderScoreUI(); renderSpeciesList(); renderSpeciesCard(); renderSpeciesChoicesPanel();
+      renderBgList(); renderBgCard(); renderBgAbilityPanel();
+      renderChoicesPanel(); renderEquipPanel(); renderSpellPanel(); renderPreview(); updateSteps();
+      renderXPPanel(); renderInventoryList();
+
+      localStorage.removeItem('5e_builder_state');
+    }
+
     // ═══════════════════════════════════════ INIZIALIZZAZIONE ═══════════════════════════════════════
     (async () => {
       try {
         await Promise.all([loadClassIndex(), loadSpecies(), loadBgs(), loadFeats(), loadOptionalFeatures(), loadSpells()]);
+        const savedBuilderState = localStorage.getItem('5e_builder_state');
+        if (savedBuilderState) {
+          try { await restoreBuilderState(JSON.parse(savedBuilderState)); } catch(e) { console.error('Errore restore builder state:', e); }
+        }
       } catch (e) { console.error('Errore caricamento dati:', e); }
     })();
 
@@ -4985,7 +5480,7 @@
       const caster = char.cls?.casterProgression || CASTER_FB[cls] || null;
       if (!caster) { panel.style.display = 'none'; return; }
       panel.style.display = 'block';
-      if (!spellDb.length) { body.innerHTML = '<div class="phmsg">Caricamento incantesimi…</div>'; return; }
+      if (!spellDb.length) { body.innerHTML = '<div class="phmsg">Loading spells…</div>'; return; }
 
       const counts = calcSpellCounts();
       const classSpells = getClassSpells(cls);
@@ -5015,12 +5510,12 @@
       // Stampa l'intestazione
       let h = `<div style="font-size:13px;color:var(--text2);margin-bottom:.6rem">`;
       if (counts.cantrips > 0) h += `Cantrip: <b style="color:var(--gold2)">${char.selectedCantrips.length}/${counts.cantrips}</b> · `;
-      h += `Incantesimi: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
-      if (caster === 'pact') h += ` <span style="font-size:11px;color:var(--text3)">(Warlock: spell conosciute)</span>`;
-      else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:11px;color:var(--text3)">(preparate)</span>`;
+      h += `Spells: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
+      if (caster === 'pact') h += ` <span style="font-size:11px;color:var(--text3)">(Warlock: spells known)</span>`;
+      else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:11px;color:var(--text3)">(prepared)</span>`;
 
       const autoCount = getAutoGrantedSpells().length;
-      if (autoCount > 0) h += ` <span style="font-size:11px;color:var(--teal)">+ ${autoCount} da sottoclasse ✦</span>`;
+      if (autoCount > 0) h += ` <span style="font-size:11px;color:var(--teal)">+ ${autoCount} from subclass ✦</span>`;
       h += `</div>`;
 
       // Stampa i Tab dei livelli magici (solo fino al maxLv consentito)
@@ -5060,7 +5555,7 @@
       // Ordina alfabeticamente
       mergedList.sort((a, b) => a.name.localeCompare(b.name));
 
-      if (!mergedList.length) { el.innerHTML = '<div class="phmsg">Nessuna spell disponibile.</div>'; return; }
+      if (!mergedList.length) { el.innerHTML = '<div class="phmsg">No spells available.</div>'; return; }
 
       const isCantrip = lv === 0;
       const selList = isCantrip ? char.selectedCantrips : (char.selectedSpells[lv] || []);
@@ -5069,7 +5564,7 @@
       const remaining = maxSel - (isCantrip ? char.selectedCantrips.length : selCount);
 
       let h = `<div class="spell-count-bar">
-        <span style="font-size:12px;color:var(--text3)">${mergedList.length} disponibili</span>
+        <span style="font-size:12px;color:var(--text3)">${mergedList.length} available</span>
         <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${isCantrip ? char.selectedCantrips.length : selCount}/${maxSel}</span>
       </div>`;
 
@@ -5088,7 +5583,7 @@
                    style="${isAuto ? 'cursor:default; border-color:var(--teal); background:var(--tealbg)' : ''}">
           <div class="spell-check${on ? ' on' : ''}" style="${isAuto ? 'background:var(--teal); border-color:var(--teal)' : ''}">${on ? '✓' : ''}</div>
           <div style="flex:1;min-width:0">
-            <div class="spell-name">${esc(s.name)} ${isAuto ? '<span style="font-size:9px; color:var(--teal); margin-left:5px">✦ SEMPRE PREPARATO</span>' : ''}</div>
+            <div class="spell-name">${esc(s.name)} ${isAuto ? '<span style="font-size:9px; color:var(--teal); margin-left:5px">✦ ALWAYS PREPARED</span>' : ''}</div>
             <div style="font-size:11px;color:var(--text3)">${esc(school)}</div>
           </div>
           ${s.ritual ? `<span style="font-size:10px;color:var(--teal);flex-shrink:0">R</span>` : ''}
@@ -5149,7 +5644,7 @@
         return f ? f.name : n.charAt(0).toUpperCase() + n.slice(1);
       }).sort();
 
-      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--blue);margin-bottom:6px">✦ Incantesimi Conosciuti</div>
+      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--blue);margin-bottom:6px">✦ Known Spells</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
           ${sorted.map(n => `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(n)}</span>`).join('')}
         </div>`;
@@ -5175,7 +5670,7 @@
       const lbl = document.getElementById('xp-next-label');
       if (bar) bar.style.width = pct + '%';
       if (lbl) {
-        if (lv >= 20) lbl.textContent = 'Livello Massimo';
+        if (lv >= 20) lbl.textContent = 'Max Level';
         else lbl.textContent = `${char.xp.toLocaleString()} / ${nextLvXP.toLocaleString()} XP → Lv.${lv + 1}`;
       }
       // Auto suggest level
@@ -5183,8 +5678,8 @@
         const suggest = document.getElementById('xp-level-suggest');
         if (suggest) {
           suggest.style.display = lv !== char.level ? 'block' : 'none';
-          suggest.innerHTML = `<span style="color:var(--teal)">✦ XP suggerisce Livello ${lv}</span>
-            <button class="chip" style="margin-left:6px" onclick="selectLevel(${lv});updateXP(${char.xp})">Aggiorna</button>`;
+          suggest.innerHTML = `<span style="color:var(--teal)">✦ XP suggests Level ${lv}</span>
+            <button class="chip" style="margin-left:6px" onclick="selectLevel(${lv});updateXP(${char.xp})">Update</button>`;
         }
       }
     }
@@ -5201,11 +5696,11 @@
 
     /* ════════════════════════════════════ ITEMS ════════════════════════════════════ */
     const ITEM_TYPE_LABELS = {
-      M: 'Arma da Mischia', R: 'Arma da Gittata', LA: 'Arm. Leggera', MA: 'Arm. Media',
-      HA: 'Arm. Pesante', S: 'Scudo', G: 'Equipagg.', AT: 'Attrezzi', GS: 'Set Gioco',
-      INS: 'Strumento', MNT: 'Cavalcatura', VEH: 'Veicolo', SCF: 'Focale Magico',
-      WD: 'Bacchetta', RG: 'Anello', RD: 'Bastone', ST: 'Vincastro', WI: 'Oggetto Meraviglioso',
-      P: 'Pozione', SC: 'Pergamena', '$': 'Moneta', OTH: 'Altro', GV: 'Variante Magica',
+      M: 'Melee Weapon', R: 'Ranged Weapon', LA: 'Light Armor', MA: 'Medium Armor',
+      HA: 'Heavy Armor', S: 'Shield', G: 'Gear', AT: 'Tools', GS: 'Gaming Set',
+      INS: 'Instrument', MNT: 'Mount', VEH: 'Vehicle', SCF: 'Arcane Focus',
+      WD: 'Wand', RG: 'Ring', RD: 'Rod', ST: 'Staff', WI: 'Wondrous Item',
+      P: 'Potion', SC: 'Scroll', '$': 'Coin', OTH: 'Other', GV: 'Magic Variant',
     };
     const ITEM_RARITY_COLOR = {
       none: 'var(--text3)', common: 'var(--text2)', uncommon: 'var(--green)',
@@ -5317,7 +5812,7 @@
               bonusAc: ['M', 'R'].includes(base.type) ? null : bonus,
               ac: ['LA', 'MA', 'HA', 'S'].includes(base.type) ? (base.ac || 0) + bonus : base.ac || null,
               property: base.property || [],
-              entries: base.entries || [`Bonus di +${bonus} a tiri per colpire e danni.`],
+              entries: base.entries || [`+${bonus} bonus to attack rolls and damage.`],
               _variant: true,
             });
           }
@@ -5445,7 +5940,7 @@
     function renderItemSearch() {
       const el = document.getElementById('inv-search-results');
       if (!el) return;
-      if (invLoadingState === 'loading') { el.innerHTML = '<div class="phmsg">Caricamento…</div>'; return; }
+      if (invLoadingState === 'loading') { el.innerHTML = '<div class="phmsg">Loading…</div>'; return; }
 
       const q = (document.getElementById('inv-search')?.value || '').toLowerCase().trim();
 
@@ -5456,7 +5951,7 @@
       list = list.slice(0, 60);
 
       if (!list.length) {
-        el.innerHTML = '<div class="phmsg">Nessun oggetto trovato.</div>';
+        el.innerHTML = '<div class="phmsg">No items found.</div>';
         return;
       }
 
@@ -5464,10 +5959,10 @@
         const typeLabel = ITEM_TYPE_LABELS[item.type] || item.type || '—';
         const rarity = item.rarity && item.rarity !== 'none' ? item.rarity : null;
         const rc = ITEM_RARITY_COLOR[rarity] || 'var(--text3)';
-        const valueGP = item.value ? (item.value / 100).toFixed(item.value % 100 === 0 ? 0 : 2) + ' MO' : '—';
+        const valueGP = item.value ? (item.value / 100).toFixed(item.value % 100 === 0 ? 0 : 2) + ' GP' : '—';
         const dmg = item.dmg1 ? ` · ${item.dmg1}${item.dmgType ? ' ' + item.dmgType : ''}` : '';
-        const bonus = item.bonusWeapon ? ` · ${item.bonusWeapon}` : (item.bonusAc ? ` · CA${item.bonusAc}` : '');
-        const ac = item.ac ? ` · CA ${item.ac}` : '';
+        const bonus = item.bonusWeapon ? ` · ${item.bonusWeapon}` : (item.bonusAc ? ` · AC${item.bonusAc}` : '');
+        const ac = item.ac ? ` · AC ${item.ac}` : '';
         const srcLabel = SOURCE_LABELS[item.source] || item.source || '';
         const safe = encodeURIComponent(JSON.stringify({
           name: item.name, source: item.source, type: item.type,

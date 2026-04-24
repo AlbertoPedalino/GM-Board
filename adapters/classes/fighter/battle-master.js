@@ -16,8 +16,8 @@ const _BM_ARTISAN_TOOLS = [
 ];
 
 const _BM_STUDENT_SKILLS = [
-  'Acrobatica', 'Animalesca', 'Atletica', 'Intuizione',
-  'Intimidazione', 'Percezione', 'Sopravvivenza',
+  'Acrobatics', 'Animal Handling', 'Athletics', 'Insight',
+  'Intimidation', 'Perception', 'Survival',
 ];
 
 // +3 a L3, +2 a L7, +2 a L10, +2 a L15 (totale max 9)
@@ -32,7 +32,7 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
       key: 'subclass_bm_student_tool',
-      label: "Student of War — Attrezzo Artigiano",
+      label: "Student of War — Artisan's Tool",
       type: 'generic_choice',
       from: _BM_ARTISAN_TOOLS,
       count: 1,
@@ -40,7 +40,7 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
     });
     specs.push({
       key: 'subclass_bm_student_skill',
-      label: "Student of War — Competenza Skill",
+      label: "Student of War — Skill Proficiency",
       type: 'skill_choice',
       from: _BM_STUDENT_SKILLS,
       count: 1,

@@ -12,7 +12,7 @@ registerClassAdapter("Cleric", function (cls, lv, specs) {
     if (Array.isArray(_divOrder) ? _divOrder.includes('Thaumaturge') : _divOrder === 'Thaumaturge') {
       specs.push({
         key: 'cleric_thaumaturge_cantrip',
-        label: 'Thaumaturge — Cantrip Aggiuntivo',
+        label: 'Thaumaturge — Extra Cantrip',
         type: 'spell_choice',
         spellFilter: { spellLevel: 0, classes: ['Cleric'] },
         count: 1,

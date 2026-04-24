@@ -11,13 +11,13 @@ registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
       key: 'subclass_knowledge_skills',
       label: 'Blessings of Knowledge — Skill (expertise)',
       type: 'skill_choice',
-      from: ['Arcana', 'Storia', 'Natura', 'Religione'],
+      from: ['Arcana', 'History', 'Nature', 'Religion'],
       count: 2,
       level: 3
     });
     specs.push({
       key: 'subclass_knowledge_lang_1',
-      label: 'Blessings of Knowledge — Lingua 1',
+      label: 'Blessings of Knowledge — Language 1',
       type: 'language_choice',
       from: _KNOWLEDGE_LANGUAGES,
       count: 1,
@@ -25,7 +25,7 @@ registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
     });
     specs.push({
       key: 'subclass_knowledge_lang_2',
-      label: 'Blessings of Knowledge — Lingua 2',
+      label: 'Blessings of Knowledge — Language 2',
       type: 'language_choice',
       from: _KNOWLEDGE_LANGUAGES,
       count: 1,

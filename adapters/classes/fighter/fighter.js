@@ -7,7 +7,7 @@ registerClassAdapter("Fighter", function (cls, lv, specs) {
       : [];
     specs.push({
       key: 'fighter_weapon_mastery',
-      label: 'Weapon Mastery (scegli 3)',
+      label: 'Weapon Mastery (choose 3)',
       type: 'generic_choice',
       from: weapons,
       count: 3,

@@ -37,7 +37,7 @@ registerClassAdapter("Warlock", function (cls, lv, specs) {
     [1, 2, 3].forEach(function (n) {
       specs.push({
         key: 'warlock_tome_cantrip_' + n,
-        label: 'Pact of the Tome — Cantrip ' + n + ' (qualsiasi lista)',
+        label: 'Pact of the Tome — Cantrip ' + n + ' (any list)',
         type: 'spell_choice',
         spellFilter: { spellLevel: 0, classes: null },
         count: 1,

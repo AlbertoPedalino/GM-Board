@@ -5,7 +5,7 @@ registerClassAdapter("Wizard", function (cls, lv, specs) {
       key: 'wizard_scholar',
       label: 'Scholar (Expertise)',
       type: 'expertise',
-      from: ['Arcana', 'Indagare', 'Medicina', 'Religione', 'History', 'Nature'],
+      from: ['Arcana', 'Investigation', 'Medicine', 'Religion', 'History', 'Nature'],
       count: 1,
       level: 2
     });

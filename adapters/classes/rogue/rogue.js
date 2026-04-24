@@ -13,7 +13,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
       : ["Thieves' Tools"];
     specs.push({
       key: 'rogue_expertise_1',
-      label: 'Expertise 1 (Ladro)',
+      label: 'Expertise 1 (Rogue)',
       type: 'expertise',
       from: expertiseFrom,
       count: 1,
@@ -21,7 +21,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     });
     specs.push({
       key: 'rogue_expertise_2',
-      label: 'Expertise 2 (Ladro)',
+      label: 'Expertise 2 (Rogue)',
       type: 'expertise',
       from: expertiseFrom,
       count: 1,
@@ -54,7 +54,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     // Thieves' Cant: linguaggio bonus oltre al Gergo dei Ladri
     specs.push({
       key: 'rogue_thieves_cant_lang',
-      label: "Lingua Bonus (Thieves' Cant)",
+      label: "Bonus Language (Thieves' Cant)",
       type: 'generic_choice',
       from: _ROGUE_LANGUAGES,
       count: 1,
@@ -65,7 +65,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     const expertiseFrom6 = [];
     specs.push({
       key: 'rogue_expertise_3',
-      label: 'Expertise Lv6 (Ladro)',
+      label: 'Expertise Lv6 (Rogue)',
       type: 'expertise',
       from: expertiseFrom6,
       count: 1,
@@ -73,7 +73,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     });
     specs.push({
       key: 'rogue_expertise_4',
-      label: 'Expertise Lv6 (Ladro)',
+      label: 'Expertise Lv6 (Rogue)',
       type: 'expertise',
       from: expertiseFrom6,
       count: 1,

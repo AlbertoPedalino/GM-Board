@@ -809,13 +809,14 @@
     <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-fill" style="width:0%"></div></div>
     <div style="display:flex;align-items:center;gap:5px;justify-content:center">
       <input class="xp-edit-input" id="xp-input" type="number" min="0" value="0"
-        oninput="updateXPDisplay(this.value)" title="XP totali"/>
+        oninput="updateXPDisplay(this.value)" title="Total XP"/>
       <div class="xp-label" id="xp-label" style="white-space:nowrap">XP</div>
     </div>
   </div>
-  <button class="rest-btn short" onclick="doRest('short')">☀ RIPOSO BREVE</button>
-  <button class="rest-btn long"  onclick="doRest('long')">🌙 RIPOSO LUNGO</button>
-  <a class="back-btn" href="charbuilder.html">← Builder</a>
+  <button class="rest-btn short" onclick="doRest('short')">☀ SHORT REST</button>
+  <button class="rest-btn long"  onclick="doRest('long')">🌙 LONG REST</button>
+  <a class="back-btn" href="charbuilder.html" onclick="goBackToBuilder(event)">← Builder</a>
+  <button class="rest-btn" style="border-color:var(--teal);color:var(--teal);background:var(--tbg)" onclick="downloadSheet()">⬇ DOWNLOAD</button>
 </div>
 
 <!-- ── ABILITY SCORES ── -->
@@ -832,26 +833,26 @@
 
     <!-- Saving Throws -->
     <div class="panel">
-      <div class="panel-hdr"><span class="panel-title">⚄ Tiri Salvezza</span></div>
+      <div class="panel-hdr"><span class="panel-title">⚄ Saving Throws</span></div>
       <div class="panel-body" id="saves-body"></div>
     </div>
 
     <!-- Senses -->
     <div class="panel">
-      <div class="panel-hdr"><span class="panel-title">👁 Sensi</span></div>
+      <div class="panel-hdr"><span class="panel-title">👁 Senses</span></div>
       <div class="panel-body" id="senses-body"></div>
     </div>
 
     <!-- Proficiencies -->
     <div class="panel">
-      <div class="panel-hdr"><span class="panel-title">📜 Competenze</span></div>
+      <div class="panel-hdr"><span class="panel-title">📜 Proficiencies</span></div>
       <div class="panel-body" id="profs-body"></div>
     </div>
 
     <!-- Hit Dice -->
     <div class="panel">
       <div class="panel-hdr">
-        <span class="panel-title">🎲 Dadi Vita</span>
+        <span class="panel-title">🎲 Hit Dice</span>
         <span id="hd-label" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div class="panel-body" id="hd-body"></div>
@@ -862,12 +863,12 @@
   <!-- MIDDLE COL -->
   <div class="main-col-middle">
     <div class="panel" style="margin-bottom:0">
-      <div class="panel-hdr"><span class="panel-title">Abilità</span></div>
+      <div class="panel-hdr"><span class="panel-title">Skills</span></div>
       <div class="skills-header">
         <span></span>
-        <span>Att.</span>
-        <span>Abilità</span>
-        <span>Bon.</span>
+        <span>Prof.</span>
+        <span>Skill</span>
+        <span>Mod.</span>
       </div>
       <div id="skills-body"></div>
     </div>
@@ -880,7 +881,7 @@
     <div class="right-top-row">
       <div class="circle-stat">
         <div class="circle-stat-val" id="init-val">+0</div>
-        <div class="circle-stat-lbl">Iniziativa</div>
+        <div class="circle-stat-lbl">Initiative</div>
       </div>
       <div class="ac-shield">
         <svg viewBox="0 0 72 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -889,17 +890,17 @@
         </svg>
         <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:1">
           <div class="circle-stat-val" id="ac-val">10</div>
-          <div style="font-family:'Cinzel',serif;font-size:7px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase">CA</div>
+          <div style="font-family:'Cinzel',serif;font-size:7px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase">AC</div>
         </div>
       </div>
       <div class="defenses-block" id="defenses-block">
-        <div class="block-title">Difese</div>
-        <div id="def-content" class="def-text phmsg">Nessuna resistenza rilevata.</div>
+        <div class="block-title">Defenses</div>
+        <div id="def-content" class="def-text phmsg">No resistances detected.</div>
       </div>
       <div class="conditions-block">
-        <div class="block-title">Condizioni</div>
+        <div class="block-title">Conditions</div>
         <div id="conditions-content" class="def-text">
-          <span class="condition-tag">— Nessuna</span>
+          <span class="condition-tag">— None</span>
         </div>
       </div>
     </div>
@@ -907,22 +908,22 @@
     <!-- Main Tab Panel -->
     <div class="panel" style="margin-bottom:0">
       <div class="tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('actions',this)">Azioni</button>
-        <button class="tab-btn" onclick="switchTab('spells',this)">Incantesimi</button>
-        <button class="tab-btn" onclick="switchTab('inventory',this)">Inventario</button>
-        <button class="tab-btn" onclick="switchTab('features',this)">Feature</button>
+        <button class="tab-btn active" onclick="switchTab('actions',this)">Actions</button>
+        <button class="tab-btn" onclick="switchTab('spells',this)">Spells</button>
+        <button class="tab-btn" onclick="switchTab('inventory',this)">Inventory</button>
+        <button class="tab-btn" onclick="switchTab('features',this)">Features</button>
         <button class="tab-btn" onclick="switchTab('background',this)">Background</button>
-        <button class="tab-btn" onclick="switchTab('notes',this)">Note</button>
+        <button class="tab-btn" onclick="switchTab('notes',this)">Notes</button>
       </div>
 
       <!-- ACTIONS -->
       <div id="tab-actions" class="tab-content active">
         <div class="action-filters">
-          <button class="af-btn on" onclick="filterActions('all',this)">Tutto</button>
-          <button class="af-btn" onclick="filterActions('attack',this)">Attacco</button>
-          <button class="af-btn" onclick="filterActions('action',this)">Azione</button>
-          <button class="af-btn" onclick="filterActions('bonus',this)">Azione Bonus</button>
-          <button class="af-btn" onclick="filterActions('reaction',this)">Reazione</button>
+          <button class="af-btn on" onclick="filterActions('all',this)">All</button>
+          <button class="af-btn" onclick="filterActions('attack',this)">Attack</button>
+          <button class="af-btn" onclick="filterActions('action',this)">Action</button>
+          <button class="af-btn" onclick="filterActions('bonus',this)">Bonus Action</button>
+          <button class="af-btn" onclick="filterActions('reaction',this)">Reaction</button>
         </div>
         <div id="attacks-table-wrap"></div>
         <div id="combat-actions-wrap" style="margin-top:.75rem"></div>
@@ -942,28 +943,28 @@
         <div class="inv-stat-row" id="inv-stats-row"></div>
 
         <!-- Search -->
-        <input class="inv-search-box" id="inv-search" placeholder="Cerca oggetti da aggiungere (es. Spada, Pozione, Torcia…)"
+        <input class="inv-search-box" id="inv-search" placeholder="Search items to add (e.g. Sword, Potion, Torch…)"
           oninput="renderItemSearch()" autocomplete="off"/>
         <div class="inv-filter-row">
-          <button class="inv-chip on" onclick="setInvFilter('all',this)">Tutto</button>
-          <button class="inv-chip" onclick="setInvFilter('weapon',this)">⚔ Armi</button>
-          <button class="inv-chip" onclick="setInvFilter('armor',this)">🛡 Armature</button>
-          <button class="inv-chip" onclick="setInvFilter('gear',this)">🎒 Equipagg.</button>
-          <button class="inv-chip" onclick="setInvFilter('magic',this)">✦ Magici</button>
+          <button class="inv-chip on" onclick="setInvFilter('all',this)">All</button>
+          <button class="inv-chip" onclick="setInvFilter('weapon',this)">⚔ Weapons</button>
+          <button class="inv-chip" onclick="setInvFilter('armor',this)">🛡 Armor</button>
+          <button class="inv-chip" onclick="setInvFilter('gear',this)">🎒 Gear</button>
+          <button class="inv-chip" onclick="setInvFilter('magic',this)">✦ Magic</button>
         </div>
         <div class="inv-search-list" id="inv-search-results"></div>
 
         <!-- Add custom -->
         <div style="display:flex;gap:6px;margin-bottom:.75rem">
-          <input class="inv-search-box" id="inv-custom-name" placeholder="Aggiungi oggetto personalizzato…"
+          <input class="inv-search-box" id="inv-custom-name" placeholder="Add custom item…"
             style="margin-bottom:0;flex:1"/>
           <button onclick="addCustomItemSheet()" style="padding:6px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);font-family:'Cinzel',serif;font-size:10px;cursor:pointer;white-space:nowrap;transition:all .12s"
             onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
-            onmouseout="this.style.borderColor='var(--bdr2)';this.style.color='var(--text2)'">+ Aggiungi</button>
+            onmouseout="this.style.borderColor='var(--bdr2)';this.style.color='var(--text2)'">+ Add</button>
         </div>
 
         <!-- Inventory list -->
-        <div class="inv-section-hdr">📦 Inventario (<span id="inv-count">0</span> oggetti)</div>
+        <div class="inv-section-hdr">📦 Inventory (<span id="inv-count">0</span> items)</div>
         <div id="inv-list"></div>
       </div>
 
@@ -979,7 +980,7 @@
 
       <!-- NOTES -->
       <div id="tab-notes" class="tab-content">
-        <textarea class="notes-area" id="notes-area" placeholder="Scrivi qui le tue note…" oninput="saveNotes()"></textarea>
+        <textarea class="notes-area" id="notes-area" placeholder="Write your notes here…" oninput="saveNotes()"></textarea>
       </div>
 
     </div>
@@ -990,33 +991,33 @@
 /* ═══════ CONSTANTS ═══════ */
 const PB_TABLE = [null,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6];
 const STATS = ['str','dex','con','int','wis','cha'];
-const SLBL  = {str:'FOR',dex:'DES',con:'COS',int:'INT',wis:'SAG',cha:'CAR'};
-const FULL_LBL = {str:'Forza',dex:'Destrezza',con:'Costituzione',int:'Intelligenza',wis:'Saggezza',cha:'Carisma'};
-const SCHOOL_LABELS = {A:'Abiurazione',C:'Ammaliamento',D:'Divinazione',E:'Evocazione',I:'Illusione',N:'Necromanzia',T:'Trasmutazione',V:'Veggenza'};
-const SPELL_LEVEL_LABELS = ['Cantrip','1° Livello','2° Livello','3° Livello','4° Livello','5° Livello','6° Livello','7° Livello','8° Livello','9° Livello'];
+const SLBL  = {str:'STR',dex:'DEX',con:'CON',int:'INT',wis:'WIS',cha:'CHA'};
+const FULL_LBL = {str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
+const SCHOOL_LABELS = {A:'Abjuration',C:'Enchantment',D:'Divination',E:'Evocation',I:'Illusion',N:'Necromancy',T:'Transmutation',V:'Divination'};
+const SPELL_LEVEL_LABELS = ['Cantrip','1st Level','2nd Level','3rd Level','4th Level','5th Level','6th Level','7th Level','8th Level','9th Level'];
 const XP_TABLE = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
 
 const SKILLS_LIST = [
-  {n:'Acrobatica',   a:'dex'}, {n:'Animalesca',   a:'wis'}, {n:'Arcana',        a:'int'},
-  {n:'Atletica',     a:'str'}, {n:'Consapevolezza',a:'wis'}, {n:'Destrezza Manuale',a:'dex'},
-  {n:'Furtività',   a:'dex'}, {n:'Indagare',     a:'int'}, {n:'Inganno',       a:'cha'},
-  {n:'Intuizione',   a:'wis'}, {n:'Intimidazione', a:'cha'}, {n:'Medicina',      a:'wis'},
-  {n:'Natura',       a:'int'}, {n:'Percezione',    a:'wis'}, {n:'Performance',   a:'cha'},
-  {n:'Persuasione',  a:'cha'}, {n:'Religione',     a:'int'}, {n:'Sopravvivenza', a:'wis'},
+  {n:'Acrobatics',     a:'dex'}, {n:'Animal Handling',a:'wis'}, {n:'Arcana',        a:'int'},
+  {n:'Athletics',      a:'str'}, {n:'Insight',        a:'wis'}, {n:'Sleight of Hand',a:'dex'},
+  {n:'Stealth',        a:'dex'}, {n:'Investigation',  a:'int'}, {n:'Deception',     a:'cha'},
+  {n:'Perception',     a:'wis'}, {n:'Intimidation',   a:'cha'}, {n:'Medicine',      a:'wis'},
+  {n:'Nature',         a:'int'}, {n:'History',        a:'int'}, {n:'Performance',   a:'cha'},
+  {n:'Persuasion',     a:'cha'}, {n:'Religion',       a:'int'}, {n:'Survival',      a:'wis'},
 ];
 
 const COMBAT_ACTIONS = [
-  {name:'Attacco',    desc:'Effettua un attacco con un\'arma.'},
-  {name:'Schivata',   desc:'Fino al tuo prossimo turno, ogni tiro per colpire contro di te ha svantaggio se puoi vedere l\'attaccante.'},
-  {name:'Disingaggio',desc:'Il tuo movimento non provoca attacchi d\'opportunità per il resto del turno.'},
-  {name:'Nascondersi',desc:'Effettua un tiro Destrezza (Furtività) per nasconderti.'},
-  {name:'Aiuto',      desc:'Concedi vantaggio a un alleato su un tiro di attacco o abilità.'},
-  {name:'Corsa',      desc:'Il tuo movimento raddoppia per questo turno.'},
-  {name:'Prepararsi', desc:'Prepara un\'azione da eseguire in risposta a un grilletto specifico.'},
-  {name:'Studiare',   desc:'Effettua un tiro Intelligence per ottenere informazioni su un bersaglio.'},
-  {name:'Influenzare',desc:'Effettua un tiro Carisma (Persuasione/Inganno/Intimidazione) su una creatura.'},
-  {name:'Grapple',    desc:'Prova a bloccare una creatura con un tiro Atletica.'},
-  {name:'Spingere',   desc:'Prova a spostare o atterrare una creatura.'},
+  {name:'Attack',    desc:'Make an attack with a weapon.'},
+  {name:'Dodge',     desc:'Until your next turn, every attack roll against you has disadvantage if you can see the attacker.'},
+  {name:'Disengage', desc:'Your movement does not provoke opportunity attacks for the rest of the turn.'},
+  {name:'Hide',      desc:'Make a Dexterity (Stealth) check to hide.'},
+  {name:'Help',      desc:'Grant advantage to an ally on an attack roll or ability check.'},
+  {name:'Dash',      desc:'Your movement doubles for this turn.'},
+  {name:'Ready',     desc:'Prepare an action to execute in response to a specific trigger.'},
+  {name:'Study',     desc:'Make an Intelligence check to gain information about a target.'},
+  {name:'Influence', desc:'Make a Charisma (Persuasion/Deception/Intimidation) check against a creature.'},
+  {name:'Grapple',   desc:'Try to restrain a creature with an Athletics check.'},
+  {name:'Shove',     desc:'Try to push or knock prone a creature.'},
 ];
 
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1107,19 +1108,9 @@ function getSaveBonus(stat){
 }
 function fbonus(n){ return (n>=0?'+':'')+n; }
 
-const _SKILL_EN_IT_SHEET = {
-  'acrobatics':'Acrobatica','animalhandling':'Animalesca','arcana':'Arcana',
-  'athletics':'Atletica','deception':'Inganno','history':'Storia',
-  'insight':'Intuizione','intimidation':'Intimidazione','investigation':'Indagare',
-  'medicine':'Medicina','nature':'Natura','perception':'Percezione',
-  'performance':'Performance','persuasion':'Persuasione','religion':'Religione',
-  'sleightofhand':'Destrezza Manuale','stealth':'Furtività','survival':'Sopravvivenza',
-};
 function _normSkill(s){
   if(!s||typeof s!=='string') return '';
-  const raw = s.toLowerCase().replace(/[^a-z]/g,'');
-  const it = _SKILL_EN_IT_SHEET[raw];
-  return it ? it.toLowerCase().replace(/[^a-z]/g,'') : raw;
+  return s.toLowerCase().replace(/[^a-z]/g,'');
 }
 
 function getSkillProficiency(skillName){
@@ -1233,18 +1224,27 @@ function renderAll(){
 }
 
 function showNoChar(){
-  document.getElementById('top-name').textContent = 'Nessun personaggio trovato';
-  document.getElementById('top-meta').textContent = 'Torna al builder per creare un personaggio';
+  document.getElementById('top-name').textContent = 'No character found';
+  document.getElementById('top-meta').textContent = 'Go back to the builder to create a character';
 }
 
 function renderTopBar(){
-  const cls = C.className||'—';
-  const sc  = C.subclassShortName ? ` (${C.subclassShortName})` : '';
-  const race= C.speciesName||'';
-  const bg  = C.bgName||'';
-  document.getElementById('top-name').textContent = C.name || 'Personaggio Senza Nome';
+  const extra = C.extraClasses||[];
+  const pLv   = C.classLevel || C.level - extra.reduce((s,ec)=>s+(ec.level||1),0);
+  const sc     = C.subclassShortName ? ` (${C.subclassShortName})` : '';
+  const race   = C.speciesName||'';
+  const bg     = C.bgName||'';
+  let clsDisplay;
+  if(extra.length){
+    const parts = [`${C.className||'—'}${sc} ${pLv}`];
+    extra.forEach(ec=>{ const s=ec.subclassShortName?` (${ec.subclassShortName})`:''; parts.push(`${ec.name}${s} ${ec.level||1}`); });
+    clsDisplay = parts.join(' / ') + ` [Lv.${C.level}]`;
+  } else {
+    clsDisplay = (C.className||'—') + sc + ' Lv.' + C.level;
+  }
+  document.getElementById('top-name').textContent = C.name || 'Unnamed Character';
   document.getElementById('top-meta').textContent =
-    [race, cls+sc+' Lv.'+C.level, bg].filter(Boolean).join(' · ');
+    [race, clsDisplay, bg].filter(Boolean).join(' · ');
 
   // XP
   const xpStored = parseInt(localStorage.getItem('5e_xp') || C.xp || 0);
@@ -1264,7 +1264,7 @@ function renderScores(){
     const mod = getMod(val);
     const modStr = (mod>=0?'+':'')+mod;
     const label = FULL_LBL[s]||SLBL[s];
-    return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'Prova di ${label}')" title="Tira Prova di ${label}">
+    return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'${label} Check')" title="Roll ${label} Check">
       <div class="score-lbl">${SLBL[s]}</div>
       <div class="score-mod">${modStr} 🎲</div>
       <div class="score-base">${val}</div>
@@ -1285,23 +1285,23 @@ function renderStatsRow(){
   el.innerHTML = `
     <div class="stat-box green">
       <div class="stat-box-val">${fbonus(pb)}</div>
-      <div class="stat-box-lbl">Bonus Comp.</div>
+      <div class="stat-box-lbl">Prof. Bonus</div>
     </div>
     <div class="stat-box">
       <div class="stat-box-val">${spdVal} ft.</div>
-      <div class="stat-box-lbl">Velocità</div>
+      <div class="stat-box-lbl">Speed</div>
     </div>
-    <div class="stat-box" style="cursor:pointer" onclick="rollD20(${initMod},'Iniziativa')" title="Tira Iniziativa">
+    <div class="stat-box" style="cursor:pointer" onclick="rollD20(${initMod},'Initiative')" title="Roll Initiative">
       <div class="stat-box-val">${fbonus(initMod)}</div>
-      <div class="stat-box-lbl">Iniziativa 🎲</div>
+      <div class="stat-box-lbl">Initiative 🎲</div>
     </div>
     <div class="stat-box">
       <div class="stat-box-val">${calcAC()}</div>
-      <div class="stat-box-lbl">CA</div>
+      <div class="stat-box-lbl">AC</div>
     </div>
     <div class="stat-box">
       <div class="stat-box-val">d${faces}</div>
-      <div class="stat-box-lbl">Dado Vita</div>
+      <div class="stat-box-lbl">Hit Die</div>
     </div>
     ${buildHPBlock()}
   `;
@@ -1309,21 +1309,21 @@ function renderStatsRow(){
 
 function buildHPBlock(){
   return `<div class="hp-block">
-    <div class="hp-title">Punti Ferita</div>
+    <div class="hp-title">Hit Points</div>
     <div class="hp-controls">
-      <button class="hp-btn heal" onclick="adjustHP(+1, true)">⬆ Cura</button>
+      <button class="hp-btn heal" onclick="adjustHP(+1, true)">⬆ Heal</button>
       <div class="hp-vals">
         <div class="hp-cur" id="hp-cur-display">${currentHP}</div>
         <div class="hp-sep">/</div>
         <div class="hp-max">${maxHP}</div>
       </div>
-      <button class="hp-btn dmg" onclick="adjustHP(-1, true)">⬇ Danno</button>
+      <button class="hp-btn dmg" onclick="adjustHP(-1, true)">⬇ Damage</button>
     </div>
   </div>`;
 }
 
 function adjustHP(dir, prompt){
-  const amtStr = window.prompt(dir>0 ? 'Quanti PF recuperi?' : 'Quanti danni ricevi?', '0');
+  const amtStr = window.prompt(dir>0 ? 'How many HP do you recover?' : 'How much damage do you take?', '0');
   if(amtStr===null) return;
   const amt = parseInt(amtStr)||0;
   currentHP = Math.max(0, Math.min(maxHP, currentHP + dir*amt));
@@ -1336,7 +1336,7 @@ function renderSaves(){
   el.innerHTML = STATS.map(st => {
     const bonus = getSaveBonus(st);
     const prof  = hasSaveProficiency(st);
-    return `<div class="save-row" onclick="rollSave('${st}')" title="Tira tiro salvezza ${FULL_LBL[st]}">
+    return `<div class="save-row" onclick="rollSave('${st}')" title="Roll ${FULL_LBL[st]} saving throw">
       <div class="save-dot${prof?' on':''}"></div>
       <span class="save-stat">${SLBL[st]}</span>
       <span style="font-size:12px;color:var(--text2)">${FULL_LBL[st]}</span>
@@ -1346,32 +1346,32 @@ function renderSaves(){
 }
 function rollSave(stat){
   const bonus = getSaveBonus(stat);
-  rollD20(bonus, 'Sal. ' + FULL_LBL[stat]);
+  rollD20(bonus, FULL_LBL[stat] + ' Save');
 }
 
 function renderSenses(){
   const el = document.getElementById('senses-body');
-  const passPerc = 10+getSkillBonus({n:'Percezione',a:'wis'});
-  const passInv  = 10+getSkillBonus({n:'Indagare',a:'int'});
-  const passIns  = 10+getSkillBonus({n:'Intuizione',a:'wis'});
+  const passPerc = 10+getSkillBonus({n:'Perception',a:'wis'});
+  const passInv  = 10+getSkillBonus({n:'Investigation',a:'int'});
+  const passIns  = 10+getSkillBonus({n:'Insight',a:'wis'});
   const dv = C.speciesSnapshot?.darkvision||0;
 
   let h = `
     <div class="sense-row">
       <div class="sense-val">${passPerc}</div>
-      <div class="sense-lbl">Percezione Passiva</div>
+      <div class="sense-lbl">Passive Perception</div>
     </div>
     <div class="sense-row">
       <div class="sense-val">${passInv}</div>
-      <div class="sense-lbl">Investig. Passiva</div>
+      <div class="sense-lbl">Passive Investigation</div>
     </div>
     <div class="sense-row">
       <div class="sense-val">${passIns}</div>
-      <div class="sense-lbl">Intuizione Passiva</div>
+      <div class="sense-lbl">Passive Insight</div>
     </div>`;
   if(dv>0) h+=`<div class="sense-row">
     <div class="sense-val" style="color:var(--teal)">${dv} ft</div>
-    <div class="sense-lbl">Scurovisione</div>
+    <div class="sense-lbl">Darkvision</div>
   </div>`;
   el.innerHTML = h;
 }
@@ -1399,23 +1399,23 @@ function renderProficiencies(){
   }
   const tools = toolSet.size ? Array.from(toolSet).join(', ') : '—';
 
-  const langs = [...new Set(C.selectedLanguages||[])].join(', ') || 'Comune';
+  const langs = [...new Set(C.selectedLanguages||[])].join(', ') || 'Common';
 
   el.innerHTML = `
     <div class="prof-section">
-      <div class="prof-section-title">⛨ Armature</div>
+      <div class="prof-section-title">⛨ Armor</div>
       <div class="prof-text">${esc(armor)}</div>
     </div>
     <div class="prof-section">
-      <div class="prof-section-title">⚔ Armi</div>
+      <div class="prof-section-title">⚔ Weapons</div>
       <div class="prof-text">${esc(weapons)}</div>
     </div>
     <div class="prof-section">
-      <div class="prof-section-title">🔧 Strumenti</div>
+      <div class="prof-section-title">🔧 Tools</div>
       <div class="prof-text">${esc(tools)}</div>
     </div>
     <div class="prof-section" style="margin-bottom:0">
-      <div class="prof-section-title">🗣 Lingue</div>
+      <div class="prof-section-title">🗣 Languages</div>
       <div class="prof-text">${esc(langs)}</div>
     </div>`;
 }
@@ -1434,7 +1434,7 @@ function renderHitDice(){
   }
   h+='</div>';
   h+=`<div style="margin-top:.5rem;font-size:11px;color:var(--text3)">
-    <i>Clicca per usare/recuperare un dado vita</i>
+    <i>Click to use/recover a hit die</i>
   </div>`;
   document.getElementById('hd-body').innerHTML = h;
 }
@@ -1458,7 +1458,7 @@ function toggleHD(idx){
     localStorage.setItem('5e_hp_current', currentHP);
     const d = document.getElementById('hp-cur-display');
     if(d) d.textContent = currentHP;
-    alert(`Dado vita: tiro ${roll} + CON (${fbonus(conMod)}) = +${heal} PF`);
+    alert(`Hit Die: rolled ${roll} + CON (${fbonus(conMod)}) = +${heal} HP`);
   }
   localStorage.setItem('5e_hd_used', usedHD);
   renderHitDice();
@@ -1484,15 +1484,15 @@ function renderSkills(){
     const dotCls = ptype==='exp'?' exp':ptype==='prof'?' prof':(isJoat&&!ptype)?' joat':'';
     const adv = skillAdv[sk.n]||null;
     const advBadge = adv==='adv'
-      ? `<span class="adv-badge adv" title="Vantaggio">V</span>`
+      ? `<span class="adv-badge adv" title="Advantage">ADV</span>`
       : adv==='disadv'
-      ? `<span class="adv-badge disadv" title="Svantaggio">S</span>`
+      ? `<span class="adv-badge disadv" title="Disadvantage">DIS</span>`
       : '';
     const safeN = sk.n.replace(/'/g,"\\'");
     return `<div class="skill-row"
       onclick="rollSkill('${safeN}',${bonus},'${adv||''}')"
       oncontextmenu="event.preventDefault();cycleSkillAdv('${safeN}')"
-      title="Clic: tira | Clic destro: vantaggio/svantaggio">
+      title="Click: roll | Right-click: advantage/disadvantage">
       <div class="skill-dot${dotCls}"></div>
       <span class="skill-ability">${SLBL[sk.a]}</span>
       <span class="skill-name">${esc(sk.n)}</span>
@@ -1514,27 +1514,27 @@ function renderRightTop(){
   // Defenses (resistances/immunities from species/feats)
   const defEl = document.getElementById('def-content');
   const items = [];
-  const DMGTYPE_IT = {fire:'Fuoco',cold:'Freddo',lightning:'Fulmine',thunder:'Tuono',
-    acid:'Acido',poison:'Veleno',psychic:'Psichico',radiant:'Radiante',necrotic:'Necrotico',
-    force:'Forza',bludgeoning:'Contundente',piercing:'Perforante',slashing:'Tagliente'};
+  const DMGTYPE_EN = {fire:'Fire',cold:'Cold',lightning:'Lightning',thunder:'Thunder',
+    acid:'Acid',poison:'Poison',psychic:'Psychic',radiant:'Radiant',necrotic:'Necrotic',
+    force:'Force',bludgeoning:'Bludgeoning',piercing:'Piercing',slashing:'Slashing'};
   const resist = C.speciesSnapshot?.resist||[];
   const immune = C.speciesSnapshot?.immune||[];
   for(const r of resist){
-    const lbl = typeof r==='string'?DMGTYPE_IT[r.toLowerCase()]||r:r.special||'—';
-    items.push({l:`Resistenza: ${lbl}`,c:'b'});
+    const lbl = typeof r==='string'?DMGTYPE_EN[r.toLowerCase()]||r:r.special||'—';
+    items.push({l:`Resistance: ${lbl}`,c:'b'});
   }
   for(const r of immune){
-    const lbl = typeof r==='string'?DMGTYPE_IT[r.toLowerCase()]||r:r.special||'—';
-    items.push({l:`Immunità: ${lbl}`,c:'r'});
+    const lbl = typeof r==='string'?DMGTYPE_EN[r.toLowerCase()]||r:r.special||'—';
+    items.push({l:`Immunity: ${lbl}`,c:'r'});
   }
-  if(C.speciesSnapshot?.darkvision) items.push({l:`Scurovisione ${C.speciesSnapshot.darkvision} ft`,c:'t'});
+  if(C.speciesSnapshot?.darkvision) items.push({l:`Darkvision ${C.speciesSnapshot.darkvision} ft`,c:'t'});
   // Unarmored Defense badge
   const cls = C?.className||'';
   if(!( sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type))){
-    if(cls==='Barbarian') items.push({l:'Unarmored Defense (FOR+CON)',c:'g'});
-    if(cls==='Monk')      items.push({l:'Unarmored Defense (DES+SAG)',c:'g'});
+    if(cls==='Barbarian') items.push({l:'Unarmored Defense (STR+CON)',c:'g'});
+    if(cls==='Monk')      items.push({l:'Unarmored Defense (DEX+WIS)',c:'g'});
   }
-  if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">Nessuna</span>'; }
+  if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
 }
 
@@ -1542,23 +1542,23 @@ function renderRightTop(){
 let activeActionFilter = 'all';
 
 const CANTRIP_DB = {
-  'Fire Bolt':       {icon:'🔥',die:'1d10',dmgType:'fuoco',    range:'120 ft',toHit:true, notes:''},
-  'Ray of Frost':    {icon:'❄', die:'1d8', dmgType:'freddo',   range:'60 ft', toHit:true, notes:'Velocità -10 ft al bersaglio'},
-  'Eldritch Blast':  {icon:'⚡',die:'1d10',dmgType:'forza',    range:'120 ft',toHit:true, notes:''},
-  'Sacred Flame':    {icon:'✨',die:'1d8', dmgType:'radiante',  range:'60 ft', toHit:false,notes:'Sal. DES nega — non beneficia di copertura'},
-  'Toll the Dead':   {icon:'💀',die:'1d8', dmgType:'necrotico', range:'60 ft', toHit:false,notes:'1d12 se il bersaglio è già ferito'},
-  'Chill Touch':     {icon:'🕸',die:'1d10',dmgType:'necrotico', range:'Touch', toHit:true, notes:'Impedisce rigenerazione PF'},
-  'Poison Spray':    {icon:'🟢',die:'1d12',dmgType:'veleno',    range:'30 ft', toHit:false,notes:'Sal. COS nega'},
-  'Shocking Grasp':  {icon:'⚡',die:'1d8', dmgType:'fulmine',   range:'Touch', toHit:true, notes:'Vantaggio vs metallo; bersaglio no reazione'},
-  'Produce Flame':   {icon:'🕯',die:'1d8', dmgType:'fuoco',     range:'30 ft', toHit:true, notes:'Illumina 20 ft oppure lancia'},
-  'Thorn Whip':      {icon:'🌿',die:'1d6', dmgType:'perforante',range:'30 ft', toHit:true, notes:'Trascina bersaglio 10 ft verso di te'},
-  'Vicious Mockery': {icon:'🎭',die:'1d4', dmgType:'psichico',  range:'60 ft', toHit:false,notes:'Sal. SAG — svantaggio al prossimo attacco'},
-  'Acid Splash':     {icon:'💚',die:'1d6', dmgType:'acido',     range:'60 ft', toHit:false,notes:'Sal. DES — può colpire 2 bersagli adiacenti'},
-  'Thunderclap':     {icon:'🌩',die:'1d6', dmgType:'tuono',     range:'5 ft',  toHit:false,notes:'Sal. COS — udibile a 100 ft'},
-  'True Strike':     {icon:'🎯',die:'1d6', dmgType:'radiante',  range:'5 ft',  toHit:true, notes:'Usa azione — poi attacco con arma come bonus action'},
-  'Booming Blade':   {icon:'💥',die:'1d8', dmgType:'tuono',     range:'5 ft',  toHit:true, notes:'+1d8 extra se il bersaglio si muove'},
-  'Green-Flame Blade':{icon:'💚',die:'1d8',dmgType:'fuoco',     range:'5 ft',  toHit:true, notes:'Splash fuoco su creatura vicina'},
-  'Blade Ward':      {icon:'🛡',die:'—',   dmgType:'',          range:'Self',  toHit:false,notes:'Resistenza a taglienti/contundenti/perforanti fino al tuo prossimo turno'},
+  'Fire Bolt':       {icon:'🔥',die:'1d10',dmgType:'fire',       range:'120 ft',toHit:true, notes:''},
+  'Ray of Frost':    {icon:'❄', die:'1d8', dmgType:'cold',       range:'60 ft', toHit:true, notes:'Speed -10 ft to target'},
+  'Eldritch Blast':  {icon:'⚡',die:'1d10',dmgType:'force',      range:'120 ft',toHit:true, notes:''},
+  'Sacred Flame':    {icon:'✨',die:'1d8', dmgType:'radiant',    range:'60 ft', toHit:false,notes:'DEX save negates — no benefit from cover'},
+  'Toll the Dead':   {icon:'💀',die:'1d8', dmgType:'necrotic',   range:'60 ft', toHit:false,notes:'1d12 if target is already injured'},
+  'Chill Touch':     {icon:'🕸',die:'1d10',dmgType:'necrotic',   range:'Touch', toHit:true, notes:'Prevents HP regeneration'},
+  'Poison Spray':    {icon:'🟢',die:'1d12',dmgType:'poison',     range:'30 ft', toHit:false,notes:'CON save negates'},
+  'Shocking Grasp':  {icon:'⚡',die:'1d8', dmgType:'lightning',  range:'Touch', toHit:true, notes:'Advantage vs metal; target loses reaction'},
+  'Produce Flame':   {icon:'🕯',die:'1d8', dmgType:'fire',       range:'30 ft', toHit:true, notes:'Illuminates 20 ft or throw it'},
+  'Thorn Whip':      {icon:'🌿',die:'1d6', dmgType:'piercing',   range:'30 ft', toHit:true, notes:'Pulls target 10 ft toward you'},
+  'Vicious Mockery': {icon:'🎭',die:'1d4', dmgType:'psychic',    range:'60 ft', toHit:false,notes:'WIS save — disadvantage on next attack'},
+  'Acid Splash':     {icon:'💚',die:'1d6', dmgType:'acid',       range:'60 ft', toHit:false,notes:'DEX save — can hit 2 adjacent targets'},
+  'Thunderclap':     {icon:'🌩',die:'1d6', dmgType:'thunder',    range:'5 ft',  toHit:false,notes:'CON save — audible 100 ft away'},
+  'True Strike':     {icon:'🎯',die:'1d6', dmgType:'radiant',    range:'5 ft',  toHit:true, notes:'Use action — then weapon attack as bonus action'},
+  'Booming Blade':   {icon:'💥',die:'1d8', dmgType:'thunder',    range:'5 ft',  toHit:true, notes:'+1d8 extra if target moves'},
+  'Green-Flame Blade':{icon:'💚',die:'1d8',dmgType:'fire',       range:'5 ft',  toHit:true, notes:'Fire splash on nearby creature'},
+  'Blade Ward':      {icon:'🛡',die:'—',   dmgType:'',           range:'Self',  toHit:false,notes:'Resistance to slashing/bludgeoning/piercing until your next turn'},
 };
 
 function cantripDice(lv){ return lv>=17?4:lv>=11?3:lv>=5?2:1; }
@@ -1575,146 +1575,232 @@ function getSpellAttackBonus(){ return getPB()+getSpellMod(); }
 /* ── CLASS ACTIONS ── */
 const CLASS_ACTIONS_MAP = {
   Barbarian:[
-    {name:"Rabbia",               icon:"😡",cat:"bonus",   uses:"2-6 usi/LR",
-     desc:"Bonus action. Entra in Rabbia per 1 minuto: +2 ai danni con armi (scala: +3 a lv.9, +4 a lv.16), resistenza a danni contundenti/perforanti/taglienti, vantaggio ai tiri FOR. Usi: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17). Recupero: riposo lungo."},
-    {name:"Attacco Sconsiderato", icon:"⚔", cat:"attack",  uses:"Illimitato",
-     desc:"Dichiara prima di attaccare: ottieni vantaggio a tutti gli attacchi con armi fisici questo turno. Svantaggio: tutti gli attacchi contro di te hanno vantaggio fino all'inizio del tuo prossimo turno."},
-    {name:"Senso del Pericolo",   icon:"👁",cat:"reaction",uses:"Illimitato",
-     desc:"Non puoi essere sorpreso mentre sei cosciente. Vantaggio ai sal. DES contro trappole e incantesimi che puoi vedere. Vantaggio ai tiri Percezione basati sulla vista."},
-    {name:"Movimento Incauto",    icon:"🏃",cat:"bonus",   uses:"Quando in Rabbia",
-     desc:"Quando sei in Rabbia e usi Scatto, le creature non ottengono attacchi di opportunita contro di te per il resto del turno."},
+    {name:"Rage",                icon:"",cat:"bonus",   uses:"2-6 / LR",  resKey:"rage",
+     desc:"Bonus action. Enter Rage for 1 minute: +2 damage with weapons (scales: +3 lv.9, +4 lv.16), resistance to bludgeoning/piercing/slashing damage, advantage on STR checks and saves. Uses: 2 (lv.1), 3 (lv.3), 4 (lv.6), 5 (lv.12), 6 (lv.17). Recharge: long rest."},
+    {name:"Reckless Attack",     icon:"",cat:"attack",  uses:"Unlimited",
+     desc:"Before attacking: gain advantage on all physical attacks this turn. Downside: all attacks against you have advantage until your next turn."},
+    {name:"Danger Sense",        icon:"",cat:"reaction",uses:"Passive",
+     desc:"You cannot be surprised while conscious. Advantage on DEX saves against traps and spells you can see."},
+    {name:"Reckless Charge",     icon:"",cat:"bonus",   uses:"While Raging",
+     desc:"While Raging: use Dash without provoking opportunity attacks for the rest of the turn."},
+    {name:"Relentless Endurance",icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
+     desc:"Advantage on all STR and CON saves while Raging."},
   ],
   Bard:[
-    {name:"Ispirazione Bardica",  icon:"🎵",cat:"bonus",   uses:"CAR mod / SR",
-     desc:"Bonus action: dona un dado di Ispirazione Bardica (d6 lv.1-4, d8 lv.5-9, d10 lv.10-14, d12 lv.15-20) a una creatura entro 60 ft che puoi vedere. Entro 10 minuti puo aggiungere il dado a un tiro abilita, attacco o salvezza. Recupero: riposo breve (lv.5+) o lungo."},
-    {name:"Canzoni di Riposo",    icon:"🎶",cat:"action",  uses:"Passivo",
-     desc:"Quando tu e alleati spendete Dadi Vita durante un riposo breve, ciascuno puo aggiungere al recupero: 1d6 (lv.2), 1d8 (lv.9), 1d10 (lv.13), 1d12 (lv.17) PF extra."},
-    {name:"Controincantagione",   icon:"🎭",cat:"reaction",uses:"Quando appropriato",
-     desc:"Usa Ispirazione Bardica per interferire con un incantatore: impone svantaggio al tiro concentrazione o annulla un effetto (dettagli dipendono dalla sottoclasse e dal livello)."},
+    {name:"Bardic Inspiration",  icon:"",cat:"bonus",   uses:"CHA mod / SR", resKey:"bardic_insp",
+     desc:"Bonus action: give a Bardic Inspiration die (d6 lv.1-4, d8 lv.5-9, d10 lv.10-14, d12 lv.15-20) to a creature within 60 ft. Within 10 minutes they can add it to an ability check, attack, or save. Recharge: short rest (lv.5+) or long rest."},
+    {name:"Song of Rest",        icon:"",cat:"action",  uses:"Passive",   minLevel:2,
+     desc:"During a short rest: you and allies add 1d6 (lv.2), 1d8 (lv.9), 1d10 (lv.13), 1d12 (lv.17) extra HP when spending Hit Dice."},
+    {name:"Countercharm",        icon:"",cat:"reaction",uses:"Bardic Insp.",minLevel:6,
+     desc:"Use a Bardic Inspiration die to interfere with a spellcaster: impose disadvantage on their concentration check or disrupt an effect."},
   ],
   Cleric:[
-    {name:"Canalizza Divinita",   icon:"☀", cat:"action",  uses:"1-3 / SR",
-     desc:"Usa il potere del tuo dio. Effetti di base: (1) Scaccia Non Morti (sal. SAG o fuggono per 1 min; quelli con CR < soglia vengono distrutti); (2) Effetto da Dominio (varia per sottoclasse). Usi: 1 (lv.1-5), 2 (lv.6-17), 3 (lv.18+). Recupero: riposo breve."},
-    {name:"Intervento Divino",    icon:"✝", cat:"action",  uses:"1 / LR",
-     desc:"Invoca l'aiuto diretto della tua divinita. Probabilita di successo = livello del personaggio %. A lv.20 ha sempre successo. L'effetto e deciso dal DM (equivale a un incantesimo di livello pari al tuo bonus competenza). Recupero: riposo lungo."},
-    {name:"Protezione della Fede",icon:"🛡",cat:"bonus",   uses:"Slot incantesimo",
-     desc:"Bonus action (richiede concentrazione): circonda una creatura entro 30 ft con una luce sacra. Il prossimo attacco contro di essa ha svantaggio. Richiede slot di 1 grado."},
+    {name:"Channel Divinity",    icon:"",cat:"action",  uses:"1-3 / SR",  resKey:"channel_div",
+     desc:"Channel your deity's power. Uses: 1 (lv.1-5), 2 (lv.6-17), 3 (lv.18+). Recharge: short rest. Base option: Turn Undead — or your Domain's specific option (see subclass)."},
+    {name:"Turn Undead",         icon:"",cat:"action",  uses:"1 Channel",  resKey:"channel_div",
+     desc:"Every undead within 30 ft that can see or hear you must succeed on a WIS save (DC = 8+PB+WIS) or flee for 1 minute. Undead with CR <= half your level are Destroyed instead."},
+    {name:"Divine Intervention", icon:"",cat:"action",  uses:"1 / LR",    resKey:"divine_intervention",
+     desc:"Call on your deity for direct aid. Success chance = Cleric level %. At lv.20 it always succeeds. Recharge: long rest."},
   ],
   Druid:[
-    {name:"Forma Selvatica",      icon:"🐻",cat:"action",  uses:"2 / SR",
-     desc:"Trasformati in una bestia che hai osservato. Limiti CR: lv.2 = CR 1/4 (no volare/nuotare), lv.4 = CR 1/2 (no volare), lv.8 = CR 1. Acquisisci i PF della bestia, le sue stat fisiche ma mantieni INT/SAG/CAR e competenze. Dura ore = meta livello Druido. Recupero: riposo breve o lungo."},
-    {name:"Linguaggio delle Besti",icon:"🌿",cat:"action",  uses:"Passivo",
-     desc:"Puoi comunicare con bestie attraverso suoni e gesti. Puoi usare Charme Animali gratuitamente una volta per riposo lungo."},
+    {name:"Wild Shape",          icon:"",cat:"action",  uses:"2 / SR",    resKey:"wild_shape",  minLevel:2,
+     desc:"Transform into an observed beast. Max CR: lv.2=CR1/4 (no fly), lv.4=CR1/2 (no fly), lv.8=CR1. Gain the beast's HP. Lasts hours = half level. Recharge: short or long rest."},
+    {name:"Speak with Beasts",   icon:"",cat:"action",  uses:"Ritual / Passive",
+     desc:"You can communicate with beasts through sounds and gestures. You can cast Speak with Animals for free once per long rest."},
   ],
   Fighter:[
-    {name:"Secondo Respiro",      icon:"💨",cat:"bonus",   uses:"1 / SR",
-     desc:"Bonus action: recupera 1d10 + livello Fighter PF. Recupero: riposo breve o lungo."},
-    {name:"Scatto d'Azione",      icon:"⚡",cat:"action",  uses:"1-2 / SR",
-     desc:"Ottieni un'azione aggiuntiva questo turno (non un'altra Scatto d'Azione). Usi: 1 (lv.1-16), 2 (lv.17+). Recupero: riposo breve o lungo."},
-    {name:"Stile di Combattimento",icon:"🗡",cat:"action",  uses:"Passivo",
-     desc:"Bonus permanente: Difesa (+1 CA con armatura), Duello (+2 danno arma a 1 mano senza altra arma), Grande Arma (ritira 1-2 su danno), Protezione (imponi svantaggio ad attacchi vs alleati adiacenti), Tiro (attacchi ranged ignorano svantaggio a distanza lunga), Due Armi (+CAR al danno della seconda arma)."},
-    {name:"Ondata di Attacchi",   icon:"⚔", cat:"attack",  uses:"Lv.5+",
-     desc:"A partire dal 5 livello ottieni un secondo attacco con l'azione Attacco. Terzo a lv.11, quarto a lv.20."},
+    {name:"Second Wind",         icon:"",cat:"bonus",   uses:"1 / SR",    resKey:"second_wind",
+     desc:"Bonus action: regain 1d10 + Fighter level HP. Recharge: short or long rest."},
+    {name:"Action Surge",        icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"action_surge",  minLevel:2,
+     desc:"Gain one additional action this turn. Uses: 1 (lv.2-16), 2 (lv.17+). Recharge: short or long rest."},
+    {name:"Fighting Style",      icon:"",cat:"action",  uses:"Passive",
+     desc:"Defense (+1 AC), Dueling (+2 damage 1H), Great Weapon (reroll 1-2), Protection (disadvantage on ally attacks), Archery (ignore long range penalty), Two-Weapon (+ability mod to offhand damage)."},
+    {name:"Extra Attack",        icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
+     desc:"Second attack with the Attack action (lv.5). Third at lv.11, fourth at lv.20."},
+    {name:"Indomitable",         icon:"",cat:"action",  uses:"1-3 / LR",  resKey:"indomitable",  minLevel:9,
+     desc:"When you fail a saving throw, you may choose to succeed instead. Uses: 1 (lv.9-12), 2 (lv.13-19), 3 (lv.20). Recharge: long rest."},
   ],
   Monk:[
-    {name:"Arti Marziali",        icon:"🥋",cat:"attack",  uses:"Passivo",
-     desc:"Con armi semplici o a mani nude: usa DEX invece di FOR (Finesse). Dado di Arti Marziali: d6 (lv.1-4), d8 (lv.5-10), d10 (lv.11-16), d12 (lv.17-20). Bonus action dopo Attacco: colpo senz'armi aggiuntivo."},
-    {name:"Tempesta di Colpi",    icon:"👊",cat:"bonus",   uses:"1 Ki / uso",
-     desc:"Dopo aver usato l'azione Attacco: effettua 2 colpi senz'armi aggiuntivi come bonus action. Costo: 1 Punto Ki."},
-    {name:"Passo del Vento",      icon:"💨",cat:"bonus",   uses:"1 Ki / uso",
-     desc:"Bonus action: esegui Disimpegno o Scatto. Il salto raddoppia per il turno. Costo: 1 Punto Ki."},
-    {name:"Colpo Stordente",      icon:"💫",cat:"attack",  uses:"1 Ki / uso",
-     desc:"Dopo aver colpito con arma o colpo senz'armi: spendi 1 Ki per imporre al bersaglio sal. COS (CD = 8 + PB + SAG). Se fallisce: stordito fino all'inizio del tuo prossimo turno (perde azioni/reazione, attacchi vs lui con vantaggio)."},
-    {name:"Deviare Proiettili",   icon:"🥋",cat:"reaction",uses:"Illimitato / 1 Ki per ritiro",
-     desc:"Reazione quando colpito da attacco a distanza: riduci il danno di 1d10 + DEX + livello Monaco. Se lo porti a 0: puoi spendere 1 Ki per tirare il proiettile (attacco a distanza, gittata 20/60 ft, danno come l'arma originale)."},
-    {name:"Concentrazione Marziale",icon:"🧘",cat:"bonus",  uses:"Passivo lv.5+",
-     desc:"Bonus action: finisci un effetto di incapacitato, paralizzato, stordito, sordo o cieco su te stesso. A lv.10: anche Spaventato o Avvelenato."},
+    {name:"Martial Arts",        icon:"",cat:"attack",  uses:"Passive",
+     desc:"With simple weapons or unarmed: use DEX instead of STR. Martial Arts die: d6 (lv.1-4), d8 (lv.5-10), d10 (lv.11-16), d12 (lv.17-20). Bonus action after Attack: additional unarmed strike."},
+    {name:"Flurry of Blows",     icon:"",cat:"bonus",   uses:"1 Ki",      resKey:"ki",  minLevel:2,
+     desc:"After the Attack action: make 2 additional unarmed strikes as a bonus action. Cost: 1 Ki point."},
+    {name:"Step of the Wind",    icon:"",cat:"bonus",   uses:"1 Ki",      resKey:"ki",  minLevel:2,
+     desc:"Bonus action: Disengage or Dash. Jump distance doubles for the turn. Cost: 1 Ki point."},
+    {name:"Stunning Strike",     icon:"",cat:"attack",  uses:"1 Ki",      resKey:"ki",  minLevel:2,
+     desc:"After hitting with a weapon or unarmed: spend 1 Ki to force a CON save (DC = 8+PB+WIS). Fail: stunned until your next turn."},
+    {name:"Deflect Missiles",    icon:"",cat:"reaction",uses:"Unlimited / 1 Ki redirect",  minLevel:3,
+     desc:"Reaction to a ranged attack: reduce damage by 1d10+DEX+level. If reduced to 0: spend 1 Ki to redirect the missile (range 20/60 ft)."},
+    {name:"Stillness of Mind",   icon:"",cat:"bonus",   uses:"Passive",   minLevel:5,
+     desc:"Bonus action: end one effect causing incapacitated, paralyzed, stunned, deafened, or blinded. At lv.10: also Frightened or Poisoned."},
   ],
   Paladin:[
-    {name:"Senso del Divino",     icon:"✝", cat:"action",  uses:"CAR+1 / LR",
-     desc:"Azione: per 1 minuto, sei consapevole della posizione di qualsiasi Celestiale, Demone, Non Morto, o creatura consacrata/profanata entro 60 ft, anche attraverso ostacoli. Non rivela il tipo esatto. Usi = CAR + 1 per riposo lungo."},
-    {name:"Imposizione delle Mani",icon:"🙏",cat:"action", uses:"Pool 5x lv / LR",
-     desc:"Tocca una creatura: spendi punti dal pool per ripristinare PF (1 punto = 1 PF), oppure spendi 5 punti per rimuovere una malattia o un veleno. Pool = 5 x livello Paladino. Recupero: riposo lungo."},
-    {name:"Attacco Divino",       icon:"✨",cat:"attack",  uses:"Slot incantesimo",
-     desc:"Quando colpisci con un'arma da mischia: spendi uno slot per avvolgerla di energia sacra o profana. Bonus danni radianti: 2d8 per slot di 1 grado + 1d8 per ogni grado superiore al 1. Max 5d8 con slot di 4."},
-    {name:"Presenza Protettiva",  icon:"🛡",cat:"reaction",uses:"1 / LR",
-     desc:"Quando tu o un alleato entro 30 ft state per fallire un tiro salvezza: reazione per concedere +4 al tiro. Recupero: riposo lungo."},
-    {name:"Cura Sacra",           icon:"💚",cat:"action",  uses:"Slot incantesimo",
-     desc:"Lancia Cure Ferite come paladin: 1d8+SAG per slot di 1 grado (+1d8 per grado superiore). Aggiungi bonus PB ai PF curati."},
+    {name:"Divine Sense",        icon:"",cat:"action",  uses:"CHA+1 / LR",resKey:"divine_sense",
+     desc:"For 1 minute: aware of Celestials, Fiends, Undead, and consecrated/desecrated creatures within 60 ft, even through obstacles. Uses = CHA mod+1 per long rest."},
+    {name:"Lay on Hands",        icon:"",cat:"action",  uses:"Pool 5*lv / LR",resKey:"lay_on_hands",
+     desc:"Touch a creature: spend points from pool to restore HP (1 point = 1 HP), or 5 points to remove one disease or poison. Pool = 5 x Paladin level. Recharge: long rest."},
+    {name:"Divine Smite",        icon:"",cat:"attack",  uses:"Spell slot",
+     desc:"When you hit with a melee weapon: expend a spell slot to deal extra radiant damage. 2d8 for a 1st-level slot, +1d8 per slot level above 1st. Max 5d8."},
+    {name:"Channel Divinity",    icon:"",cat:"action",  uses:"1-2 / SR",  resKey:"paladin_channel_div",  minLevel:3,
+     desc:"Oath-specific effect (see subclass). Uses: 1 (lv.3-10), 2 (lv.11+). Recharge: short rest."},
+    {name:"Aura of Protection",  icon:"",cat:"action",  uses:"Passive",   minLevel:6,
+     desc:"10-ft aura (30 ft at lv.18): you and conscious allies gain +CHA mod to saving throws (min +1)."},
   ],
   Ranger:[
-    {name:"Segno del Cacciatore", icon:"🏹",cat:"bonus",   uses:"Conc. / LR poi gratis",
-     desc:"Bonus action: designa un bersaglio entro 90 ft. Finche sei concentrato: +1d6 danni contro di esso ogni turno, vantaggio ai tiri Percezione/Sopravvivenza per trovarlo/seguirlo. Se il bersaglio muore, puoi spostare il segno (bonus action). A lv.3 non richiede concentrazione."},
-    {name:"Senso dei Predatori",  icon:"🌿",cat:"action",  uses:"Passivo",
-     desc:"Non puoi essere sorpreso in terreno non urbanizzato. Vantaggio ai tiri PER in ambienti naturali. Passi in terreno difficile non difficile (in terreno naturale). Puoi trovare cibo e acqua per te e fino a 5 creature per giorno senza tiro (in ambienti adatti)."},
-    {name:"Attacco Extra",        icon:"⚔", cat:"attack",  uses:"Passivo lv.5+",
-     desc:"Puoi attaccare due volte quando esegui l'azione Attacco."},
+    {name:"Hunter's Mark",       icon:"",cat:"bonus",   uses:"Conc., free lv.3",
+     desc:"Bonus action: mark a target within 90 ft. +1d6 damage against it each turn, advantage on PER/Survival to find it. At lv.3 no longer requires concentration."},
+    {name:"Primal Awareness",    icon:"",cat:"action",  uses:"Passive",
+     desc:"Cannot be surprised in natural terrain. Advantage on PER checks in natural environments. Can find food/water for 5 creatures without a roll."},
+    {name:"Extra Attack",        icon:"",cat:"attack",  uses:"Passive",   minLevel:5,
+     desc:"Second attack with the Attack action (lv.5)."},
+    {name:"Evasion",             icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
+     desc:"DEX save: on success take no damage; on failure take half. Does not work in heavy armor."},
   ],
   Rogue:[
-    {name:"Attacco Furtivo",      icon:"🗡",cat:"attack",  uses:"1 / turno",
-     desc:"Una volta per turno, quando colpisci con arma Finesse o a distanza, aggiungi dadi extra di danno se: (a) hai vantaggio all'attacco, oppure (b) un alleato non incapacitato e adiacente al bersaglio. Dadi: 1d6 (lv.1), scala +1d6 ogni 2 livelli. Funziona anche senza vantaggio se ha svantaggio sull'attacco."},
-    {name:"Azione Scaltra",       icon:"💨",cat:"bonus",   uses:"Illimitato",
-     desc:"Bonus action ogni turno: Scatta, Disimpegno o Nascondersi. A lv.3 aggiungi Tiro Dadi (usa bordo come copertura). A lv.17 aggiungi Agile (non rallentato da terreno difficile)."},
-    {name:"Riflessi Evasivi",     icon:"🏃",cat:"reaction",uses:"Illimitato",
-     desc:"Quando sei soggetto a un effetto che richiede sal. DES: se riesci non subisci danno (invece di meta), se fallisci subisci meta danno (invece di tutto). Non funziona con armatura pesante."},
-    {name:"Mente Arguta",         icon:"🧠",cat:"action",  uses:"Passivo",
-     desc:"Non hai mai svantaggio ai tiri Percezione (INT). Puoi fare tiri Percezione (INT) per valutare creature. Proficiente in tutti gli strumenti da ladro."},
+    {name:"Sneak Attack",        icon:"",cat:"attack",  uses:"1 / turn",
+     desc:"Once per turn, with a Finesse or ranged weapon: add Xd6 damage if you have advantage OR an ally is adjacent to the target. Dice: 1d6 at lv.1, +1d6 every 2 levels."},
+    {name:"Cunning Action",      icon:"",cat:"bonus",   uses:"Unlimited",
+     desc:"Bonus action each turn: Dash, Disengage, or Hide. At lv.3 add Deft Hands. At lv.17 add Agile (ignore difficult terrain)."},
+    {name:"Evasion",             icon:"",cat:"reaction",uses:"Passive",   minLevel:7,
+     desc:"DEX save: on success take no damage; on failure take half. Does not work in heavy armor."},
+    {name:"Devastating Strike",  icon:"",cat:"attack",  uses:"1 / LR",   minLevel:14,
+     desc:"Once per long rest: deal maximum damage instead of rolling dice."},
   ],
   Sorcerer:[
-    {name:"Metamagia",            icon:"🌀",cat:"action",  uses:"Punti Stregoneria",
-     desc:"Modifica incantesimi con Punti Stregoneria: Attento (2 pt: nessun alleato nel raggio subisce danno), Distante (1 pt: raddoppia gittata), Potenziato (1 pt: ritira fino a 3 dadi danno), Esteso (1 pt: raddoppia durata), Accellerato (2 pt: lancia con BA invece di azione), Subdolo (1 pt: invisibile/non udibile), Gemellato (1 pt min: stesso incantesimo su 2 bersagli)."},
-    {name:"Rigurgito Magico",     icon:"♻", cat:"bonus",   uses:"1 / LR",
-     desc:"Dopo riposo breve: recupera slot incantesimo con valore totale di livelli pari o inferiore alla meta del tuo livello (min 1). Es. Lv.4: recupera un 2 grado, o due di 1. Recupero: riposo lungo."},
-    {name:"Font di Magia",        icon:"✨",cat:"action",  uses:"Punti Stregoneria lv.2+",
-     desc:"Converti slot incantesimo in Punti Stregoneria (1 punto per livello dello slot) o viceversa (costa punti = livello slot desiderato +1 per ogni grado sopra 1). Max 6 punti per riposo lungo."},
+    {name:"Sorcerous Restoration",icon:"",cat:"bonus",  uses:"1 / LR",   minLevel:1,
+     desc:"After a short rest: regain spell slots with total levels equal to or less than half your level (min 1). Recharge: long rest."},
+    {name:"Font of Magic",       icon:"",cat:"action",  uses:"Sorcery Points",resKey:"sorc_pts",  minLevel:2,
+     desc:"Convert spell slots into Sorcery Points (1 point per level) or vice versa. Max 6 points per long rest."},
+    {name:"Metamagic",           icon:"",cat:"action",  uses:"Sorcery Points",resKey:"sorc_pts",  minLevel:2,
+     desc:"Modify spells with Sorcery Points: Careful (2pt, allies safe), Distant (1pt, double range), Empowered (1pt, reroll 3 dice), Extended (1pt, double duration), Quickened (2pt, cast as bonus action), Subtle (1pt, no V/S), Twinned (1pt, 2 targets)."},
   ],
   Warlock:[
-    {name:"Maledizione Oscura",   icon:"👁",cat:"bonus",   uses:"Conc.",
-     desc:"Bonus action: maledici una creatura entro 90 ft. Effetti finche sei concentrato: +1d6 danni da Eldritch Blast e attacchi con arma contro di essa; vantaggio ai tiri PER/Indagare/Arcana contro di essa. Se muore puoi spostarla (bonus action). Dura 1 ora a lv.5, 10 ore a lv.10, 24 ore a lv.15 (senza concentrazione). Recupero: riposo breve o lungo."},
-    {name:"Colpo Eldritch",       icon:"⚡",cat:"attack",  uses:"Invocazione",
-     desc:"Aggiungi effetti al tuo Eldritch Blast tramite invocazioni: Agonizzante (aggiungi CAR al danno), Respingente (spingi 10 ft), Fasci Multipli (un fascio extra a lv.5, 11, 17), ecc. Scegli invocazioni al lv.2 e a ogni lv dispari."},
-    {name:"Patto Mistico",        icon:"📿",cat:"action",  uses:"Recupero riposo breve",
-     desc:"I tuoi slot incantesimo sono tutti dello stesso livello (scala da 1 a 5 con il livello), ma si recuperano con riposo breve (non lungo come altri caster). A lv.3 scegli il Dono del Patto: Patto delle Catene (famiglio), della Lama (arma legata), del Tomo (libro con cantrip e rituali)."},
+    {name:"Hex",                 icon:"",cat:"bonus",   uses:"Conc.",
+     desc:"Bonus action: curse a creature within 90 ft. +1d6 damage from Eldritch Blast and attacks; advantage on ability checks against it. If it dies, move the hex (bonus action). Lasts 1h (lv.5), 10h (lv.10), 24h no conc. (lv.15). Recharge: short or long rest."},
+    {name:"Eldritch Blast",      icon:"",cat:"attack",  uses:"Invocation",
+     desc:"Enhanced by invocations: Agonizing Blast (+CHA damage), Repelling Blast (push 10ft), Eldritch Spear (+1 beam at lv.5/11/17). Choose invocations at lv.2 and each odd level."},
+    {name:"Mystic Arcanum",      icon:"",cat:"action",  uses:"Recharge short rest",
+     desc:"Your spell slots recharge on a short rest. At lv.3 choose your Pact Boon: Chain (familiar), Blade (bonded weapon), Tome (book with cantrips and rituals)."},
   ],
   Wizard:[
-    {name:"Recupero Arcano",      icon:"📖",cat:"action",  uses:"1 / LR",
-     desc:"Dopo un riposo breve: recupera slot incantesimo con livelli totali pari o inferiori a meta del livello Wizard (arrotondato per eccesso, min 1). Non puoi recuperare slot di 6 grado o superiori. Recupero: riposo lungo."},
-    {name:"Libro degli Incantesimi",icon:"📚",cat:"action", uses:"Rituale",
-     desc:"Puoi lanciare incantesimi con il tag Rituale dal tuo libro senza spendere slot (ci vuole 10 min extra). Copi nuovi incantesimi nel libro spendendo 50 mo e 2 ore per livello. Inizi con 6 incantesimi + guadagni 2 ogni livello da classi."},
-    {name:"Maestria degli Incantesimi",icon:"⭐",cat:"action", uses:"Passivo lv.18+",
-     desc:"Scegli un incantesimo di 1 grado e uno di 2 grado dal tuo libro: puoi lanciarli al loro livello minimo senza spendere slot, una volta per riposo lungo (a meno di non usare uno slot normale)."},
+    {name:"Arcane Recovery",     icon:"",cat:"action",  uses:"1 / LR",   resKey:"arc_recovery",
+     desc:"After a short rest: regain spell slots with total levels <= half Wizard level (min 1, max 6th-level slots). Recharge: long rest."},
+    {name:"Spellbook",           icon:"",cat:"action",  uses:"Ritual / Always",
+     desc:"Cast rituals from your book without slots (+10 min). Copy spells: 50 gp and 2h per level. Gain 2 spells each level."},
+    {name:"Spell Mastery",       icon:"",cat:"action",  uses:"Passive",   minLevel:18,
+     desc:"Choose 1 spell of 1st and 1 of 2nd level from your book: you can cast them at their minimum level without expending a slot, once per long rest."},
   ],
+};
+
+const SUBCLASS_ACTIONS_MAP = {
+  // ─── CLERIC ───
+  'Cleric_Life':     [{name:"Channel: Preserve Life",       icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",
+                       desc:"Within 30 ft: distribute HP equal to 5 x Cleric level among any creatures of your choice (excluding Undead and Constructs), without exceeding each creature's maximum."}],
+  'Cleric_Light':    [{name:"Channel: Radiance of the Dawn",icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",
+                       desc:"Every Undead within 30 ft must succeed on a CON save or take 2d10+level radiant damage (half on success). Creatures that cannot see the light have disadvantage."}],
+  'Cleric_Trickery': [{name:"Channel: Invoke Duplicity",    icon:"",cat:"action",  uses:"1 Channel / Conc.", resKey:"channel_div",
+                       desc:"Create an illusory duplicate of yourself within 30 ft. As a bonus action you can move it (up to 30 ft). You can cast spells as if you were in its space."}],
+  'Cleric_War':      [{name:"Channel: Guided Strike",       icon:"",cat:"reaction",uses:"1 Channel", resKey:"channel_div",
+                       desc:"When you or an ally within 30 ft misses an attack: add +10 to the roll, potentially turning a miss into a hit."}],
+  'Cleric_Knowledge':[{name:"Channel: Knowledge of the Ages",icon:"",cat:"action",uses:"1 Channel", resKey:"channel_div",
+                       desc:"Choose a skill or tool: for 10 minutes gain proficiency (or double proficiency if already proficient)."}],
+  // ─── PALADIN ───
+  'Paladin_Devotion':[{name:"Channel: Sacred Weapon",       icon:"",cat:"bonus",  uses:"1 Channel", resKey:"paladin_channel_div",
+                       desc:"Bonus action: infuse your held weapon for 1 minute. Add CHA mod to attack rolls (min +1). The weapon sheds bright light in a 20-ft radius."}],
+  'Paladin_Vengeance':[{name:"Channel: Vow of Enmity",      icon:"",cat:"bonus",  uses:"1 Channel", resKey:"paladin_channel_div",
+                       desc:"Bonus action: advantage on all attacks against one visible creature within 10 ft for 1 minute (or until it dies or hides)."}],
+  'Paladin_Ancients':[{name:"Channel: Nature's Wrath",      icon:"",cat:"action", uses:"1 Channel", resKey:"paladin_channel_div",
+                       desc:"Fey and Celestials within 30 ft regain 2d6+CHA HP. Undead and Fiends must succeed on a WIS save (DC=8+PB+CHA) or be Frightened for 1 minute."}],
+  'Paladin_Glory':   [{name:"Channel: Gift of the Brave",   icon:"",cat:"action", uses:"1 Channel", resKey:"paladin_channel_div",
+                       desc:"Chosen creatures within 30 ft gain for 1 minute: +PB to Athletics/Acrobatics checks, +10 ft movement speed."}],
+  'Paladin_Noble Genies':[{name:"Channel: Genie's Flight",  icon:"",cat:"action", uses:"1 Channel", resKey:"paladin_channel_div",
+                       desc:"You and allies within 30 ft gain a flying speed equal to your walking speed for 1 minute."}],
+  // ─── FIGHTER ───
+  'Fighter_Battle Master':[{name:"Combat Maneuvers",         icon:"",cat:"attack", uses:"Superiority Dice d8",resKey:"superiority_dice",
+                       desc:"Spend a Superiority Die (d8 to d10 to d12) to add effects to attacks: Disarm, Push, Distract, Command, Taunt, Riposte, Feint, Precision Attack, etc. Recharge: short or long rest."}],
+  'Fighter_Eldritch Knight':[{name:"Weapon Bond",            icon:"",cat:"bonus",  uses:"Passive",  minLevel:3,
+                       desc:"You can summon a bonded weapon from within 60 ft as a bonus action. You cannot be disarmed of bonded weapons."}],
+  'Fighter_Champion':[{name:"Improved Critical",             icon:"",cat:"attack", uses:"Passive",  minLevel:3,
+                       desc:"Critical hit on 19-20 (lv.3). On 18-20 at lv.15."}],
+  'Fighter_Psi Warrior':[{name:"Psionic Strike",             icon:"",cat:"attack", uses:"Psi Dice", resKey:"psi_dice",  minLevel:3,
+                       desc:"After hitting with a weapon: spend a Psi Die (d6 to d12) to add psychic damage and potentially incapacitate the target until the end of its turn."}],
+  // ─── MONK ───
+  'Monk_Open Hand': [{name:"Open Hand Technique",            icon:"",cat:"attack", uses:"With Flurry",
+                       desc:"When using Flurry of Blows, add one of these effects: knock prone (DEX save), push 15ft (STR save), prevent reactions until your next turn."}],
+  'Monk_Shadow':    [{name:"Shadow Arts",                    icon:"",cat:"bonus",  uses:"1-3 Ki",  resKey:"ki",  minLevel:3,
+                       desc:"Spend Ki to cast: Darkness (2Ki), Silence (2Ki), Pass Without Trace (2Ki). At lv.6: Dominate Beast (3Ki), Dimension Door (4Ki)."}],
+  'Monk_Elements':  [{name:"Elemental Disciplines",          icon:"",cat:"action", uses:"1+ Ki",   resKey:"ki",  minLevel:3,
+                       desc:"Spend Ki to shape elements: waves of water, columns of fire, earth tremors, gusts of wind. Each discipline requires specific Ki amounts."}],
+  // ─── ROGUE ───
+  'Rogue_Assassin': [{name:"Assassinate",                    icon:"",cat:"attack", uses:"Passive",  minLevel:3,
+                       desc:"Advantage on all attacks against creatures that have not yet acted in combat. Attacks against unaware creatures that result in a hit are automatic critical hits."}],
+  'Rogue_Soulknife':[{name:"Psychic Blades",                 icon:"",cat:"attack", uses:"Psychic",  minLevel:3,
+                       desc:"Materialize psychic blades (finesse, throwable): 1d6 psychic damage + DEX. Materialize a second blade as bonus action. Blades disappear after the attack."}],
+  // ─── RANGER ───
+  'Ranger_Hunter':  [{name:"Hunter's Prey",                  icon:"",cat:"attack", uses:"Passive",  minLevel:3,
+                       desc:"Choose: Colossus Slayer (+1d8 vs wounded creatures, 1/turn), Giant Killer (reaction to attack giants that hit you), Horde Breaker (extra attack on creature adjacent to your target)."}],
+  'Ranger_Beast Master':[{name:"Animal Companion",           icon:"",cat:"bonus",  uses:"Commands / turn",  minLevel:3,
+                       desc:"Bonus action: command your beast companion to attack, move, or use special abilities. If it dies: find a new one (8h ritual)."}],
+  // ─── DRUID ───
+  'Druid_Moon':     [{name:"Enhanced Wild Shape",            icon:"",cat:"action", uses:"2 / SR",  resKey:"wild_shape",  minLevel:2,
+                       desc:"Wild Shape: CR 1 (lv.2), CR 2 (lv.6), etc. At lv.10 you can assume Elemental form. Cost is always 1 Wild Shape use."}],
+  'Druid_Land':     [{name:"Natural Recovery",               icon:"",cat:"action", uses:"1 / LR",  resKey:"natural_recovery",  minLevel:2,
+                       desc:"After a short rest: regain spell slots with total levels <= half Druid level (min 1)."}],
+  // ─── SORCERER ───
+  'Sorcerer_Wild Magic':[{name:"Wild Magic Surge",           icon:"",cat:"action", uses:"DM discretion",
+                       desc:"Each time you cast a 1st-level or higher spell, the DM may have you roll a Wild Magic Surge (1d100). At lv.1 you can use Tides of Chaos for advantage on one roll (then automatic surge)."}],
+  'Sorcerer_Draconic':[{name:"Draconic Presence",            icon:"",cat:"action", uses:"1 / LR",  minLevel:18,
+                       desc:"Action: emanate draconic awe in 60 ft. Each creature must succeed on a WIS save (spell save DC) or be frightened/charmed for 1 minute."}],
+  // ─── WARLOCK ───
+  'Warlock_Fiend':  [{name:"Dark One's Blessing",            icon:"",cat:"action", uses:"Passive",
+                       desc:"When you kill a creature with CR >= 1: gain temporary HP equal to your Warlock level + CHA mod."}],
+  'Warlock_Great Old One':[{name:"Awakened Mind",            icon:"",cat:"action", uses:"Passive",
+                       desc:"Telepathically communicate with any creature within 30 ft that knows at least one language, even if it doesn't speak yours."}],
+  'Warlock_Archfey': [{name:"Fey Step",                      icon:"",cat:"bonus",  uses:"1 / SR",  resKey:"fey_step",  minLevel:1,
+                       desc:"Bonus action: teleport to an unoccupied space within 30 ft. The old space is cloaked in illusion until your next turn."}],
+  // ─── WIZARD ───
+  'Wizard_Evoker':  [{name:"Sculpt Spells",                  icon:"",cat:"action", uses:"Passive",  minLevel:2,
+                       desc:"When you cast an evocation spell that affects an area: choose up to PB visible creatures — they take no damage from the slot (they may still take minimum damage if applicable)."}],
+  'Wizard_Diviner': [{name:"Portent",                        icon:"",cat:"action", uses:"2 / LR",  resKey:"portent",  minLevel:2,
+                       desc:"After a long rest: roll 2d20, keep the results. Before any creature makes a roll, you can replace it with one of your Portent dice (used or unused)."}],
+  'Wizard_Abjurer': [{name:"Arcane Ward",                    icon:"",cat:"reaction",uses:"Ward HP",  minLevel:2,
+                       desc:"Maintain an Arcane Ward (HP = level*2+INT). Use reaction to reduce damage taken by you or an ally within 30 ft by (Ward HP remaining). Recharges when you cast Abjuration spells or on a long rest."}],
+  // ─── BARD ───
+  'Bard_Valor':     [{name:"Combat Inspiration",             icon:"",cat:"reaction",uses:"With Bardic Insp.",  minLevel:3,
+                       desc:"Bardic Inspiration dice given to allies can also be used to: add to a weapon damage roll, or add to AC against a specific attack."}],
+  'Bard_Lore':      [{name:"Stolen Secrets",                 icon:"",cat:"action", uses:"Passive",  minLevel:6,
+                       desc:"Choose 2 spells from any class list (of a level you can cast): they are added to your Bard spell list and treated as Bard spells."}],
 };
 
 
 const STANDARD_ACTIONS = [
-  // Azioni universali — tutti i personaggi le hanno sempre
-  {name:"Attacco",               icon:"⚔", cat:"action",   universal:true,  desc:"Attacca con un arma. Con Extra Attack (Lv.5+) puoi attaccare piu volte nella stessa azione."},
-  {name:"Scatto",                icon:"🏃",cat:"action",   universal:true,  desc:"Il tuo movimento massimo raddoppia per questo turno."},
-  {name:"Disimpegno",            icon:"💨",cat:"action",   universal:true,  desc:"Il tuo movimento non provoca attacchi di opportunita per il resto del turno."},
-  {name:"Schivata",              icon:"🛡",cat:"action",   universal:true,  desc:"Attacchi contro di te hanno svantaggio (se puoi vedere l'attaccante). Vantaggio ai sal. DES."},
-  {name:"Aiuto",                 icon:"🤝",cat:"action",   universal:true,  desc:"Dai vantaggio al prossimo attacco di un alleato su un bersaglio, o a un tiro di abilita."},
-  {name:"Nascondersi",           icon:"👁",cat:"action",   universal:true,  desc:"Tiro Furtivita (CD stabilita dal DM): se riesci, diventi nascosto."},
-  {name:"Cercare",               icon:"🔍",cat:"action",   universal:true,  desc:"Tiro Percezione o Indagare per localizzare oggetti o creature nascosti."},
-  {name:"Preparare",             icon:"⏱",cat:"action",   universal:true,  desc:"Descrivi un grilletto e riserva un azione: si attiva come Reazione quando il grilletto si verifica."},
-  {name:"Utilizzare Oggetto",    icon:"🎒",cat:"action",   universal:true,  desc:"Usa un oggetto che richiede un azione, o interagisci con un secondo oggetto nel turno."},
-  // Solo incantatori
-  {name:"Lanciare Incantesimo",  icon:"✨",cat:"action",   universal:false, casterOnly:true,  desc:"Lancia un incantesimo con tempo di lancio 1 azione."},
-  {name:"Incantesimo (Reazione)",icon:"✨",cat:"reaction", universal:false, casterOnly:true,  desc:"Shield, Absorb Elements, Counterspell e altri incantesimi usano la tua Reazione."},
-  // Reazione universale
-  {name:"Attacco di Opportunita",icon:"⚡",cat:"reaction", universal:true,  desc:"Quando una creatura esce dalla tua portata senza Disimpegnarsi, puoi attaccarla come Reazione."},
+  // Universal actions — always available to all characters
+  {name:"Attack",                icon:"⚔", cat:"action",   universal:true,  desc:"Attack with a weapon. With Extra Attack (Lv.5+) you can attack multiple times in the same action."},
+  {name:"Dash",                  icon:"🏃",cat:"action",   universal:true,  desc:"Your maximum movement speed doubles for this turn."},
+  {name:"Disengage",             icon:"💨",cat:"action",   universal:true,  desc:"Your movement doesn't provoke opportunity attacks for the rest of the turn."},
+  {name:"Dodge",                 icon:"🛡",cat:"action",   universal:true,  desc:"Attacks against you have disadvantage (if you can see the attacker). Advantage on DEX saves."},
+  {name:"Help",                  icon:"🤝",cat:"action",   universal:true,  desc:"Give advantage to an ally's next attack roll against a target, or on an ability check."},
+  {name:"Hide",                  icon:"👁",cat:"action",   universal:true,  desc:"Make a Stealth check (DC set by DM): if you succeed, you become hidden."},
+  {name:"Search",                icon:"🔍",cat:"action",   universal:true,  desc:"Make a Perception or Investigation check to locate hidden objects or creatures."},
+  {name:"Ready",                 icon:"⏱",cat:"action",   universal:true,  desc:"Describe a trigger and hold your action: it fires as a Reaction when the trigger occurs."},
+  {name:"Use an Object",         icon:"🎒",cat:"action",   universal:true,  desc:"Use an item that requires an action, or interact with a second object on your turn."},
+  // Casters only
+  {name:"Cast a Spell",          icon:"✨",cat:"action",   universal:false, casterOnly:true,  desc:"Cast a spell with a casting time of 1 action."},
+  {name:"Spell (Reaction)",      icon:"✨",cat:"reaction", universal:false, casterOnly:true,  desc:"Shield, Absorb Elements, Counterspell and other spells use your Reaction."},
+  // Universal reaction
+  {name:"Opportunity Attack",    icon:"⚡",cat:"reaction", universal:true,  desc:"When a creature leaves your reach without Disengaging, you can attack it as a Reaction."},
 ];
 
 const UNARMED_OPTIONS = [
-  {name:"Colpo Corpo a Corpo - Danno",  icon:"👊", desc:"Attacca con un pugno, calcio o testata. Danno = 1 + mod. FOR (contundente). Azione principale.", cat:"attack"},
-  {name:"Colpo Corpo a Corpo - Grapple",icon:"🤼", desc:"Blocca una creatura entro 5 ft: tiro FOR (Atletica) contrapposto a FOR/DES del bersaglio. Condizione: Afferrato.", cat:"action"},
-  {name:"Colpo Corpo a Corpo - Shove",  icon:"💥", desc:"Spingi o aterra una creatura entro 5 ft: stessa prova contrapposta. La spinge 5 ft oppure la metti Prona.", cat:"action"},
+  {name:"Unarmed Strike - Damage",icon:"👊", desc:"Attack with a punch, kick, or headbutt. Damage = 1 + STR mod (bludgeoning). Main action.", cat:"attack"},
+  {name:"Unarmed Strike - Grapple",icon:"🤼", desc:"Grab a creature within 5 ft: STR (Athletics) check contested by target's STR/DEX. Condition: Grappled.", cat:"action"},
+  {name:"Unarmed Strike - Shove", icon:"💥", desc:"Push or knock prone a creature within 5 ft: same contested check. Pushes 5 ft or knocks Prone.", cat:"action"},
 ];
 function toggleCard(id){ document.getElementById(id)?.classList.toggle('open'); }
 
 function _card(id, icon, name, sub, tags, stat, bodyHtml){
   const tagHtml = tags.map(t=>{
-    const map={atk:'ATK',save:'SAL',util:'UTIL',bonus:'BONUS',react:'REAZ.',cls:'CLASSE'};
+    const map={atk:'ATK',save:'SAVE',util:'UTIL',bonus:'BONUS',react:'REACT.',cls:'CLASS'};
     const clsMap={atk:'atk',save:'save',util:'util',bonus:'bonus',react:'react',cls:'cls'};
     return `<span class="action-tag ${clsMap[t]||'util'}">${map[t]||t.toUpperCase()}</span>`;
   }).join('');
@@ -1741,16 +1827,35 @@ function renderActionsTab(){
   const wrap2=document.getElementById('combat-actions-wrap');
   const f=activeActionFilter;
   const cls=C?.className||'';
+  const lv=C?.level||1;
   const inv=sheetInventory||[];
   const equippedWeapons=inv.filter(i=>i.equipped&&['M','R'].includes(i.type));
   const cantrips=C?.selectedCantrips||[];
-  const classActions=CLASS_ACTIONS_MAP[cls]||[];
+
+  // Primary class level (not total character level)
+  const pLv=C?.classLevel||lv;
+  // Primary class actions filtered by primary class level
+  const classActions=(CLASS_ACTIONS_MAP[cls]||[]).filter(a=>!a.minLevel||pLv>=a.minLevel);
+  // Subclass actions filtered by primary class level
+  const subKey=cls+'_'+(C?.subclassShortName||'');
+  const subActions=(SUBCLASS_ACTIONS_MAP[subKey]||[]).filter(a=>!a.minLevel||pLv>=a.minLevel);
+  // Extra (multiclass) actions
+  const extraActions=[];
+  for(const ec of (C?.extraClasses||[])){
+    if(!ec.name) continue;
+    const ecLv=ec.level||1;
+    const ecBase=(CLASS_ACTIONS_MAP[ec.name]||[]).filter(a=>!a.minLevel||ecLv>=a.minLevel).map(a=>({...a,_cls:ec.name}));
+    const ecSub=(SUBCLASS_ACTIONS_MAP[ec.name+'_'+(ec.subclassShortName||'')]||[]).filter(a=>!a.minLevel||ecLv>=a.minLevel).map(a=>({...a,_cls:ec.name}));
+    extraActions.push(...ecBase,...ecSub);
+  }
+  const allClassActions=[...classActions,...subActions,...extraActions];
+
   const isCaster = !!(C?.clsSnapshot?.casterProgression || cantrips.length ||
     Object.values(C?.selectedSpells||{}).flat().length);
 
   // Update Rogue sneak attack dice dynamically
-  const sa=classActions.find(a=>a.name==='Attacco Furtivo');
-  if(sa) sa.desc=`+${Math.ceil((C?.level||1)/2)}d6 danni a un attacco Finesse o a distanza se hai vantaggio O un alleato e adiacente al bersaglio (una volta per turno).`;
+  const sa=allClassActions.find(a=>a.name==='Sneak Attack');
+  if(sa) sa.desc=`+${Math.ceil(lv/2)}d6 damage on a Finesse or ranged attack if you have advantage OR an ally is adjacent to the target (once per turn).`;
 
   // Filter standard actions: universal always shown; casterOnly only if caster
   const stdVisible = STANDARD_ACTIONS.filter(a =>
@@ -1762,42 +1867,42 @@ function renderActionsTab(){
 
   // ── ATTACCHI ──
   if(show('attack')){
-    if(f==='all') html+='<div class="action-section-hdr">⚔ Attacchi</div>';
+    if(f==='all') html+='<div class="action-section-hdr">⚔ Attacks</div>';
     if(!equippedWeapons.length && !cantrips.length){
       html+=`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:.3rem 0">
-        💡 Vai su <b>Inventario</b>, cerca un arma e premi <b>Equipaggia</b> per vederla qui.
+        💡 Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
       </div>`;
     }
     for(const w of equippedWeapons) html+=buildWeaponCard(w);
     for(const cn of cantrips) html+=buildCantripCard(cn);
     html+=buildUnarmedCard(UNARMED_OPTIONS[0]);
-    for(const a of classActions.filter(a=>a.cat==='attack')) html+=buildClassActionCard(a);
+    for(const a of allClassActions.filter(a=>a.cat==='attack')) html+=buildClassActionCard(a);
   }
 
-  // ── AZIONI ──
+  // ── ACTIONS ──
   if(show('action')){
-    if(f==='all') html+='<div class="action-section-hdr">🎯 Azioni</div>';
-    for(const a of classActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
+    if(f==='all') html+='<div class="action-section-hdr">🎯 Actions</div>';
+    for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
     html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
     html+=buildUnarmedCard(UNARMED_OPTIONS[2]);
   }
 
-  // ── AZIONI BONUS ──
+  // ── BONUS ACTIONS ──
   if(show('bonus')){
-    if(f==='all') html+='<div class="action-section-hdr">⚡ Azioni Bonus</div>';
-    for(const a of classActions.filter(a=>a.cat==='bonus')) html+=buildClassActionCard(a);
+    if(f==='all') html+='<div class="action-section-hdr">⚡ Bonus Actions</div>';
+    for(const a of allClassActions.filter(a=>a.cat==='bonus')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='bonus')) html+=buildStdActionCard(a);
-    if(!classActions.filter(a=>a.cat==='bonus').length)
+    if(!allClassActions.filter(a=>a.cat==='bonus').length)
       html+=`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:.3rem 0">
-        Nessuna azione bonus specifica per ${esc(cls)||'questa classe'}.
+        No bonus actions specific to ${esc(cls)||'this class'}.
       </div>`;
   }
 
-  // ── REAZIONI ──
+  // ── REACTIONS ──
   if(show('reaction')){
-    if(f==='all') html+='<div class="action-section-hdr">🔄 Reazioni</div>';
-    for(const a of classActions.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildClassActionCard(a);
+    if(f==='all') html+='<div class="action-section-hdr">🔄 Reactions</div>';
+    for(const a of allClassActions.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildStdActionCard(a);
   }
 
@@ -1842,8 +1947,8 @@ function renderSpellsTab(){
   const hasAdapterAT = !!(C?.subclassShortName==='Arcane Trickster'||C?.choices?.subclass_at_cantrip_1);
 
   if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips){
-    el.innerHTML='<div class="phmsg">Questo personaggio non è un incantatore.</div>'
-      + '<button class="spl-add-btn" onclick="openSpellPicker()">+ Aggiungi Magia</button>';
+    el.innerHTML='<div class="phmsg">This character is not a spellcaster.</div>'
+      + '<button class="spl-add-btn" onclick="openSpellPicker()">+ Add Spell</button>';
     return;
   }
 
@@ -1853,15 +1958,15 @@ function renderSpellsTab(){
   let h = `<div style="display:flex;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap">
     <div class="stat-box" style="min-width:80px">
       <div class="stat-box-val" style="font-size:18px">${dc}</div>
-      <div class="stat-box-lbl">CD Magie</div>
+      <div class="stat-box-lbl">Spell DC</div>
     </div>
     <div class="stat-box" style="min-width:80px">
       <div class="stat-box-val" style="font-size:18px">${atk}</div>
-      <div class="stat-box-lbl">Attacco Magia</div>
+      <div class="stat-box-lbl">Spell Attack</div>
     </div>
     <div class="stat-box" style="min-width:80px">
       <div class="stat-box-val" style="font-size:18px">${SLBL[getSpellAbility()]}</div>
-      <div class="stat-box-lbl">Caratt. Magia</div>
+      <div class="stat-box-lbl">Spell Ability</div>
     </div>
   </div>`;
 
@@ -1869,14 +1974,36 @@ function renderSpellsTab(){
   const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
   const HALF_SLOTS=[null,null,[2,0,0,0,0],[3,0,0,0,0],[3,0,0,0,0],[4,2,0,0,0],[4,2,0,0,0],[4,3,0,0,0],[4,3,0,0,0],[4,3,2,0,0],[4,3,2,0,0],[4,3,3,0,0],[4,3,3,0,0],[4,3,3,1,0],[4,3,3,1,0],[4,3,3,2,0],[4,3,3,2,0],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
   const PACT_SLOTS=[null,{n:1,l:1},{n:2,l:1},{n:2,l:2},{n:2,l:2},{n:3,l:3},{n:3,l:3},{n:3,l:4},{n:3,l:4},{n:3,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5}];
-  const prog = C.clsSnapshot?.casterProgression;
+  const MC_CASTER={'Bard':'full','Cleric':'full','Druid':'full','Sorcerer':'full','Wizard':'full','Paladin':'half','Ranger':'half'};
   const lv = C.level;
+  const extra = C.extraClasses||[];
+  const pLvSheet = C.classLevel || lv - extra.reduce((s,ec)=>s+(ec.level||1),0);
+  function _sheetCasterLv(clsName,clsLv,scName){
+    const t=MC_CASTER[clsName];
+    if(t==='full') return clsLv;
+    if(t==='half') return Math.floor(clsLv/2);
+    if(clsName==='Fighter'&&scName==='EK') return Math.floor(clsLv/3);
+    if(clsName==='Rogue'&&scName==='AT') return Math.floor(clsLv/3);
+    return 0; // Warlock and non-casters = 0 (pact handled separately)
+  }
+  const prog = C.clsSnapshot?.casterProgression;
   let slots = [];
-  if(prog==='full') slots = FULL_SLOTS[lv]||[];
+  let warlockLv = 0; // total Warlock levels across all classes
+  if(extra.length){
+    // Combined non-Warlock caster levels
+    let cLv = _sheetCasterLv(C.className||'', pLvSheet, C.subclassShortName||'');
+    if(prog==='pact') warlockLv += pLvSheet;
+    extra.forEach(ec=>{
+      cLv += _sheetCasterLv(ec.name||'',ec.level||1,ec.subclassShortName||'');
+      if(ec.clsSnapshot?.casterProgression==='pact'||ec.name==='Warlock') warlockLv+=(ec.level||1);
+    });
+    cLv = Math.floor(cLv);
+    slots = cLv>0 ? (FULL_SLOTS[Math.min(cLv,20)]||[]) : [];
+  } else if(prog==='full') slots = FULL_SLOTS[lv]||[];
   else if(prog==='1/2') slots = HALF_SLOTS[lv]||[];
   if(slots.length){
     h+=`<div style="margin-bottom:.75rem">
-      <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Slot Incantesimo</div>
+      <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Spell Slots</div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">`;
     for(let i=0;i<slots.length;i++){
       const tot=slots[i]; if(!tot) continue;
@@ -1889,7 +2016,8 @@ function renderSpellsTab(){
       </div>`;
     }
     h+=`</div></div>`;
-  } else if(prog==='pact'){
+  } else if(prog==='pact' && !extra.length){
+    // Single-class Warlock: show pact slots
     const ps=PACT_SLOTS[lv]||{n:1,l:1};
     const used=spellSlotUsed[ps.l]||0;
     h+=`<div style="margin-bottom:.75rem">
@@ -1898,6 +2026,22 @@ function renderSpellsTab(){
         <div>
           <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
           <div class="slot-pips" id="slot-pips-${ps.l}">
+            ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${ps.l},${k})"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  // Warlock pact slots in multiclass: always shown separately per 5e rules
+  if(extra.length && warlockLv > 0){
+    const ps=PACT_SLOTS[Math.min(warlockLv,20)]||{n:1,l:1};
+    const used=spellSlotUsed[ps.l]||0;
+    h+=`<div style="margin-bottom:.75rem">
+      <div class="spell-level-hdr" style="color:var(--purple);border-bottom-color:rgba(155,89,182,.25)">Slot Patto Warlock (${ps.n}x ${ps.l}°) — SR</div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
+        <div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
+          <div class="slot-pips" id="slot-pips-pact-${ps.l}">
             ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${ps.l},${k})"></div>`).join('')}
           </div>
         </div>
@@ -1978,9 +2122,9 @@ function renderSpellsTab(){
   }
 
   if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length){
-    h+='<div class="phmsg">Nessuna magia selezionata.</div>';
+    h+='<div class="phmsg">No spells selected.</div>';
   }
-  h+='<div style="margin-top:.75rem"><button class="spl-add-btn" onclick="openSpellPicker()">+ Aggiungi / Rimuovi Magia</button></div>';
+  h+='<div style="margin-top:.75rem"><button class="spl-add-btn" onclick="openSpellPicker()">+ Add / Remove Spell</button></div>';
   el.innerHTML = h;
 }
 
@@ -2020,8 +2164,8 @@ function getSpellSource(spellName){
       const vals = Array.isArray(val)?val:[val];
       if(vals.some(v=>typeof v==='string'&&v.toLowerCase()===n)){
         if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key],cls:'p'};
-        if(key.startsWith('feat_')) return {label:'Talento',cls:'g'};
-        if(key.startsWith('subclass_')) return {label:C.subclassShortName||'Sottoclasse',cls:'p'};
+        if(key.startsWith('feat_')) return {label:'Feat',cls:'g'};
+        if(key.startsWith('subclass_')) return {label:C.subclassShortName||'Subclass',cls:'p'};
       }
     }
   }
@@ -2066,11 +2210,11 @@ function updateXPDisplay(val){
 
 /* ═══════ ITEMS DB ═══════ */
 const ITEM_TYPE_LABELS = {
-  M:'Arma da Mischia',R:'Arma da Gittata',LA:'Arm. Leggera',MA:'Arm. Media',
-  HA:'Arm. Pesante',S:'Scudo',G:'Equipagg.',AT:'Strumenti',GS:'Set da Gioco',
-  INS:'Strumento',MNT:'Cavalcatura',VEH:'Veicolo',SCF:'Focale Magico',
-  WD:'Bacchetta',RG:'Anello',RD:'Bastone',ST:'Vincastro',WI:'Ogg. Merav.',
-  P:'Pozione',SC:'Pergamena','$':'Moneta',OTH:'Altro',GV:'Variante Magica',
+  M:'Melee Weapon',R:'Ranged Weapon',LA:'Light Armor',MA:'Medium Armor',
+  HA:'Heavy Armor',S:'Shield',G:'Gear',AT:'Tools',GS:'Gaming Set',
+  INS:'Instrument',MNT:'Mount',VEH:'Vehicle',SCF:'Spellcasting Focus',
+  WD:'Wand',RG:'Ring',RD:'Rod',ST:'Staff',WI:'Wondrous Item',
+  P:'Potion',SC:'Scroll','$':'Currency',OTH:'Other',GV:'Magic Variant',
 };
 const ITEM_RARITY_COLOR = {
   none:'var(--text3)',common:'var(--text2)',uncommon:'var(--green)',
@@ -2183,7 +2327,7 @@ const normalizeItemType = (item) => {
 async function loadItems(){
   invLoadingState='loading';
   const loadingEl = document.getElementById('inv-search-results');
-  if(loadingEl) loadingEl.innerHTML='<div class="phmsg" style="font-size:12px">Caricamento database oggetti…</div>';
+  if(loadingEl) loadingEl.innerHTML='<div class="phmsg" style="font-size:12px">Loading item database…</div>';
   try{
     const [r1,r2,r3] = await Promise.all([
       fetch(BASE_URL+'items-base.json'),
@@ -2213,9 +2357,9 @@ async function loadItems(){
     renderItemSearch();
   } catch(e){
     invLoadingState='idle';
-    console.warn('Items DB non caricato:',e);
+    console.warn('Items DB failed to load:',e);
     const el=document.getElementById('inv-search-results');
-    if(el) el.innerHTML='<div class="phmsg" style="color:var(--red2);font-size:12px">Errore caricamento oggetti.</div>';
+    if(el) el.innerHTML='<div class="phmsg" style="color:var(--red2);font-size:12px">Error loading items.</div>';
   }
 }
 
@@ -2229,13 +2373,13 @@ function setInvFilter(f, btn){
 function renderItemSearch(){
   const el = document.getElementById('inv-search-results');
   if(!el) return;
-  if(invLoadingState==='loading'){ el.innerHTML='<div class="phmsg" style="font-size:12px">Caricamento…</div>'; return; }
+  if(invLoadingState==='loading'){ el.innerHTML='<div class="phmsg" style="font-size:12px">Loading…</div>'; return; }
   const q = (document.getElementById('inv-search')?.value||'').toLowerCase().trim();
   let list = allItemsDb;
   if(invFilter!=='all') list = list.filter(i=>ITEM_TYPE_GROUP(i)===invFilter);
   if(q) list = list.filter(i=>i.name.toLowerCase().includes(q));
   list = list.slice(0,60);
-  if(!list.length){ el.innerHTML='<div class="phmsg" style="font-size:12px">Nessun oggetto trovato.</div>'; return; }
+  if(!list.length){ el.innerHTML='<div class="phmsg" style="font-size:12px">No items found.</div>'; return; }
   el.innerHTML = list.map(item=>{
     const typeLabel = ITEM_TYPE_LABELS[item.type]||item.type||'—';
     const rarity = item.rarity && item.rarity!=='none' ? item.rarity : null;
@@ -2250,7 +2394,7 @@ function renderItemSearch(){
       weight:item.weight,value:item.value,dmg1:item.dmg1,dmgType:item.dmgType,
       ac:item.ac,bonusWeapon:item.bonusWeapon,bonusAc:item.bonusAc,property:item.property||[],
       entries:item.entries||[],
-    }));
+    })).replace(/'/g,'%27');
     return `<div class="inv-search-row" onclick="addItemToInventory(decodeURIComponent('${payload}'))">
       <div class="inv-search-name">${esc(item.name)}</div>
       <div class="inv-search-meta" style="color:${rc}">${esc(rarity||typeLabel)}${dmg}${bonus}${ac}</div>
@@ -2365,13 +2509,13 @@ function renderInventoryList(){
   const totalGP = sheetInventory.reduce((s,i)=>s+((i.value||0)/100)*(i.qty||1),0).toFixed(1);
   if(countEl) countEl.textContent=totalItems;
   if(statsEl) statsEl.innerHTML=`
-    <div class="inv-stat-pill">Peso: <b>${totalWeight} lb</b></div>
-    <div class="inv-stat-pill">Capacità: <b>${getFinal('str')*15} lb</b></div>
-    <div class="inv-stat-pill">Valore: <b>${totalGP} MO</b></div>`;
-  if(!sheetInventory.length){ el.innerHTML='<div class="phmsg">Inventario vuoto.</div>'; return; }
+    <div class="inv-stat-pill">Weight: <b>${totalWeight} lb</b></div>
+    <div class="inv-stat-pill">Capacity: <b>${getFinal('str')*15} lb</b></div>
+    <div class="inv-stat-pill">Value: <b>${totalGP} GP</b></div>`;
+  if(!sheetInventory.length){ el.innerHTML='<div class="phmsg">Inventory empty.</div>'; return; }
   const groupDefs = [
-    {g:'weapon',label:'⚔ Armi'},{g:'armor',label:'🛡 Armature'},
-    {g:'magic',label:'✦ Magici'},{g:'gear',label:'🎒 Equipaggiamento'},
+    {g:'weapon',label:'⚔ Weapons'},{g:'armor',label:'🛡 Armor'},
+    {g:'magic',label:'✦ Magic'},{g:'gear',label:'🎒 Gear'},
   ];
   let h='';
   for(const {g,label} of groupDefs){
@@ -2388,14 +2532,14 @@ function renderInventoryList(){
       // dmg: show base die + magic bonus together
       const dmgParts = [];
       if(item.dmg1) dmgParts.push(item.dmg1+(item.dmgType?' '+item.dmgType:''));
-      if(item.bonusWeapon) dmgParts.push(item.bonusWeapon+' magia');
-      // AC: show base CA + bonus together
+      if(item.bonusWeapon) dmgParts.push(item.bonusWeapon+' magic');
+      // AC: show base AC + bonus together
       const acParts = [];
-      if(item.ac) acParts.push('CA '+item.ac);
-      if(item.bonusAc) acParts.push(item.bonusAc+' magia');
+      if(item.ac) acParts.push('AC '+item.ac);
+      if(item.bonusAc) acParts.push(item.bonusAc+' magic');
       const dmgStr = dmgParts.join(' ') || '';
       const acStr  = acParts.join(' ') || '';
-      const PROP_MAP={F:'Finesse',L:'Leggero',H:'Pesante',T:'Lancio','2H':'Due Mani',V:'Versatile',A:'Muni.',REACH:'Portata'};
+      const PROP_MAP={F:'Finesse',L:'Light',H:'Heavy',T:'Thrown','2H':'Two-Handed',V:'Versatile',A:'Ammo.',REACH:'Reach'};
       const propStr = (item.property||[]).map(p=>PROP_MAP[p]||p).filter(Boolean).join(', ');
       const meta = [item.weight?item.weight+'lb':null, dmgStr||null, acStr||null, propStr||null].filter(Boolean).join(' · ');
       const entryText = item.entries ? clean(rE(item.entries)).slice(0,200) : '';
@@ -2409,7 +2553,7 @@ function renderInventoryList(){
           <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:9px;color:var(--text3)">[custom]</span>':''}</div>
           ${meta?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
-        ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?'✓ Equip.':'Equipaggia'}</button>`:''}
+        ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?'✓ Equip.':'Equip'}</button>`:''}
         <div class="inv-qty-wrap">
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},-1)">−</button>
           <div class="inv-qty-val">${item.qty||1}</div>
@@ -2425,7 +2569,7 @@ function renderInventoryList(){
 
 function renderFeaturesTab(){
   const el = document.getElementById('features-wrap');
-  const lv = C.level;
+  const lv = C.classLevel || C.level; // livello classe primaria, non totale
   const allF = (C.allClassFeatures||[]).filter(f=>f.level<=lv&&!f.isReprinted);
   const allSF= C.subclassShortName
     ? (C.allSubFeatures||[]).filter(f=>f.subclassShortName===C.subclassShortName&&f.level<=lv&&!f.isReprinted)
@@ -2437,15 +2581,15 @@ function renderFeaturesTab(){
     if(!C?.choices) return null;
     for(const [key,val] of Object.entries(C.choices)){
       if(val===featName){
-        if(key==='species_origin_feat') return 'Origine (Specie)';
-        if(key.startsWith('feat_origin')) return 'Origine (BG)';
-        if(key.startsWith('bg_feat')) return 'Origine (BG)';
+        if(key==='species_origin_feat') return 'Origin (Species)';
+        if(key.startsWith('feat_origin')) return 'Origin (BG)';
+        if(key.startsWith('bg_feat')) return 'Origin (BG)';
         const lvMatch = key.match(/lv(\d+)/i);
-        if(lvMatch) return `Talento Lv.${lvMatch[1]}`;
-        return 'Talento';
+        if(lvMatch) return `Feat Lv.${lvMatch[1]}`;
+        return 'Feat';
       }
     }
-    return 'Talento';
+    return 'Feat';
   }
 
   function _featItem(id, name, badge, badgeStyle, body){
@@ -2459,7 +2603,7 @@ function renderFeaturesTab(){
         </div>
         <span class="feature-arrow">▶</span>
       </div>
-      <div class="feature-body">${body||'<i style="color:var(--text3)">Nessuna descrizione.</i>'}</div>
+      <div class="feature-body">${body||'<i style="color:var(--text3)">No description.</i>'}</div>
     </div>`;
   }
 
@@ -2475,7 +2619,7 @@ function renderFeaturesTab(){
         const id='feat_'+Math.random().toString(36).slice(2);
         const isSub = f._type==='sub';
         const srcLabel = isSub
-          ? `◆ ${C.subclassShortName||'Sottoclasse'} · Lv.${lvNum}`
+          ? `◆ ${C.subclassShortName||'Subclass'} · Lv.${lvNum}`
           : `${C.className} · Lv.${lvNum}`;
         h+=`<div class="feature-item" id="${id}">
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
@@ -2487,7 +2631,37 @@ function renderFeaturesTab(){
             </div>
             <span class="feature-arrow">▶</span>
           </div>
-          <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">Nessuna descrizione.</i>'}</div>
+          <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">No description.</i>'}</div>
+        </div>`;
+      }
+    }
+  }
+
+  // Extra classes features
+  for(const ec of (C.extraClasses||[])){
+    if(!ec.name) continue;
+    const ecAllF  = (ec.allClassFeatures||[]).filter(f=>f.level<=(ec.level||1));
+    const ecAllSF = ec.subclassShortName ? (ec.allSubFeatures||[]).filter(f=>f.subclassShortName===ec.subclassShortName&&f.level<=(ec.level||1)) : [];
+    if(!ecAllF.length && !ecAllSF.length) continue;
+    const ecSc = ec.subclassShortName ? ` (${ec.subclassShortName})` : '';
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:.75rem 0 .5rem">⚔ ${esc(ec.name)}${esc(ecSc)}</div>`;
+    const byLvE={};
+    for(const f of ecAllF)  { (byLvE[f.level]||(byLvE[f.level]=[])).push({...f,_type:'cls'}); }
+    for(const f of ecAllSF) { (byLvE[f.level]||(byLvE[f.level]=[])).push({...f,_type:'sub'}); }
+    for(const lvNum of Object.keys(byLvE).map(Number).sort((a,b)=>a-b)){
+      for(const f of byLvE[lvNum]){
+        const id='feat_'+Math.random().toString(36).slice(2);
+        const isSub=f._type==='sub';
+        const srcLabel=isSub?`◆ ${ec.subclassShortName} · Lv.${lvNum}`:`${ec.name} · Lv.${lvNum}`;
+        h+=`<div class="feature-item" id="${id}">
+          <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
+            <div style="flex:1;min-width:0">
+              <div class="feature-name${isSub?' sub':''}">${esc(clean(f.name||''))}</div>
+              <div style="font-size:9px;color:${isSub?'var(--purple)':'var(--text3)'};margin-top:1px">${esc(srcLabel)}</div>
+            </div>
+            <span class="feature-arrow">▶</span>
+          </div>
+          <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">No description.</i>'}</div>
         </div>`;
       }
     }
@@ -2522,7 +2696,7 @@ function renderFeaturesTab(){
         <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
           <div style="flex:1;min-width:0">
             <div class="feature-name" style="color:var(--orange)">${esc(f.name)}</div>
-            <div style="font-size:9px;color:var(--orange);opacity:.7;margin-top:1px">✧ ${esc(slot||'Talento')}${catLabel}</div>
+            <div style="font-size:9px;color:var(--orange);opacity:.7;margin-top:1px">✧ ${esc(slot||'Feat')}${catLabel}</div>
           </div>
           <span class="feature-arrow">▶</span>
         </div>
@@ -2531,26 +2705,26 @@ function renderFeaturesTab(){
     }
   }
 
-  if(!h) h='<div class="phmsg">Nessuna feature disponibile.</div>';
+  if(!h) h='<div class="phmsg">No features available.</div>';
   el.innerHTML = h;
 }
 
 function renderBackgroundTab(){
   const el = document.getElementById('background-wrap');
-  if(!C.bgName){ el.innerHTML='<div class="phmsg">Nessun background selezionato.</div>'; return; }
+  if(!C.bgName){ el.innerHTML='<div class="phmsg">No background selected.</div>'; return; }
   const snap = C.bgSnapshot||{};
 
   let h = `<div class="bg-section">
     <div class="bg-section-title">📜 ${esc(C.bgName)}</div>`;
 
   const skills = (snap.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose'));
-  if(skills.length) h+=`<p class="bg-text"><strong>Competenze:</strong> ${skills.join(', ')}</p>`;
+  if(skills.length) h+=`<p class="bg-text"><strong>Skills:</strong> ${skills.join(', ')}</p>`;
 
   const tools = (snap.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>k!=='choose'&&k!=='anyArtisansTool'));
-  if(tools.length) h+=`<p class="bg-text"><strong>Strumenti:</strong> ${tools.join(', ')}</p>`;
+  if(tools.length) h+=`<p class="bg-text"><strong>Tools:</strong> ${tools.join(', ')}</p>`;
 
-  const langs = (snap.languageProficiencies||[]).map(lp=>lp.anyStandard?`${lp.anyStandard} lingua a scelta`:Object.keys(lp).filter(k=>lp[k]===true).join(', ')).filter(Boolean);
-  if(langs.length) h+=`<p class="bg-text"><strong>Lingue:</strong> ${langs.join(', ')}</p>`;
+  const langs = (snap.languageProficiencies||[]).map(lp=>lp.anyStandard?`${lp.anyStandard} language of your choice`:Object.keys(lp).filter(k=>lp[k]===true).join(', ')).filter(Boolean);
+  if(langs.length) h+=`<p class="bg-text"><strong>Languages:</strong> ${langs.join(', ')}</p>`;
 
   h+=`</div>`;
 
@@ -2593,10 +2767,10 @@ function doRest(type){
     renderHitDice();
     renderSpellsTab();
     renderActionsTab();
-    showDiceToast('Riposo Lungo', [], 0, maxHP, 'PF, slot e risorse ripristinati!');
+    showDiceToast('Long Rest', [], 0, maxHP, 'HP, slots and resources restored!');
   } else {
     const hdLeft = C.level - usedHD;
-    if(!hdLeft){ showDiceToast('Riposo Breve', [], 0, 0, 'Nessun dado vita rimasto!'); return; }
+    if(!hdLeft){ showDiceToast('Short Rest', [], 0, 0, 'No hit dice remaining!'); return; }
     const hd = C.clsSnapshot?.hd;
     let faces = 8;
     if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
@@ -2612,7 +2786,7 @@ function doRest(type){
     if(d) d.textContent = currentHP;
     renderHitDice();
     renderActionsTab();
-    showDiceToast('Riposo Breve', [roll], conMod, heal, `d${faces} + CON (${fbonus(conMod)}) = +${heal} PF`);
+    showDiceToast('Short Rest', [roll], conMod, heal, `d${faces} + CON (${fbonus(conMod)}) = +${heal} HP`);
   }
 }
 
@@ -2635,8 +2809,8 @@ function rollD20(bonus, label, advantage){
   const r2 = advantage!==undefined ? _rollDie(20) : null;
   let roll = r1;
   let detail = '';
-  if(advantage===true){  roll=Math.max(r1,r2); detail=`Vantaggio: ${r1} / ${r2}`; }
-  if(advantage===false){ roll=Math.min(r1,r2); detail=`Svantaggio: ${r1} / ${r2}`; }
+  if(advantage===true){  roll=Math.max(r1,r2); detail=`Advantage: ${r1} / ${r2}`; }
+  if(advantage===false){ roll=Math.min(r1,r2); detail=`Disadvantage: ${r1} / ${r2}`; }
   const total = roll + bonus;
   const isCrit = roll===20, isFumble = roll===1;
   showDiceToast(label, [{v:roll,faces:20}], bonus, total,
@@ -2696,53 +2870,53 @@ let charResources = {};
 
 const CLASS_RESOURCES_DEF = {
   Barbarian:[
-    {key:'rage',            name:'Rabbia',              icon:'😡', recharge:'LR',
+    {key:'rage',            name:'Rage',              icon:'😡', recharge:'LR',
      max:(lv)=>lv>=20?Infinity:lv>=17?6:lv>=12?5:lv>=6?4:lv>=3?3:2 },
   ],
   Bard:[
-    {key:'bardic_insp',     name:'Ispirazione Bardica', icon:'🎵', recharge:'SR',
+    {key:'bardic_insp',     name:'Bardic Inspiration', icon:'🎵', recharge:'SR',
      max:(lv,s)=>Math.max(1,getMod(getFinal('cha'))) },
   ],
   Cleric:[
-    {key:'channel_div',     name:'Canalizza Divinita',  icon:'☀', recharge:'SR',
+    {key:'channel_div',     name:'Channel Divinity',  icon:'☀', recharge:'SR',
      max:(lv)=>lv>=18?3:lv>=6?2:1 },
   ],
   Druid:[
-    {key:'wild_shape',      name:'Forma Selvatica',     icon:'🐻', recharge:'SR',
+    {key:'wild_shape',      name:'Wild Shape',        icon:'🐻', recharge:'SR',
      max:()=>2 },
   ],
   Fighter:[
-    {key:'second_wind',     name:'Secondo Respiro',     icon:'💨', recharge:'SR',
+    {key:'second_wind',     name:'Second Wind',       icon:'💨', recharge:'SR',
      max:()=>1 },
-    {key:'action_surge',    name:'Scatto Azione',       icon:'⚡', recharge:'SR',
+    {key:'action_surge',    name:'Action Surge',      icon:'⚡', recharge:'SR',
      max:(lv)=>lv>=17?2:1 },
   ],
   Monk:[
-    {key:'ki',              name:'Punti Ki',            icon:'🌀', recharge:'SR',
+    {key:'ki',              name:'Ki Points',         icon:'🌀', recharge:'SR',
      max:(lv)=>lv, pool:true },
   ],
   Paladin:[
-    {key:'lay_on_hands',    name:'Imposizione Mani',    icon:'🙏', recharge:'LR',
+    {key:'lay_on_hands',    name:'Lay on Hands',      icon:'🙏', recharge:'LR',
      max:(lv)=>lv*5, pool:true },
-    {key:'divine_sense',    name:'Senso Divino',        icon:'✝', recharge:'LR',
+    {key:'divine_sense',    name:'Divine Sense',      icon:'✝', recharge:'LR',
      max:()=>Math.max(1,getMod(getFinal('cha')))+1 },
   ],
   Sorcerer:[
-    {key:'sorc_pts',        name:'Punti Stregoneria',   icon:'🌀', recharge:'LR',
+    {key:'sorc_pts',        name:'Sorcery Points',    icon:'🌀', recharge:'LR',
      max:(lv)=>lv, pool:true },
   ],
   Wizard:[
-    {key:'arc_recovery',    name:'Recupero Arcano',     icon:'📖', recharge:'LR',
+    {key:'arc_recovery',    name:'Arcane Recovery',   icon:'📖', recharge:'LR',
      max:()=>1 },
   ],
 };
 
 // Key → action name mapping (so we know which action card gets pips)
 const RESOURCE_ACTION_MAP = {
-  rage:'Rabbia', bardic_insp:'Ispirazione Bardica', channel_div:'Canalizza Divinita',
-  wild_shape:'Forma Selvatica', second_wind:'Secondo Respiro', action_surge:"Scatto d'Azione",
-  ki:'Punti Ki', lay_on_hands:'Imposizione delle Mani', divine_sense:'Senso Divino',
-  sorc_pts:'Metamagia', arc_recovery:'Recupero Arcano',
+  rage:'Rage', bardic_insp:'Bardic Inspiration', channel_div:'Channel Divinity',
+  wild_shape:'Wild Shape', second_wind:'Second Wind', action_surge:'Action Surge',
+  ki:'Ki Points', lay_on_hands:'Lay on Hands', divine_sense:'Divine Sense',
+  sorc_pts:'Sorcery Points', arc_recovery:'Arcane Recovery',
 };
 
 function getResMax(res){
@@ -2863,9 +3037,9 @@ function buildWeaponCard(item){
     </div>
     <div class="action-card-body">
       <div class="action-info-row">
-        <button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkMod},'Attacco: ${wName}')">🎲 Colpisce ${fbonus(atkMod)}</button>
-        <button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','Danno: ${wName}')">💥 ${esc(dmgLabel)}</button>
-        ${versDie?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${versDie}${dmgSign}${dmgMod}','Danno vers.: ${wName}')">🤲 ${versDie} vers.</button>`:''}
+        <button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkMod},'Attack: ${wName}')">🎲 Hits ${fbonus(atkMod)}</button>
+        <button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','Damage: ${wName}')">💥 ${esc(dmgLabel)}</button>
+        ${versDie?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${versDie}${dmgSign}${dmgMod}','Damage (vers.): ${wName}')">🤲 ${versDie} vers.</button>`:''}
         <div class="action-dmg-pill">📏 <b>${esc(range)}</b></div>
         ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
         ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">✦ Magica +${bonus}</div>`:''}
@@ -2883,13 +3057,13 @@ function buildCantripCard(name){
       <div class="action-card-hdr" onclick="toggleCard('${id}')">
         <span class="action-card-icon">✦</span>
         <div style="flex:1;min-width:0"><div class="action-card-name">${esc(name)}<span class="sub">Cantrip</span></div></div>
-        <div class="action-card-tags"><span class="action-tag atk">MAGIA</span></div>
+        <div class="action-card-tags"><span class="action-tag atk">SPELL</span></div>
         <div class="action-stat">${fbonus(sm+pb)}</div>
       </div>
       <div class="action-card-body">
         <div class="action-info-row">
-          <button class="roll-btn" onclick="event.stopPropagation();rollD20(${sm+pb},'${esc(name)}')">🎲 Attacco ${fbonus(sm+pb)}</button>
-          <div class="action-dmg-pill">📏 varia</div>
+          <button class="roll-btn" onclick="event.stopPropagation();rollD20(${sm+pb},'${esc(name)}')">🎲 Attack ${fbonus(sm+pb)}</button>
+          <div class="action-dmg-pill">📏 varies</div>
         </div>
       </div>
     </div>`;
@@ -2923,20 +3097,20 @@ function buildCantripCard(name){
 }
 
 function buildClassActionCard(a){
-  const catLabel={action:'AZIONE',bonus:'BONUS',reaction:'REAZ.',react:'REAZ.',attack:'ATK'};
+  const catLabel={action:'ACTION',bonus:'BONUS',reaction:'REACT.',react:'REACT.',attack:'ATK'};
   const tagCls={action:'util',bonus:'bonus',reaction:'react',react:'react',attack:'atk'};
   const id='ac_'+Math.random().toString(36).slice(2);
 
   // Build roll buttons for specific actions
   let rollRow='';
-  if(a.name==="Secondo Respiro"){
+  if(a.name==="Second Wind"){
     const lv=C?.level||1;
-    rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('1d10+${lv}','Secondo Respiro - Cura')">💚 Cura 1d10+${lv}</button>`;
-  } else if(a.name==="Attacco Furtivo"){
+    rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('1d10+${lv}','Second Wind - Heal')">💚 Heal 1d10+${lv}</button>`;
+  } else if(a.name==="Sneak Attack"){
     const sd=Math.ceil((C?.level||1)/2);
-    rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${sd}d6','Attacco Furtivo')">🗡 ${sd}d6 danno extra</button>`;
-  } else if(a.name==="Attacco Divino"){
-    rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('2d8','Attacco Divino - 1 grado')">✨ 2d8 radiante</button>`;
+    rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${sd}d6','Sneak Attack')">🗡 ${sd}d6 extra damage</button>`;
+  } else if(a.name==="Divine Smite"){
+    rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('2d8','Divine Smite - 1st level')">✨ 2d8 radiant</button>`;
   }
 
   // Build resource block inline
@@ -2954,8 +3128,8 @@ function buildClassActionCard(a){
         <div class="action-card-name">${esc(a.name)}${a.uses?`<span class="sub">${esc(a.uses)}</span>`:''}</div>
       </div>
       <div class="action-card-tags">
-        <span class="action-tag ${tagCls[a.cat]||'util'}">${catLabel[a.cat]||'AZIONE'}</span>
-        <span class="action-tag cls">CLASSE</span>
+        <span class="action-tag ${tagCls[a.cat]||'util'}">${catLabel[a.cat]||'ACTION'}</span>
+        <span class="action-tag cls">${a._cls ? esc(a._cls).toUpperCase() : 'CLASS'}</span>
       </div>
     </div>
     <div class="action-card-body">
@@ -2969,13 +3143,13 @@ function buildUnarmedCard(opt){
   const strMod=getMod(getFinal('str')), pb=getPB();
   const id='ac_'+Math.random().toString(36).slice(2);
   const tag=opt.cat==='attack'?'atk':'util';
-  const catLbl=opt.cat==='attack'?'ATK':'AZIONE';
+  const catLbl=opt.cat==='attack'?'ATK':'ACTION';
   const stat=opt.cat==='attack'?fbonus(strMod+pb):null;
   let infoRow='';
   if(opt.cat==='attack'){
     infoRow=`<div class="action-info-row">
-      <button class="roll-btn" onclick="event.stopPropagation();rollD20(${strMod+pb},'Colpo Senza Armi')">🎲 Colpisce ${fbonus(strMod+pb)}</button>
-      <button class="roll-btn dmg" onclick="event.stopPropagation();showDiceToast('Danno',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + FOR')">💥 ${Math.max(1,1+strMod)} contund.</button>
+      <button class="roll-btn" onclick="event.stopPropagation();rollD20(${strMod+pb},'Unarmed Strike')">🎲 Hits ${fbonus(strMod+pb)}</button>
+      <button class="roll-btn dmg" onclick="event.stopPropagation();showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">💥 ${Math.max(1,1+strMod)} bludg.</button>
       <div class="action-dmg-pill">📏 5 ft</div>
     </div>`;
   }
@@ -2995,7 +3169,7 @@ function buildUnarmedCard(opt){
 
 function buildStdActionCard(a){
   const tagCls={action:'util',bonus:'bonus',reaction:'react',react:'react'};
-  const catLbl=a.cat==='bonus'?'BONUS':a.cat==='reaction'||a.cat==='react'?'REAZ.':'AZIONE';
+  const catLbl=a.cat==='bonus'?'BONUS':a.cat==='reaction'||a.cat==='react'?'REACT.':'ACTION';
   const id='ac_'+Math.random().toString(36).slice(2);
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
@@ -3079,15 +3253,15 @@ function _getPickerModal(){
   m.innerHTML = `
     <div style="max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem">
       <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
-        <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);flex:1">✦ Magie</div>
+        <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);flex:1">✦ Spells</div>
         <span id="spl-count" class="spl-count-badge"></span>
         <button onclick="closeSpellPicker()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1">✕</button>
       </div>
       <div id="spl-tabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem"></div>
-      <input id="spl-q" type="text" placeholder="Cerca…" oninput="_renderPickerList()"
+      <input id="spl-q" type="text" placeholder="Search…" oninput="_renderPickerList()"
         style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
                color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit;margin-bottom:.6rem"/>
-      <div id="spl-loading" style="color:var(--text3);font-size:13px;font-style:italic;display:none">Caricamento…</div>
+      <div id="spl-loading" style="color:var(--text3);font-size:13px;font-style:italic;display:none">Loading…</div>
       <div id="spl-list" style="max-height:52vh;overflow-y:auto"></div>
     </div>`;
   document.body.appendChild(m);
@@ -3193,7 +3367,7 @@ function _renderPickerList(){
       <span class="spl-school">${SCHOOL_SHORT[s.school]||s.school||''}</span>
       ${on?`<span class="spl-check">✓</span>`:blocked?`<span class="spl-school">max</span>`:''}
     </div>`;
-  }).join('') || '<div class="phmsg">Nessuna magia trovata.</div>';
+  }).join('') || '<div class="phmsg">No spells found.</div>';
 }
 
 function toggleSheetSpell(name, level){
@@ -3235,6 +3409,55 @@ function toggleSheetSpell(name, level){
   _buildPickerTabs();
   _renderPickerList();
   renderSpellsTab();
+}
+
+/* ═══════ TORNA AL BUILDER ═══════ */
+function goBackToBuilder(e) {
+  e.preventDefault();
+  const cur = C || JSON.parse(localStorage.getItem('5e_current_char') || 'null');
+  if (cur) {
+    const existing = JSON.parse(localStorage.getItem('5e_builder_state') || 'null');
+    // Only reuse builder-only fields if the stored state matches name+class+level+subclass exactly
+    const sameChar = existing &&
+      existing.name === cur.name &&
+      existing.className === cur.className &&
+      existing.classSource === cur.classSource &&
+      existing.level === cur.level &&
+      (existing.subclassShortName || null) === (cur.subclassShortName || null);
+    const state = Object.assign({}, cur, sameChar ? {
+      hpMode: existing.hpMode,
+      hpManualRolls: existing.hpManualRolls,
+      dicePool: existing.dicePool,
+      diceAssign: existing.diceAssign,
+      equipChoices: existing.equipChoices,
+      bgPatternIdx: existing.bgPatternIdx,
+    } : {});
+    try { state.inventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(cur.inventory || [])); } catch(e2){}
+    try { state.currency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(cur.currency || {})); } catch(e2){}
+    state.xp = parseInt(localStorage.getItem('5e_xp') || cur.xp || 0);
+    localStorage.setItem('5e_builder_state', JSON.stringify(state));
+  }
+  window.location.href = 'charbuilder.html';
+}
+
+/* ═══════ DOWNLOAD SCHEDA ═══════ */
+function downloadSheet() {
+  try {
+    // Bundle all 5e_ keys so the downloaded file is fully self-contained
+    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state'];
+    const data = {};
+    keys.forEach(k => { const v = localStorage.getItem(k); if (v != null) data[k] = v; });
+    const safeJson = JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
+    // Preload: clear only the known character-sheet keys (not all 5e_* — others may belong to unrelated data)
+    const knownKeys = JSON.stringify(keys).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
+    const preload = '<scr'+'ipt>(function(){var d='+safeJson+';var k='+knownKeys+';k.forEach(function(x){localStorage.removeItem(x);});for(var x in d)localStorage.setItem(x,d[x]);})();<'+'/scr'+'ipt>';
+    const out = '<!DOCTYPE html>\n' + document.documentElement.outerHTML.replace('</head>', preload + '</head>');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([out], { type: 'text/html' }));
+    a.download = (C && C.name ? C.name : 'personaggio').replace(/[^a-z0-9_\-\.]/gi, '_') + '_scheda.html';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  } catch(e) { alert('Errore download: ' + e.message); }
 }
 
 /* ═══════ INIT ═══════ */

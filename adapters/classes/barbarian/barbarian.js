@@ -2,13 +2,13 @@ registerClassAdapter("Barbarian", function (cls, lv, specs) {
   if (lv >= 3) {
     const allSkills = typeof SKILLS !== 'undefined'
       ? SKILLS.map(function (s) { return s.n; })
-      : ['Acrobatica','Animalesca','Arcana','Atletica','Consapevolezza',
-         'Destrezza Manuale','Furtività','Indagare','Inganno','Intuizione',
-         'Intimidazione','Medicina','Percezione','Perform','Persuasione',
-         'Religione','Sopravvivenza'];
+      : ['Acrobatics','Animal Handling','Arcana','Athletics','Perception',
+         'Sleight of Hand','Stealth','Investigation','Deception','Insight',
+         'Intimidation','Medicine','Nature','History','Performance',
+         'Persuasion','Religion','Survival'];
     specs.push({
       key: 'barbarian_primal_knowledge',
-      label: 'Primal Knowledge (Skill Aggiuntiva)',
+      label: 'Primal Knowledge (Extra Skill)',
       type: 'skill_choice',
       from: allSkills,
       count: 1,

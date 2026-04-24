@@ -13,7 +13,7 @@ registerClassAdapter("Druid", function (cls, lv, specs) {
     if (_isMagician) {
       specs.push({
         key: 'druid_magician_cantrip',
-        label: 'Magician — Cantrip Aggiuntivo',
+        label: 'Magician — Extra Cantrip',
         type: 'spell_choice',
         spellFilter: { spellLevel: 0, classes: ['Druid'] },
         count: 1,

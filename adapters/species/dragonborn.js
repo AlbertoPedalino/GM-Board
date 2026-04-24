@@ -12,7 +12,7 @@ registerSpeciesAdapter("Dragonborn_XPHB", function (s) {
         });
       }
     });
-    specs.push({ key: 'species_version', label: 'Ascendenza Draconica', type: 'option', options: opts, count: 1, level: 1 });
+    specs.push({ key: 'species_version', label: 'Draconic Ancestry', type: 'option', options: opts, count: 1, level: 1 });
   }
   return specs;
 });

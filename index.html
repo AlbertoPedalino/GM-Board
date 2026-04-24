@@ -1906,9 +1906,9 @@
     </header>
 
     <div class="tabs">
-      <button class="tab on" id="tab-b" onclick="setView('builder')">Costruttore</button>
-      <button class="tab" id="tab-l" onclick="setView('library')">Libreria</button>
-      <button class="tab" id="tab-c" onclick="setView('combat')" disabled>Incontro</button>
+      <button class="tab on" id="tab-b" onclick="setView('builder')">Builder</button>
+      <button class="tab" id="tab-l" onclick="setView('library')">Library</button>
+      <button class="tab" id="tab-c" onclick="setView('combat')" disabled>Encounter</button>
     </div>
 
     <!-- ══ BUILDER ══ -->
@@ -1916,15 +1916,15 @@
       <div class="bgrid">
 
         <div class="panel">
-          <div class="ph"><span class="pt">Bestiari 5etools</span></div>
+          <div class="ph"><span class="pt">5etools Bestiary</span></div>
           <div class="pb">
             <div class="chips" id="chips"><span
-                style="font-size:13px;color:var(--text3);font-style:italic">Caricamento…</span></div>
+                style="font-size:13px;color:var(--text3);font-style:italic">Loading…</span></div>
             <div class="filters">
-              <input type="text" id="search" placeholder="Cerca mostro…" autocomplete="off" />
+              <input type="text" id="search" placeholder="Search monster…" autocomplete="off" />
               <div class="f2">
                 <select id="crf">
-                  <option value="">Tutti i CR</option>
+                  <option value="">All CR</option>
                   <option>0</option>
                   <option>1/8</option>
                   <option>1/4</option>
@@ -1957,7 +1957,7 @@
                   <option>30</option>
                 </select>
                 <select id="tyf">
-                  <option value="">Tutti i tipi</option>
+                  <option value="">All types</option>
                   <option>aberration</option>
                   <option>beast</option>
                   <option>celestial</option>
@@ -1976,7 +1976,7 @@
               </div>
             </div>
             <div class="mlist" id="mlist">
-              <div class="phmsg">Seleziona un bestiario sopra</div>
+              <div class="phmsg">Select a bestiary above</div>
             </div>
             <div id="lmw"></div>
           </div>
@@ -1984,11 +1984,11 @@
 
         <div>
           <div class="panel">
-            <div class="ph"><span class="pt">Gruppo avventurieri</span></div>
+            <div class="ph"><span class="pt">Adventuring Party</span></div>
             <div class="pb">
               <div class="party-top">
                 <div class="cnt">
-                  <div class="clbl">Giocatori</div>
+                  <div class="clbl">Players</div>
                   <div class="cctl">
                     <button class="cbtn" onclick="adjP(-1)">−</button>
                     <span class="cval" id="pv">4</span>
@@ -1996,7 +1996,7 @@
                   </div>
                 </div>
                 <div class="cnt">
-                  <div class="clbl">Livello</div>
+                  <div class="clbl">Level</div>
                   <div class="cctl">
                     <button class="cbtn" onclick="adjL(-1)">−</button>
                     <span class="cval" id="lv">5</span>
@@ -2004,21 +2004,21 @@
                   </div>
                 </div>
               </div>
-              <div class="slbl">Modificatori iniziativa</div>
+              <div class="slbl">Initiative Modifiers</div>
               <div class="plist" id="plist"></div>
             </div>
           </div>
 
           <div class="panel">
-            <div class="ph"><span class="pt">Mostri nell'incontro</span></div>
+            <div class="ph"><span class="pt">Monsters in Encounter</span></div>
             <div class="pb">
               <div class="elist" id="elist">
-                <div class="phmsg" style="padding:.75rem 0">Aggiungi mostri dall'elenco</div>
+                <div class="phmsg" style="padding:.75rem 0">Add monsters from the list</div>
               </div>
-              <div class="slbl">Difficoltà stimata</div>
+              <div class="slbl">Estimated Difficulty</div>
               <div class="dbox">
-                <div class="drow"><span class="dlbl">XP totali</span><span class="dxp" id="txp">—</span></div>
-                <div class="drow"><span class="dlbl">Difficoltà</span><span class="dbadge bnone" id="dbadge">—</span>
+                <div class="drow"><span class="dlbl">Total XP</span><span class="dxp" id="txp">—</span></div>
+                <div class="drow"><span class="dlbl">Difficulty</span><span class="dbadge bnone" id="dbadge">—</span>
                 </div>
                 <div class="xtrack">
                   <div class="xfill" id="xfill"></div>
@@ -2026,10 +2026,10 @@
                 <div class="tgrid" id="tgrid"></div>
               </div>
               <div class="save-enc-form">
-                <input type="text" id="enc-name" placeholder="Nome incontro (es. Imboscata nella foresta)…" />
+                <input type="text" id="enc-name" placeholder="Encounter name (e.g. Forest Ambush)…" />
                 <div class="save-enc-btns">
-                  <button class="btn-save-enc" id="btn-salva" onclick="saveEncounter()" disabled>📋 Salva Incontro</button>
-                  <button class="btn-launch-now" id="btn-avvia" onclick="avvia()" disabled title="Avvia senza salvare">⚔ Avvia</button>
+                  <button class="btn-save-enc" id="btn-salva" onclick="saveEncounter()" disabled>📋 Save Encounter</button>
+                  <button class="btn-launch-now" id="btn-avvia" onclick="avvia()" disabled title="Launch without saving">⚔ Launch</button>
                 </div>
                 <div class="save-confirm" id="save-confirm"></div>
               </div>
@@ -2044,12 +2044,12 @@
     <div id="library-view" style="display:none">
       <div class="panel">
         <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
-          <span class="pt">Incontri Preparati</span>
-          <button class="btn-sec danger" onclick="clearAllEncounters()" style="font-size:11px;padding:4px 10px">🗑 Svuota tutto</button>
+          <span class="pt">Saved Encounters</span>
+          <button class="btn-sec danger" onclick="clearAllEncounters()" style="font-size:11px;padding:4px 10px">🗑 Clear all</button>
         </div>
         <div class="pb">
           <div id="lib-list">
-            <div class="lib-empty">Nessun incontro salvato.<br>Costruisci un incontro e premi <em>Salva</em>.</div>
+            <div class="lib-empty">No encounters saved.<br>Build an encounter and press <em>Save</em>.</div>
           </div>
         </div>
       </div>
@@ -2060,12 +2060,12 @@
       <div class="combat-top">
         <div>
           <div class="round-badge" id="rbadge">Round 1</div>
-          <div class="round-sub" id="rsub">Turno di —</div>
+          <div class="round-sub" id="rsub">Turn: —</div>
         </div>
         <div class="cbtnrow">
-          <button class="btn-sec danger" onclick="nextTurn()">Turno successivo →</button>
-          <button class="btn-sec" onclick="rollAll()">↺ Ritira iniziativa</button>
-          <button class="btn-sec danger" onclick="endCombat()">Fine incontro</button>
+          <button class="btn-sec danger" onclick="nextTurn()">Next Turn →</button>
+          <button class="btn-sec" onclick="rollAll()">↺ Reroll Initiative</button>
+          <button class="btn-sec danger" onclick="endCombat()">End Encounter</button>
         </div>
       </div>
       <div class="clist" id="clist"></div>
@@ -2073,22 +2073,22 @@
 
     <footer>
       Dati da <a href="https://5e.tools" target="_blank">5etools</a> via mirror GitHub ·
-      D&amp;D 5e è marchio registrato di Wizards of the Coast
+      D&amp;D 5e is a trademark of Wizards of the Coast
     </footer>
   </div>
 
   <!-- Log tiri -->
-  <button id="log-toggle" onclick="toggleLog()" title="Log tiri dadi">
+  <button id="log-toggle" onclick="toggleLog()" title="Dice roll log">
     🎲
     <span id="log-badge"></span>
   </button>
   <div id="log-panel">
     <div class="log-header">
-      <span class="log-title">📜 Log Tiri</span>
-      <button class="log-clear" onclick="clearLog()">Svuota</button>
+      <span class="log-title">📜 Roll Log</span>
+      <button class="log-clear" onclick="clearLog()">Clear</button>
     </div>
     <div class="log-entries" id="log-entries">
-      <div class="log-empty">Nessun tiro ancora.<br>Clicca su dadi, attacchi o abilità.</div>
+      <div class="log-empty">No rolls yet.<br>Click on dice, attacks or abilities.</div>
     </div>
   </div>
 
@@ -2376,18 +2376,18 @@
     function renderMons() {
       const sl = filtM.slice(0, (pg + 1) * PS);
       const ml = document.getElementById('mlist');
-      if (!sl.length) { ml.innerHTML = '<div class="phmsg">Nessun mostro trovato</div>'; document.getElementById('lmw').innerHTML = ''; return; }
+      if (!sl.length) { ml.innerHTML = '<div class="phmsg">No monsters found</div>'; document.getElementById('lmw').innerHTML = ''; return; }
       ml.innerHTML = sl.map((m, i) =>
         `<div class="mrow" onclick="showStat(${i})">
       <img src="${getMonIcon(m)}" loading="lazy" style="width:24px; height:24px; border-radius:50%; margin-right:8px; border:1px solid var(--bdr2); background:var(--bg3); object-fit:contain" onerror="this.src='https://5etools-mirror-3.github.io/5etools-img/token/mm/skeleton.webp';">
       <span class="mn">${esc(m.name)}</span>
       <span class="mtp">${getType(m.type)}</span>
       <span class="mcr">CR ${getCR(m.cr)}</span>
-      <button class="madd" onclick="event.stopPropagation();addMon(${i})" title="Aggiungi">+</button>
+      <button class="madd" onclick="event.stopPropagation();addMon(${i})" title="Add">+</button>
     </div>`
       ).join('');
       document.getElementById('lmw').innerHTML = filtM.length > sl.length
-        ? `<button class="lmbtn" onclick="pg++;renderMons()">Mostra altri (${filtM.length - sl.length})</button>` : '';
+        ? `<button class="lmbtn" onclick="pg++;renderMons()">Show more (${filtM.length - sl.length})</button>` : '';
     }
 
     /* ── Stat block ── */
@@ -2475,17 +2475,17 @@
           let st = `<div class="sbact"><span class="sbact-n">${esc(clean(sc.name))}.</span> `;
           if (sc.headerEntries) st += renderE(sc.headerEntries);
           let sl = [];
-          if (sc.will) sl.push(`<i>A volontà:</i> ${sc.will.map(s => renderE(s)).join(', ')}`);
+          if (sc.will) sl.push(`<i>At will:</i> ${sc.will.map(s => renderE(s)).join(', ')}`);
           if (sc.daily) {
             for (const [k, v] of Object.entries(sc.daily)) {
-              let lab = k.includes('e') ? k.replace('e', '/giorno ciascuno') : k + '/giorno';
+              let lab = k.includes('e') ? k.replace('e', '/day each') : k + '/day';
               let spl = Array.isArray(v) ? v : v.spells || [];
               sl.push(`<i>${lab}:</i> ${spl.map(s => renderE(s)).join(', ')}`);
             }
           }
           if (sc.spells) {
             for (const [k, v] of Object.entries(sc.spells)) {
-              let lvl = k === '0' ? 'Trucchetti' : `Liv. ${k}`;
+              let lvl = k === '0' ? 'Cantrips' : `Level ${k}`;
               let slot = v.slots ? ` (${v.slots} slot)` : '';
               sl.push(`<i>${lvl}${slot}:</i> ${v.spells.map(s => renderE(s)).join(', ')}`);
             }
@@ -2503,7 +2503,7 @@
         if (m.legendaryHeader) h += `<div class="sbact">${renderE(m.legendaryHeader)}</div>`;
         h += blk(m.legendary);
       }
-      if (showAdd) h += `<button class="sbaddbtn" onclick="addFromModal()">+ Aggiungi all'Incontro</button>`;
+      if (showAdd) h += `<button class="sbaddbtn" onclick="addFromModal()">+ Add to Encounter</button>`;
       h += `<div class="sbbar bot"></div>`;
       document.getElementById('sbcontent').innerHTML = h;
     }
@@ -2696,15 +2696,15 @@
       // Salva lo stato del pannello rinforzi prima di ricostruire l'HTML
       const wasOpen = document.getElementById('quick-comp')?.classList.contains('open');
       if (document.getElementById('rbadge')) document.getElementById('rbadge').textContent = 'Round ' + round;
-      if (document.getElementById('rsub')) document.getElementById('rsub').textContent = 'Turno di ' + (cur ? esc(cur.name) : '—');
+      if (document.getElementById('rsub')) document.getElementById('rsub').textContent = 'Turn: ' + (cur ? esc(cur.name) : '—');
 
       let html = '';
 
       html += `
   <div class="add-quick-wrapper" style="margin-bottom:18px">
     <button class="collapsible-trigger" onclick="toggleQuickComp()">
-      <span>⚔&nbsp; Rinforzi &amp; Database</span>
-      <span class="trig-arrow">▼ espandi</span>
+      <span>⚔&nbsp; Reinforcements &amp; Database</span>
+      <span class="trig-arrow">▼ expand</span>
     </button>
 
     <div id="quick-comp" class="collapsible-content">
@@ -2713,11 +2713,11 @@
 
           <!-- Colonna sinistra: ricerca database -->
           <div class="qcomp-db">
-            <div class="qcomp-title">🔍 Cerca nel database globale</div>
-            <input type="text" id="qSearch" placeholder="Cerca mostro…" oninput="applyQuickF()" autocomplete="off"/>
+            <div class="qcomp-title">🔍 Search global database</div>
+            <input type="text" id="qSearch" placeholder="Search monster…" oninput="applyQuickF()" autocomplete="off"/>
             <div class="f2">
               <select id="qCrf" onchange="applyQuickF()">
-                <option value="">Tutti i CR</option>
+                <option value="">All CR</option>
                 <option value="0">CR 0</option>
                 <option value="1/8">CR 1/8</option>
                 <option value="1/4">CR 1/4</option>
@@ -2725,34 +2725,34 @@
                 ${[...Array(31).keys()].map(n => `<option value="${n}">CR ${n}</option>`).join('')}
               </select>
               <select id="qTyf" onchange="applyQuickF()">
-                <option value="">Tutti i tipi</option>
-                <option value="aberration">Aberrazioni</option>
-                <option value="beast">Bestie</option>
-                <option value="celestial">Celestiali</option>
-                <option value="construct">Costrutti</option>
-                <option value="dragon">Draghi</option>
-                <option value="elemental">Elementali</option>
-                <option value="fey">Folletti</option>
-                <option value="fiend">Immondi</option>
-                <option value="giant">Giganti</option>
-                <option value="humanoid">Umanoidi</option>
-                <option value="monstrosity">Mostruosità</option>
-                <option value="ooze">Melme</option>
-                <option value="plant">Vegetali</option>
-                <option value="undead">Non Morti</option>
+                <option value="">All types</option>
+                <option value="aberration">Aberrations</option>
+                <option value="beast">Beasts</option>
+                <option value="celestial">Celestials</option>
+                <option value="construct">Constructs</option>
+                <option value="dragon">Dragons</option>
+                <option value="elemental">Elementals</option>
+                <option value="fey">Fey</option>
+                <option value="fiend">Fiends</option>
+                <option value="giant">Giants</option>
+                <option value="humanoid">Humanoids</option>
+                <option value="monstrosity">Monstrosities</option>
+                <option value="ooze">Oozes</option>
+                <option value="plant">Plants</option>
+                <option value="undead">Undead</option>
               </select>
             </div>
             <div id="qMlist" class="mlist" style="max-height:260px;overflow-y:auto;flex:1">
-              <div class="phmsg">Caricamento database…</div>
+              <div class="phmsg">Loading database…</div>
             </div>
           </div>
 
           <!-- Colonna destra: aggiungi manualmente -->
           <div class="qcomp-manual">
-            <div class="qcomp-title">✚ Aggiungi combattente</div>
+            <div class="qcomp-title">✚ Add Combatant</div>
             <div class="qcomp-field">
-              <label>Nome</label>
-              <input type="text" id="qManualName" placeholder="es. Goblin Boss, Aria…"/>
+              <label>Name</label>
+              <input type="text" id="qManualName" placeholder="e.g. Goblin Boss, Aria…"/>
             </div>
             <div class="qcomp-2col">
               <div class="qcomp-field">
@@ -2760,15 +2760,15 @@
                 <input type="number" id="qManualHp" placeholder="10" min="1"/>
               </div>
               <div class="qcomp-field">
-                <label>CA</label>
+                <label>AC</label>
                 <input type="number" id="qManualAc" placeholder="10" min="0"/>
               </div>
             </div>
             <div class="qcomp-field">
-              <label>Iniziativa</label>
+              <label>Initiative</label>
               <input type="number" id="qManualInit" placeholder="0"/>
             </div>
-            <button class="btn-avvia" onclick="addQuickManual()" style="margin-top:4px;font-size:13px;padding:9px">✚ Aggiungi</button>
+            <button class="btn-avvia" onclick="addQuickManual()" style="margin-top:4px;font-size:13px;padding:9px">✚ Add</button>
           </div>
 
         </div>
@@ -2791,14 +2791,16 @@
           ${c.shape ? `<span class="combat-label" style="color:${c.shapeClr}" title="${esc(c.name)} ${c.label}"><span class="lbl-shape">${c.shape}</span><span class="lbl-letter">${c.label}</span></span>` : ''}
           <span class="c-nm${mon && c.monsterData ? ' click' : ''}" ${mon && c.monsterData ? `onclick="showStatCombat(${c.id})"` : ''}>${esc(c.name)}</span>
         </div>
-        <div class="c-ac-col">${c.ac}<small>CA</small></div>
+        <div class="c-ac-col">${c.ac}<small>AC</small></div>
         <div class="crow-hp">
           <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpClr}"></div></div>
           <div class="hp-nums"><input type="number" value="${c.hpCurrent}" onchange="setHP(${c.id},this.value)"><span class="hp-max">/${c.hpMax}</span></div>
         </div>
         <div class="crow-ctrl">
+          <button class="hbtn d" onclick="modHP(${c.id},-10)">-10</button>
           <button class="hbtn d" onclick="modHP(${c.id},-5)">-5</button>
           <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
+          <button class="hbtn h" onclick="modHP(${c.id},10)">+10</button>
           <button class="cbtn" style="border-color: var(--red); color: var(--red2); margin-left: 8px; width: 28px; height: 28px;" onclick="removeCombatant(${c.id})">✕</button>
         </div>
       </div>`;
@@ -2829,7 +2831,7 @@
       const db = (fullMonsterDb && fullMonsterDb.length > 0) ? fullMonsterDb : allM;
 
       if (!db || db.length === 0) {
-        ml.innerHTML = '<div class="phmsg">Database non ancora pronto... prova a cambiare manuale nel Costruttore.</div>';
+        ml.innerHTML = '<div class="phmsg">Database not ready yet… try switching bestiary in the Builder.</div>';
         return;
       }
 
@@ -2846,7 +2848,7 @@
       }).slice(0, 50);
 
       if (filtered.length === 0) {
-        ml.innerHTML = '<div class="phmsg">Nessun mostro trovato.</div>';
+        ml.innerHTML = '<div class="phmsg">No monsters found.</div>';
         return;
       }
 
@@ -3068,7 +3070,7 @@
       const el = document.getElementById('log-entries');
       if (!el) return;
       if (!rollLog.length) {
-        el.innerHTML = '<div class="log-empty">Nessun tiro ancora.<br>Clicca su dadi, attacchi o abilità.</div>';
+        el.innerHTML = '<div class="log-empty">No rolls yet.<br>Click on dice, attacks or abilities.</div>';
         return;
       }
       el.innerHTML = rollLog.map(e => `
@@ -3202,7 +3204,7 @@
 
       const nameInput = document.getElementById('enc-name');
       const name = nameInput.value.trim() ||
-        `Incontro ${new Date().toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
+        `Encounter ${new Date().toLocaleString('en-US', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })}`;
 
       // Calcola difficoltà attuale
       const txp = encounter.reduce((s, e) => s + e.xp * e.qty, 0);
@@ -3235,12 +3237,12 @@
 
       nameInput.value = '';
       const confirm = document.getElementById('save-confirm');
-      confirm.textContent = `✓ "${name}" salvato nella Libreria`;
+      confirm.textContent = `✓ "${name}" saved to Library`;
       setTimeout(() => { confirm.textContent = ''; }, 3000);
     }
 
     function deleteEncounter(id) {
-      if (!confirm('Eliminare questo incontro dalla libreria?')) return;
+      if (!confirm('Delete this encounter from the library?')) return;
       const list = getSavedEncounters().filter(e => e.id !== id);
       localStorage.setItem(LIB_KEY, JSON.stringify(list));
       renderLibrary();
@@ -3249,7 +3251,7 @@
     function clearAllEncounters() {
       const list = getSavedEncounters();
       if (!list.length) return;
-      if (!confirm(`Eliminare tutti i ${list.length} incontri salvati?`)) return;
+      if (!confirm(`Delete all ${list.length} saved encounters?`)) return;
       localStorage.removeItem(LIB_KEY);
       renderLibrary();
     }
@@ -3279,12 +3281,12 @@
       if (!el) return;
 
       if (!list.length) {
-        el.innerHTML = '<div class="lib-empty">Nessun incontro salvato.<br>Costruisci un incontro e premi <em>Salva</em>.</div>';
+        el.innerHTML = '<div class="lib-empty">No encounters saved.<br>Build an encounter and press <em>Save</em>.</div>';
         return;
       }
 
       el.innerHTML = '<div class="lib-grid">' + list.map(e => {
-        const dateStr = new Date(e.createdAt).toLocaleString('it-IT', {
+        const dateStr = new Date(e.createdAt).toLocaleString('en-US', {
           day: '2-digit', month: '2-digit', year: '2-digit',
           hour: '2-digit', minute: '2-digit'
         });
@@ -3296,11 +3298,11 @@
             <div class="lib-card-name">${esc(e.name)}</div>
             <span class="dbadge ${e.diffClass}" style="font-size:11px">${esc(e.diffLabel)}</span>
             <span class="lib-card-xp">${fmt(e.totalXp)} XP</span>
-            <span class="lib-card-meta">${totalMons} mostri · Liv ${e.partyLevel} · ${e.partyCount} PG</span>
+            <span class="lib-card-meta">${totalMons} monsters · Lv ${e.partyLevel} · ${e.partyCount} PC</span>
           </div>
           <div class="lib-card-monsters">${monsStr}</div>
           <div class="lib-card-actions">
-            <button class="btn-avvia" onclick="launchEncounter(${e.id})" style="flex:1;padding:8px;font-size:13px">⚔ Avvia</button>
+            <button class="btn-avvia" onclick="launchEncounter(${e.id})" style="flex:1;padding:8px;font-size:13px">⚔ Launch</button>
             <button class="btn-sec danger" onclick="deleteEncounter(${e.id})" style="font-size:12px">🗑</button>
             <span class="lib-card-date">${dateStr}</span>
           </div>

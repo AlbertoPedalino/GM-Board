@@ -18,7 +18,7 @@ registerClassAdapter("Monk", function (cls, lv, specs) {
   if (lv >= 1) {
     specs.push({
       key: 'monk_tool_proficiency',
-      label: 'Tool Proficiency (Attrezzi o Strumento)',
+      label: 'Tool Proficiency (Tools or Instrument)',
       type: 'generic_choice',
       from: _MONK_ARTISAN_TOOLS.concat(_MONK_INSTRUMENTS),
       count: 1,

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -253,15 +253,15 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 <div class="page-header">
   <span class="hex-icon">⬡</span>
   <h1>GM Board</h1>
-  <div class="subtitle">HEXcrawl · Dungeon · Tabelle · Guida</div>
+  <div class="subtitle">HEXcrawl · Dungeon · Tables · Guide</div>
 </div>
 
 <div class="nav-tabs">
   <button class="tab-btn active no-select" onclick="switchTab('hex')">⬡ HEXcrawl</button>
   <button class="tab-btn no-select" onclick="switchTab('dungeon')">🏰 Dungeon</button>
   <button class="tab-btn no-select" onclick="switchTab('quest')">📜 Quest</button>
-  <button class="tab-btn no-select" onclick="switchTab('editor')">📋 Tabelle</button>
-  <button class="tab-btn no-select" onclick="switchTab('guide')">📖 Guida</button>
+  <button class="tab-btn no-select" onclick="switchTab('editor')">📋 Tables</button>
+  <button class="tab-btn no-select" onclick="switchTab('guide')">📖 Guide</button>
 </div>
 
 <div id="tab-hex" class="tab-panel active">
@@ -270,40 +270,40 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
     <div class="meteo-layout">
 
       <div class="meteo-left">
-        <div class="section-label">Stagione</div>
+        <div class="section-label">Season</div>
         <div class="btn-group" id="season-group" style="margin-bottom:12px;">
-          <button class="sel-btn no-select" onclick="selSeason(this,'Primavera')">🌸 Primavera</button>
-          <button class="sel-btn no-select" onclick="selSeason(this,'Estate')">☀️ Estate</button>
-          <button class="sel-btn no-select" onclick="selSeason(this,'Autunno')">🍂 Autunno</button>
-          <button class="sel-btn no-select" onclick="selSeason(this,'Inverno')">❄️ Inverno</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Spring')">🌸 Spring</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Summer')">☀️ Summer</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Autumn')">🍂 Autumn</button>
+          <button class="sel-btn no-select" onclick="selSeason(this,'Winter')">❄️ Winter</button>
         </div>
         <div class="meteo-display" id="meteo-display">
           <div class="meteo-icon" id="meteo-icon">☀️</div>
           <div class="meteo-info">
-            <div class="meteo-name" id="meteo-name">Sole</div>
-            <div class="meteo-effect" id="meteo-effect">Nessun effetto</div>
+            <div class="meteo-name" id="meteo-name">Clear</div>
+            <div class="meteo-effect" id="meteo-effect">No effect</div>
           </div>
-          <div class="meteo-timer" id="meteo-timer">prossimo check: —</div>
+          <div class="meteo-timer" id="meteo-timer">next check: —</div>
         </div>
       </div>
 
       <div class="meteo-right">
-        <div class="section-label">Override Meteo (Forzatura GM)</div>
+        <div class="section-label">Weather Override (GM Force)</div>
         <div style="display:flex;flex-direction:column;gap:5px;" id="meteo-group">
           <div class="btn-group">
-            <button class="sel-btn active no-select" data-meteo="Sole" data-int="" onclick="selMeteo(this,'Sole','')">☀️ Sole</button>
+            <button class="sel-btn active no-select" data-meteo="Clear" data-int="" onclick="selMeteo(this,'Clear','')">☀️ Clear</button>
           </div>
           <div class="btn-group">
-            <span class="meteo-group-lbl">🌧️ Pioggia</span>
-            <button class="sel-btn no-select" data-meteo="Pioggia" data-int="Leggera" onclick="selMeteo(this,'Pioggia','Leggera')">Leggera<span class="sub-lbl">×1 tempo</span></button>
-            <button class="sel-btn no-select" data-meteo="Pioggia" data-int="Moderata" onclick="selMeteo(this,'Pioggia','Moderata')">Moderata<span class="sub-lbl">×2 tempo</span></button>
-            <button class="sel-btn no-select" data-meteo="Pioggia" data-int="Forte" onclick="selMeteo(this,'Pioggia','Forte')">Forte<span class="sub-lbl">×2 + Sva</span></button>
+            <span class="meteo-group-lbl">🌧️ Rain</span>
+            <button class="sel-btn no-select" data-meteo="Rain" data-int="Light" onclick="selMeteo(this,'Rain','Light')">Light<span class="sub-lbl">×1 time</span></button>
+            <button class="sel-btn no-select" data-meteo="Rain" data-int="Moderate" onclick="selMeteo(this,'Rain','Moderate')">Moderate<span class="sub-lbl">×2 time</span></button>
+            <button class="sel-btn no-select" data-meteo="Rain" data-int="Heavy" onclick="selMeteo(this,'Rain','Heavy')">Heavy<span class="sub-lbl">×2 + Dis</span></button>
           </div>
           <div class="btn-group">
-            <span class="meteo-group-lbl">❄️ Neve</span>
-            <button class="sel-btn no-select" data-meteo="Neve" data-int="Leggera" onclick="selMeteo(this,'Neve','Leggera')">Leggera<span class="sub-lbl">×2 tempo</span></button>
-            <button class="sel-btn no-select" data-meteo="Neve" data-int="Moderata" onclick="selMeteo(this,'Neve','Moderata')">Moderata<span class="sub-lbl">×2 + Sva</span></button>
-            <button class="sel-btn no-select" data-meteo="Neve" data-int="Forte" onclick="selMeteo(this,'Neve','Forte')">Forte<span class="sub-lbl">×4 + Sva</span></button>
+            <span class="meteo-group-lbl">❄️ Snow</span>
+            <button class="sel-btn no-select" data-meteo="Snow" data-int="Light" onclick="selMeteo(this,'Snow','Light')">Light<span class="sub-lbl">×2 time</span></button>
+            <button class="sel-btn no-select" data-meteo="Snow" data-int="Moderate" onclick="selMeteo(this,'Snow','Moderate')">Moderate<span class="sub-lbl">×2 + Dis</span></button>
+            <button class="sel-btn no-select" data-meteo="Snow" data-int="Heavy" onclick="selMeteo(this,'Snow','Heavy')">Heavy<span class="sub-lbl">×4 + Dis</span></button>
           </div>
         </div>
       </div>
@@ -314,31 +314,31 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <div class="card">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="grid-pop-terrain">
       <div>
-        <div class="section-label">Popolazione</div>
+        <div class="section-label">Population</div>
         <div class="btn-group" id="pop-group">
-          <button class="sel-btn no-select" data-thr="1" onclick="selPop(this,'inesplorata',1)">Inesplorata<span class="sub-lbl">trigger: solo 1</span></button>
-          <button class="sel-btn no-select" data-thr="2" onclick="selPop(this,'periferica',2)">Periferica<span class="sub-lbl">trigger: 1–2</span></button>
-          <button class="sel-btn no-select" data-thr="3" onclick="selPop(this,'popolata',3)">Popolata<span class="sub-lbl">trigger: 1–3</span></button>
+          <button class="sel-btn no-select" data-thr="1" onclick="selPop(this,'unexplored',1)">Unexplored<span class="sub-lbl">trigger: 1 only</span></button>
+          <button class="sel-btn no-select" data-thr="2" onclick="selPop(this,'frontier',2)">Frontier<span class="sub-lbl">trigger: 1–2</span></button>
+          <button class="sel-btn no-select" data-thr="3" onclick="selPop(this,'settled',3)">Settled<span class="sub-lbl">trigger: 1–3</span></button>
         </div>
       </div>
       <div>
-        <div class="section-label">Terreno</div>
+        <div class="section-label">Terrain</div>
         <div class="btn-group" id="terrain-group">
-          <button class="sel-btn no-select" onclick="selTerrain(this,'strada',1)">Strada<span class="sub-lbl">+1h</span></button>
-          <button class="sel-btn no-select" onclick="selTerrain(this,'pianura',2)">Pianura<span class="sub-lbl">+2h</span></button>
-          <button class="sel-btn no-select" onclick="selTerrain(this,'foresta',4)">Foresta<span class="sub-lbl">+4h</span></button>
-          <button class="sel-btn no-select" onclick="selTerrain(this,'montagna',8)">Montagna<span class="sub-lbl">+8h</span></button>
+          <button class="sel-btn no-select" onclick="selTerrain(this,'road',1)">Road<span class="sub-lbl">+1h</span></button>
+          <button class="sel-btn no-select" onclick="selTerrain(this,'plains',2)">Plains<span class="sub-lbl">+2h</span></button>
+          <button class="sel-btn no-select" onclick="selTerrain(this,'forest',4)">Forest<span class="sub-lbl">+4h</span></button>
+          <button class="sel-btn no-select" onclick="selTerrain(this,'mountain',8)">Mountain<span class="sub-lbl">+8h</span></button>
         </div>
       </div>
     </div>
     <div class="divider"></div>
     <div>
-      <div class="section-label">Tier Encounter</div>
+      <div class="section-label">Encounter Tier</div>
       <div class="btn-group" id="hex-tier-group">
-        <button class="sel-btn tier-btn t1 no-select" onclick="selHexTier(this,1)">🔴 Tier 1<span class="sub-lbl">Livelli 1–4</span></button>
-        <button class="sel-btn tier-btn t2 no-select" onclick="selHexTier(this,2)">🟠 Tier 2<span class="sub-lbl">Livelli 5–10</span></button>
-        <button class="sel-btn tier-btn t3 no-select" onclick="selHexTier(this,3)">🟡 Tier 3<span class="sub-lbl">Livelli 11–16</span></button>
-        <button class="sel-btn tier-btn t4 no-select" onclick="selHexTier(this,4)">🟣 Tier 4<span class="sub-lbl">Livelli 17–20</span></button>
+        <button class="sel-btn tier-btn t1 no-select" onclick="selHexTier(this,1)">🔴 Tier 1<span class="sub-lbl">Levels 1–4</span></button>
+        <button class="sel-btn tier-btn t2 no-select" onclick="selHexTier(this,2)">🟠 Tier 2<span class="sub-lbl">Levels 5–10</span></button>
+        <button class="sel-btn tier-btn t3 no-select" onclick="selHexTier(this,3)">🟡 Tier 3<span class="sub-lbl">Levels 11–16</span></button>
+        <button class="sel-btn tier-btn t4 no-select" onclick="selHexTier(this,4)">🟣 Tier 4<span class="sub-lbl">Levels 17–20</span></button>
       </div>
     </div>
   </div>
@@ -346,67 +346,67 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <div class="card">
     <div class="time-section">
       <div>
-        <div class="section-label">Data &amp; Ora</div>
-        <div class="date-display" id="date-display">1 Gennaio 1000</div>
+        <div class="section-label">Date &amp; Time</div>
+        <div class="date-display" id="date-display">January 1, 1000</div>
         <div style="display:flex;align-items:baseline;gap:10px;">
           <div class="time-value" id="time-display">00:00</div>
-          <div class="time-meta" id="terrain-label">— nessun terreno —</div>
+          <div class="time-meta" id="terrain-label">— no terrain —</div>
         </div>
       </div>
       <div class="time-btns">
-        <button class="action-btn no-select" id="procedi-btn" onclick="procedi()">⬡ Procedi</button>
-        <button class="action-btn sec no-select" onclick="soloAvanza()">⏱ Solo Avanza</button>
+        <button class="action-btn no-select" id="procedi-btn" onclick="procedi()">⬡ Proceed</button>
+        <button class="action-btn sec no-select" onclick="soloAvanza()">⏱ Advance Only</button>
         <div style="display:flex;gap:5px;">
-          <button class="action-btn sec no-select" onclick="advTimeManual(1)" title="Avanza di 1 ora">+1h</button>
-          <button class="action-btn sec no-select" onclick="advTimeManual(4)" title="Avanza di 4 ore">+4h</button>
+          <button class="action-btn sec no-select" onclick="advTimeManual(1)" title="Advance 1 hour">+1h</button>
+          <button class="action-btn sec no-select" onclick="advTimeManual(4)" title="Advance 4 hours">+4h</button>
         </div>
       </div>
     </div>
     <div class="init-row">
-      <label>ORA</label>
+      <label>TIME</label>
       <input type="text" class="text-input" id="cur-time" value="00:00" placeholder="HH:MM" style="width:64px">
-      <button class="small-btn no-select" onclick="setTimeOnly()">⏱ Imposta Ora</button>
+      <button class="small-btn no-select" onclick="setTimeOnly()">⏱ Set Time</button>
     </div>
     <div class="init-row">
-      <label>INIZIO</label>
+      <label>START</label>
       <input type="text" class="text-input" id="s-day"   value="1"    placeholder="GG"   style="width:42px">
       <input type="text" class="text-input" id="s-month" value="1"    placeholder="MM"   style="width:42px">
-      <input type="text" class="text-input" id="s-year"  value="1000" placeholder="AAAA" style="width:60px">
+      <input type="text" class="text-input" id="s-year"  value="1000" placeholder="YYYY" style="width:60px">
       <span style="color:var(--text-dim)">·</span>
       <input type="text" class="text-input" id="s-time"  value="00:00" placeholder="HH:MM" style="width:64px">
-      <button class="small-btn no-select" onclick="setStart()">↩ Imposta</button>
+      <button class="small-btn no-select" onclick="setStart()">↩ Set</button>
     </div>
   </div>
 
   <div class="card result-area" id="result-area">
-    <div class="section-label">Risultato Hex</div>
+    <div class="section-label">Hex Result</div>
     <div id="result-steps"></div>
   </div>
 
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
-      <div class="section-label" style="margin:0">Log Sessione</div>
-      <button class="small-btn no-select" onclick="clearLog()">✕ Cancella</button>
+      <div class="section-label" style="margin:0">Session Log</div>
+      <button class="small-btn no-select" onclick="clearLog()">✕ Clear</button>
     </div>
-    <div id="log-area"><div class="log-empty">Nessun hex ancora esplorato.</div></div>
+    <div id="log-area"><div class="log-empty">No hexes explored yet.</div></div>
   </div>
 
 </div><div id="tab-dungeon" class="tab-panel">
-  <div class="section-header"><h2>🏰 Dungeon Explorer</h2><div class="sub">Generatore Stanze</div></div>
+  <div class="section-header"><h2>🏰 Dungeon Explorer</h2><div class="sub">Room Generator</div></div>
 
   <div class="card">
     <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
       <div>
-        <div class="section-label">Stanze</div>
+        <div class="section-label">Rooms</div>
         <input type="number" class="text-input" id="d-rooms" value="5" min="1" max="40" style="width:68px;font-size:1rem;">
       </div>
       <div>
-        <div class="section-label">Popolazione (tiri/stanza)</div>
+        <div class="section-label">Population (rolls/room)</div>
         <div class="btn-group" id="d-pop-group">
-          <button class="sel-btn no-select" onclick="selDPop(this,'random',0)">Random<span class="sub-lbl">1–3 casuale</span></button>
-          <button class="sel-btn no-select" onclick="selDPop(this,'inesplorata',1)">Inesplorata<span class="sub-lbl">×1 tiro</span></button>
-          <button class="sel-btn no-select" onclick="selDPop(this,'periferica',2)">Periferica<span class="sub-lbl">×2 tiri</span></button>
-          <button class="sel-btn no-select" onclick="selDPop(this,'popolata',3)">Popolata<span class="sub-lbl">×3 tiri</span></button>
+          <button class="sel-btn no-select" onclick="selDPop(this,'random',0)">Random<span class="sub-lbl">1–3 random</span></button>
+          <button class="sel-btn no-select" onclick="selDPop(this,'unexplored',1)">Unexplored<span class="sub-lbl">×1 roll</span></button>
+          <button class="sel-btn no-select" onclick="selDPop(this,'frontier',2)">Frontier<span class="sub-lbl">×2 rolls</span></button>
+          <button class="sel-btn no-select" onclick="selDPop(this,'settled',3)">Settled<span class="sub-lbl">×3 rolls</span></button>
         </div>
       </div>
       <div>
@@ -420,8 +420,8 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
       </div>
     </div>
     <div style="display:flex;gap:7px;margin-top:12px;">
-      <button class="action-btn no-select" onclick="generateDungeon()">🏰 Genera</button>
-      <button class="action-btn sec no-select" onclick="clearDungeon()">✕ Cancella</button>
+      <button class="action-btn no-select" onclick="generateDungeon()">🏰 Generate</button>
+      <button class="action-btn sec no-select" onclick="clearDungeon()">✕ Clear</button>
     </div>
   </div>
 
@@ -430,17 +430,17 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
 <!-- ═══ TAB QUEST ═══ -->
 <div id="tab-quest" class="tab-panel">
-  <div class="section-header"><h2>📜 Quest Generator</h2><div class="sub">Generatore di Quest</div></div>
+  <div class="section-header"><h2>📜 Quest Generator</h2><div class="sub">Quest Generator</div></div>
 
   <div class="card">
     <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;">
       <div>
-        <div class="section-label">Portata Quest (d8 tirati)</div>
+        <div class="section-label">Quest Scope (d8 rolled)</div>
         <div class="btn-group" id="q-pop-group">
-          <button class="sel-btn no-select" onclick="selQPop(this,'random',0)">Random<span class="sub-lbl">1–3 d8 casuale</span></button>
-          <button class="sel-btn no-select" onclick="selQPop(this,'inesplorata',1)">Ridotta<span class="sub-lbl">1d8</span></button>
-          <button class="sel-btn no-select" onclick="selQPop(this,'periferica',2)">Media<span class="sub-lbl">2d8 max</span></button>
-          <button class="sel-btn no-select" onclick="selQPop(this,'popolata',3)">Ampia<span class="sub-lbl">3d8 max</span></button>
+          <button class="sel-btn no-select" onclick="selQPop(this,'random',0)">Random<span class="sub-lbl">1–3 d8 random</span></button>
+          <button class="sel-btn no-select" onclick="selQPop(this,'small',1)">Small<span class="sub-lbl">1d8</span></button>
+          <button class="sel-btn no-select" onclick="selQPop(this,'medium',2)">Medium<span class="sub-lbl">2d8 max</span></button>
+          <button class="sel-btn no-select" onclick="selQPop(this,'large',3)">Large<span class="sub-lbl">3d8 max</span></button>
         </div>
       </div>
       <div>
@@ -452,8 +452,8 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
           <button class="sel-btn tier-btn t4 no-select" onclick="selQTier(this,4)">🟣 T4<span class="sub-lbl">Lv 17–20</span></button>
         </div>
       </div>
-      <button class="action-btn no-select" onclick="generateQuests()">📜 Genera Quest</button>
-      <button class="action-btn sec no-select" onclick="clearQuests()">✕ Cancella</button>
+      <button class="action-btn no-select" onclick="generateQuests()">📜 Generate Quests</button>
+      <button class="action-btn sec no-select" onclick="clearQuests()">✕ Clear</button>
     </div>
   </div>
 
@@ -461,20 +461,20 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 </div>
 
 <div id="tab-editor" class="tab-panel">
-  <div class="section-header"><h2>📋 Editor Tabelle</h2><div class="sub">Modifiche salvate nel browser</div></div>
+  <div class="section-header"><h2>📋 Table Editor</h2><div class="sub">Changes saved in browser</div></div>
 
   <div class="card" style="margin-bottom:8px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-      <div style="font-size:.88rem;color:var(--text-dim);">Modifica i valori direttamente. Salvati in localStorage.</div>
+      <div style="font-size:.88rem;color:var(--text-dim);">Edit values directly. Saved in localStorage.</div>
       <div style="display:flex;gap:7px;">
-        <button class="small-btn no-select" onclick="saveTables()">💾 Salva</button>
-        <button class="small-btn no-select" onclick="resetTables()">↺ Ripristina</button>
+        <button class="small-btn no-select" onclick="saveTables()">💾 Save</button>
+        <button class="small-btn no-select" onclick="resetTables()">↺ Reset</button>
       </div>
     </div>
   </div>
 
   <div class="ed-tabs" id="ed-tabs-main">
-    <button class="ed-tab active no-select" onclick="switchEdTab('ed-weather')">Meteo Stagionale</button>
+    <button class="ed-tab active no-select" onclick="switchEdTab('ed-weather')">Seasonal Weather</button>
     <button class="ed-tab no-select" onclick="switchEdTab('ed-event')">Event</button>
     <button class="ed-tab no-select" onclick="switchEdTab('ed-loot')">Loot</button>
     <button class="ed-tab no-select" onclick="switchEdTab('ed-compl')">Complication</button>
@@ -489,10 +489,10 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
     <button class="ed-tab no-select" onclick="switchEdTab('ed-env')">Environment</button>
   </div>
 
-  <div id="ed-weather" class="ed-panel active card"><div class="section-label">Meteo Stagionale (Tiro 1d20)</div><table class="ed-table" id="tbl-weather"></table></div>
+  <div id="ed-weather" class="ed-panel active card"><div class="section-label">Seasonal Weather (Roll 1d20)</div><table class="ed-table" id="tbl-weather"></table></div>
   <div id="ed-event" class="ed-panel card"><div class="section-label">Event Table — type: encounter,loot,camp_nemico,other,nothing</div><table class="ed-table" id="tbl-event"></table></div>
   <div id="ed-loot"  class="ed-panel card"><div class="section-label">Loot Table</div><table class="ed-table" id="tbl-loot"></table></div>
-  <div id="ed-compl" class="ed-panel card"><div class="section-label">Complication Table — type: Encounter, Environment Damage, Environment, Niente</div><table class="ed-table" id="tbl-compl"></table></div>
+  <div id="ed-compl" class="ed-panel card"><div class="section-label">Complication Table — type: Encounter, Environment Damage, Environment, None</div><table class="ed-table" id="tbl-compl"></table></div>
   <div id="ed-enc1"  class="ed-panel card"><div class="section-label">Encounter Table Tier 1 (Lv 1–4)</div><table class="ed-table" id="tbl-enc1"></table></div>
   <div id="ed-enc2"  class="ed-panel card"><div class="section-label">Encounter Table Tier 2 (Lv 5–10)</div><table class="ed-table" id="tbl-enc2"></table></div>
   <div id="ed-enc3"  class="ed-panel card"><div class="section-label">Encounter Table Tier 3 (Lv 11–16)</div><table class="ed-table" id="tbl-enc3"></table></div>
@@ -503,66 +503,66 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
   <div id="ed-trap4" class="ed-panel card"><div class="section-label">Trap Table Tier 4</div><table class="ed-table" id="tbl-trap4"></table></div>
   <div id="ed-env"   class="ed-panel card"><div class="section-label">Environment Severity Table</div><table class="ed-table" id="tbl-env"></table></div>
 </div><div id="tab-guide" class="tab-panel">
-  <div class="section-header"><h2>📖 Guida ai Tiri</h2><div class="sub">Riferimento completo — GM Board</div></div>
+  <div class="section-header"><h2>📖 Roll Reference</h2><div class="sub">Complete Reference — GM Board</div></div>
 
   <!-- HEXcrawl -->
   <div class="card">
-    <div class="ref-section-title">⬡ HEXcrawl — Flusso Completo</div>
-    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">Ad ogni hex esplorato premi <strong>Procedi</strong>. Il tempo avanza, il meteo viene controllato se necessario, poi parte la sequenza di tiri. Usa <strong>Solo Avanza</strong> per far scorrere solo il tempo senza nessun tiro.</p>
+    <div class="ref-section-title">⬡ HEXcrawl — Full Flow</div>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">For each hex explored press <strong>Advance</strong>. Time moves forward, weather is checked if needed, then the roll sequence begins. Use <strong>Advance Only</strong> to move time without any rolls.</p>
 
     <div class="ref-grid">
       <div class="ref-card">
         <div class="ref-card-header">① Setup</div>
         <table class="ref-table">
-          <thead><tr><th>Parametro</th><th>Opzioni</th><th>Effetto</th></tr></thead>
+          <thead><tr><th>Parameter</th><th>Options</th><th>Effect</th></tr></thead>
           <tbody>
-            <tr><td><strong>Stagione</strong></td><td>Primavera / Estate / Autunno / Inverno</td><td>Soglie meteo casuale</td></tr>
-            <tr><td><strong>Meteo Override</strong></td><td>Sole / Pioggia / Neve</td><td>Forza il meteo corrente</td></tr>
-            <tr><td><strong>Popolazione</strong></td><td>Inesplorata / Periferica / Popolata</td><td>Soglia dado trigger</td></tr>
-            <tr><td><strong>Terreno</strong></td><td>Strada / Pianura / Foresta / Montagna</td><td>Ore base di viaggio</td></tr>
-            <tr><td><strong>Tier Encounter</strong></td><td>T1–T4</td><td>Tabella encounter usata</td></tr>
+            <tr><td><strong>Season</strong></td><td>Spring / Summer / Autumn / Winter</td><td>Random weather thresholds</td></tr>
+            <tr><td><strong>Weather Override</strong></td><td>Clear / Rain / Snow</td><td>Forces current weather</td></tr>
+            <tr><td><strong>Population</strong></td><td>Unexplored / Peripheral / Populated</td><td>Trigger die threshold</td></tr>
+            <tr><td><strong>Terrain</strong></td><td>Road / Plain / Forest / Mountain</td><td>Base travel hours</td></tr>
+            <tr><td><strong>Encounter Tier</strong></td><td>T1–T4</td><td>Encounter table used</td></tr>
           </tbody>
         </table>
       </div>
       <div class="ref-card">
-        <div class="ref-card-header">② Meteo — check automatico</div>
+        <div class="ref-card-header">② Weather — automatic check</div>
         <table class="ref-table">
-          <thead><tr><th>Meteo</th><th>Intensità</th><th>Viaggio</th><th>Svantaggio</th></tr></thead>
+          <thead><tr><th>Weather</th><th>Intensity</th><th>Travel</th><th>Disadvantage</th></tr></thead>
           <tbody>
-            <tr><td>Sole</td><td>—</td><td>×1</td><td>No</td></tr>
-            <tr><td>Pioggia</td><td>Leggera</td><td>×1</td><td>No</td></tr>
-            <tr><td>Pioggia</td><td>Moderata</td><td>×2</td><td>No</td></tr>
-            <tr><td>Pioggia</td><td>Forte</td><td>×2</td><td>✓ Perc/Inv</td></tr>
-            <tr><td>Neve</td><td>Leggera</td><td>×2</td><td>No</td></tr>
-            <tr><td>Neve</td><td>Moderata</td><td>×2</td><td>✓ Perc/Inv</td></tr>
-            <tr><td>Neve</td><td>Forte</td><td>×4</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Clear</td><td>—</td><td>×1</td><td>No</td></tr>
+            <tr><td>Rain</td><td>Light</td><td>×1</td><td>No</td></tr>
+            <tr><td>Rain</td><td>Moderate</td><td>×2</td><td>No</td></tr>
+            <tr><td>Rain</td><td>Heavy</td><td>×2</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Snow</td><td>Light</td><td>×2</td><td>No</td></tr>
+            <tr><td>Snow</td><td>Moderate</td><td>×2</td><td>✓ Perc/Inv</td></tr>
+            <tr><td>Snow</td><td>Heavy</td><td>×4</td><td>✓ Perc/Inv</td></tr>
           </tbody>
         </table>
-        <div class="ref-note">Check ogni 1d6+2 ore di viaggio. Le soglie stagionali sono modificabili in Tabelle → Meteo Stagionale.</div>
+        <div class="ref-note">Check every 1d6+2 travel hours. Seasonal thresholds are editable in Tables → Seasonal Weather.</div>
       </div>
     </div>
 
     <div class="ref-grid">
       <div class="ref-card">
-        <div class="ref-card-header">③ Terreno — ore di viaggio base</div>
+        <div class="ref-card-header">③ Terrain — base travel hours</div>
         <table class="ref-table">
-          <thead><tr><th>Terreno</th><th>Base</th><th>Pioggia Mod/Forte · Neve Legg/Mod</th><th>Neve Forte</th></tr></thead>
+          <thead><tr><th>Terrain</th><th>Base</th><th>Rain Mod/Heavy · Snow Light/Mod</th><th>Snow Heavy</th></tr></thead>
           <tbody>
-            <tr><td>Strada</td><td>1h</td><td>2h</td><td>4h</td></tr>
-            <tr><td>Pianura</td><td>2h</td><td>4h</td><td>8h</td></tr>
-            <tr><td>Foresta</td><td>4h</td><td>8h</td><td>16h</td></tr>
-            <tr><td>Montagna</td><td>8h</td><td>16h</td><td>32h</td></tr>
+            <tr><td>Road</td><td>1h</td><td>2h</td><td>4h</td></tr>
+            <tr><td>Plain</td><td>2h</td><td>4h</td><td>8h</td></tr>
+            <tr><td>Forest</td><td>4h</td><td>8h</td><td>16h</td></tr>
+            <tr><td>Mountain</td><td>8h</td><td>16h</td><td>32h</td></tr>
           </tbody>
         </table>
       </div>
       <div class="ref-card">
-        <div class="ref-card-header">④ Tiro Popolamento <span class="roll-badge">1d6</span></div>
+        <div class="ref-card-header">④ Population Roll <span class="roll-badge">1d6</span></div>
         <table class="ref-table">
-          <thead><tr><th>Popolazione</th><th>Trigger se d6 ≤</th><th>Prob. evento</th></tr></thead>
+          <thead><tr><th>Population</th><th>Trigger if d6 ≤</th><th>Event prob.</th></tr></thead>
           <tbody>
-            <tr><td>Inesplorata</td><td>1</td><td>16.7%</td></tr>
-            <tr><td>Periferica</td><td>2</td><td>33.3%</td></tr>
-            <tr><td>Popolata</td><td>3</td><td>50%</td></tr>
+            <tr><td>Unexplored</td><td>1</td><td>16.7%</td></tr>
+            <tr><td>Peripheral</td><td>2</td><td>33.3%</td></tr>
+            <tr><td>Populated</td><td>3</td><td>50%</td></tr>
           </tbody>
         </table>
       </div>
@@ -572,34 +572,34 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
       <div class="ref-card">
         <div class="ref-card-header">⑤ Event Table <span class="roll-badge">2d20</span></div>
         <table class="ref-table">
-          <thead><tr><th>Risultato</th><th>Evento</th><th>Cosa succede</th></tr></thead>
+          <thead><tr><th>Result</th><th>Event</th><th>What happens</th></tr></thead>
           <tbody>
-            <tr><td>2</td><td>Dungeon</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>3</td><td>Grotta</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>4</td><td>Ruins</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>5</td><td>Ostacolo</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>6–7</td><td>Encounter</td><td>→ Encounter Table del tier</td></tr>
-            <tr><td>8–9</td><td>Danno Ambientale / Trappola</td><td>→ CD individuazione + Trap Table del tier</td></tr>
-            <tr><td>10–11</td><td>Accampamento Nemico</td><td>→ CD individuazione + Encounter Table del tier</td></tr>
-            <tr><td>12–13</td><td>Campo di Battaglia</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>14–15</td><td>Struttura Abbandonata</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>16–17</td><td>Incontro Mercante / Viaggiatore</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>18–19</td><td>Tracce / Indizi</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>20–22</td><td>Loot</td><td>→ Loot Table + CD per trovarlo</td></tr>
-            <tr><td>23–24</td><td>Segni di Passaggio Amico</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>25–26</td><td>Incontro Mercante / Viaggiatore</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>27–28</td><td>Struttura Abitata</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>29–30</td><td>Luogo Sacro</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>31–32</td><td>Accampamento Amico</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>33–34</td><td>Danno Ambientale / Trappola</td><td>→ CD individuazione + Trap Table del tier</td></tr>
-            <tr><td>35–36</td><td>Encounter</td><td>→ Encounter Table del tier</td></tr>
-            <tr><td>37</td><td>Ostacolo</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>38</td><td>Ruins</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>39</td><td>Grotta</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
-            <tr><td>40</td><td>Dungeon</td><td>Tiro CD grezzo (1d8+1d12)</td></tr>
+            <tr><td>2</td><td>Dungeon</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>3</td><td>Cave</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>4</td><td>Ruins</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>5</td><td>Obstacle</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>6–7</td><td>Encounter</td><td>→ Tier Encounter Table</td></tr>
+            <tr><td>8–9</td><td>Env. Damage / Trap</td><td>→ Detection DC + Tier Trap Table</td></tr>
+            <tr><td>10–11</td><td>Enemy Camp</td><td>→ Detection DC + Tier Encounter Table</td></tr>
+            <tr><td>12–13</td><td>Battlefield</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>14–15</td><td>Abandoned Structure</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>16–17</td><td>Merchant / Traveler</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>18–19</td><td>Tracks / Clues</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>20–22</td><td>Loot</td><td>→ Loot Table + DC to find</td></tr>
+            <tr><td>23–24</td><td>Friendly Signs</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>25–26</td><td>Merchant / Traveler</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>27–28</td><td>Inhabited Structure</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>29–30</td><td>Sacred Place</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>31–32</td><td>Friendly Camp</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>33–34</td><td>Env. Damage / Trap</td><td>→ Detection DC + Tier Trap Table</td></tr>
+            <tr><td>35–36</td><td>Encounter</td><td>→ Tier Encounter Table</td></tr>
+            <tr><td>37</td><td>Obstacle</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>38</td><td>Ruins</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>39</td><td>Cave</td><td>Raw DC roll (1d8+1d12)</td></tr>
+            <tr><td>40</td><td>Dungeon</td><td>Raw DC roll (1d8+1d12)</td></tr>
           </tbody>
         </table>
-        <div class="ref-note"><strong>Encounter:</strong> 2d20 → Difficoltà / Livello / XP. · <strong>Loot:</strong> 1d8+1d12 → oggetto, poi secondo tiro per CD. · <strong>Accampamento Nemico:</strong> CD individuazione + 2d20 Encounter. · <strong>Tutto il resto:</strong> 1d8+1d12 grezzo = CD per interagire.</div>
+        <div class="ref-note"><strong>Encounter:</strong> 2d20 → Difficulty / Level / XP. · <strong>Loot:</strong> 1d8+1d12 → item, then second roll for DC. · <strong>Enemy Camp:</strong> Detection DC + 2d20 Encounter. · <strong>Everything else:</strong> raw 1d8+1d12 = DC to interact.</div>
       </div>
     </div>
 
@@ -607,7 +607,7 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
       <div class="ref-card">
         <div class="ref-card-header">⑦ Encounter Table — Tier <span class="roll-badge">2d20</span></div>
         <table class="ref-table">
-          <thead><tr><th>Tier</th><th>Livelli PG</th><th>Dado</th></tr></thead>
+          <thead><tr><th>Tier</th><th>PC Levels</th><th>Die</th></tr></thead>
           <tbody>
             <tr><td>🔴 Tier 1</td><td>1–4</td><td>2d20</td></tr>
             <tr><td>🟠 Tier 2</td><td>5–10</td><td>2d20</td></tr>
@@ -621,30 +621,30 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
   <!-- Dungeon -->
   <div class="card">
-    <div class="ref-section-title">🏰 Dungeon Explorer — Flusso Completo</div>
-    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">Imposta il numero di stanze, la popolazione e il tier, poi premi <strong>Genera</strong>. Tutte le stanze vengono risolte in una volta sola.</p>
+    <div class="ref-section-title">🏰 Dungeon Explorer — Full Flow</div>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:10px;">Set the number of rooms, population, and tier, then press <strong>Generate</strong>. All rooms are resolved at once.</p>
 
     <div class="ref-grid">
       <div class="ref-card">
         <div class="ref-card-header">① Setup</div>
         <table class="ref-table">
-          <thead><tr><th>Parametro</th><th>Opzioni</th><th>Effetto</th></tr></thead>
+          <thead><tr><th>Parameter</th><th>Options</th><th>Effect</th></tr></thead>
           <tbody>
-            <tr><td><strong>Stanze</strong></td><td>1–40</td><td>Numero di stanze generate</td></tr>
-            <tr><td><strong>Popolazione</strong></td><td>Random / Inesplorata / Periferica / Popolata</td><td>Tiri Complication per stanza</td></tr>
-            <tr><td><strong>Tier</strong></td><td>T1–T4</td><td>Tabelle Encounter e Trap usate</td></tr>
+            <tr><td><strong>Rooms</strong></td><td>1–40</td><td>Number of rooms generated</td></tr>
+            <tr><td><strong>Population</strong></td><td>Random / Unexplored / Peripheral / Populated</td><td>Complication rolls per room</td></tr>
+            <tr><td><strong>Tier</strong></td><td>T1–T4</td><td>Encounter and Trap tables used</td></tr>
           </tbody>
         </table>
       </div>
       <div class="ref-card">
-        <div class="ref-card-header">② Tiri Complication per stanza <span class="roll-badge">1d8 + 1d12</span></div>
+        <div class="ref-card-header">② Complication rolls per room <span class="roll-badge">1d8 + 1d12</span></div>
         <table class="ref-table">
-          <thead><tr><th>Popolazione</th><th>Tiri per stanza</th></tr></thead>
+          <thead><tr><th>Population</th><th>Rolls per room</th></tr></thead>
           <tbody>
-            <tr><td>Random</td><td>1, 2 o 3 — casuale per ogni stanza</td></tr>
-            <tr><td>Inesplorata</td><td>1 tiro fisso</td></tr>
-            <tr><td>Periferica</td><td>2 tiri fissi</td></tr>
-            <tr><td>Popolata</td><td>3 tiri fissi</td></tr>
+            <tr><td>Random</td><td>1, 2, or 3 — random per room</td></tr>
+            <tr><td>Unexplored</td><td>1 fixed roll</td></tr>
+            <tr><td>Peripheral</td><td>2 fixed rolls</td></tr>
+            <tr><td>Populated</td><td>3 fixed rolls</td></tr>
           </tbody>
         </table>
       </div>
@@ -652,25 +652,25 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
     <div class="ref-grid">
       <div class="ref-card">
-        <div class="ref-card-header">③ Complication Table — risoluzione per tipo</div>
+        <div class="ref-card-header">③ Complication Table — resolution by type</div>
         <table class="ref-table">
-          <thead><tr><th>Tipo</th><th>Cosa succede</th><th>Dado secondario</th></tr></thead>
+          <thead><tr><th>Type</th><th>What happens</th><th>Secondary die</th></tr></thead>
           <tbody>
-            <tr><td><strong>Encounter</strong></td><td>Tiro sulla Encounter Table del tier</td><td>2d20</td></tr>
-            <tr><td><strong>Environment Damage</strong></td><td>Tiro sulla Trap Table del tier</td><td>1d8+1d12</td></tr>
-            <tr><td><strong>Environment</strong></td><td>Tiro sulla Environment Severity Table</td><td>1d8+1d12</td></tr>
-            <tr><td><strong>Niente</strong></td><td>Nessuna complicazione</td><td>—</td></tr>
+            <tr><td><strong>Encounter</strong></td><td>Roll on the tier Encounter Table</td><td>2d20</td></tr>
+            <tr><td><strong>Environment Damage</strong></td><td>Roll on the tier Trap Table</td><td>1d8+1d12</td></tr>
+            <tr><td><strong>Environment</strong></td><td>Roll on the Environment Severity Table</td><td>1d8+1d12</td></tr>
+            <tr><td><strong>None</strong></td><td>No complication</td><td>—</td></tr>
           </tbody>
         </table>
       </div>
       <div class="ref-card">
-        <div class="ref-card-header">⑥ Loot — 1 tiro per stanza <span class="roll-badge">1d8 + 1d12</span></div>
+        <div class="ref-card-header">⑥ Loot — 1 roll per room <span class="roll-badge">1d8 + 1d12</span></div>
         <table class="ref-table">
-          <thead><tr><th>Risultato</th><th>Loot</th><th>CD</th></tr></thead>
+          <thead><tr><th>Result</th><th>Loot</th><th>DC</th></tr></thead>
           <tbody>
-            <tr><td>2–7</td><td>Oggetto (rarità varie, qualità Rovinato)</td><td>Sì</td></tr>
-            <tr><td>8–14</td><td style="color:var(--text-dim);font-style:italic">Niente trovato</td><td>No</td></tr>
-            <tr><td>15–20</td><td>Oggetto (rarità varie, qualità Standard+)</td><td>Sì</td></tr>
+            <tr><td>2–7</td><td>Item (various rarities, Damaged quality)</td><td>Yes</td></tr>
+            <tr><td>8–14</td><td style="color:var(--text-dim);font-style:italic">Nothing found</td><td>No</td></tr>
+            <tr><td>15–20</td><td>Item (various rarities, Standard+ quality)</td><td>Yes</td></tr>
           </tbody>
         </table>
       </div>
@@ -679,90 +679,90 @@ h1{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold-li
 
   <!-- Editor note -->
   <div class="card">
-    <div class="ref-section-title">📋 Editor Tabelle</div>
-    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">Tutte le tabelle sono modificabili dalla sezione <strong>Tabelle</strong>. Le modifiche vengono salvate automaticamente nel localStorage e influenzano immediatamente il generatore. Il tasto <strong>↺ Ripristina</strong> riporta tutto ai valori originali.</p>
-    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">Il campo <strong>type</strong> nella Event Table usa parole chiave fisse: <code>encounter</code> · <code>loot</code> · <code>camp_nemico</code> · <code>other</code> · <code>nothing</code>.</p>
-    <p style="font-size:.9rem;color:var(--text);line-height:1.65;">Il campo <strong>type</strong> nella Complication Table usa: <code>Encounter</code> · <code>Environment Damage</code> · <code>Environment</code> · <code>Niente</code> (maiuscola importante).</p>
+    <div class="ref-section-title">📋 Table Editor</div>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">All tables are editable from the <strong>Tables</strong> section. Changes are saved automatically to localStorage and take effect immediately. The <strong>↺ Restore</strong> button resets everything to original values.</p>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;margin-bottom:6px;">The <strong>type</strong> field in the Event Table uses fixed keywords: <code>encounter</code> · <code>loot</code> · <code>camp_nemico</code> · <code>other</code> · <code>nothing</code>.</p>
+    <p style="font-size:.9rem;color:var(--text);line-height:1.65;">The <strong>type</strong> field in the Complication Table uses: <code>Encounter</code> · <code>Environment Damage</code> · <code>Environment</code> · <code>None</code> (case sensitive).</p>
   </div>
 
 </div></div>
-<div class="toast" id="toast">✓ Salvato</div>
+<div class="toast" id="toast">✓ Saved</div>
 
 <script>
 // ══════════════ DEFAULT DATA ══════════════
 const DEF_WEATHER=[
-  {s:'Primavera', sole:10, pioggia:19},
-  {s:'Estate', sole:16, pioggia:20},
-  {s:'Autunno', sole:8, pioggia:19},
-  {s:'Inverno', sole:4, pioggia:10}
+  {s:'Spring', sole:10, pioggia:19},
+  {s:'Summer', sole:16, pioggia:20},
+  {s:'Autumn', sole:8, pioggia:19},
+  {s:'Winter', sole:4, pioggia:10}
 ];
 const DEF_EVENTS=[
-  {r:2,  name:'Dungeon',                      type:'other'},
-  {r:3,  name:'Grotta',                       type:'other'},
-  {r:4,  name:'Ruins',                        type:'other'},
-  {r:5,  name:'Ostacolo',                     type:'other'},
-  {r:6,  name:'Encounter',                    type:'encounter'},
-  {r:7,  name:'Encounter',                    type:'encounter'},
-  {r:8,  name:'Danno Ambientale/Trappola',    type:'other'},
-  {r:9,  name:'Danno Ambientale/Trappola',    type:'other'},
-  {r:10, name:'Accampamento Nemico',          type:'camp_nemico'},
-  {r:11, name:'Accampamento Nemico',          type:'camp_nemico'},
-  {r:12, name:'Campo di Battaglia',           type:'other'},
-  {r:13, name:'Campo di Battaglia',           type:'other'},
-  {r:14, name:'Struttura Abbandonata',        type:'other'},
-  {r:15, name:'Struttura Abbandonata',        type:'other'},
-  {r:16, name:'Incontro Mercante/Viaggiatore',type:'other'},
-  {r:17, name:'Incontro Mercante/Viaggiatore',type:'other'},
-  {r:18, name:'Tracce/Indizi',               type:'other'},
-  {r:19, name:'Tracce/Indizi',               type:'other'},
-  {r:20, name:'Loot',                         type:'loot'},
-  {r:21, name:'Loot',                         type:'loot'},
-  {r:22, name:'Loot',                         type:'loot'},
-  {r:23, name:'Segni di Passaggio Amico',     type:'other'},
-  {r:24, name:'Segni di Passaggio Amico',     type:'other'},
-  {r:25, name:'Incontro Mercante/Viaggiatore',type:'other'},
-  {r:26, name:'Incontro Mercante/Viaggiatore',type:'other'},
-  {r:27, name:'Struttura Abitata',            type:'other'},
-  {r:28, name:'Struttura Abitata',            type:'other'},
-  {r:29, name:'Luogo Sacro',                  type:'other'},
-  {r:30, name:'Luogo Sacro',                  type:'other'},
-  {r:31, name:'Accampamento Amico',           type:'other'},
-  {r:32, name:'Accampamento Amico',           type:'other'},
-  {r:33, name:'Danno Ambientale/Trappola',    type:'other'},
-  {r:34, name:'Danno Ambientale/Trappola',    type:'other'},
-  {r:35, name:'Encounter',                    type:'encounter'},
-  {r:36, name:'Encounter',                    type:'encounter'},
-  {r:37, name:'Ostacolo',                     type:'other'},
-  {r:38, name:'Ruins',                        type:'other'},
-  {r:39, name:'Grotta',                       type:'other'},
-  {r:40, name:'Dungeon',                      type:'other'},
+  {r:2,  name:'Dungeon',                    type:'other'},
+  {r:3,  name:'Cave',                       type:'other'},
+  {r:4,  name:'Ruins',                      type:'other'},
+  {r:5,  name:'Obstacle',                   type:'other'},
+  {r:6,  name:'Encounter',                  type:'encounter'},
+  {r:7,  name:'Encounter',                  type:'encounter'},
+  {r:8,  name:'Env. Damage/Trap',           type:'other'},
+  {r:9,  name:'Env. Damage/Trap',           type:'other'},
+  {r:10, name:'Enemy Camp',                 type:'camp_nemico'},
+  {r:11, name:'Enemy Camp',                 type:'camp_nemico'},
+  {r:12, name:'Battlefield',                type:'other'},
+  {r:13, name:'Battlefield',                type:'other'},
+  {r:14, name:'Abandoned Structure',        type:'other'},
+  {r:15, name:'Abandoned Structure',        type:'other'},
+  {r:16, name:'Merchant/Traveler',          type:'other'},
+  {r:17, name:'Merchant/Traveler',          type:'other'},
+  {r:18, name:'Tracks/Clues',               type:'other'},
+  {r:19, name:'Tracks/Clues',               type:'other'},
+  {r:20, name:'Loot',                       type:'loot'},
+  {r:21, name:'Loot',                       type:'loot'},
+  {r:22, name:'Loot',                       type:'loot'},
+  {r:23, name:'Friendly Signs',             type:'other'},
+  {r:24, name:'Friendly Signs',             type:'other'},
+  {r:25, name:'Merchant/Traveler',          type:'other'},
+  {r:26, name:'Merchant/Traveler',          type:'other'},
+  {r:27, name:'Inhabited Structure',        type:'other'},
+  {r:28, name:'Inhabited Structure',        type:'other'},
+  {r:29, name:'Sacred Place',               type:'other'},
+  {r:30, name:'Sacred Place',               type:'other'},
+  {r:31, name:'Friendly Camp',              type:'other'},
+  {r:32, name:'Friendly Camp',              type:'other'},
+  {r:33, name:'Env. Damage/Trap',           type:'other'},
+  {r:34, name:'Env. Damage/Trap',           type:'other'},
+  {r:35, name:'Encounter',                  type:'encounter'},
+  {r:36, name:'Encounter',                  type:'encounter'},
+  {r:37, name:'Obstacle',                   type:'other'},
+  {r:38, name:'Ruins',                      type:'other'},
+  {r:39, name:'Cave',                       type:'other'},
+  {r:40, name:'Dungeon',                    type:'other'},
 ];
 const DEF_LOOT=[
-  {r:2,tipo:'Oggetto Maledetto',rarita:'Leggendario',qualita:'Corrotto',valore:'75×Liv',extra:'(1/4 val)'},
-  {r:3,tipo:'Arma / Armatura',rarita:'Molto Raro',qualita:'Rovinato',valore:'60×Liv',extra:'(1/4 val)'},
-  {r:4,tipo:'Oggetto Magico',rarita:'Raro',qualita:'Rovinato',valore:'45×Liv',extra:'(1/4 val)'},
-  {r:5,tipo:'Arma / Armatura',rarita:'Non Comune',qualita:'Rovinato',valore:'5×Liv',extra:'(1/4 val)'},
-  {r:6,tipo:'Equipaggiamento',rarita:'Comune',qualita:'Rovinato',valore:'2.5×Liv',extra:'(1/4 val)'},
-  {r:7,tipo:'Materiali',rarita:'Comune',qualita:'Rovinato',valore:'2.5×Liv',extra:'(1/4 val)'},
-  {r:8,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:9,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:10,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:11,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:12,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:13,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:14,tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''},
-  {r:15,tipo:'Consumabile',rarita:'Comune',qualita:'Standard',valore:'10×Liv',extra:''},
-  {r:16,tipo:'Arma / Armatura',rarita:'Comune',qualita:'Buono',valore:'10×Liv',extra:''},
-  {r:17,tipo:'Oggetto Magico',rarita:'Non Comune',qualita:'Eccelso',valore:'20×Liv',extra:''},
-  {r:18,tipo:'Arma / Armatura Magica',rarita:'Raro',qualita:'Eccelso',valore:'180×Liv',extra:''},
-  {r:19,tipo:'Arma / Armatura Magica',rarita:'Molto Raro',qualita:'Integro',valore:'240×Liv',extra:''},
-  {r:20,tipo:'Artefatto / Reliquia',rarita:'Leggendario',qualita:'Integro',valore:'300×Liv',extra:''},
+  {r:2,tipo:'Cursed Item',rarita:'Legendary',qualita:'Corrupted',valore:'75×Lv',extra:'(1/4 val)'},
+  {r:3,tipo:'Weapon / Armor',rarita:'Very Rare',qualita:'Damaged',valore:'60×Lv',extra:'(1/4 val)'},
+  {r:4,tipo:'Magic Item',rarita:'Rare',qualita:'Damaged',valore:'45×Lv',extra:'(1/4 val)'},
+  {r:5,tipo:'Weapon / Armor',rarita:'Uncommon',qualita:'Damaged',valore:'5×Lv',extra:'(1/4 val)'},
+  {r:6,tipo:'Equipment',rarita:'Common',qualita:'Damaged',valore:'2.5×Lv',extra:'(1/4 val)'},
+  {r:7,tipo:'Materials',rarita:'Common',qualita:'Damaged',valore:'2.5×Lv',extra:'(1/4 val)'},
+  {r:8,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:9,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:10,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:11,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:12,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:13,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:14,tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''},
+  {r:15,tipo:'Consumable',rarita:'Common',qualita:'Standard',valore:'10×Lv',extra:''},
+  {r:16,tipo:'Weapon / Armor',rarita:'Common',qualita:'Fine',valore:'10×Lv',extra:''},
+  {r:17,tipo:'Magic Item',rarita:'Uncommon',qualita:'Masterwork',valore:'20×Lv',extra:''},
+  {r:18,tipo:'Magic Weapon / Armor',rarita:'Rare',qualita:'Masterwork',valore:'180×Lv',extra:''},
+  {r:19,tipo:'Magic Weapon / Armor',rarita:'Very Rare',qualita:'Pristine',valore:'240×Lv',extra:''},
+  {r:20,tipo:'Artifact / Relic',rarita:'Legendary',qualita:'Pristine',valore:'300×Lv',extra:''},
 ];
 const DEF_COMPL=[
   {r:2,type:'Encounter'},{r:3,type:'Environment Damage'},{r:4,type:'Environment'},
   {r:5,type:'Encounter'},{r:6,type:'Environment Damage'},{r:7,type:'Environment'},
-  {r:8,type:'Niente'},{r:9,type:'Niente'},{r:10,type:'Niente'},{r:11,type:'Niente'},
-  {r:12,type:'Niente'},{r:13,type:'Niente'},{r:14,type:'Niente'},
+  {r:8,type:'None'},{r:9,type:'None'},{r:10,type:'None'},{r:11,type:'None'},
+  {r:12,type:'None'},{r:13,type:'None'},{r:14,type:'None'},
   {r:15,type:'Environment'},{r:16,type:'Environment Damage'},{r:17,type:'Encounter'},
   {r:18,type:'Environment'},{r:19,type:'Environment Damage'},{r:20,type:'Encounter'},
 ];
@@ -789,13 +789,13 @@ const DEF_TRAP=[
   mkTrap([[2,'Deadly','20',21,'99 (18d10)'],[3,'Deadly','19–20',20,'99 (18d10)'],[4,'Deadly','19',19,'99 (18d10)'],[5,'Deadly','19',19,'99 (18d10)'],[6,'Nuisance','18–19',18,'55 (10d10)'],[7,'Nuisance','18–19',18,'55 (10d10)'],[8,'Nuisance','17–18',17,'55 (10d10)'],[9,'Nuisance','17–18',17,'55 (10d10)'],[10,'Nuisance','17',16,'55 (10d10)'],[11,'Nuisance','17',16,'55 (10d10)'],[12,'Nuisance','17',16,'55 (10d10)'],[13,'Nuisance','17–18',17,'55 (10d10)'],[14,'Nuisance','17–18',17,'55 (10d10)'],[15,'Nuisance','18–19',18,'55 (10d10)'],[16,'Nuisance','18–19',18,'55 (10d10)'],[17,'Deadly','19',19,'99 (18d10)'],[18,'Deadly','19',19,'99 (18d10)'],[19,'Deadly','19–20',20,'99 (18d10)'],[20,'Deadly','20',21,'99 (18d10)']]),
 ];
 const DEF_ENV=[
-  {r:2,gravita:'Leggendario'},{r:3,gravita:'Molto Raro'},{r:4,gravita:'Molto Raro'},
-  {r:5,gravita:'Raro'},{r:6,gravita:'Raro'},{r:7,gravita:'Raro'},
-  {r:8,gravita:'Non Comune'},{r:9,gravita:'Non Comune'},{r:10,gravita:'Non Comune'},
-  {r:11,gravita:'Comune'},{r:12,gravita:'Comune'},{r:13,gravita:'Comune'},
-  {r:14,gravita:'Non Comune'},{r:15,gravita:'Raro'},{r:16,gravita:'Raro'},
-  {r:17,gravita:'Molto Raro'},{r:18,gravita:'Molto Raro'},
-  {r:19,gravita:'Leggendario'},{r:20,gravita:'Leggendario'},
+  {r:2,gravita:'Legendary'},{r:3,gravita:'Very Rare'},{r:4,gravita:'Very Rare'},
+  {r:5,gravita:'Rare'},{r:6,gravita:'Rare'},{r:7,gravita:'Rare'},
+  {r:8,gravita:'Uncommon'},{r:9,gravita:'Uncommon'},{r:10,gravita:'Uncommon'},
+  {r:11,gravita:'Common'},{r:12,gravita:'Common'},{r:13,gravita:'Common'},
+  {r:14,gravita:'Uncommon'},{r:15,gravita:'Rare'},{r:16,gravita:'Rare'},
+  {r:17,gravita:'Very Rare'},{r:18,gravita:'Very Rare'},
+  {r:19,gravita:'Legendary'},{r:20,gravita:'Legendary'},
 ];
 
 // ══════════════ TABLES ══════════════
@@ -820,29 +820,29 @@ function saveTables(){
   localStorage.setItem('gm_co',JSON.stringify(T.compl));
   localStorage.setItem('gm_env',JSON.stringify(T.env));
   for(let i=0;i<4;i++){localStorage.setItem('gm_enc'+i,JSON.stringify(T.enc[i]));localStorage.setItem('gm_trap'+i,JSON.stringify(T.trap[i]));}
-  showToast('✓ Tabelle salvate');
+  showToast('✓ Tables saved');
 }
 function resetTables(){
-  if(!confirm('Ripristinare le tabelle originali?'))return;
+  if(!confirm('Restore original tables?'))return;
   T.weather=cp(DEF_WEATHER);T.events=cp(DEF_EVENTS);T.loot=cp(DEF_LOOT);T.compl=cp(DEF_COMPL);T.env=cp(DEF_ENV);
   for(let i=0;i<4;i++){T.enc[i]=cp(DEF_ENC[i]);T.trap[i]=cp(DEF_TRAP[i]);}
   ['gm_wea','gm_ev','gm_lo','gm_co','gm_env'].forEach(k=>localStorage.removeItem(k));
   for(let i=0;i<4;i++){localStorage.removeItem('gm_enc'+i);localStorage.removeItem('gm_trap'+i);}
-  buildEditor();showToast('↺ Ripristinate');
+  buildEditor();showToast('↺ Restored');
 }
 function showToast(m='✓'){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2000);}
 
 function getEvent(s){readEditor();return T.events.find(e=>e.r===s)||{name:'—',type:'nothing'};}
-function getLoot(s){readEditor();return T.loot.find(e=>e.r===s)||{tipo:'Niente trovato',rarita:'—',qualita:'—',valore:'—',extra:''};}
-function getCompl(s){readEditor();return T.compl.find(e=>e.r===s)||{type:'Niente'};}
+function getLoot(s){readEditor();return T.loot.find(e=>e.r===s)||{tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''};}
+function getCompl(s){readEditor();return T.compl.find(e=>e.r===s)||{type:'None'};}
 function getEnc(tier,s){readEditor();return(T.enc[tier-1]||[]).find(e=>e.r===s)||{diff:'Low',lv:'?',xp:0};}
 function getTrap(tier,s){readEditor();return(T.trap[tier-1]||[]).find(e=>e.r===s)||{tipo:'Nuisance',lv:'?',dc:10,danno:'?'};}
-function getEnvSev(s){readEditor();return T.env.find(e=>e.r===s)||{gravita:'Comune'};}
+function getEnvSev(s){readEditor();return T.env.find(e=>e.r===s)||{gravita:'Common'};}
 
 // ══════════════ STATE ══════════════
 let S={
   pop:null,popThr:0,terrain:null,terrainH:0,hexTier:null,
-  season:null, meteo:'Sole', intensita:'', hoursSinceWeather:0, nextWeatherIn:8,
+  season:null, meteo:'Clear', intensita:'', hoursSinceWeather:0, nextWeatherIn:8,
   min:0,day:1,month:1,year:1000,rolling:false,log:[],
   dPop:null,dThr:0,dTier:null
 };
@@ -857,7 +857,7 @@ function loadState(){
     const sv=JSON.parse(localStorage.getItem('gm_state'));
     if(sv){
       S.min=sv.min||0;S.day=sv.day||1;S.month=sv.month||1;S.year=sv.year||1000;S.log=sv.log||[];
-      S.season=sv.season||null;S.meteo=sv.meteo||'Sole';S.intensita=sv.intensita||'';S.hoursSinceWeather=sv.hoursSinceWeather||0;S.nextWeatherIn=sv.nextWeatherIn||8;
+      S.season=sv.season||null;S.meteo=sv.meteo||'Clear';S.intensita=sv.intensita||'';S.hoursSinceWeather=sv.hoursSinceWeather||0;S.nextWeatherIn=sv.nextWeatherIn||8;
       
       document.getElementById('s-day').value=S.day;document.getElementById('s-month').value=S.month;
       document.getElementById('s-year').value=S.year;document.getElementById('s-time').value=fHM(S.min);
@@ -879,11 +879,11 @@ function loadState(){
 function getEffectiveHours() {
   if (!S.terrainH) return 0;
   let h = S.terrainH;
-  if (S.meteo === 'Pioggia') {
-    if (S.intensita === 'Moderata' || S.intensita === 'Forte') h *= 2;
-  } else if (S.meteo === 'Neve') {
-    if (S.intensita === 'Leggera' || S.intensita === 'Moderata') h *= 2;
-    if (S.intensita === 'Forte') h *= 4;
+  if (S.meteo === 'Rain') {
+    if (S.intensita === 'Moderate' || S.intensita === 'Heavy') h *= 2;
+  } else if (S.meteo === 'Snow') {
+    if (S.intensita === 'Light' || S.intensita === 'Moderate') h *= 2;
+    if (S.intensita === 'Heavy') h *= 4;
   }
   return h;
 }
@@ -891,18 +891,18 @@ function getEffectiveHours() {
 function updTerrainLabel() {
   const tl = document.getElementById('terrain-label');
   if (!S.terrain) {
-    tl.textContent = '— nessun terreno —';
+    tl.textContent = '— no terrain —';
     return;
   }
   const effH = getEffectiveHours();
   const name = S.terrain.charAt(0).toUpperCase() + S.terrain.slice(1);
-  const detail = (effH === S.terrainH) ? `(${effH}h)` : `(${S.terrainH}h → ${effH}h per meteo)`;
+  const detail = (effH === S.terrainH) ? `(${effH}h)` : `(${S.terrainH}h → ${effH}h due to weather)`;
   tl.textContent = `${name} ${detail}`;
   tl.style.color = 'var(--amber)';
 }
 
 // ══════════════ DATE/TIME ══════════════
-const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const MESI=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const GG=[31,28,31,30,31,30,31,31,30,31,30,31];
 function isLeap(y){return(y%4===0&&y%100!==0)||y%400===0;}
 function dim(m,y){return(m===2&&isLeap(y))?29:GG[m-1];}
@@ -960,24 +960,24 @@ function selSeason(btn, s){
 }
 
 function updMeteoDisplay(){
-  const icon = S.meteo==='Sole'?'☀️':S.meteo==='Pioggia'?'🌧️':'❄️';
+  const icon = S.meteo==='Clear'?'☀️':S.meteo==='Rain'?'🌧️':'❄️';
   const effH = getEffectiveHours();
-  let effect = 'Nessun effetto';
+  let effect = 'No effect';
   let color = 'var(--text-bright)';
-  if(S.meteo==='Pioggia'){
+  if(S.meteo==='Rain'){
     color='#70a0ff';
-    if(S.intensita==='Leggera') effect='×1 tempo';
-    else if(S.intensita==='Moderata') effect='×2 tempo';
-    else if(S.intensita==='Forte') effect='×2 tempo · Svantaggio';
-  } else if(S.meteo==='Neve'){
+    if(S.intensita==='Light') effect='×1 travel';
+    else if(S.intensita==='Moderate') effect='×2 travel';
+    else if(S.intensita==='Heavy') effect='×2 travel · Disadvantage';
+  } else if(S.meteo==='Snow'){
     color='#a0ffff';
-    if(S.intensita==='Leggera') effect='×2 tempo';
-    else if(S.intensita==='Moderata') effect='×2 tempo · Svantaggio';
-    else if(S.intensita==='Forte') effect='×4 tempo · Svantaggio';
+    if(S.intensita==='Light') effect='×2 travel';
+    else if(S.intensita==='Moderate') effect='×2 travel · Disadvantage';
+    else if(S.intensita==='Heavy') effect='×4 travel · Disadvantage';
   }
   const name = S.intensita ? `${S.meteo} ${S.intensita}` : S.meteo;
   const hoursLeft = Math.max(0, S.nextWeatherIn - S.hoursSinceWeather);
-  const timerTxt = S.season ? `prossimo check: ${hoursLeft}h` : '— seleziona stagione —';
+  const timerTxt = S.season ? `next check: ${hoursLeft}h` : '— select season —';
 
   const iconEl=document.getElementById('meteo-icon');
   const nameEl=document.getElementById('meteo-name');
@@ -1019,35 +1019,35 @@ function checkWeatherRoll(rsContainer) {
     S.nextWeatherIn = roll(6) + 2;
 
     const d20 = roll(20);
-    let m = 'Sole';
+    let m = 'Clear';
     const wData = T.weather.find(w => w.s === S.season) || {sole:10, pioggia:19};
-    if (d20 <= wData.sole) m = 'Sole';
-    else if (d20 <= wData.pioggia) m = 'Pioggia';
-    else m = 'Neve';
+    if (d20 <= wData.sole) m = 'Clear';
+    else if (d20 <= wData.pioggia) m = 'Rain';
+    else m = 'Snow';
 
     let intText = '';
     let intType = '';
-    if (m !== 'Sole') {
+    if (m !== 'Clear') {
       const d6i = roll(6);
-      intType = (d6i <= 3) ? 'Leggera' : (d6i <= 5) ? 'Moderata' : 'Forte';
+      intType = (d6i <= 3) ? 'Light' : (d6i <= 5) ? 'Moderate' : 'Heavy';
       intText = ` (${intType})`;
     }
 
     selMeteo(null, m, intType);
     logChanges.push(`${m}${intText} [d20=${d20}]`);
 
-    const icon = m === 'Sole' ? '☀️' : m === 'Pioggia' ? '🌧️' : '❄️';
-    const color = m === 'Sole' ? 'var(--gold-light)' : m === 'Pioggia' ? '#70a0ff' : '#a0ffff';
+    const icon = m === 'Clear' ? '☀️' : m === 'Rain' ? '🌧️' : '❄️';
+    const color = m === 'Clear' ? 'var(--gold-light)' : m === 'Rain' ? '#70a0ff' : '#a0ffff';
 
     if (rsContainer) {
-      const remaining = S.hoursSinceWeather >= S.nextWeatherIn ? ` · ancora check` : '';
-      addStep(rsContainer, icon, 'Aggiornamento Meteo (1d20 · 1d6 intensità · 1d6+2 prossimo)',
-        `<strong style="color:${color}">${m}${intText}</strong> <span class="det">· d20=${d20} · prossimo check: ${S.nextWeatherIn}h</span>${remaining}`, 0);
+      const remaining = S.hoursSinceWeather >= S.nextWeatherIn ? ` · more checks pending` : '';
+      addStep(rsContainer, icon, 'Weather Update (1d20 · 1d6 intensity · 1d6+2 next)',
+        `<strong style="color:${color}">${m}${intText}</strong> <span class="det">· d20=${d20} · next check: ${S.nextWeatherIn}h</span>${remaining}`, 0);
     }
   }
 
   updMeteoDisplay();
-  return logChanges.length > 0 ? ` · [Meteo: ${logChanges.join(' → ')}]` : '';
+  return logChanges.length > 0 ? ` · [Weather: ${logChanges.join(' → ')}]` : '';
 }
 
 function selPop(btn,name,thr){document.querySelectorAll('#pop-group .sel-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');S.pop=name;S.popThr=thr;}
@@ -1106,8 +1106,8 @@ async function resolveEncounter(con, tier, label='Encounter Table'){
   const enc=getEnc(tier,res.sum);
   s.insertAdjacentHTML('beforeend',`<div style="margin-top:4px">
     ${diffIcon(enc.diff)} <span class="${diffCls(enc.diff)}">${enc.diff}</span>
-    · Livello <strong>${enc.lv}</strong>
-    · <span style="color:var(--amber)">${Number(enc.xp).toLocaleString()} XP/PG</span>
+    · Level <strong>${enc.lv}</strong>
+    · <span style="color:var(--amber)">${Number(enc.xp).toLocaleString()} XP/PC</span>
     <span class="det"> · d20(${res.d1})+d20(${res.d2})=${res.sum}</span>
   </div>`);
   return res;
@@ -1115,8 +1115,8 @@ async function resolveEncounter(con, tier, label='Encounter Table'){
 
 // ══════════════ SOLO AVANZA ══════════════
 function soloAvanza(){
-  if(!S.season){flashBtn('procedi-btn','⚠ Seleziona stagione');return;}
-  if(!S.terrain){flashBtn('procedi-btn','⚠ Seleziona terreno');return;}
+  if(!S.season){flashBtn('procedi-btn','⚠ Select season');return;}
+  if(!S.terrain){flashBtn('procedi-btn','⚠ Select terrain');return;}
   
   let travelHours = getEffectiveHours();
 
@@ -1136,7 +1136,7 @@ function soloAvanza(){
       ra.classList.remove('show');
   }
   
-  S.log.unshift(`${fDT()} · ${S.terrain} (${travelHours}h) · ${S.meteo} ${S.intensita} · avanzato senza tiri${weatherLogTxt}`);
+  S.log.unshift(`${fDT()} · ${S.terrain} (${travelHours}h) · ${S.meteo} ${S.intensita} · advanced without rolls${weatherLogTxt}`);
   if(S.log.length>50)S.log.length=50;
   renderLog();saveState();
 }
@@ -1144,10 +1144,10 @@ function soloAvanza(){
 // ══════════════ PROCEDI ══════════════
 async function procedi(){
   if(S.rolling)return;
-  if(!S.season){flashBtn('procedi-btn','⚠ Seleziona stagione');return;}
-  if(!S.pop){flashBtn('procedi-btn','⚠ Seleziona popolazione');return;}
-  if(!S.terrain){flashBtn('procedi-btn','⚠ Seleziona terreno');return;}
-  if(!S.hexTier){flashBtn('procedi-btn','⚠ Seleziona tier');return;}
+  if(!S.season){flashBtn('procedi-btn','⚠ Select season');return;}
+  if(!S.pop){flashBtn('procedi-btn','⚠ Select population');return;}
+  if(!S.terrain){flashBtn('procedi-btn','⚠ Select terrain');return;}
+  if(!S.hexTier){flashBtn('procedi-btn','⚠ Select tier');return;}
   
   S.rolling=true;const btn=document.getElementById('procedi-btn');btn.disabled=true;
   
@@ -1166,24 +1166,24 @@ async function procedi(){
   updMeteoDisplay(); // aggiorna timer dopo eventuale check
 
   // Calcolo per il badge svantaggio
-  const isSvantaggio = (S.meteo === 'Pioggia' && S.intensita === 'Forte') || (S.meteo === 'Neve' && (S.intensita === 'Moderata' || S.intensita === 'Forte'));
-  const svaIcon = S.meteo === 'Pioggia' ? '🌧️' : '❄️';
-  const svaColor = S.meteo === 'Pioggia' ? '#70a0ff' : '#a0ffff';
-  const svaHtml = isSvantaggio ? ` <span class="badge" style="background:rgba(160,255,255,0.15);border:1px solid ${svaColor};color:${svaColor};margin-left:4px">${svaIcon} SVANTAGGIO METEO</span>` : '';
-  const svaLog = isSvantaggio ? ' (Svantaggio meteo)' : '';
+  const isSvantaggio = (S.meteo === 'Rain' && S.intensita === 'Heavy') || (S.meteo === 'Snow' && (S.intensita === 'Moderate' || S.intensita === 'Heavy'));
+  const svaIcon = S.meteo === 'Rain' ? '🌧️' : '❄️';
+  const svaColor = S.meteo === 'Rain' ? '#70a0ff' : '#a0ffff';
+  const svaHtml = isSvantaggio ? ` <span class="badge" style="background:rgba(160,255,255,0.15);border:1px solid ${svaColor};color:${svaColor};margin-left:4px">${svaIcon} WEATHER DISADVANTAGE</span>` : '';
+  const svaLog = isSvantaggio ? ' (Weather Disadvantage)' : '';
 
   // d6 trigger
   const d6v=roll(6),trig=d6v<=S.popThr;
   const id6=uid();
-  const s1=addStep(rs,'🎲','Tiro Popolamento',`<div class="dice-row"><span class="dlbl">d6</span><span class="die" id="${id6}">?</span><span class="dlbl" style="margin-left:4px">soglia ≤${S.popThr}</span></div>`, 150);
+  const s1=addStep(rs,'🎲','Population Roll',`<div class="dice-row"><span class="dlbl">d6</span><span class="die" id="${id6}">?</span><span class="dlbl" style="margin-left:4px">threshold ≤${S.popThr}</span></div>`, 150);
   await animDie(id6,6,d6v,440);
-  s1.insertAdjacentHTML('beforeend',` = <strong style="color:var(--gold-light)">${d6v}</strong> ${trig?'<span class="badge b-trig">⚡ TRIGGER</span>':'<span class="badge b-ok">✓ Nessun Evento</span>'}`);
+  s1.insertAdjacentHTML('beforeend',` = <strong style="color:var(--gold-light)">${d6v}</strong> ${trig?'<span class="badge b-trig">⚡ TRIGGER</span>':'<span class="badge b-ok">✓ No Event</span>'}`);
 
   let logTxt=`${fDT()} · ${S.terrain} (${travelHours}h) · ${S.meteo} ${S.intensita} · d6=${d6v}${weatherLogTxt}`;
 
   if(!trig){
-    addStep(rs,'🌿','Risultato','<span style="color:var(--text-dim);font-style:italic">Hex attraversato senza eventi.</span>',70);
-    S.log.unshift(logTxt+' → Nessun evento');renderLog();saveState();S.rolling=false;btn.disabled=false;return;
+    addStep(rs,'🌿','Result','<span style="color:var(--text-dim);font-style:italic">Hex crossed with no events.</span>',70);
+    S.log.unshift(logTxt+' → No event');renderLog();saveState();S.rolling=false;btn.disabled=false;return;
   }
 
   await sleep(300);
@@ -1212,58 +1212,56 @@ async function procedi(){
     const s3=addStep(rs,'💰','Loot Table (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
     const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
     const lo=getLoot(r2.sum);
-    if(lo.tipo!=='Niente trovato'){
-      const rCls={'Leggendario':'rleg','Molto Raro':'rvr','Raro':'rr','Non Comune':'ruc'};
+    if(lo.tipo!=='Nothing found'){
+      const rCls={'Legendary':'rleg','Very Rare':'rvr','Rare':'rr','Uncommon':'ruc'};
       const rc=rCls[lo.rarita]||'rc';
       s3.insertAdjacentHTML('beforeend',`<div style="margin-top:4px"><strong>${lo.tipo}</strong> <span class="${rc}">· ${lo.rarita}</span> <span class="det">· ${lo.qualita} · ${lo.valore} ${lo.extra}</span></div>`);
       await sleep(300);
       const ids3=uid();
-      const s4=addStep(rs,'🔒','CD per trovare (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
+      const s4=addStep(rs,'🔒','DC to find (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
       const r3=await rollD8D12('a'+ids3,'b'+ids3,'c'+ids3);
-      s4.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">CD <span class="cd-val">${r3.sum}</span>${svaHtml}</div>`);
-      logTxt+=` · Loot:${lo.tipo} · CD=${r3.sum}${svaLog}`;
+      s4.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r3.sum}</span>${svaHtml}</div>`);
+      logTxt+=` · Loot:${lo.tipo} · DC=${r3.sum}${svaLog}`;
     } else {
-      s3.insertAdjacentHTML('beforeend',`<div style="margin-top:4px;color:var(--text-dim);font-style:italic">Niente trovato.</div>`);
-      logTxt+=` · Loot:niente`;
+      s3.insertAdjacentHTML('beforeend',`<div style="margin-top:4px;color:var(--text-dim);font-style:italic">Nothing found.</div>`);
+      logTxt+=` · Loot:nothing`;
     }
   }
   else if(ev.type==='camp_nemico'){
     const ids2=uid();
-    const s3=addStep(rs,'👁️','CD per Individuare (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+    const s3=addStep(rs,'👁️','DC to Spot (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
     const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
-    s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">CD <span class="cd-val">${r2.sum}</span> per individuare l'accampamento${svaHtml}</div>`);
+    s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r2.sum}</span> to spot the camp${svaHtml}</div>`);
     await sleep(300);
-    await resolveEncounter(rs, S.hexTier, 'Difficoltà Accampamento');
+    await resolveEncounter(rs, S.hexTier, 'Camp Difficulty');
     await sleep(300);
-    // Loot dell'accampamento
     const ids3=uid();
-    const s4=addStep(rs,'💰','Loot Accampamento (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
+    const s4=addStep(rs,'💰','Camp Loot (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
     const r3=await rollD8D12('a'+ids3,'b'+ids3,'c'+ids3);
     const lo=getLoot(r3.sum);
-    if(lo.tipo!=='Niente trovato'){
-      const rCls={'Leggendario':'rleg','Molto Raro':'rvr','Raro':'rr','Non Comune':'ruc'};
+    if(lo.tipo!=='Nothing found'){
+      const rCls={'Legendary':'rleg','Very Rare':'rvr','Rare':'rr','Uncommon':'ruc'};
       const rc=rCls[lo.rarita]||'rc';
       s4.insertAdjacentHTML('beforeend',`<div style="margin-top:4px"><strong>${lo.tipo}</strong> <span class="${rc}">· ${lo.rarita}</span> <span class="det">· ${lo.qualita} · ${lo.valore} ${lo.extra}</span></div>`);
       await sleep(300);
       const ids4=uid();
-      const s5=addStep(rs,'🔒','CD per trovare il loot (1d8+1d12)',dHTML('a'+ids4,'b'+ids4,'c'+ids4),0);
+      const s5=addStep(rs,'🔒','DC to find loot (1d8+1d12)',dHTML('a'+ids4,'b'+ids4,'c'+ids4),0);
       const r4=await rollD8D12('a'+ids4,'b'+ids4,'c'+ids4);
-      s5.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">CD <span class="cd-val">${r4.sum}</span>${svaHtml}</div>`);
-      logTxt+=` · CD=${r2.sum} · Loot:${lo.tipo} · CD=${r4.sum}${svaLog}`;
+      s5.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r4.sum}</span>${svaHtml}</div>`);
+      logTxt+=` · DC=${r2.sum} · Loot:${lo.tipo} · DC=${r4.sum}${svaLog}`;
     } else {
-      s4.insertAdjacentHTML('beforeend',`<div style="margin-top:4px;color:var(--text-dim);font-style:italic">Niente trovato.</div>`);
-      logTxt+=` · CD=${r2.sum} · Loot:niente`;
+      s4.insertAdjacentHTML('beforeend',`<div style="margin-top:4px;color:var(--text-dim);font-style:italic">Nothing found.</div>`);
+      logTxt+=` · DC=${r2.sum} · Loot:nothing`;
     }
   }
   else if(ev.type==='other'||ev.type==='nothing'){
     const ids2=uid();
-    // Se è Danno Ambientale/Trappola, tira anche sulla Trap Table del tier
-    if(ev.name==='Danno Ambientale/Trappola'){
-      const s3=addStep(rs,'🔒','CD per individuare (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+    if(ev.name==='Env. Damage/Trap'){
+      const s3=addStep(rs,'🔒','DC to detect (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
       const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
-      s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">CD <span class="cd-val">${r2.sum}</span> per individuare la trappola${svaHtml}</div>`);
+      s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r2.sum}</span> to spot the trap${svaHtml}</div>`);
       await sleep(300);
-      if(!S.hexTier){ showToast('⚠ Seleziona tier per la Trap Table'); }
+      if(!S.hexTier){ showToast('⚠ Select tier for the Trap Table'); }
       else {
         const ids3=uid();
         const s4=addStep(rs,'💥','Trap Table (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
@@ -1272,18 +1270,18 @@ async function procedi(){
         const tCls=trap.tipo==='Deadly'?'diff-high':'diff-mod';
         s4.insertAdjacentHTML('beforeend',`<div style="margin-top:4px">
           <span class="${tCls}">${trap.tipo}</span>
-          · Livello <strong>${trap.lv}</strong>
+          · Level <strong>${trap.lv}</strong>
           · DC <strong>${trap.dc}</strong>
-          · Danno <strong>${trap.danno}</strong>
+          · Damage <strong>${trap.danno}</strong>
           <span class="det"> · d8(${r3.d8})+d12(${r3.d12})=${r3.sum}</span>
         </div>`);
-        logTxt+=` · CD=${r2.sum} · Trap:${trap.tipo} DC${trap.dc} ${trap.danno}`;
+        logTxt+=` · DC=${r2.sum} · Trap:${trap.tipo} DC${trap.dc} ${trap.danno}`;
       }
     } else {
-      const s3=addStep(rs,'🔒','CD (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+      const s3=addStep(rs,'🔒','DC (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
       const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
-      s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">CD <span class="cd-val">${r2.sum}</span> per rilevare / interagire${svaHtml}</div>`);
-      logTxt+=` · CD=${r2.sum}${svaLog}`;
+      s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r2.sum}</span> to detect / interact${svaHtml}</div>`);
+      logTxt+=` · DC=${r2.sum}${svaLog}`;
     }
   }
 
@@ -1293,9 +1291,9 @@ async function procedi(){
 // ══════════════ DUNGEON ══════════════
 function generateDungeon(){
   const n=+document.getElementById('d-rooms').value;
-  if(isNaN(n)||n<1||n>40){const el=document.getElementById('d-rooms');el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);showToast('⚠ Inserisci un numero di stanze tra 1 e 40');return;}
-  if(!S.dPop){flashGroup('d-pop-group','⚠ Seleziona la Popolazione (quanti tiri per stanza)');return;}
-  if(!S.dTier){flashGroup('d-tier-group','⚠ Seleziona il Tier per le tabelle Encounter e Trap');return;}
+  if(isNaN(n)||n<1||n>40){const el=document.getElementById('d-rooms');el.style.borderColor='var(--red)';setTimeout(()=>el.style.borderColor='',1200);showToast('⚠ Enter a room count between 1 and 40');return;}
+  if(!S.dPop){flashGroup('d-pop-group','⚠ Select Population (rolls per room)');return;}
+  if(!S.dTier){flashGroup('d-tier-group','⚠ Select Tier for Encounter and Trap tables');return;}
   const con=document.getElementById('dungeon-results');con.innerHTML='';
   for(let i=1;i<=n;i++) con.appendChild(buildRoom(i));
   con.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1303,7 +1301,7 @@ function generateDungeon(){
 
 function buildRoom(idx){
   const thr=S.dPop==='random'?Math.floor(Math.random()*3)+1:S.dThr;
-  const popLabel=thr===1?'Inesplorata':thr===2?'Periferica':'Popolata';
+  const popLabel=thr===1?'Unexplored':thr===2?'Peripheral':'Populated';
 
   // N tiri Complication Table
   const slots=[];
@@ -1331,17 +1329,16 @@ function buildRoom(idx){
   const d8l=roll(8),d12l=roll(12),sumL=d8l+d12l;
   const lootData=getLoot(sumL);
   let lootCD=null;
-  if(lootData.tipo!=='Niente trovato'){const a=roll(8),b=roll(12);lootCD={d8:a,d12:b,sum:a+b};}
+  if(lootData.tipo!=='Nothing found'){const a=roll(8),b=roll(12);lootCD={d8:a,d12:b,sum:a+b};}
 
-  const anyComp=slots.some(s=>s.type!=='Niente');
+  const anyComp=slots.some(s=>s.type!=='None');
   const div=document.createElement('div');
   div.className='room-card';
   div.style.animation=`fadeIn .28s ease ${idx*30}ms both`;
 
-  // Header (con FIX plurale)
-  let hdr=`<div class="room-hdr"><span class="room-num">STANZA ${idx}</span>
-    <span class="badge b-env" style="font-size:.6rem">${popLabel} · ${thr} ${thr>1 ? 'tiri' : 'tiro'}</span>`;
-  if(!anyComp) hdr+=`<span class="badge b-ok">✓ Stanza sicura</span>`;
+  let hdr=`<div class="room-hdr"><span class="room-num">ROOM ${idx}</span>
+    <span class="badge b-env" style="font-size:.6rem">${popLabel} · ${thr} ${thr>1 ? 'rolls' : 'roll'}</span>`;
+  if(!anyComp) hdr+=`<span class="badge b-ok">✓ Safe room</span>`;
   hdr+=`</div>`;
 
   // Slots
@@ -1353,45 +1350,44 @@ function buildRoom(idx){
     else if(sl.type==='Environment'){typeBadge='b-env';slotCls='s-env';}
 
     let innerHTML='';
-    if(sl.type!=='Niente'&&sl.extra){
+    if(sl.type!=='None'&&sl.extra){
       if(sl.extra.kind==='enc'){
         const enc=sl.extra.data;
-        innerHTML=`<div style="margin-bottom:3px">${diffIcon(enc.diff)} <span class="${diffCls(enc.diff)}">${enc.diff}</span> · Livello <strong>${enc.lv}</strong> · <span style="color:var(--amber)">${Number(enc.xp).toLocaleString()} XP/PG</span></div>
+        innerHTML=`<div style="margin-bottom:3px">${diffIcon(enc.diff)} <span class="${diffCls(enc.diff)}">${enc.diff}</span> · Level <strong>${enc.lv}</strong> · <span style="color:var(--amber)">${Number(enc.xp).toLocaleString()} XP/PC</span></div>
           <div class="det">Encounter: d20(${sl.extra.d1})+d20(${sl.extra.d2})=${sl.extra.sum}</div>`;
       } else if(sl.extra.kind==='trap'){
         const trap=sl.extra.data;
         const tCls=trap.tipo==='Deadly'?'diff-high':'diff-mod';
-        innerHTML=`<div style="margin-bottom:3px"><span class="${tCls}">${trap.tipo}</span> · Lv ${trap.lv} · DC <strong>${trap.dc}</strong> · Danno <strong>${trap.danno}</strong></div>
+        innerHTML=`<div style="margin-bottom:3px"><span class="${tCls}">${trap.tipo}</span> · Lv ${trap.lv} · DC <strong>${trap.dc}</strong> · Damage <strong>${trap.danno}</strong></div>
           <div class="det">Trap: d8(${sl.extra.d8})+d12(${sl.extra.d12})=${sl.extra.sum}</div>`;
       } else if(sl.extra.kind==='env'){
-        const rCls2={'Leggendario':'rleg','Molto Raro':'rvr','Raro':'rr','Non Comune':'ruc'};
+        const rCls2={'Legendary':'rleg','Very Rare':'rvr','Rare':'rr','Uncommon':'ruc'};
         const rc=rCls2[sl.extra.data.gravita]||'rc';
-        innerHTML=`<div style="margin-bottom:3px">Gravità: <span class="${rc}">${sl.extra.data.gravita}</span></div>
+        innerHTML=`<div style="margin-bottom:3px">Severity: <span class="${rc}">${sl.extra.data.gravita}</span></div>
           <div class="det">Environment: d8(${sl.extra.d8})+d12(${sl.extra.d12})=${sl.extra.sum}</div>`;
       }
     }
 
     slotsHTML+=`<div class="slot ${slotCls}">
       <div class="slot-hdr">
-        <span class="slot-title">Tiro ${sl.n}/${sl.thr}</span>
+        <span class="slot-title">Roll ${sl.n}/${sl.thr}</span>
         <span class="badge ${typeBadge}">${sl.type}</span>
         <span class="det" style="font-size:.72rem">Compl: d8(${sl.d8})+d12(${sl.d12})=${sl.sum}</span>
       </div>
-      <div class="slot-body">${sl.type!=='Niente'?innerHTML:'<span class="na">Nessuna complicazione.</span>'}</div>
+      <div class="slot-body">${sl.type!=='None'?innerHTML:'<span class="na">No complication.</span>'}</div>
     </div>`;
   });
 
-  // Loot slot
-  const rCls={'Leggendario':'rleg','Molto Raro':'rvr','Raro':'rr','Non Comune':'ruc'};
+  const rCls={'Legendary':'rleg','Very Rare':'rvr','Rare':'rr','Uncommon':'ruc'};
   const rc=rCls[lootData.rarita]||'rc';
   let lootHTML=`<div class="slot s-loot">
     <div class="slot-hdr"><span class="slot-title">Loot</span><span class="badge b-loot">LOOT TABLE</span><span class="det" style="font-size:.72rem">d8(${d8l})+d12(${d12l})=${sumL}</span></div>
     <div class="slot-body">`;
-  if(lootData.tipo!=='Niente trovato'){
+  if(lootData.tipo!=='Nothing found'){
     lootHTML+=`<strong>${lootData.tipo}</strong> <span class="${rc}">· ${lootData.rarita}</span> <span class="det">· ${lootData.qualita} · ${lootData.valore} ${lootData.extra}</span>`;
-    if(lootCD) lootHTML+=`<div class="cd-block"><span class="cd-lbl">CD PER TROVARLO</span><span class="cd-val">CD ${lootCD.sum}</span> <span class="det">· d8(${lootCD.d8})+d12(${lootCD.d12})</span></div>`;
+    if(lootCD) lootHTML+=`<div class="cd-block"><span class="cd-lbl">DC TO FIND IT</span><span class="cd-val">DC ${lootCD.sum}</span> <span class="det">· d8(${lootCD.d8})+d12(${lootCD.d12})</span></div>`;
   } else {
-    lootHTML+=`<span class="na">Niente trovato.</span>`;
+    lootHTML+=`<span class="na">Nothing found.</span>`;
   }
   lootHTML+=`</div></div>`;
 
@@ -1404,7 +1400,7 @@ function clearDungeon(){document.getElementById('dungeon-results').innerHTML='';
 // ══════════════ LOG ══════════════
 function renderLog(){
   const a=document.getElementById('log-area');
-  if(!S.log.length){a.innerHTML='<div class="log-empty">Nessun hex ancora esplorato.</div>';return;}
+  if(!S.log.length){a.innerHTML='<div class="log-empty">No hex explored yet.</div>';return;}
   a.innerHTML=S.log.slice(0,30).map(e=>{const p=e.split(' · ');return`<div class="log-entry"><span class="log-t">${p[0]||''}</span><span>${p.slice(1).join(' · ')}</span></div>`;}).join('');
 }
 function clearLog(){S.log=[];renderLog();saveState();}
@@ -1422,8 +1418,8 @@ function selQTier(btn,t){
 }
 
 function generateQuests(){
-  if(!S.qPop){flashGroup('q-pop-group','⚠ Seleziona la Portata (quanti d8 tirare per il numero di quest)');return;}
-  if(!S.qTier){flashGroup('q-tier-group','⚠ Seleziona il Tier per le tabelle Encounter e Loot');return;}
+  if(!S.qPop){flashGroup('q-pop-group','⚠ Select Scope (how many d8 to roll for quest count)');return;}
+  if(!S.qTier){flashGroup('q-tier-group','⚠ Select Tier for Encounter and Loot tables');return;}
 
   // Quanti d8 tirare
   let numDice = S.qThr;
@@ -1442,7 +1438,7 @@ function generateQuests(){
   diceDiv.style.marginBottom='12px';
   const popLabel = S.qPop==='random'?`Random (${numDice}d8)`:S.qPop.charAt(0).toUpperCase()+S.qPop.slice(1);
   diceDiv.innerHTML=`
-    <div class="section-label">Numero Quest</div>
+    <div class="section-label">Quest Count</div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <span style="font-size:.88rem;color:var(--text-dim)">${popLabel} → tiri: </span>
       ${rolls.map((r,i)=>`<span class="die" style="${r===numQuests?'border-color:var(--gold-light);color:var(--gold-light)':''}">${r}</span>`).join('')}
@@ -1475,8 +1471,7 @@ function buildQuestCard(idx){
   const ld8=roll(8),ld12=roll(12),lSum=ld8+ld12;
   let lootData=getLoot(lSum);
   let isMinima=false;
-  if(lootData.tipo==='Niente trovato'){
-    // Ricompensa minima = primo loot non-niente dalla tabella (r=15)
+  if(lootData.tipo==='Nothing found'){
     lootData=getLoot(15);
     isMinima=true;
   }
@@ -1503,7 +1498,7 @@ function buildQuestCard(idx){
 
   // Slot evento
   html+=`<div class="slot${ev.type==='encounter'||ev.type==='camp_nemico'?' s-enc':''}">
-    <div class="slot-hdr"><span class="slot-title">Tipo Evento</span><span class="badge ${eBadge}">${ev.type.toUpperCase()}</span></div>
+    <div class="slot-hdr"><span class="slot-title">Event Type</span><span class="badge ${eBadge}">${ev.type.toUpperCase()}</span></div>
     <div class="slot-body"><strong>${ev.name}</strong></div>
   </div>`;
 
@@ -1514,20 +1509,20 @@ function buildQuestCard(idx){
       <div class="slot-hdr"><span class="slot-title">Encounter</span><span class="badge b-enc">2d20</span><span class="det" style="font-size:.7rem">d20(${encData.d1})+d20(${encData.d2})=${encData.sum}</span></div>
       <div class="slot-body">
         ${diffIcon(enc.diff)} <span class="${diffCls(enc.diff)}">${enc.diff}</span>
-        · Livello <strong>${enc.lv}</strong>
-        · <span style="color:var(--amber)">${Number(enc.xp).toLocaleString()} XP/PG</span>
+        · Level <strong>${enc.lv}</strong>
+        · <span style="color:var(--amber)">${Number(enc.xp).toLocaleString()} XP/PC</span>
       </div>
     </div>`;
   }
 
   // Slot ricompensa loot
-  const rCls={'Leggendario':'rleg','Molto Raro':'rvr','Raro':'rr','Non Comune':'ruc'};
+  const rCls={'Legendary':'rleg','Very Rare':'rvr','Rare':'rr','Uncommon':'ruc'};
   const rc=rCls[lootData.rarita]||'rc';
   html+=`<div class="slot s-loot">
     <div class="slot-hdr">
-      <span class="slot-title">Ricompensa</span>
-      <span class="badge b-loot">${isMinima?'MINIMA':'LOOT'}</span>
-      <span class="det" style="font-size:.7rem">${isMinima?`d8(${ld8})+d12(${ld12})=${lSum} → niente, base garantita`:'d8('+ld8+')+d12('+ld12+')='+lSum}</span>
+      <span class="slot-title">Reward</span>
+      <span class="badge b-loot">${isMinima?'MINIMUM':'LOOT'}</span>
+      <span class="det" style="font-size:.7rem">${isMinima?`d8(${ld8})+d12(${ld12})=${lSum} → nothing, base guaranteed`:'d8('+ld8+')+d12('+ld12+')='+lSum}</span>
     </div>
     <div class="slot-body">
       <strong>${lootData.tipo}</strong> <span class="${rc}">· ${lootData.rarita}</span>
@@ -1560,21 +1555,20 @@ function switchEdTab(id){
 // ══════════════ EDITOR ══════════════
 function buildEditor(){
   // Weather
-  document.getElementById('tbl-weather').innerHTML=`<thead><tr><th>Stagione</th><th>Sole (≤ d20)</th><th>Pioggia (≤ d20)</th><th>Neve</th></tr></thead><tbody>`+T.weather.map(e=>`<tr><td>${e.s}</td><td><input class="ed-input" data-tbl="weather" data-s="${e.s}" data-f="sole" value="${e.sole}" style="width:60px;text-align:center;"></td><td><input class="ed-input" data-tbl="weather" data-s="${e.s}" data-f="pioggia" value="${e.pioggia}" style="width:60px;text-align:center;"></td><td style="color:var(--text-dim);font-size:.8rem;padding-left:10px;">resto dei numeri fino a 20</td></tr>`).join('')+`</tbody>`;
+  document.getElementById('tbl-weather').innerHTML=`<thead><tr><th>Season</th><th>Clear (≤ d20)</th><th>Rain (≤ d20)</th><th>Snow</th></tr></thead><tbody>`+T.weather.map(e=>`<tr><td>${e.s}</td><td><input class="ed-input" data-tbl="weather" data-s="${e.s}" data-f="sole" value="${e.sole}" style="width:60px;text-align:center;"></td><td><input class="ed-input" data-tbl="weather" data-s="${e.s}" data-f="pioggia" value="${e.pioggia}" style="width:60px;text-align:center;"></td><td style="color:var(--text-dim);font-size:.8rem;padding-left:10px;">remaining numbers up to 20</td></tr>`).join('')+`</tbody>`;
   // Event
   document.getElementById('tbl-event').innerHTML=`<thead><tr><th>R</th><th>Nome</th><th>Tipo</th></tr></thead><tbody>`+T.events.map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="events" data-r="${e.r}" data-f="name" value="${e.name}"></td><td><input class="ed-input" data-tbl="events" data-r="${e.r}" data-f="type" value="${e.type}" style="width:110px"></td></tr>`).join('')+`</tbody>`;
   // Loot
-  document.getElementById('tbl-loot').innerHTML=`<thead><tr><th>R</th><th>Tipo</th><th>Rarità</th><th>Qualità</th><th>Valore</th></tr></thead><tbody>`+T.loot.map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="tipo" value="${e.tipo}"></td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="rarita" value="${e.rarita}" style="width:95px"></td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="qualita" value="${e.qualita}" style="width:85px"></td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="valore" value="${e.valore}" style="width:80px"></td></tr>`).join('')+`</tbody>`;
+  document.getElementById('tbl-loot').innerHTML=`<thead><tr><th>R</th><th>Type</th><th>Rarity</th><th>Quality</th><th>Value</th></tr></thead><tbody>`+T.loot.map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="tipo" value="${e.tipo}"></td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="rarita" value="${e.rarita}" style="width:95px"></td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="qualita" value="${e.qualita}" style="width:85px"></td><td><input class="ed-input" data-tbl="loot" data-r="${e.r}" data-f="valore" value="${e.valore}" style="width:80px"></td></tr>`).join('')+`</tbody>`;
   // Complication
   document.getElementById('tbl-compl').innerHTML=`<thead><tr><th>R</th><th>Tipo</th></tr></thead><tbody>`+T.compl.map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="compl" data-r="${e.r}" data-f="type" value="${e.type}"></td></tr>`).join('')+`</tbody>`;
   // Encounter tiers
   for(let t=0;t<4;t++){
-    document.getElementById('tbl-enc'+(t+1)).innerHTML=`<thead><tr><th>R</th><th>Difficoltà</th><th>Livello</th><th>XP/PG</th></tr></thead><tbody>`+T.enc[t].map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="enc${t}" data-r="${e.r}" data-f="diff" value="${e.diff}" style="width:85px"></td><td><input class="ed-input" data-tbl="enc${t}" data-r="${e.r}" data-f="lv" value="${e.lv}" style="width:55px"></td><td><input class="ed-input" data-tbl="enc${t}" data-r="${e.r}" data-f="xp" value="${e.xp}" style="width:70px"></td></tr>`).join('')+`</tbody>`;
-    // Trap tiers
-    document.getElementById('tbl-trap'+(t+1)).innerHTML=`<thead><tr><th>R</th><th>Tipo</th><th>Livello</th><th>DC</th><th>Danno</th></tr></thead><tbody>`+T.trap[t].map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="tipo" value="${e.tipo}" style="width:75px"></td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="lv" value="${e.lv}" style="width:55px"></td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="dc" value="${e.dc}" style="width:45px"></td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="danno" value="${e.danno}" style="width:90px"></td></tr>`).join('')+`</tbody>`;
+    document.getElementById('tbl-enc'+(t+1)).innerHTML=`<thead><tr><th>R</th><th>Difficulty</th><th>Level</th><th>XP/PC</th></tr></thead><tbody>`+T.enc[t].map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="enc${t}" data-r="${e.r}" data-f="diff" value="${e.diff}" style="width:85px"></td><td><input class="ed-input" data-tbl="enc${t}" data-r="${e.r}" data-f="lv" value="${e.lv}" style="width:55px"></td><td><input class="ed-input" data-tbl="enc${t}" data-r="${e.r}" data-f="xp" value="${e.xp}" style="width:70px"></td></tr>`).join('')+`</tbody>`;
+    document.getElementById('tbl-trap'+(t+1)).innerHTML=`<thead><tr><th>R</th><th>Type</th><th>Level</th><th>DC</th><th>Damage</th></tr></thead><tbody>`+T.trap[t].map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="tipo" value="${e.tipo}" style="width:75px"></td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="lv" value="${e.lv}" style="width:55px"></td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="dc" value="${e.dc}" style="width:45px"></td><td><input class="ed-input" data-tbl="trap${t}" data-r="${e.r}" data-f="danno" value="${e.danno}" style="width:90px"></td></tr>`).join('')+`</tbody>`;
   }
   // Environment
-  document.getElementById('tbl-env').innerHTML=`<thead><tr><th>R</th><th>Gravità</th></tr></thead><tbody>`+T.env.map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="env" data-r="${e.r}" data-f="gravita" value="${e.gravita}"></td></tr>`).join('')+`</tbody>`;
+  document.getElementById('tbl-env').innerHTML=`<thead><tr><th>R</th><th>Severity</th></tr></thead><tbody>`+T.env.map(e=>`<tr><td class="rn">${e.r}</td><td><input class="ed-input" data-tbl="env" data-r="${e.r}" data-f="gravita" value="${e.gravita}"></td></tr>`).join('')+`</tbody>`;
 }
 
 function readEditor(){
@@ -1610,7 +1604,77 @@ function flashBtn(id,msg,dur=1700){
   setTimeout(()=>{btn.innerHTML=orig;btn.style.borderColor='';btn.style.color='';},dur);
 }
 
+// ══════════════ MIGRATION: Italian → English ══════════════
+function migrateStorage() {
+  // State: meteo / intensita
+  try {
+    const sv = JSON.parse(localStorage.getItem('gm_state'));
+    if (sv) {
+      const meteoMap = {'Sole':'Clear','Pioggia':'Rain','Neve':'Snow'};
+      const intMap   = {'Leggera':'Light','Moderata':'Moderate','Forte':'Heavy'};
+      let dirty = false;
+      if (meteoMap[sv.meteo])   { sv.meteo    = meteoMap[sv.meteo];   dirty = true; }
+      if (intMap[sv.intensita]) { sv.intensita = intMap[sv.intensita]; dirty = true; }
+      if (dirty) localStorage.setItem('gm_state', JSON.stringify(sv));
+    }
+  } catch(e) {}
+
+  // Loot table
+  try {
+    const loot = JSON.parse(localStorage.getItem('gm_lo'));
+    if (loot) {
+      const tipoMap = {
+        'Oggetto Maledetto':'Cursed Item','Arma / Armatura':'Weapon / Armor',
+        'Oggetto Magico':'Magic Item','Equipaggiamento':'Equipment',
+        'Materiali':'Materials','Niente trovato':'Nothing found',
+        'Consumabile':'Consumable','Arma / Armatura Magica':'Magic Weapon / Armor',
+        'Artefatto / Reliquia':'Artifact / Relic'
+      };
+      const raritaMap = {
+        'Leggendario':'Legendary','Molto Raro':'Very Rare','Raro':'Rare',
+        'Non Comune':'Uncommon','Comune':'Common'
+      };
+      const qualitaMap = {
+        'Corrotto':'Corrupted','Rovinato':'Damaged','Buono':'Fine',
+        'Eccelso':'Masterwork','Integro':'Pristine'
+      };
+      let dirty = false;
+      loot.forEach(e => {
+        if (tipoMap[e.tipo])     { e.tipo   = tipoMap[e.tipo];     dirty = true; }
+        if (raritaMap[e.rarita]) { e.rarita = raritaMap[e.rarita]; dirty = true; }
+        if (qualitaMap[e.qualita]) { e.qualita = qualitaMap[e.qualita]; dirty = true; }
+      });
+      if (dirty) localStorage.setItem('gm_lo', JSON.stringify(loot));
+    }
+  } catch(e) {}
+
+  // Complication table
+  try {
+    const compl = JSON.parse(localStorage.getItem('gm_co'));
+    if (compl) {
+      let dirty = false;
+      compl.forEach(e => { if (e.type === 'Niente') { e.type = 'None'; dirty = true; } });
+      if (dirty) localStorage.setItem('gm_co', JSON.stringify(compl));
+    }
+  } catch(e) {}
+
+  // Environment severity table
+  try {
+    const env = JSON.parse(localStorage.getItem('gm_env'));
+    if (env) {
+      const gravMap = {
+        'Leggendario':'Legendary','Molto Raro':'Very Rare','Raro':'Rare',
+        'Non Comune':'Uncommon','Comune':'Common'
+      };
+      let dirty = false;
+      env.forEach(e => { if (gravMap[e.gravita]) { e.gravita = gravMap[e.gravita]; dirty = true; } });
+      if (dirty) localStorage.setItem('gm_env', JSON.stringify(env));
+    }
+  } catch(e) {}
+}
+
 // ══════════════ INIT ══════════════
+migrateStorage();
 loadTables();
 buildEditor();
 loadState();
