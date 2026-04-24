@@ -28,6 +28,9 @@ const ADAPTER_MANIFEST = [
   'adapters/classes/wizard/wizard.js',
   'adapters/classes/wizard/wizard-stubs.js',
 
+  'adapters/classes/artificer/artificer.js',
+  'adapters/classes/artificer/artificer-stubs.js',
+
   'adapters/classes/druid/druid.js',
   'adapters/classes/druid/land.js',
   'adapters/classes/druid/druid-stubs.js',
@@ -65,4 +68,12 @@ const ADAPTER_MANIFEST = [
   'adapters/species/gnome.js',
   'adapters/species/goliath.js',
   'adapters/species/human.js',
+  'adapters/species/changeling.js',
+  'adapters/species/dwarf.js',
+  'adapters/species/halfling.js',
+  'adapters/species/kalashtar.js',
+  'adapters/species/khoravar.js',
+  'adapters/species/orc.js',
+  'adapters/species/shifter.js',
+  'adapters/species/warforged.js',
 ];

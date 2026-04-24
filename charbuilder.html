@@ -2387,18 +2387,18 @@
       Barbarian:[{str:13}], Bard:[{cha:13}], Cleric:[{wis:13}], Druid:[{wis:13}],
       Fighter:[{str:13},{dex:13}], Monk:[{dex:13,wis:13}], Paladin:[{str:13,cha:13}],
       Ranger:[{dex:13,wis:13}], Rogue:[{dex:13}], Sorcerer:[{cha:13}],
-      Warlock:[{cha:13}], Wizard:[{int:13}],
+      Warlock:[{cha:13}], Wizard:[{int:13}], Artificer:[{int:13}],
     };
     const MC_CASTER_TYPE = {
       Bard:'full',Cleric:'full',Druid:'full',Sorcerer:'full',Wizard:'full',
-      Paladin:'half',Ranger:'half',Warlock:'pact',
+      Paladin:'half',Ranger:'half',Warlock:'pact',Artificer:'half',
     };
     const PB = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
     const PB_COST = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
     const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
     const SLBL = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
     const STD_ARR = [15, 14, 13, 12, 10, 8];
-    const CLASS_FILES = ['class-barbarian.json', 'class-bard.json', 'class-cleric.json', 'class-druid.json', 'class-fighter.json', 'class-monk.json', 'class-paladin.json', 'class-ranger.json', 'class-rogue.json', 'class-sorcerer.json', 'class-warlock.json', 'class-wizard.json'];
+    const CLASS_FILES = ['class-barbarian.json', 'class-bard.json', 'class-cleric.json', 'class-druid.json', 'class-fighter.json', 'class-monk.json', 'class-paladin.json', 'class-ranger.json', 'class-rogue.json', 'class-sorcerer.json', 'class-warlock.json', 'class-wizard.json', 'class-artificer.json'];
 
     // Numero di ASI/Feat per classe (livelli in cui si ottengono)
     // Solo Expertise rimane hardcoded — non esiste struttura machine-readable nei dati
@@ -2715,10 +2715,13 @@
       "Potter's Tools", "Smith's Tools", "Tinker's Tools",
       "Weaver's Tools", "Woodcarver's Tools",
     ];
-    const _ALL_TOOLS = [
-      ..._ARTISAN_TOOLS,
+    const _MUSICAL_INSTRUMENTS = [
       'Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum',
       'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol',
+    ];
+    const _ALL_TOOLS = [
+      ..._ARTISAN_TOOLS,
+      ..._MUSICAL_INSTRUMENTS,
       "Thieves' Tools", 'Disguise Kit', 'Forgery Kit',
       "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
     ];
@@ -2786,10 +2789,14 @@
         // toolProficiencies
         (feat.toolProficiencies || []).forEach((block, bi) => {
           const choose = block?.choose || {};
-          const count = block?.anyArtisansTool || block?.any || choose.count || 0;
+          const count = block?.anyArtisansTool || block?.anyMusicalInstrument || block?.any || choose.count || 0;
           if (!count) return;
           let from = choose.from || [];
-          if (!from.length) from = block?.anyArtisansTool ? _ARTISAN_TOOLS : _ALL_TOOLS;
+          if (!from.length) {
+            if (block?.anyArtisansTool) from = _ARTISAN_TOOLS;
+            else if (block?.anyMusicalInstrument) from = _MUSICAL_INSTRUMENTS;
+            else from = _ALL_TOOLS;
+          }
           _specPush(out, {
             key: `${keyPrefix}_feat_${fkey}_tool_${bi}`,
             label: `${fname} — Tool Proficiency`,
@@ -2917,15 +2924,70 @@
       const specs = [];
       if (!char.choices) char.choices = {};
 
-      // 1. Skill Iniziali (Logica Generale)
-      if (cls.startingProficiencies?.skills) {
-        cls.startingProficiencies.skills.forEach((sc, idx) => {
-          if (sc.choose) {
-            specs.push({
-              key: `start_skills_lv1_${idx}`, label: `Class Skills`,
-              type: 'skill_choice', from: sc.choose.from || [], count: sc.choose.count || 1, level: 1
-            });
+      // 1. Scelte Iniziali da startingProficiencies (skills/languages/tools)
+      {
+        const sp = cls.startingProficiencies || {};
+        const allSkillNames = typeof SKILLS !== 'undefined' ? SKILLS.map(s => s.n) : [];
+
+        const skillBlocks = Array.isArray(sp.skills) ? sp.skills : (sp.skills ? [sp.skills] : []);
+        skillBlocks.forEach((sc, idx) => {
+          if (!sc || typeof sc !== 'object') return;
+          const choose = sc.choose || {};
+          const count = choose.count || sc.any || 0;
+          if (!count) return;
+          const from = choose.from || allSkillNames;
+          specs.push({
+            key: `start_skills_lv1_${idx}`,
+            label: 'Class Skills',
+            type: 'skill_choice',
+            from,
+            count,
+            level: 1
+          });
+        });
+
+        const langBlocks = Array.isArray(sp.languageProficiencies) ? sp.languageProficiencies : (sp.languageProficiencies ? [sp.languageProficiencies] : []);
+        langBlocks.forEach((lb, idx) => {
+          if (!lb || typeof lb !== 'object') return;
+          const choose = lb.choose || {};
+          const count = choose.count || lb.any || lb.anyStandard || lb.anyExotic || 0;
+          if (!count) return;
+          let from = choose.from || [];
+          if (!from.length) {
+            if (lb.anyExotic) from = _ALL_LANGS;
+            else if (lb.anyStandard) from = _STD_LANGS;
+            else from = _ALL_LANGS;
           }
+          specs.push({
+            key: `start_languages_lv1_${idx}`,
+            label: 'Class Languages',
+            type: 'language_choice',
+            from,
+            count,
+            level: 1
+          });
+        });
+
+        const toolBlocks = Array.isArray(sp.toolProficiencies) ? sp.toolProficiencies : (sp.toolProficiencies ? [sp.toolProficiencies] : []);
+        toolBlocks.forEach((tb, idx) => {
+          if (!tb || typeof tb !== 'object') return;
+          const choose = tb.choose || {};
+          const count = choose.count || tb.any || tb.anyArtisansTool || tb.anyMusicalInstrument || 0;
+          if (!count) return;
+          let from = choose.from || [];
+          if (!from.length) {
+            if (tb.anyArtisansTool) from = _ARTISAN_TOOLS;
+            else if (tb.anyMusicalInstrument) from = _MUSICAL_INSTRUMENTS;
+            else from = _ALL_TOOLS;
+          }
+          specs.push({
+            key: `start_tools_lv1_${idx}`,
+            label: 'Class Tools',
+            type: 'generic_choice',
+            from,
+            count,
+            level: 1
+          });
         });
       }
 
@@ -3064,6 +3126,7 @@
 
       renderSpeciesChoicesPanel();
       renderChoicesPanel();
+      renderSpellPanel();
       renderPreviewSpells();
       renderPreview();
       if (typeof renderSpeciesCard === 'function') renderSpeciesCard();
@@ -3081,6 +3144,7 @@
       // REFRESH TOTALE DELLO SCHERMO
       if (typeof renderSpeciesChoicesPanel === 'function') renderSpeciesChoicesPanel();
       renderChoicesPanel();
+      renderSpellPanel();
       renderPreviewSpells();
       renderPreview();
     }
@@ -3092,6 +3156,7 @@
       }
       char.choices[`${slotKey}_entry`] = entryIdx;
       renderChoicesPanel();
+      renderSpellPanel();
       renderPreviewSpells();
     }
 
@@ -3595,11 +3660,18 @@
       return res;
     }
 
+    function _normalizeSpellRefName(raw) {
+      return String(raw || '')
+        .split('|')[0]
+        .split('#')[0]
+        .trim();
+    }
+
     // Normalizza una entry dentro un array di spell:
     //   "Burning Hands|XPHB" → {type:'fixed', name:'Burning Hands'}
     //   {choose:"level=1|class=Wizard", count:2} → {type:'choose', level, classes, count}
     function normalizeSpellEntry(entry) {
-      if (typeof entry === 'string') return { type: 'fixed', name: entry.split('|')[0] };
+      if (typeof entry === 'string') return { type: 'fixed', name: _normalizeSpellRefName(entry) };
       if (entry && typeof entry === 'object' && entry.choose) {
         const p = parseChooseStr(entry.choose);
         return { type: 'choose', ...p, count: entry.count || 1 };
@@ -3721,8 +3793,8 @@
               for (const s of items) {
                 // Estrae il nome dell'incantesimo (gestisce stringhe e oggetti)
                 let rawName = null;
-                if (typeof s === 'string') rawName = s.split('|')[0];
-                else if (s && s.item) rawName = s.item.split('|')[0];
+                if (typeof s === 'string') rawName = _normalizeSpellRefName(s);
+                else if (s && s.item) rawName = _normalizeSpellRefName(s.item);
 
                 if (!rawName) continue;
 
@@ -3765,37 +3837,28 @@
           const selectedEntry = char.choices?.[`${slotKey}_entry`] ?? 0;
           if (entryIdx !== selectedEntry) continue;
         }
+
+        const walkChoiceNode = (node, modeTag) => {
+          if (!node) return;
+          if (Array.isArray(node)) {
+            _extractChoices(node, slotKey, source, modeTag, choices);
+            return;
+          }
+          if (typeof node === 'object') {
+            for (const [subKey, subNode] of Object.entries(node)) {
+              const nextMode = subKey === '_' ? modeTag : `${modeTag}_${subKey}`;
+              walkChoiceNode(subNode, nextMode);
+            }
+          }
+        };
+
         for (const mode of ['known', 'innate']) {
           const section = grant[mode];
           if (!section) continue;
           for (const [lvlKey, entries] of Object.entries(section)) {
             const req = lvlKey === '_' ? 0 : parseInt(lvlKey) || 0;
             if (grantedLv < req) continue;
-            if (lvlKey === '_') {
-              if (Array.isArray(entries)) {
-                // known._: array diretta di spell/choose
-                _extractChoices(entries, slotKey, source, mode, choices);
-              } else if (entries && typeof entries === 'object') {
-                // innate._: {daily:{1:[...]}} o {rest:{1:[...]}}
-                for (const [subKey, subEntries] of Object.entries(entries)) {
-                  for (const [, spellArr] of Object.entries(subEntries || {})) {
-                    if (Array.isArray(spellArr))
-                      _extractChoices(spellArr, slotKey, source, `${mode}_${subKey}`, choices);
-                  }
-                }
-              }
-            } else {
-              if (Array.isArray(entries)) {
-                _extractChoices(entries, slotKey, source, mode, choices);
-              } else if (entries && typeof entries === 'object') {
-                for (const [subKey, subEntries] of Object.entries(entries)) {
-                  for (const [, spellArr] of Object.entries(subEntries || {})) {
-                    if (Array.isArray(spellArr))
-                      _extractChoices(spellArr, slotKey, source, `${mode}_${subKey}`, choices);
-                  }
-                }
-              }
-            }
+            walkChoiceNode(entries, mode);
           }
         }
       }
@@ -3807,9 +3870,11 @@
         const norm = normalizeSpellEntry(entry);
         if (!norm || norm.type !== 'choose') return;
         const storeKey = `${slotKey}_${mode}_lv${norm.level}_${idx}`;
+        const lvlLabel = norm.level === 0 ? 'Cantrip' : `Spell Lv.${norm.level}`;
         choices.push({
           storeKey, slotKey, source, mode,
-          spellLevel: norm.level, classes: norm.classes, schools: norm.schools, count: norm.count
+          spellLevel: norm.level, classes: norm.classes, schools: norm.schools, count: norm.count,
+          label: `${source} — ${lvlLabel}`
         });
       });
     }
@@ -4861,7 +4926,8 @@
       if (!s) { panel.style.display = 'none'; return; }
 
       const specs = deriveSpeciesChoices(s);
-      if (!specs || specs.length === 0) { panel.style.display = 'none'; return; }
+      const speciesSpellChoices = getPendingSpellChoices().filter(c => c.slotKey === 'species');
+      if ((!specs || specs.length === 0) && !speciesSpellChoices.length) { panel.style.display = 'none'; return; }
 
       panel.style.display = 'block';
       let h = '';
@@ -4905,6 +4971,15 @@
           h += _renderChoiceBlock(spec);
         }
       }
+
+      if (speciesSpellChoices.length) {
+        h += `<div class="choice-block" style="margin-top:1rem">
+          <div class="choice-block-hdr"><span>✦ Species Spells</span></div>
+          <div style="padding-top:.25rem">`;
+        for (const choice of speciesSpellChoices) h += _renderSpellChoiceBlock(choice);
+        h += `</div></div>`;
+      }
+
       body.innerHTML = h;
 
       // Iniezione dei bottoni dopo che l'HTML è pronto
@@ -5026,7 +5101,10 @@
     function selAbilityChoice(key, value) {
       if (!char.choices) char.choices = {};
       char.choices[key] = char.choices[key] === value ? null : value;
-      renderSpeciesChoicesPanel(); renderPreview();
+      renderSpeciesChoicesPanel();
+      renderSpellPanel();
+      renderPreviewSpells();
+      renderPreview();
     }
 
     /* ════════════════════════════════════ BACKGROUND */
@@ -5922,25 +6000,26 @@
       const toolNames = new Set(_ALL_TOOLS.map(_normCompare));
 
       const _addClassFixedTools = (cls) => {
-        const src = cls?.startingProficiencies?.tools;
-        if (!src) return;
-        const arr = Array.isArray(src) ? src : [src];
-        arr.forEach(t => {
+        const sp = cls?.startingProficiencies || {};
+        const src = [];
+        if (sp.tools) src.push(...(Array.isArray(sp.tools) ? sp.tools : [sp.tools]));
+        if (sp.toolProficiencies) src.push(...(Array.isArray(sp.toolProficiencies) ? sp.toolProficiencies : [sp.toolProficiencies]));
+        src.forEach(t => {
           if (typeof t === 'string') {
             const nt = _normalizeProfName(t);
             if (nt) tools.add(nt);
             return;
           }
-          _fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
+          _fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
         });
       };
 
       _addClassFixedTools(char.cls);
       for (const ec of (char.extraClasses || [])) _addClassFixedTools(ec.cls);
 
-      _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
-      _collectFixedFromBlocks(char.speciesObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
-      _collectFixedFeatureProficiencies('toolProficiencies', ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
+      _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+      _collectFixedFromBlocks(char.speciesObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+      _collectFixedFeatureProficiencies('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
 
       if (char.choices) {
         Object.entries(char.choices).forEach(([key, val]) => {
@@ -6196,50 +6275,77 @@
       const body = document.getElementById('spell-body');
       const cls = char.className;
       const caster = char.cls?.casterProgression || CASTER_FB[cls] || null;
-      if (!caster) { panel.style.display = 'none'; return; }
+
+      const hasGrantData = collectSpellGrants().length > 0;
+      const hasManualSpellSel = (char.selectedCantrips?.length || 0) > 0
+        || Object.values(char.selectedSpells || {}).flat().length > 0;
+      if (!caster && !hasGrantData && !hasManualSpellSel) { panel.style.display = 'none'; return; }
+
       panel.style.display = 'block';
       if (!spellDb.length) { body.innerHTML = '<div class="phmsg">Loading spells…</div>'; return; }
 
-      const counts = calcSpellCounts();
-      const classSpells = getClassSpells(cls);
+      const counts = caster ? calcSpellCounts() : { cantrips: 0, spells: 0 };
+      const classSpells = caster ? getClassSpells(cls) : [];
+      const autoGranted = getAutoGrantedSpells();
+      const pendingChoices = getPendingSpellChoices();
 
       // Calcolo corretto e dinamico del livello massimo di magie sbloccate
       // (Legge l'array degli slot reali anziché usare formule matematiche approssimative)
-      let maxLv = 1;
-      if (caster === 'pact') {
-        maxLv = WLOCK[char.level] ? WLOCK[char.level].l : 1;
-      } else {
-        const slotData = caster === 'full' ? FULL_SLOTS[char.level] : HALF_SLOTS[char.level];
-        if (slotData) {
-          // Cerca l'indice più alto nell'array in cui il numero di slot è maggiore di 0
-          for (let i = 0; i < slotData.length; i++) {
-            if (slotData[i] > 0) maxLv = i + 1;
+      let maxLv = 0;
+      if (caster) {
+        maxLv = 1;
+        if (caster === 'pact') {
+          maxLv = WLOCK[char.level] ? WLOCK[char.level].l : 1;
+        } else {
+          const slotData = caster === 'full' ? FULL_SLOTS[char.level] : HALF_SLOTS[char.level];
+          if (slotData) {
+            for (let i = 0; i < slotData.length; i++) {
+              if (slotData[i] > 0) maxLv = i + 1;
+            }
           }
         }
       }
-      maxLv = Math.min(9, Math.max(1, maxLv)); // Range di sicurezza 1-9
 
-      // FIX BUG: Se abbassi il livello del personaggio mentre stai guardando un tab 
-      // di incantesimi alto (es. Liv 2), resetta la visuale al livello massimo consentito!
-      if (activeSpellLevel > maxLv) {
-        activeSpellLevel = maxLv;
-      }
+      const extraLevels = [
+        ...autoGranted.map(s => s.level || 0),
+        ...pendingChoices.map(c => c.spellLevel || 0),
+        ...Object.keys(char.selectedSpells || {}).map(k => parseInt(k) || 0),
+        ...(char.selectedCantrips?.length ? [0] : []),
+      ];
+      if (extraLevels.length) maxLv = Math.max(maxLv, ...extraLevels);
+      maxLv = Math.min(9, Math.max(0, maxLv)); // Range di sicurezza 0-9
+
+      const hasContentAtLevel = (lv) => {
+        const row = classSpells.filter(s => s.level === lv);
+        const hasAutoLv = autoGranted.some(s => s.level === lv);
+        const hasPendingLv = pendingChoices.some(c => (c.spellLevel || 0) === lv);
+        const hasSelectedLv = lv === 0 ? (char.selectedCantrips?.length || 0) > 0 : ((char.selectedSpells?.[lv] || []).length > 0);
+        if (lv === 0) return caster || hasAutoLv || hasPendingLv || hasSelectedLv || maxLv === 0;
+        return row.length > 0 || hasAutoLv || hasPendingLv || hasSelectedLv;
+      };
+      const availableLevels = [];
+      for (let lv = 0; lv <= maxLv; lv++) if (hasContentAtLevel(lv)) availableLevels.push(lv);
+      if (!availableLevels.length) availableLevels.push(0);
+      if (!availableLevels.includes(activeSpellLevel)) activeSpellLevel = availableLevels[0];
 
       // Stampa l'intestazione
       let h = `<div style="font-size:13px;color:var(--text2);margin-bottom:.6rem">`;
-      if (counts.cantrips > 0) h += `Cantrip: <b style="color:var(--gold2)">${char.selectedCantrips.length}/${counts.cantrips}</b> · `;
-      h += `Spells: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
-      if (caster === 'pact') h += ` <span style="font-size:11px;color:var(--text3)">(Warlock: spells known)</span>`;
-      else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:11px;color:var(--text3)">(prepared)</span>`;
+      if (caster) {
+        if (counts.cantrips > 0) h += `Cantrip: <b style="color:var(--gold2)">${char.selectedCantrips.length}/${counts.cantrips}</b> · `;
+        h += `Spells: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
+        if (caster === 'pact') h += ` <span style="font-size:11px;color:var(--text3)">(Warlock: spells known)</span>`;
+        else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:11px;color:var(--text3)">(prepared)</span>`;
+      } else {
+        h += `Bonus spells: <b style="color:var(--gold2)">${autoGranted.length}</b>`;
+      }
 
-      const autoCount = getAutoGrantedSpells().length;
-      if (autoCount > 0) h += ` <span style="font-size:11px;color:var(--teal)">+ ${autoCount} from subclass ✦</span>`;
+      const autoCount = autoGranted.length;
+      if (autoCount > 0) h += ` <span style="font-size:11px;color:var(--teal)">+ ${autoCount} auto-granted ✦</span>`;
       h += `</div>`;
 
       // Stampa i Tab dei livelli magici (solo fino al maxLv consentito)
       h += `<div class="spell-tabs">`;
-      for (let lv = 0; lv <= maxLv; lv++) {
-        if (lv > 0) { const row = classSpells.filter(s => s.level === lv); if (!row.length) continue; }
+      for (const lv of availableLevels) {
         const isActive = lv === activeSpellLevel;
         const selCount = lv === 0 ? char.selectedCantrips.length : (char.selectedSpells[lv] || []).length;
         h += `<button class="spell-tab${isActive ? ' on' : selCount > 0 ? ' has' : ''}" onclick="setSpellTab(${lv})">${SPELL_LEVEL_LABELS[lv]}${selCount > 0 ? ` (${selCount})` : ''}</button>`;
@@ -6346,11 +6452,15 @@
       // 2. Incantesimi automatici (Classe + Specie)
       autoSpells.forEach(s => allSpellNames.add(s.name.toLowerCase()));
 
-      // 3. Incantesimi da altre scelte (Talenti)
-      Object.entries(choices).forEach(([key, val]) => {
-        if (key.includes('spell_choice') || key.includes('cantrip') || key.startsWith('feat_')) {
-          if (Array.isArray(val)) val.forEach(v => allSpellNames.add(v.toLowerCase()));
-          else if (typeof val === 'string' && spellDb.some(s => s.name === val)) allSpellNames.add(val.toLowerCase());
+      // 3. Incantesimi da altre scelte (feat/specie/altre grant choices)
+      Object.values(choices).forEach(val => {
+        if (Array.isArray(val)) {
+          val.forEach(v => {
+            if (typeof v !== 'string') return;
+            if (spellDb.some(s => s.name.toLowerCase() === v.toLowerCase())) allSpellNames.add(v.toLowerCase());
+          });
+        } else if (typeof val === 'string' && spellDb.some(s => s.name.toLowerCase() === val.toLowerCase())) {
+          allSpellNames.add(val.toLowerCase());
         }
       });
 

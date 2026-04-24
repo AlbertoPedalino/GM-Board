@@ -780,10 +780,15 @@
     }
     .res-pip {
       width:14px;height:14px;border-radius:50%;cursor:pointer;
-      border:2px solid var(--gold);background:var(--gdim);transition:all .1s;
+      border:2px solid var(--bdr2);background:transparent;transition:all .1s;
     }
-    .res-pip.used { background:transparent;border-color:var(--bdr2) }
+    .res-pip.used { background:var(--gold);border-color:var(--gold) }
     .res-pip:hover { transform:scale(1.2) }
+    .res-pip-group { display:flex;gap:4px;flex-wrap:wrap;align-items:center }
+    .action-card-bar {
+      display:flex;flex-wrap:wrap;gap:5px;align-items:center;
+      padding:5px 10px;border-top:1px solid var(--bdr);
+    }
     .res-badge {
       font-family:'Cinzel',serif;font-size:10px;font-weight:700;
       color:var(--gold2);background:var(--gdim);border:1px solid var(--gold);
@@ -2015,7 +2020,25 @@ function renderActionsTab(){
   const lv=C?.level||1;
   const inv=sheetInventory||[];
   const equippedWeapons=inv.filter(i=>i.equipped&&['M','R'].includes(i.type));
-  const cantrips=C?.selectedCantrips||[];
+  const cantripSet = new Set(C?.selectedCantrips||[]);
+  if(C?.choices){
+    const snapshots = C?.spellSnapshots||[];
+    const spellLevelByName = (name)=>{
+      const lc = String(name||'').toLowerCase();
+      const snap = snapshots.find(s=>String(s?.name||'').toLowerCase()===lc);
+      if(snap && typeof snap.level === 'number') return snap.level;
+      const db = Array.isArray(sheetSpellDb) ? sheetSpellDb.find(s=>s.name.toLowerCase()===lc) : null;
+      return db ? db.level : null;
+    };
+    for(const val of Object.values(C.choices)){
+      const vals = Array.isArray(val) ? val : [val];
+      vals.forEach(v=>{
+        if(typeof v !== 'string') return;
+        if(spellLevelByName(v) === 0) cantripSet.add(v);
+      });
+    }
+  }
+  const cantrips=[...cantripSet];
 
   // Primary class level (not total character level)
   const pLv=C?.classLevel||lv;
@@ -2110,6 +2133,39 @@ function renderSpellsTab(){
   const auto        = C.autoGrantedSpells||[];
   const snapshots   = C.spellSnapshots||[];
 
+  const _lvlCache = new Map();
+  const spellLevelByName = (name)=>{
+    const lc = String(name||'').toLowerCase();
+    if(_lvlCache.has(lc)) return _lvlCache.get(lc);
+    const snap = snapshots.find(s=>String(s?.name||'').toLowerCase()===lc);
+    if(snap && typeof snap.level === 'number'){ _lvlCache.set(lc, snap.level); return snap.level; }
+    const db = Array.isArray(sheetSpellDb) ? sheetSpellDb.find(s=>s.name.toLowerCase()===lc) : null;
+    const lv = db ? db.level : null;
+    _lvlCache.set(lc, lv);
+    return lv;
+  };
+
+  const choiceSpellNames = [];
+  if(C?.choices){
+    for(const val of Object.values(C.choices)){
+      const vals = Array.isArray(val) ? val : [val];
+      vals.forEach(v=>{
+        if(typeof v !== 'string') return;
+        const slv = spellLevelByName(v);
+        if(slv === 0 || (typeof slv === 'number' && slv >= 1 && slv <= 9)) choiceSpellNames.push(v);
+      });
+    }
+  }
+  const choiceCantrips = choiceSpellNames.filter(n=>spellLevelByName(n)===0);
+  const choiceSpellsByLevel = {};
+  choiceSpellNames.forEach(n=>{
+    const slv = spellLevelByName(n);
+    if(typeof slv === 'number' && slv >= 1 && slv <= 9){
+      if(!choiceSpellsByLevel[slv]) choiceSpellsByLevel[slv] = [];
+      choiceSpellsByLevel[slv].push(n);
+    }
+  });
+
   // Gather extra cantrips from adapter choices (EK, AT, Thaumaturge, Magician, Pact of Tome)
   const CANTRIP_CHOICE_KEYS = [
     'cleric_thaumaturge_cantrip','druid_magician_cantrip',
@@ -2129,10 +2185,11 @@ function renderSpellsTab(){
 
   const hasCaster = C.clsSnapshot?.casterProgression;
   const hasAdapterCantrips = adapterCantrips.length > 0;
+  const hasChoiceSpells = choiceSpellNames.length > 0;
   const hasAdapterEK = !!(C?.subclassShortName==='Eldritch Knight'||C?.choices?.subclass_ek_cantrip_1);
   const hasAdapterAT = !!(C?.subclassShortName==='Arcane Trickster'||C?.choices?.subclass_at_cantrip_1);
 
-  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips){
+  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips && !auto.length && !hasChoiceSpells){
     el.innerHTML='<div class="phmsg">This character is not a spellcaster.</div>'
       + '<button class="spl-add-btn" onclick="openSpellPicker()">+ Add Spell</button>';
     return;
@@ -2286,7 +2343,7 @@ function renderSpellsTab(){
   }
 
   // Cantrips: class cantrips + adapter cantrips
-  const allCantripNames = [...new Set([...allCantrips, ...adapterCantrips.map(a=>a.name)])];
+  const allCantripNames = [...new Set([...allCantrips, ...adapterCantrips.map(a=>a.name), ...choiceCantrips])];
   if(allCantripNames.length){
     h+=`<div class="spell-level-section"><div class="spell-level-hdr">Cantrip</div>`;
     for(const name of allCantripNames) h+=_spellRow(name);
@@ -2296,8 +2353,9 @@ function renderSpellsTab(){
   // Spells by level
   for(let slv=1;slv<=9;slv++){
     const chosen = (allSpells[slv]||[]);
+    const choiceAtLv = (choiceSpellsByLevel[slv]||[]);
     const autoAtLv = auto.filter(a=>a.level===slv).map(a=>a.name);
-    const combined = [...new Set([...chosen, ...autoAtLv])];
+    const combined = [...new Set([...chosen, ...choiceAtLv, ...autoAtLv])];
     if(!combined.length) continue;
     h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[slv]}</div>`;
     for(const name of combined){
@@ -2310,7 +2368,7 @@ function renderSpellsTab(){
     h+=`</div>`;
   }
 
-  if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length){
+  if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length && !Object.values(choiceSpellsByLevel).flat().length){
     h+='<div class="phmsg">No spells selected.</div>';
   }
   h+='<div style="margin-top:.75rem"><button class="spl-add-btn" onclick="openSpellPicker()">+ Add / Remove Spell</button></div>';
@@ -2319,9 +2377,12 @@ function renderSpellsTab(){
 }
 
 function getSpellAbility(){
+  const speciesAbility = C?.choices?.species_spell_ability;
   const cls = C?.className||'';
   if(['Wizard','Artificer'].includes(cls)) return 'int';
   if(['Cleric','Druid','Ranger'].includes(cls)) return 'wis';
+  if(!C?.clsSnapshot?.casterProgression && STATS.includes(speciesAbility)) return speciesAbility;
+  if(STATS.includes(speciesAbility) && !cls) return speciesAbility;
   return 'cha';
 }
 
@@ -2356,6 +2417,7 @@ function getSpellSource(spellName){
         if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key],cls:'p'};
         if(key.startsWith('feat_')) return {label:'Feat',cls:'g'};
         if(key.startsWith('subclass_')) return {label:C.subclassShortName||'Subclass',cls:'p'};
+        if(key.startsWith('species_')) return {label:C?.speciesName||'Species',cls:'t'};
       }
     }
   }
@@ -3165,12 +3227,20 @@ function spendResource(key, cost=1){
   renderActionsTab();
 }
 
-function setResourcePip(key, idx){
-  // Toggle: if pip idx < cur → clicking used (spend to idx), else restore to idx+1
-  const cur = charResources[key]??0;
-  charResources[key] = (idx < cur) ? idx : idx+1;
+function setResourcePip(key, idx, max){
+  const cur = charResources[key]??max;
+  const consumed = max - cur;
+  // left-to-right: clicking a consumed pip (idx < consumed) → restore; clicking available → consume
+  charResources[key] = idx < consumed ? max - idx : max - idx - 1;
+  charResources[key] = Math.max(0, Math.min(max, charResources[key]));
   saveResources();
-  renderActionsTab();
+  const newCur = charResources[key];
+  document.querySelectorAll(`.res-pip-group[data-key="${key}"]`).forEach(el => {
+    const m = parseInt(el.dataset.max);
+    el.innerHTML = Array.from({length:m},(_,i)=>
+      `<div class="res-pip${i<m-newCur?' used':''}" onclick="event.stopPropagation();setResourcePip('${key}',${i},${m})" title="${i<m-newCur?'Consumato':'Disponibile'}"></div>`
+    ).join('');
+  });
 }
 
 function recoverResources(type){
@@ -3205,11 +3275,11 @@ function buildResourceBlock(actionName){
     // Show as pips
     let pipsHtml = '';
     for(let i=0;i<max;i++){
-      pipsHtml += `<div class="res-pip${i<cur?'':' used'}" onclick="setResourcePip('${res.key}',${i})" title="${i<cur?'Usa':'Recupera'}"></div>`;
+      pipsHtml += `<div class="res-pip${i<max-cur?' used':''}" onclick="setResourcePip('${res.key}',${i},${max})" title="${i<max-cur?'Consumato':'Disponibile'}"></div>`;
     }
     return `<div class="res-block">
       <div class="res-block-label">${esc(res.name)} <span class="res-recharge">${rechargeLabel}</span></div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap">${pipsHtml}</div>
+      <div class="res-pip-group" data-key="${res.key}" data-max="${max}">${pipsHtml}</div>
     </div>`;
   }
 }
@@ -3398,10 +3468,7 @@ function buildClassActionCard(a){
   // Build resource block inline
   const resInline = buildResourceBlockInline(a.name);
 
-  // Has anything in info row?
-  const infoRow = rollRow || resInline
-    ? `<div class="action-info-row">${resInline}${rollRow}</div>`
-    : '';
+  const barHtml = resInline || rollRow ? resInline + rollRow : '';
 
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
@@ -3414,8 +3481,8 @@ function buildClassActionCard(a){
         <span class="action-tag cls">${a._cls ? esc(a._cls).toUpperCase() : 'CLASS'}</span>
       </div>
     </div>
+    ${barHtml ? `<div class="action-card-bar">${barHtml}</div>` : ''}
     <div class="action-card-body">
-      ${infoRow}
       <div class="action-desc">${esc(a.desc)}</div>
     </div>
   </div>`;
@@ -3496,11 +3563,11 @@ function buildResourceBlockInline(actionName){
   } else {
     let pipsHtml='';
     for(let i=0;i<max;i++){
-      pipsHtml+=`<div class="res-pip${i<cur?'':' used'}" onclick="event.stopPropagation();setResourcePip('${res.key}',${i})" title="${i<cur?'Usa':'Recupera'}"></div>`;
+      pipsHtml+=`<div class="res-pip${i<max-cur?' used':''}" onclick="event.stopPropagation();setResourcePip('${res.key}',${i},${max})" title="${i<max-cur?'Consumato':'Disponibile'}"></div>`;
     }
     return `<div class="res-inline">
       <span class="res-inline-label">${esc(res.name)}</span>
-      ${pipsHtml}
+      <div class="res-pip-group" data-key="${res.key}" data-max="${max}">${pipsHtml}</div>
       <span class="res-recharge">${rechargeLabel}</span>
     </div>`;
   }
