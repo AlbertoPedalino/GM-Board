@@ -27,7 +27,7 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
     // Deft Explorer: expertise in 1 skill
     specs.push({
       key: 'ranger_expertise_1',
-      label: 'Expertise (Ranger)',
+      label: 'Expertise 1 (Ranger)',
       type: 'expertise',
       from: [],
       count: 1,
@@ -45,7 +45,7 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
   if (lv >= 9) {
     specs.push({
       key: 'ranger_expertise_2',
-      label: 'Expertise Lv9 (Ranger)',
+      label: 'Expertise 2 (Ranger)',
       type: 'expertise',
       from: [],
       count: 1,
@@ -53,7 +53,7 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
     });
     specs.push({
       key: 'ranger_expertise_3',
-      label: 'Expertise Lv9 (Ranger)',
+      label: 'Expertise 3 (Ranger)',
       type: 'expertise',
       from: [],
       count: 1,

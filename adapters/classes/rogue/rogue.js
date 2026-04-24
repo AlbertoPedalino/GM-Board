@@ -55,17 +55,19 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     specs.push({
       key: 'rogue_thieves_cant_lang',
       label: "Bonus Language (Thieves' Cant)",
-      type: 'generic_choice',
+      type: 'language_choice',
       from: _ROGUE_LANGUAGES,
       count: 1,
       level: 1
     });
   }
   if (lv >= 6) {
-    const expertiseFrom6 = [];
+    const expertiseFrom6 = typeof SKILLS !== 'undefined'
+      ? SKILLS.map(function (s) { return s.n; }).concat(["Thieves' Tools"])
+      : ["Thieves' Tools"];
     specs.push({
       key: 'rogue_expertise_3',
-      label: 'Expertise Lv6 (Rogue)',
+      label: 'Expertise 3 (Rogue)',
       type: 'expertise',
       from: expertiseFrom6,
       count: 1,
@@ -73,7 +75,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     });
     specs.push({
       key: 'rogue_expertise_4',
-      label: 'Expertise Lv6 (Rogue)',
+      label: 'Expertise 4 (Rogue)',
       type: 'expertise',
       from: expertiseFrom6,
       count: 1,

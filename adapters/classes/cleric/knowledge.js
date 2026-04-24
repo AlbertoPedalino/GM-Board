@@ -10,7 +10,7 @@ registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
     specs.push({
       key: 'subclass_knowledge_skills',
       label: 'Blessings of Knowledge — Skill (expertise)',
-      type: 'skill_choice',
+      type: 'expertise',
       from: ['Arcana', 'History', 'Nature', 'Religion'],
       count: 2,
       level: 3

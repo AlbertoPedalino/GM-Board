@@ -2335,7 +2335,7 @@
               </p>
               <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()">📋 Generate Character
                 Sheet</button>
-              <div style="margin-top:1rem"><a class="btn-sec" href="index.html">← Back to Encounter Builder</a></div>
+              <div style="margin-top:1rem"><a class="btn-sec" href="index.html">← Home</a></div>
             </div>
           </div>
         </div>
@@ -2643,6 +2643,30 @@
       }
       return null;
     }
+    function _collectOptionsNodes(entries, out = []) {
+      if (!entries) return out;
+      if (Array.isArray(entries)) {
+        entries.forEach(e => _collectOptionsNodes(e, out));
+        return out;
+      }
+      if (typeof entries === 'object') {
+        if (entries.type === 'options' && Array.isArray(entries.entries) && entries.entries.length) {
+          out.push(entries);
+        }
+        if (entries.entries) _collectOptionsNodes(entries.entries, out);
+        if (entries.items) _collectOptionsNodes(entries.items, out);
+      }
+      return out;
+    }
+    function _optionEntryLabel(entry) {
+      if (!entry) return '';
+      if (typeof entry === 'string') return _specSan(entry);
+      if (entry.type === 'refClassFeature' && entry.classFeature) return _specSan(entry.classFeature);
+      if (entry.type === 'refSubclassFeature' && entry.subclassFeature) return _specSan(entry.subclassFeature);
+      if (entry.item) return _specSan(entry.item);
+      if (entry.name) return _specSan(entry.name);
+      return '';
+    }
 
     // Pulisce le stringhe tecniche di 5etools (es. "Protector|Cleric|XPHB|1" -> "Protector")
     function _cleanTagName(str) {
@@ -2677,6 +2701,215 @@
       return specs;
     }
 
+    const _STD_LANGS = [
+      'Common', 'Elvish', 'Dwarvish', 'Giant', 'Gnomish', 'Goblin',
+      'Halfling', 'Orc', 'Draconic', 'Infernal', 'Celestial', 'Undercommon',
+    ];
+    const _EXOTIC_LANGS = ['Abyssal', 'Sylvan', 'Deep Speech', 'Primordial'];
+    const _ALL_LANGS = [..._STD_LANGS, ..._EXOTIC_LANGS];
+    const _ARTISAN_TOOLS = [
+      "Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies",
+      "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools",
+      "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools",
+      "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies",
+      "Potter's Tools", "Smith's Tools", "Tinker's Tools",
+      "Weaver's Tools", "Woodcarver's Tools",
+    ];
+    const _ALL_TOOLS = [
+      ..._ARTISAN_TOOLS,
+      'Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum',
+      'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol',
+      "Thieves' Tools", 'Disguise Kit', 'Forgery Kit',
+      "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
+    ];
+
+    function _specSan(v) {
+      return String(v || '')
+        .replace(/\{@[^}]+\}/g, m => _cleanTagName(m))
+        .split('|')[0]
+        .trim();
+    }
+    function _specUniq(arr) {
+      return [...new Set((arr || []).map(_specSan).filter(Boolean))];
+    }
+    function _specPush(specs, spec) {
+      const from = _specUniq(spec.from || []);
+      if (!from.length) return;
+      specs.push({ ...spec, from });
+    }
+    function _extractFixedKeys(block, excluded = ['choose', 'any', 'anyStandard', 'anyExotic', 'anyArtisansTool']) {
+      if (!block || typeof block !== 'object') return [];
+      return Object.keys(block).filter(k => !excluded.includes(k) && block[k] !== false);
+    }
+    function _deriveFeatureChoiceSpecs(features, maxLv, keyPrefix) {
+      const out = [];
+      const feats = (features || []).filter(f => !f?.isReprinted && (f?.level || 0) <= maxLv);
+      feats.forEach((feat, fi) => {
+        const fname = _specSan(feat.name || `Feature_${fi}`);
+        const fkey = fname.replace(/[^a-zA-Z0-9]/g, '_') || `f_${fi}`;
+
+        // skillProficiencies
+        (feat.skillProficiencies || []).forEach((block, bi) => {
+          const choose = block?.choose || {};
+          const count = block?.any || choose.count || 0;
+          if (!count) return;
+          const from = choose.from || (typeof SKILLS !== 'undefined' ? SKILLS.map(s => s.n) : []);
+          _specPush(out, {
+            key: `${keyPrefix}_feat_${fkey}_skill_${bi}`,
+            label: `${fname} — Skill Proficiency`,
+            type: 'skill_choice',
+            count,
+            level: feat.level || 1,
+            from,
+          });
+        });
+
+        // languageProficiencies
+        (feat.languageProficiencies || []).forEach((block, bi) => {
+          const choose = block?.choose || {};
+          const count = block?.anyStandard || block?.anyExotic || choose.count || 0;
+          if (!count) return;
+          let from = choose.from || [];
+          if (!from.length) {
+            from = block?.anyExotic ? _ALL_LANGS : _STD_LANGS;
+          }
+          _specPush(out, {
+            key: `${keyPrefix}_feat_${fkey}_lang_${bi}`,
+            label: `${fname} — Language`,
+            type: 'language_choice',
+            count,
+            level: feat.level || 1,
+            from,
+          });
+        });
+
+        // toolProficiencies
+        (feat.toolProficiencies || []).forEach((block, bi) => {
+          const choose = block?.choose || {};
+          const count = block?.anyArtisansTool || block?.any || choose.count || 0;
+          if (!count) return;
+          let from = choose.from || [];
+          if (!from.length) from = block?.anyArtisansTool ? _ARTISAN_TOOLS : _ALL_TOOLS;
+          _specPush(out, {
+            key: `${keyPrefix}_feat_${fkey}_tool_${bi}`,
+            label: `${fname} — Tool Proficiency`,
+            type: 'generic_choice',
+            count,
+            level: feat.level || 1,
+            from,
+          });
+        });
+
+        // skillToolLanguageProficiencies
+        (feat.skillToolLanguageProficiencies || []).forEach((block, bi) => {
+          const chooseArr = Array.isArray(block?.choose) ? block.choose : [];
+          chooseArr.forEach((ch, ci) => {
+            const count = ch?.count || 0;
+            if (!count) return;
+            const fromRaw = ch?.from || [];
+            let from = [];
+            if (fromRaw.includes('anySkill')) from.push(...(typeof SKILLS !== 'undefined' ? SKILLS.map(s => s.n) : []));
+            if (fromRaw.includes('anyTool')) from.push(..._ALL_TOOLS);
+            if (fromRaw.includes('anyArtisansTool')) from.push(..._ARTISAN_TOOLS);
+            if (fromRaw.includes('anyLanguage')) from.push(..._ALL_LANGS);
+            from.push(...fromRaw.filter(v => !['anySkill', 'anyTool', 'anyArtisansTool', 'anyLanguage'].includes(v)));
+            const normFrom = _specUniq(from);
+            if (!normFrom.length) return;
+
+            const allSkills = typeof SKILLS !== 'undefined' ? SKILLS.map(s => s.n.toLowerCase()) : [];
+            const allLangs = _ALL_LANGS.map(s => s.toLowerCase());
+            const isAllSkills = normFrom.every(v => allSkills.includes(String(v).toLowerCase()));
+            const isAllLangs = normFrom.every(v => allLangs.includes(String(v).toLowerCase()));
+            const type = isAllSkills ? 'skill_choice' : (isAllLangs ? 'language_choice' : 'generic_choice');
+
+            _specPush(out, {
+              key: `${keyPrefix}_feat_${fkey}_stl_${bi}_${ci}`,
+              label: `${fname} — Proficiency Choice`,
+              type,
+              count,
+              level: feat.level || 1,
+              from: normFrom,
+            });
+          });
+        });
+
+        // Generic feature options (e.g. choices defined in entries->type: "options")
+        _collectOptionsNodes(feat.entries, []).forEach((optNode, oi) => {
+          const count = optNode?.count || 1;
+          if (!count) return;
+          const from = _specUniq((optNode.entries || []).map(_optionEntryLabel).filter(Boolean));
+          if (!from.length) return;
+
+          const allSkills = typeof SKILLS !== 'undefined'
+            ? SKILLS.map(s => String(s.n).toLowerCase())
+            : [];
+          const allLangs = _ALL_LANGS.map(s => String(s).toLowerCase());
+          const fromLc = from.map(v => String(v).toLowerCase());
+          const isAllSkills = fromLc.every(v => allSkills.includes(v));
+          const isAllLangs = fromLc.every(v => allLangs.includes(v));
+          const type = isAllSkills ? 'skill_choice' : (isAllLangs ? 'language_choice' : 'generic_choice');
+
+          _specPush(out, {
+            key: `${keyPrefix}_feat_${fkey}_opt_${oi}`,
+            label: `${fname} — Option`,
+            type,
+            count,
+            level: feat.level || 1,
+            from,
+          });
+        });
+
+        // weaponProficiencies / armorProficiencies (scelte)
+        ['weaponProficiencies', 'armorProficiencies'].forEach((field) => {
+          (feat[field] || []).forEach((block, bi) => {
+            const choose = block?.choose || {};
+            const count = choose.count || block?.any || 0;
+            if (!count) return;
+            const from = choose.from || _extractFixedKeys(block);
+            _specPush(out, {
+              key: `${keyPrefix}_feat_${fkey}_${field}_${bi}`,
+              label: `${fname} — ${field === 'weaponProficiencies' ? 'Weapon' : 'Armor'} Proficiency`,
+              type: 'generic_choice',
+              count,
+              level: feat.level || 1,
+              from,
+            });
+          });
+        });
+      });
+      return out;
+    }
+
+    function _normAdapterKey(v) {
+      return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+    function _getSubclassAdapterFn(className, subclassShortName) {
+      if (!className || !subclassShortName || typeof SubclassAdapters === 'undefined') return null;
+      const exact = `${className}_${subclassShortName}`;
+      if (typeof SubclassAdapters[exact] === 'function') return SubclassAdapters[exact];
+
+      const targetClass = _normAdapterKey(className);
+      const targetSub = _normAdapterKey(subclassShortName);
+      for (const [key, fn] of Object.entries(SubclassAdapters)) {
+        if (typeof fn !== 'function') continue;
+        const idx = key.indexOf('_');
+        if (idx < 0) continue;
+        const kClass = _normAdapterKey(key.slice(0, idx));
+        const kSub = _normAdapterKey(key.slice(idx + 1));
+        if (kClass === targetClass && kSub === targetSub) return fn;
+      }
+      for (const [key, fn] of Object.entries(SubclassAdapters)) {
+        if (typeof fn !== 'function') continue;
+        const idx = key.indexOf('_');
+        if (idx < 0) continue;
+        const kClass = _normAdapterKey(key.slice(0, idx));
+        const kSub = _normAdapterKey(key.slice(idx + 1));
+        if (kClass !== targetClass) continue;
+        if (targetSub.includes(kSub) || kSub.includes(targetSub)) return fn;
+      }
+      return null;
+    }
+
     function deriveAllChoices() {
       const cls = char.cls;
       if (!cls) return [];
@@ -2709,11 +2942,21 @@
         ClassAdapters[char.className](cls, _primaryLv, specs);
       }
       if (char.subclassShortName && typeof SubclassAdapters !== 'undefined') {
-        const _subKey = char.className + '_' + char.subclassShortName;
-        if (typeof SubclassAdapters[_subKey] === 'function') {
-          SubclassAdapters[_subKey](cls, _primaryLv, specs);
-        }
+        const _subAdapter = _getSubclassAdapterFn(char.className, char.subclassShortName);
+        if (_subAdapter) _subAdapter(cls, _primaryLv, specs);
       }
+
+      // 3b. Fallback generico dai dati feature (copre scelte non mappate negli adapter)
+      {
+        const _primaryFeatures = [
+          ...(char.allFeatures || []),
+          ...(char.subclassShortName
+            ? (char.allSubFeatures || []).filter(f => f.subclassShortName === char.subclassShortName)
+            : []),
+        ];
+        specs.push(..._deriveFeatureChoiceSpecs(_primaryFeatures, _primaryLv, 'auto_primary'));
+      }
+
       // Extra classes adapters
       for (const _ec of (char.extraClasses||[])) {
         if (!_ec.name || !_ec.cls) continue;
@@ -2723,10 +2966,16 @@
         if (typeof ClassAdapters !== 'undefined' && typeof ClassAdapters[_ec.name] === 'function')
           ClassAdapters[_ec.name](_ec.cls, _ec.level||1, _ecSpecs);
         if (_ec.subclassShortName && typeof SubclassAdapters !== 'undefined') {
-          const _k = _ec.name + '_' + _ec.subclassShortName;
-          if (typeof SubclassAdapters[_k] === 'function')
-            SubclassAdapters[_k](_ec.cls, _ec.level||1, _ecSpecs);
+          const _ecSubAdapter = _getSubclassAdapterFn(_ec.name, _ec.subclassShortName);
+          if (_ecSubAdapter) _ecSubAdapter(_ec.cls, _ec.level||1, _ecSpecs);
         }
+        const _ecFeatures = [
+          ...(_ec.allFeatures || []),
+          ...(_ec.subclassShortName
+            ? (_ec.allSubFeatures || []).filter(f => f.subclassShortName === _ec.subclassShortName)
+            : []),
+        ];
+        _ecSpecs.push(..._deriveFeatureChoiceSpecs(_ecFeatures, _ec.level || 1, `auto_ec${_ecIdx}`));
         _ecSpecs.forEach(s => { s.key = _pfx + s.key; s.label = `[${_ec.name}] ${s.label||''}`; });
         specs.push(..._ecSpecs);
       }
@@ -2734,7 +2983,16 @@
       // 4. Expertise e Skill extra dalle Feature caricate
       const allLvFeats = [
         ...(char.allFeatures || []).filter(f => f.level <= lv && !f.isReprinted),
-        ...(char.subclassShortName ? char.allSubFeatures.filter(f => f.level <= lv && !f.isReprinted) : [])
+        ...(char.subclassShortName ? char.allSubFeatures.filter(f => f.level <= lv && !f.isReprinted) : []),
+        ...(char.extraClasses || []).flatMap(ec => {
+          const ecLv = ec?.level || 1;
+          return [
+            ...((ec.allFeatures || []).filter(f => f.level <= ecLv && !f.isReprinted)),
+            ...(ec.subclassShortName
+              ? (ec.allSubFeatures || []).filter(f => f.level <= ecLv && !f.isReprinted && f.subclassShortName === ec.subclassShortName)
+              : []),
+          ];
+        }),
       ];
 
       allLvFeats.forEach(feat => {
@@ -2745,7 +3003,28 @@
         }
       });
 
-      return specs.sort((a, b) => a.level - b.level);
+      // Dedup: mantiene tutti gli slot manuali; rimuove solo duplicati auto identici
+      const byKey = new Set();
+      const sigCount = new Map();
+      const out = [];
+      const sorted = specs.sort((a, b) => a.level - b.level);
+      for (const s of sorted) {
+        if (!s || !s.key) continue;
+        if (byKey.has(s.key)) continue;
+        const sig = [
+          s.type || '',
+          s.level || 0,
+          s.count || 1,
+          JSON.stringify(_specUniq(s.from || [])),
+          JSON.stringify(s.spellFilter || {}),
+        ].join('|');
+        const isAuto = String(s.key).includes('auto_');
+        if (isAuto && (sigCount.get(sig) || 0) > 0) continue;
+        byKey.add(s.key);
+        sigCount.set(sig, (sigCount.get(sig) || 0) + 1);
+        out.push(s);
+      }
+      return out;
     }
 
     function selectChoice(key, value) {
@@ -2822,6 +3101,13 @@
         if (!['feat_cat', 'feat_fixed'].includes(spec.type)) continue;
         const val = char.choices[spec.key];
         if (val) result[spec.key] = val;
+      }
+      if (char.speciesObj) {
+        for (const spec of deriveSpeciesChoices(char.speciesObj)) {
+          if (!['feat_cat', 'feat_fixed'].includes(spec.type)) continue;
+          const val = char.choices[spec.key];
+          if (val) result[spec.key] = val;
+        }
       }
       return result;
     }
@@ -3245,7 +3531,7 @@
     function _renderSpellChoiceBlock(choice) {
       // Support both choice.spellFilter (old) and direct spellLevel/classes (new)
       const filter = choice.spellFilter || choice;
-      if (!filter.spellLevel && !filter.classes) return ''; // Safety check - no spell data
+      if (filter.spellLevel == null && !filter.classes && !filter.schools) return ''; // Safety check - no spell data
       const choiceKey = choice.key || choice.storeKey; // Support both old and new structure
       const selected = Array.isArray(char.choices[choiceKey]) ? char.choices[choiceKey] : [];
       const spells = getSpellsForChoice({
@@ -3325,12 +3611,18 @@
     // Raccoglie tutti i grant da feat + sottoclasse + classe + SPECIE
     function collectSpellGrants() {
       const grants = [];
+      const totalLv = char.level || 1;
+      const primaryLv = getPrimaryClassLevel();
 
       // 1. Da Feat
       for (const [slotKey, featName] of Object.entries(getSelectedFeats())) {
         const feat = allFeats.find(f => f.name === featName);
         if (feat?.additionalSpells) {
-          feat.additionalSpells.forEach((g, entryIdx) => grants.push({ slotKey, source: featName, sourceType: 'feat', grant: g, entryIdx, totalEntries: feat.additionalSpells.length }));
+          feat.additionalSpells.forEach((g, entryIdx) => grants.push({
+            slotKey, source: featName, sourceType: 'feat',
+            grant: g, entryIdx, totalEntries: feat.additionalSpells.length,
+            ownerLevel: totalLv,
+          }));
         }
       }
 
@@ -3338,13 +3630,21 @@
       if (char.subclassShortName) {
         const sc = char.subclasses.find(s => s.shortName === char.subclassShortName);
         if (sc?.additionalSpells) {
-          sc.additionalSpells.forEach((g, entryIdx) => grants.push({ slotKey: 'subclass', source: sc.name || char.subclassShortName, sourceType: 'subclass', grant: g, entryIdx, totalEntries: sc.additionalSpells.length }));
+          sc.additionalSpells.forEach((g, entryIdx) => grants.push({
+            slotKey: 'subclass', source: sc.name || char.subclassShortName, sourceType: 'subclass',
+            grant: g, entryIdx, totalEntries: sc.additionalSpells.length,
+            ownerLevel: primaryLv,
+          }));
         }
       }
 
       // 3. Da Classe
       if (char.cls?.additionalSpells) {
-        char.cls.additionalSpells.forEach((g, entryIdx) => grants.push({ slotKey: 'class', source: char.className, sourceType: 'class', grant: g, entryIdx, totalEntries: char.cls.additionalSpells.length }));
+        char.cls.additionalSpells.forEach((g, entryIdx) => grants.push({
+          slotKey: 'class', source: char.className, sourceType: 'class',
+          grant: g, entryIdx, totalEntries: char.cls.additionalSpells.length,
+          ownerLevel: primaryLv,
+        }));
       }
 
       // 4. Da SPECIE / LINEAGGIO (Novità!)
@@ -3359,9 +3659,44 @@
           }
           if (g.name && !selLineage) return;
 
-          grants.push({ slotKey: 'species', source: char.speciesObj.name, sourceType: 'species', grant: g, entryIdx, totalEntries: char.speciesObj.additionalSpells.length });
+          grants.push({
+            slotKey: 'species', source: char.speciesObj.name, sourceType: 'species',
+            grant: g, entryIdx, totalEntries: char.speciesObj.additionalSpells.length,
+            ownerLevel: totalLv,
+          });
         });
       }
+
+      // 5. Multiclasse: grants da classe/sottoclasse extra
+      (char.extraClasses || []).forEach((ec, ecIdx) => {
+        if (!ec?.name) return;
+        const ecLv = ec.level || 1;
+        if (ec.subclassShortName) {
+          const sc = (ec.subclasses || []).find(s => s.shortName === ec.subclassShortName);
+          if (sc?.additionalSpells) {
+            sc.additionalSpells.forEach((g, entryIdx) => grants.push({
+              slotKey: `mc${ecIdx}_subclass`,
+              source: `${ec.name} (${sc.name || ec.subclassShortName})`,
+              sourceType: 'subclass',
+              grant: g,
+              entryIdx,
+              totalEntries: sc.additionalSpells.length,
+              ownerLevel: ecLv,
+            }));
+          }
+        }
+        if (ec.cls?.additionalSpells) {
+          ec.cls.additionalSpells.forEach((g, entryIdx) => grants.push({
+            slotKey: `mc${ecIdx}_class`,
+            source: ec.name,
+            sourceType: 'class',
+            grant: g,
+            entryIdx,
+            totalEntries: ec.cls.additionalSpells.length,
+            ownerLevel: ecLv,
+          }));
+        }
+      });
 
       return grants;
     }
@@ -3371,14 +3706,15 @@
       const seen = new Set();
       const curLv = char.level || 1;
 
-      for (const { grant, source, sourceType } of collectSpellGrants()) {
+      for (const { grant, source, sourceType, ownerLevel } of collectSpellGrants()) {
+        const grantedLv = ownerLevel || curLv;
         for (const mode of ['prepared', 'expanded', 'innate', 'known']) {
           const section = grant[mode];
           if (!section) continue;
 
           for (const [lvKey, content] of Object.entries(section)) {
             const req = lvKey === '_' ? 0 : parseInt(lvKey) || 0;
-            if (curLv < req) continue;
+            if (grantedLv < req) continue;
 
             const processItems = (items) => {
               if (!Array.isArray(items)) return;
@@ -3423,7 +3759,8 @@
     // Estrae scelte da un subset di grants (usato anche per rendering inline per slot)
     function _pendingChoicesForGrants(grants) {
       const choices = [];
-      for (const { slotKey, source, grant, entryIdx, totalEntries } of grants) {
+      for (const { slotKey, source, grant, entryIdx, totalEntries, ownerLevel } of grants) {
+        const grantedLv = ownerLevel || (char.level || 1);
         if (totalEntries > 1) {
           const selectedEntry = char.choices?.[`${slotKey}_entry`] ?? 0;
           if (entryIdx !== selectedEntry) continue;
@@ -3432,6 +3769,8 @@
           const section = grant[mode];
           if (!section) continue;
           for (const [lvlKey, entries] of Object.entries(section)) {
+            const req = lvlKey === '_' ? 0 : parseInt(lvlKey) || 0;
+            if (grantedLv < req) continue;
             if (lvlKey === '_') {
               if (Array.isArray(entries)) {
                 // known._: array diretta di spell/choose
@@ -3446,7 +3785,9 @@
                 }
               }
             } else {
-              if (entries && typeof entries === 'object') {
+              if (Array.isArray(entries)) {
+                _extractChoices(entries, slotKey, source, mode, choices);
+              } else if (entries && typeof entries === 'object') {
                 for (const [subKey, subEntries] of Object.entries(entries)) {
                   for (const [, spellArr] of Object.entries(subEntries || {})) {
                     if (Array.isArray(spellArr))
@@ -4589,6 +4930,18 @@
             species.name.includes('Dragonborn') || species.name.includes('Dragonide') ? 'Dragonborn' : species.name;
       const adapterKey = `${baseName}_${species.source}`.replace(/\s+/g, '');
       if (typeof SpeciesAdapters[adapterKey] === 'function') return SpeciesAdapters[adapterKey](species);
+      if (typeof SpeciesAdapters !== 'undefined') {
+        const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const target = norm(baseName) + '_' + norm(species.source);
+        for (const [k, fn] of Object.entries(SpeciesAdapters)) {
+          if (typeof fn !== 'function') continue;
+          const idx = k.lastIndexOf('_');
+          if (idx < 0) continue;
+          const left = norm(k.slice(0, idx));
+          const right = norm(k.slice(idx + 1));
+          if ((left + '_' + right) === target) return fn(species);
+        }
+      }
       return genericSpeciesParser(species);
     }
 
@@ -4596,7 +4949,6 @@
 
     function genericSpeciesParser(species) {
       const specs = [];
-      let foundLanguages = false;
       if (species.skillProficiencies) {
         species.skillProficiencies.forEach((sp, idx) => {
           if (sp.choose || sp.any) {
@@ -4608,16 +4960,28 @@
       }
       if (species.languageProficiencies) {
         species.languageProficiencies.forEach((lp, idx) => {
-          if (lp.choose || lp.anyStandard) {
-            const count = lp.anyStandard || (lp.choose?.count) || 1;
-            const from = lp.choose?.from || ["Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Draconic", "Infernal", "Celestial", "Undercommon"];
+          if (lp.choose || lp.anyStandard || lp.anyExotic) {
+            const count = lp.anyStandard || lp.anyExotic || (lp.choose?.count) || 1;
+            const from = lp.choose?.from
+              || (lp.anyExotic
+                ? ["Abyssal", "Sylvan", "Deep Speech", "Primordial"]
+                : ["Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Draconic", "Infernal", "Celestial", "Undercommon"]);
             specs.push({ key: `species_language_${idx}`, label: `Lingua Bonus`, type: 'language_choice', from: from, count: count, level: 1 });
-            foundLanguages = true;
           }
         });
       }
-      if (!foundLanguages) {
-        specs.push({ key: `species_language_forced`, label: `Scegli 2 Lingue (Oltre al Comune)`, type: 'language_choice', from: ["Elfico", "Nanico", "Gigante", "Gnomesco", "Goblin", "Halfling", "Orchesco", "Draconico", "Infernale", "Celestiale", "Sottocomune", "Silvano", "Gergo Profondo"], count: 2, level: 1 });
+      if (Array.isArray(species.languages)) {
+        species.languages.forEach((lp, idx) => {
+          if (!lp || typeof lp !== 'object') return;
+          if (lp.choose || lp.anyStandard || lp.anyExotic) {
+            const count = lp.anyStandard || lp.anyExotic || (lp.choose?.count) || 1;
+            const from = lp.choose?.from
+              || (lp.anyExotic
+                ? ["Abyssal", "Sylvan", "Deep Speech", "Primordial"]
+                : ["Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Draconic", "Infernal", "Celestial", "Undercommon"]);
+            specs.push({ key: `species_languages_alt_${idx}`, label: `Lingua Bonus`, type: 'language_choice', from, count, level: 1 });
+          }
+        });
       }
       if (Array.isArray(species.size) && species.size.length > 1) {
         const sizeMap = { M: 'Media', S: 'Piccola' };
@@ -5237,6 +5601,7 @@
       // Applica le scelte non-descrittive prima di salvare
       const skills = getSelectedSkillProficiencies();
       const languages = getSelectedLanguages();
+      const tools = getSelectedToolProficiencies();
 
       // L'inventario contiene già l'equipaggiamento iniziale aggiunto quando hai selezionato A/B/C
       const inventory = [...char.inventory];
@@ -5262,6 +5627,7 @@
         choices: { ...char.choices || {} },
         selectedSkills: skills,
         selectedLanguages: languages,
+        selectedTools: tools,
         // Snapshot dati usati dalla scheda
         clsSnapshot: {
           hd: char.cls?.hd,
@@ -5355,65 +5721,166 @@
 
     function _translateSkillIT(v) { return v; }
 
+    function _normalizeProfName(v) {
+      if (!v || typeof v !== 'string') return '';
+      const raw = v
+        .replace(/\{@[^}]+\}/g, m => _cleanTagName(m))
+        .split('|')[0]
+        .trim();
+      if (!raw) return '';
+      return raw.charAt(0).toUpperCase() + raw.slice(1);
+    }
+
+    function _fixedKeysFromBlock(block, excluded) {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return [];
+      return Object.keys(block)
+        .filter(k => !excluded.includes(k) && block[k] !== false)
+        .map(_normalizeProfName)
+        .filter(Boolean);
+    }
+
+    function _collectFixedFromBlocks(blocks, excluded) {
+      const out = new Set();
+      (blocks || []).forEach(block => {
+        if (typeof block === 'string') {
+          const n = _normalizeProfName(block);
+          if (n) out.add(n);
+          return;
+        }
+        _fixedKeysFromBlock(block, excluded).forEach(v => out.add(v));
+      });
+      return out;
+    }
+
+    function _getActiveFeatureBuckets() {
+      const buckets = [];
+      const primaryLv = getPrimaryClassLevel();
+      const primaryFeatures = [
+        ...(char.allFeatures || []),
+        ...(char.subclassShortName
+          ? (char.allSubFeatures || []).filter(f => f.subclassShortName === char.subclassShortName)
+          : []),
+      ];
+      buckets.push({ maxLv: primaryLv, features: primaryFeatures });
+
+      for (const ec of (char.extraClasses || [])) {
+        if (!ec?.name) continue;
+        const ecFeatures = [
+          ...(ec.allFeatures || []),
+          ...(ec.subclassShortName
+            ? (ec.allSubFeatures || []).filter(f => f.subclassShortName === ec.subclassShortName)
+            : []),
+        ];
+        buckets.push({ maxLv: ec.level || 1, features: ecFeatures });
+      }
+      return buckets;
+    }
+
+    function _collectFixedFeatureProficiencies(field, excluded) {
+      const out = new Set();
+      _getActiveFeatureBuckets().forEach(({ maxLv, features }) => {
+        (features || [])
+          .filter(f => !f?.isReprinted && (f?.level || 0) <= maxLv)
+          .forEach(feat => {
+            _collectFixedFromBlocks(feat?.[field], excluded).forEach(v => out.add(v));
+          });
+      });
+      return out;
+    }
+
+    function _buildChoiceSpecMap() {
+      const map = new Map();
+      deriveAllChoices().forEach(spec => map.set(spec.key, spec));
+      return map;
+    }
+
+    function _normCompare(v) {
+      return String(v || '').toLowerCase().trim();
+    }
+
     function getSelectedSkillProficiencies() {
       const skills = new Set();
       const expertise = new Set();
+      const specMap = _buildChoiceSpecMap();
+      const skillNames = new Set((SKILLS || []).map(s => _normCompare(s.n)));
+
+      // Fixed skills from species/background/features
+      _collectFixedFromBlocks(char.speciesObj?.skillProficiencies, ['choose', 'any']).forEach(v => skills.add(v));
+      _collectFixedFromBlocks(char.bgObj?.skillProficiencies, ['choose', 'any']).forEach(v => skills.add(v));
+      _collectFixedFeatureProficiencies('skillProficiencies', ['choose', 'any']).forEach(v => skills.add(v));
+
+      // Fixed skills from class starting proficiencies (if present in source)
+      const _addClassFixedSkills = (cls) => {
+        (cls?.startingProficiencies?.skills || []).forEach(block => {
+          _fixedKeysFromBlock(block, ['choose', 'any']).forEach(v => skills.add(v));
+        });
+      };
+      _addClassFixedSkills(char.cls);
+      for (const ec of (char.extraClasses || [])) _addClassFixedSkills(ec.cls);
+
       if (char.choices) {
         Object.entries(char.choices).forEach(([key, val]) => {
           if (!val) return;
           const vals = Array.isArray(val) ? val : [val];
-          if (key.includes('skill') || key.startsWith('start_skills')) {
-            vals.forEach(v => skills.add(_translateSkillIT(v)));
-          }
-          if (key.includes('exp') || key.includes('expertise')) {
+          const spec = specMap.get(key);
+          const isSkillChoice = key.includes('skill') || key.startsWith('start_skills') || spec?.type === 'skill_choice';
+          const isExpertise = key.includes('exp') || key.includes('expertise') || spec?.type === 'expertise';
+
+          if (isSkillChoice) {
             vals.forEach(v => {
-              const s = _translateSkillIT(v);
+              const sv = _translateSkillIT(_normalizeProfName(v));
+              if (sv) skills.add(sv);
+            });
+          }
+          if (spec?.type === 'generic_choice') {
+            vals.forEach(v => {
+              const sv = _translateSkillIT(_normalizeProfName(v));
+              if (sv && skillNames.has(_normCompare(sv))) skills.add(sv);
+            });
+          }
+          if (isExpertise) {
+            vals.forEach(v => {
+              const s = _translateSkillIT(_normalizeProfName(v));
+              if (!s) return;
+              if (!skillNames.has(_normCompare(s))) return; // Ignore tool expertise (e.g. Thieves' Tools) here
               skills.add(s);
               expertise.add(s);
             });
           }
         });
       }
-      return { proficient: Array.from(skills), expert: Array.from(expertise) };
+      return { proficient: Array.from(skills).sort(), expert: Array.from(expertise).sort() };
     }
 
     function getSelectedLanguages() {
       const langs = new Set();
+      const specMap = _buildChoiceSpecMap();
+      const langNames = new Set(_ALL_LANGS.map(_normCompare));
 
-      const normalize = (l) => {
-        if (!l || typeof l !== 'string') return '';
-        const base = l.split('|')[0].trim();
-        return base.charAt(0).toUpperCase() + base.slice(1);
-      };
+      langs.add('Common');
 
-      langs.add("Common");
-
-      // 1. Cerca lingue FISSE nella Specie
-      if (char.speciesObj && char.speciesObj.languageProficiencies) {
-        char.speciesObj.languageProficiencies.forEach(lp => {
-          Object.keys(lp).forEach(k => {
-            if (!['choose', 'anyStandard', 'anyExotic'].includes(k)) langs.add(normalize(k));
-          });
-        });
-      }
+      // 1. Cerca lingue FISSE nella Specie/Background/Feature
+      _collectFixedFromBlocks(char.speciesObj?.languageProficiencies, ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
+      _collectFixedFromBlocks(char.bgObj?.languageProficiencies, ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
+      _collectFixedFeatureProficiencies('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
 
       // 2. Lingue FISSE della Classe — controlla tutti i possibili campi del JSON 5etools
       const _addClsLangs = (cls) => {
         if (!cls) return;
         // a) startingProficiencies.languages
         (cls.startingProficiencies?.languages||[]).forEach(l => {
-          if (typeof l === 'string') langs.add(normalize(l));
+          if (typeof l === 'string') langs.add(_normalizeProfName(l));
           else if (typeof l === 'object')
-            Object.keys(l).forEach(k => { if (!['choose','anyStandard','anyExotic'].includes(k)) langs.add(normalize(k)); });
+            Object.keys(l).forEach(k => { if (!['choose','anyStandard','anyExotic','any'].includes(k)) langs.add(_normalizeProfName(k)); });
         });
         // b) languageProficiencies (formato alternativo XPHB)
         (cls.languageProficiencies||[]).forEach(lp => {
-          Object.keys(lp).forEach(k => { if (!['choose','anyStandard','anyExotic'].includes(k)) langs.add(normalize(k)); });
+          Object.keys(lp).forEach(k => { if (!['choose','anyStandard','anyExotic','any'].includes(k)) langs.add(_normalizeProfName(k)); });
         });
         // c) feature di classe Lv.1 con languageProficiencies
         (cls.classFeatures||[]).filter(f=>f.level===1).forEach(f => {
           (f.languageProficiencies||[]).forEach(lp => {
-            Object.keys(lp).forEach(k => { if (!['choose','anyStandard','anyExotic'].includes(k)) langs.add(normalize(k)); });
+            Object.keys(lp).forEach(k => { if (!['choose','anyStandard','anyExotic','any'].includes(k)) langs.add(_normalizeProfName(k)); });
           });
         });
       };
@@ -5430,23 +5897,77 @@
       // 3. Cerca tutte le lingue SCELTE dall'utente (i bottoni verdi che clicchi)
       if (char.choices) {
         Object.entries(char.choices).forEach(([key, val]) => {
-          if (key.toLowerCase().includes('language') || key.toLowerCase().includes('lang')) {
-            if (Array.isArray(val)) val.forEach(v => langs.add(normalize(v)));
-            else if (val) langs.add(normalize(val));
+          if (!val) return;
+          const vals = Array.isArray(val) ? val : [val];
+          const spec = specMap.get(key);
+          const isLangChoice = key.toLowerCase().includes('language')
+            || key.toLowerCase().includes('lang')
+            || spec?.type === 'language_choice';
+          if (isLangChoice) vals.forEach(v => langs.add(_normalizeProfName(v)));
+          if (spec?.type === 'generic_choice') {
+            vals.forEach(v => {
+              const nv = _normalizeProfName(v);
+              if (nv && langNames.has(_normCompare(nv))) langs.add(nv);
+            });
           }
         });
       }
 
-      // 4. Lingue dal Background (Per eventuali regole future o JSON puri)
-      if (char.bgObj && char.bgObj.languageProficiencies) {
-        char.bgObj.languageProficiencies.forEach(lp => {
-          Object.keys(lp).forEach(k => {
-            if (!['choose', 'anyStandard'].includes(k)) langs.add(normalize(k));
-          });
+      return Array.from(langs).filter(l => l.length > 0).sort();
+    }
+
+    function getSelectedToolProficiencies() {
+      const tools = new Set();
+      const specMap = _buildChoiceSpecMap();
+      const toolNames = new Set(_ALL_TOOLS.map(_normCompare));
+
+      const _addClassFixedTools = (cls) => {
+        const src = cls?.startingProficiencies?.tools;
+        if (!src) return;
+        const arr = Array.isArray(src) ? src : [src];
+        arr.forEach(t => {
+          if (typeof t === 'string') {
+            const nt = _normalizeProfName(t);
+            if (nt) tools.add(nt);
+            return;
+          }
+          _fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
+        });
+      };
+
+      _addClassFixedTools(char.cls);
+      for (const ec of (char.extraClasses || [])) _addClassFixedTools(ec.cls);
+
+      _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
+      _collectFixedFromBlocks(char.speciesObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
+      _collectFixedFeatureProficiencies('toolProficiencies', ['choose', 'anyArtisansTool', 'any']).forEach(v => tools.add(v));
+
+      if (char.choices) {
+        Object.entries(char.choices).forEach(([key, val]) => {
+          if (!val) return;
+          const vals = Array.isArray(val) ? val : [val];
+          const spec = specMap.get(key);
+          const isToolChoice = key.toLowerCase().includes('tool')
+            || key.toLowerCase().includes('instrument')
+            || spec?.type === 'tool_choice';
+          const isExpertise = key.includes('exp') || key.includes('expertise') || spec?.type === 'expertise';
+          if (isToolChoice) vals.forEach(v => tools.add(_normalizeProfName(v)));
+          if (spec?.type === 'generic_choice') {
+            vals.forEach(v => {
+              const nv = _normalizeProfName(v);
+              if (nv && toolNames.has(_normCompare(nv))) tools.add(nv);
+            });
+          }
+          if (isExpertise) {
+            vals.forEach(v => {
+              const nv = _normalizeProfName(v);
+              if (nv && toolNames.has(_normCompare(nv))) tools.add(nv);
+            });
+          }
         });
       }
 
-      return Array.from(langs).filter(l => l.length > 0).sort();
+      return Array.from(tools).filter(Boolean).sort();
     }
 
     /* ════════════════════════════════════ SCELTE DI CLASSE */

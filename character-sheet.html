@@ -794,181 +794,25 @@
       font-size:8px;color:var(--text3);font-family:'Cinzel',serif;
       border:1px solid var(--bdr);border-radius:3px;padding:0 4px;margin-left:2px;
     }
+    .lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}
   </style>
 <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <script>
-(() => {
-  const EMOJI_TO_LUCIDE = Object.freeze({
-    '⚔️': 'swords', '⚔': 'swords',
-    '🎲': 'dice-5',
-    '🔍': 'search',
-    '☀️': 'sun', '☀': 'sun',
-    '🌧️': 'cloud-rain', '🌧': 'cloud-rain',
-    '❄️': 'snowflake', '❄': 'snowflake',
-    '⬡': 'hexagon',
-    '📖': 'book-open',
-    '⏱': 'timer',
-    '👁️': 'eye', '👁': 'eye',
-    '💥': 'sparkles',
-    '⚡': 'zap',
-    '✓': 'check',
-    '✦': 'sparkles',
-    '🎒': 'backpack',
-    '🛡': 'shield',
-    '🏹': 'crosshair',
-    '😡': 'angry',
-    '🎵': 'music',
-    '🐻': 'paw-print',
-    '🙏': 'hands',
-    '✝': 'cross',
-    '🌀': 'orbit',
-    '🏃': 'move-right',
-    '🤝': 'handshake',
-    '💨': 'wind',
-    '👊': 'hand',
-    '🤼': 'users-round',
-    '🗡': 'sword',
-    '🔥': 'flame',
-    '💀': 'skull',
-    '✨': 'sparkles',
-    '🕸': 'bug',
-    '🟢': 'circle',
-    '🕯': 'flame',
-    '🌿': 'leaf',
-    '🎭': 'masks',
-    '💚': 'heart',
-    '🌩': 'cloud-lightning',
-    '🎯': 'target',
-    '🌙': 'moon',
-    '⬇': 'download',
-    '📦': 'package',
-    '←': 'arrow-left',
-    '✕': 'x',
-    '📏': 'ruler',
-    '📈': 'trending-up',
-    '🔧': 'wrench',
-    '⛨': 'shield',
-  });
-
-  const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEXTAREA', 'NOSCRIPT', 'SVG']);
-  const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const EMOJI_RE = new RegExp(
-    Object.keys(EMOJI_TO_LUCIDE)
-      .sort((a, b) => b.length - a.length)
-      .map(escapeRegex)
-      .join('|'),
-    'g'
-  );
-
-  function hasIconEmoji(text) {
-    if (!text) return false;
-    EMOJI_RE.lastIndex = 0;
-    return EMOJI_RE.test(text);
-  }
-
-  function makeIconNode(emoji) {
-    const iconName = EMOJI_TO_LUCIDE[emoji] || 'circle';
-    const i = document.createElement('i');
-    i.setAttribute('data-lucide', iconName);
-    i.className = 'lucide-emoji';
-    i.setAttribute('aria-hidden', 'true');
-    return i;
-  }
-
-  function replaceTextNode(node) {
-    const text = node.nodeValue || '';
-    if (!hasIconEmoji(text) || !node.parentNode) return;
-
-    const frag = document.createDocumentFragment();
-    let last = 0;
-
-    text.replace(EMOJI_RE, (match, offset) => {
-      if (offset > last) frag.appendChild(document.createTextNode(text.slice(last, offset)));
-      frag.appendChild(makeIconNode(match));
-      last = offset + match.length;
-      return match;
-    });
-
-    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
-    node.parentNode.replaceChild(frag, node);
-  }
-
-  function scanAndReplace(root) {
-    if (!root) return;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    const targets = [];
-
-    let n;
-    while ((n = walker.nextNode())) {
-      const p = n.parentElement;
-      if (!p) continue;
-      if (SKIP_TAGS.has(p.tagName)) continue;
-      if (p.closest('[data-no-iconify]')) continue;
-      if (hasIconEmoji(n.nodeValue || '')) targets.push(n);
-    }
-
-    targets.forEach(replaceTextNode);
-  }
-
-  function injectIconStyle() {
-    if (document.getElementById('lucide-emoji-style')) return;
-    const style = document.createElement('style');
-    style.id = 'lucide-emoji-style';
-    style.textContent = '.lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}';
-    document.head.appendChild(style);
-  }
-
-  let observer = null;
-  let scheduled = false;
-
-  function refreshLucideIcons() {
-    if (scheduled) return;
-    scheduled = true;
-
-    requestAnimationFrame(() => {
-      scheduled = false;
-      if (!document.body) return;
-
-      if (observer) observer.disconnect();
-      scanAndReplace(document.body);
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        window.lucide.createIcons({ attrs: { 'stroke-width': 2 } });
-      }
-      if (observer) observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    });
-  }
-
-  function startObserver() {
-    if (observer || !document.body) return;
-    observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        if (m.type === 'childList' && m.addedNodes.length) {
-          refreshLucideIcons();
-          return;
-        }
-        if (m.type === 'characterData' && hasIconEmoji(m.target?.nodeValue || '')) {
-          refreshLucideIcons();
-          return;
-        }
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-  }
-
-  injectIconStyle();
-  document.addEventListener('DOMContentLoaded', () => {
-    refreshLucideIcons();
-    startObserver();
-  });
-  window.refreshLucideIcons = refreshLucideIcons;
-})();
+function luci(name){
+  return `<i data-lucide="${name}" class="lucide-emoji" aria-hidden="true"></i>`;
+}
+function refreshIcons(){
+  if(window.lucide && typeof window.lucide.createIcons==='function')
+    window.lucide.createIcons({attrs:{'stroke-width':2}});
+}
+document.addEventListener('DOMContentLoaded', refreshIcons);
 </script>
 </head>
 <body>
 
 <!-- ── TOPBAR ── -->
 <div class="topbar">
-  <div class="char-avatar" id="top-avatar">⚔</div>
+  <div class="char-avatar" id="top-avatar"><i data-lucide="swords" class="lucide-emoji"></i></div>
   <div class="char-identity">
     <div class="char-name" id="top-name">—</div>
     <div class="char-meta" id="top-meta">—</div>
@@ -981,10 +825,10 @@
       <div class="xp-label" id="xp-label" style="white-space:nowrap">XP</div>
     </div>
   </div>
-  <button class="rest-btn short" onclick="doRest('short')">☀ SHORT REST</button>
-  <button class="rest-btn long"  onclick="doRest('long')">🌙 LONG REST</button>
-  <a class="back-btn" href="charbuilder.html" onclick="goBackToBuilder(event)">← Builder</a>
-  <button class="rest-btn" style="border-color:var(--teal);color:var(--teal);background:var(--tbg)" onclick="downloadSheet()">⬇ DOWNLOAD</button>
+  <button class="rest-btn short" onclick="doRest('short')"><i data-lucide="sun" class="lucide-emoji"></i> SHORT REST</button>
+  <button class="rest-btn long"  onclick="doRest('long')"><i data-lucide="moon" class="lucide-emoji"></i> LONG REST</button>
+  <a class="back-btn" href="charbuilder.html" onclick="goBackToBuilder(event)"><i data-lucide="arrow-left" class="lucide-emoji"></i> Builder</a>
+  <button class="rest-btn" style="border-color:var(--teal);color:var(--teal);background:var(--tbg)" onclick="downloadSheet()"><i data-lucide="download" class="lucide-emoji"></i> DOWNLOAD</button>
 </div>
 
 <!-- ── ABILITY SCORES ── -->
@@ -1007,7 +851,7 @@
 
     <!-- Senses -->
     <div class="panel">
-      <div class="panel-hdr"><span class="panel-title">👁 Senses</span></div>
+      <div class="panel-hdr"><span class="panel-title"><i data-lucide="eye" class="lucide-emoji"></i> Senses</span></div>
       <div class="panel-body" id="senses-body"></div>
     </div>
 
@@ -1020,7 +864,7 @@
     <!-- Hit Dice -->
     <div class="panel">
       <div class="panel-hdr">
-        <span class="panel-title">🎲 Hit Dice</span>
+        <span class="panel-title"><i data-lucide="dice-5" class="lucide-emoji"></i> Hit Dice</span>
         <span id="hd-label" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div class="panel-body" id="hd-body"></div>
@@ -1115,10 +959,10 @@
           oninput="renderItemSearch()" autocomplete="off"/>
         <div class="inv-filter-row">
           <button class="inv-chip on" onclick="setInvFilter('all',this)">All</button>
-          <button class="inv-chip" onclick="setInvFilter('weapon',this)">⚔ Weapons</button>
-          <button class="inv-chip" onclick="setInvFilter('armor',this)">🛡 Armor</button>
-          <button class="inv-chip" onclick="setInvFilter('gear',this)">🎒 Gear</button>
-          <button class="inv-chip" onclick="setInvFilter('magic',this)">✦ Magic</button>
+          <button class="inv-chip" onclick="setInvFilter('weapon',this)"><i data-lucide="swords" class="lucide-emoji"></i> Weapons</button>
+          <button class="inv-chip" onclick="setInvFilter('armor',this)"><i data-lucide="shield" class="lucide-emoji"></i> Armor</button>
+          <button class="inv-chip" onclick="setInvFilter('gear',this)"><i data-lucide="backpack" class="lucide-emoji"></i> Gear</button>
+          <button class="inv-chip" onclick="setInvFilter('magic',this)"><i data-lucide="sparkles" class="lucide-emoji"></i> Magic</button>
         </div>
         <div class="inv-search-list" id="inv-search-results"></div>
 
@@ -1132,7 +976,7 @@
         </div>
 
         <!-- Inventory list -->
-        <div class="inv-section-hdr">📦 Inventory (<span id="inv-count">0</span> items)</div>
+        <div class="inv-section-hdr"><i data-lucide="package" class="lucide-emoji"></i> Inventory (<span id="inv-count">0</span> items)</div>
         <div id="inv-list"></div>
       </div>
 
@@ -1434,10 +1278,11 @@ function renderScores(){
     const label = FULL_LBL[s]||SLBL[s];
     return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'${label} Check')" title="Roll ${label} Check">
       <div class="score-lbl">${SLBL[s]}</div>
-      <div class="score-mod">${modStr} 🎲</div>
+      <div class="score-mod">${modStr} ${luci('dice-5')}</div>
       <div class="score-base">${val}</div>
     </div>`;
   }).join('');
+  refreshIcons();
 }
 
 function renderStatsRow(){
@@ -1461,7 +1306,7 @@ function renderStatsRow(){
     </div>
     <div class="stat-box" style="cursor:pointer" onclick="rollD20(${initMod},'Initiative')" title="Roll Initiative">
       <div class="stat-box-val">${fbonus(initMod)}</div>
-      <div class="stat-box-lbl">Initiative 🎲</div>
+      <div class="stat-box-lbl">Initiative ${luci('dice-5')}</div>
     </div>
     <div class="stat-box">
       <div class="stat-box-val">${calcAC()}</div>
@@ -1485,9 +1330,10 @@ function buildHPBlock(){
         <div class="hp-sep">/</div>
         <div class="hp-max">${maxHP}</div>
       </div>
-      <button class="hp-btn dmg" onclick="adjustHP(-1, true)">⬇ Damage</button>
+      <button class="hp-btn dmg" onclick="adjustHP(-1, true)">${luci('download')} Damage</button>
     </div>
   </div>`;
+  refreshIcons();
 }
 
 function adjustHP(dir, prompt){
@@ -1548,44 +1394,138 @@ function renderProficiencies(){
   const el = document.getElementById('profs-body');
   const sp = C.clsSnapshot?.startingProficiencies||{};
   const bsp= C.bgSnapshot||{};
+  const normalize = (v) => {
+    if (!v || typeof v !== 'string') return '';
+    const base = v.split('|')[0].trim();
+    if (!base) return '';
+    return base.charAt(0).toUpperCase() + base.slice(1);
+  };
+  const fixedKeysFromBlock = (block, excluded) => {
+    if (!block || typeof block !== 'object' || Array.isArray(block)) return [];
+    return Object.keys(block)
+      .filter(k => !excluded.includes(k) && block[k] !== false)
+      .map(normalize)
+      .filter(Boolean);
+  };
+  const collectFixedFeatureProfs = (field, excluded) => {
+    const out = new Set();
+    const buckets = [{
+      maxLv: C.classLevel || C.level || 1,
+      features: [
+        ...(C.allClassFeatures || []),
+        ...(C.subclassShortName
+          ? (C.allSubFeatures || []).filter(f => f.subclassShortName === C.subclassShortName)
+          : []),
+      ],
+    }];
+    for (const ec of (C.extraClasses || [])) {
+      if (!ec?.name) continue;
+      buckets.push({
+        maxLv: ec.level || 1,
+        features: [
+          ...(ec.allClassFeatures || []),
+          ...(ec.subclassShortName
+            ? (ec.allSubFeatures || []).filter(f => f.subclassShortName === ec.subclassShortName)
+            : []),
+        ],
+      });
+    }
+    buckets.forEach(({ maxLv, features }) => {
+      (features || [])
+        .filter(f => !f?.isReprinted && (f?.level || 0) <= maxLv)
+        .forEach(feat => {
+          (feat?.[field] || []).forEach(block => {
+            if (typeof block === 'string') {
+              const n = normalize(block);
+              if (n) out.add(n);
+              return;
+            }
+            fixedKeysFromBlock(block, excluded).forEach(v => out.add(v));
+          });
+        });
+    });
+    return out;
+  };
 
-  const armor   = (sp.armor||[]).join(', ') || '—';
-  const weapons = (sp.weapons||[]).join(', ') || '—';
+  const armorSet = new Set((Array.isArray(sp.armor) ? sp.armor : [sp.armor]).map(normalize).filter(Boolean));
+  const weaponSet = new Set((Array.isArray(sp.weapons) ? sp.weapons : [sp.weapons]).map(normalize).filter(Boolean));
+  collectFixedFeatureProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
+  collectFixedFeatureProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
+  if (C?.choices) {
+    for (const [key, val] of Object.entries(C.choices)) {
+      if (!val) continue;
+      if (key.toLowerCase().includes('mastery')) continue;
+      const vals = Array.isArray(val) ? val : [val];
+      if (key.toLowerCase().includes('armor')) {
+        vals.forEach(v => {
+          const nv = normalize(v);
+          if (nv) armorSet.add(nv);
+        });
+      }
+      if (key.toLowerCase().includes('weapon')) {
+        vals.forEach(v => {
+          const nv = normalize(v);
+          if (nv) weaponSet.add(nv);
+        });
+      }
+    }
+  }
+  const armor   = armorSet.size ? Array.from(armorSet).join(', ') : '—';
+  const weapons = weaponSet.size ? Array.from(weaponSet).join(', ') : '—';
 
   // Tools: class starting + bg + adapter choices (monk_tool_proficiency, subclass_bm_student_tool, etc.)
   const toolSet = new Set();
-  (sp.tools ? (Array.isArray(sp.tools)?sp.tools:[String(sp.tools)]) : []).forEach(t=>toolSet.add(t));
-  (bsp.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>!['choose','anyArtisansTool'].includes(k))).forEach(t=>toolSet.add(t));
+  (sp.tools ? (Array.isArray(sp.tools)?sp.tools:[String(sp.tools)]) : []).forEach(t => {
+    if (typeof t === 'string') {
+      const nt = normalize(t);
+      if (nt) toolSet.add(nt);
+      return;
+    }
+    fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'any']).forEach(v => toolSet.add(v));
+  });
+  (bsp.toolProficiencies||[]).forEach(t => fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'any']).forEach(v => toolSet.add(v)));
+  collectFixedFeatureProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'any']).forEach(v => toolSet.add(v));
+  (C.selectedTools || []).forEach(t => {
+    const nt = normalize(t);
+    if (nt) toolSet.add(nt);
+  });
   if(C?.choices){
     for(const [key,val] of Object.entries(C.choices)){
       if(!val) continue;
       if(key.includes('tool')||key.includes('instrument')){
         const vals = Array.isArray(val)?val:[val];
-        vals.forEach(v=>{if(typeof v==='string') toolSet.add(v);});
+        vals.forEach(v=>{
+          const nv = normalize(v);
+          if(nv) toolSet.add(nv);
+        });
       }
     }
   }
   const tools = toolSet.size ? Array.from(toolSet).join(', ') : '—';
 
-  const langs = [...new Set(C.selectedLanguages||[])].join(', ') || 'Common';
+  const langSet = new Set((C.selectedLanguages || []).map(normalize).filter(Boolean));
+  collectFixedFeatureProfs('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langSet.add(v));
+  if (!langSet.size) langSet.add('Common');
+  const langs = Array.from(langSet).join(', ') || 'Common';
 
   el.innerHTML = `
     <div class="prof-section">
-      <div class="prof-section-title">⛨ Armor</div>
+      <div class="prof-section-title">${luci('shield')} Armor</div>
       <div class="prof-text">${esc(armor)}</div>
     </div>
     <div class="prof-section">
-      <div class="prof-section-title">⚔ Weapons</div>
+      <div class="prof-section-title">${luci('swords')} Weapons</div>
       <div class="prof-text">${esc(weapons)}</div>
     </div>
     <div class="prof-section">
-      <div class="prof-section-title">🔧 Tools</div>
+      <div class="prof-section-title">${luci('wrench')} Tools</div>
       <div class="prof-text">${esc(tools)}</div>
     </div>
     <div class="prof-section" style="margin-bottom:0">
-      <div class="prof-section-title">🗣 Languages</div>
+      <div class="prof-section-title">${luci('languages')} Languages</div>
       <div class="prof-text">${esc(langs)}</div>
     </div>`;
+  refreshIcons();
 }
 
 function renderHitDice(){
@@ -1598,13 +1538,14 @@ function renderHitDice(){
   let h = '<div class="hd-pips">';
   for(let i=0;i<total;i++){
     const used = i >= (total-usedHD);
-    h+=`<div class="hd-pip${used?' used':' full'}" title="d${faces}" onclick="toggleHD(${i})">${used?'':'⬡'}</div>`;
+    h+=`<div class="hd-pip${used?' used':' full'}" title="d${faces}" onclick="toggleHD(${i})">${used?'':luci('hexagon')}</div>`;
   }
   h+='</div>';
   h+=`<div style="margin-top:.5rem;font-size:11px;color:var(--text3)">
     <i>Click to use/recover a hit die</i>
   </div>`;
   document.getElementById('hd-body').innerHTML = h;
+  refreshIcons();
 }
 
 function toggleHD(idx){
@@ -1710,23 +1651,23 @@ function renderRightTop(){
 let activeActionFilter = 'all';
 
 const CANTRIP_DB = {
-  'Fire Bolt':       {icon:'🔥',die:'1d10',dmgType:'fire',       range:'120 ft',toHit:true, notes:''},
-  'Ray of Frost':    {icon:'❄', die:'1d8', dmgType:'cold',       range:'60 ft', toHit:true, notes:'Speed -10 ft to target'},
-  'Eldritch Blast':  {icon:'⚡',die:'1d10',dmgType:'force',      range:'120 ft',toHit:true, notes:''},
-  'Sacred Flame':    {icon:'✨',die:'1d8', dmgType:'radiant',    range:'60 ft', toHit:false,notes:'DEX save negates — no benefit from cover'},
-  'Toll the Dead':   {icon:'💀',die:'1d8', dmgType:'necrotic',   range:'60 ft', toHit:false,notes:'1d12 if target is already injured'},
-  'Chill Touch':     {icon:'🕸',die:'1d10',dmgType:'necrotic',   range:'Touch', toHit:true, notes:'Prevents HP regeneration'},
-  'Poison Spray':    {icon:'🟢',die:'1d12',dmgType:'poison',     range:'30 ft', toHit:false,notes:'CON save negates'},
-  'Shocking Grasp':  {icon:'⚡',die:'1d8', dmgType:'lightning',  range:'Touch', toHit:true, notes:'Advantage vs metal; target loses reaction'},
-  'Produce Flame':   {icon:'🕯',die:'1d8', dmgType:'fire',       range:'30 ft', toHit:true, notes:'Illuminates 20 ft or throw it'},
-  'Thorn Whip':      {icon:'🌿',die:'1d6', dmgType:'piercing',   range:'30 ft', toHit:true, notes:'Pulls target 10 ft toward you'},
-  'Vicious Mockery': {icon:'🎭',die:'1d4', dmgType:'psychic',    range:'60 ft', toHit:false,notes:'WIS save — disadvantage on next attack'},
-  'Acid Splash':     {icon:'💚',die:'1d6', dmgType:'acid',       range:'60 ft', toHit:false,notes:'DEX save — can hit 2 adjacent targets'},
-  'Thunderclap':     {icon:'🌩',die:'1d6', dmgType:'thunder',    range:'5 ft',  toHit:false,notes:'CON save — audible 100 ft away'},
-  'True Strike':     {icon:'🎯',die:'1d6', dmgType:'radiant',    range:'5 ft',  toHit:true, notes:'Use action — then weapon attack as bonus action'},
-  'Booming Blade':   {icon:'💥',die:'1d8', dmgType:'thunder',    range:'5 ft',  toHit:true, notes:'+1d8 extra if target moves'},
-  'Green-Flame Blade':{icon:'💚',die:'1d8',dmgType:'fire',       range:'5 ft',  toHit:true, notes:'Fire splash on nearby creature'},
-  'Blade Ward':      {icon:'🛡',die:'—',   dmgType:'',           range:'Self',  toHit:false,notes:'Resistance to slashing/bludgeoning/piercing until your next turn'},
+  'Fire Bolt':       {icon:'flame',      die:'1d10',dmgType:'fire',       range:'120 ft',toHit:true, notes:''},
+  'Ray of Frost':    {icon:'snowflake',  die:'1d8', dmgType:'cold',       range:'60 ft', toHit:true, notes:'Speed -10 ft to target'},
+  'Eldritch Blast':  {icon:'zap',        die:'1d10',dmgType:'force',      range:'120 ft',toHit:true, notes:''},
+  'Sacred Flame':    {icon:'sparkles',   die:'1d8', dmgType:'radiant',    range:'60 ft', toHit:false,notes:'DEX save negates — no benefit from cover'},
+  'Toll the Dead':   {icon:'skull',      die:'1d8', dmgType:'necrotic',   range:'60 ft', toHit:false,notes:'1d12 if target is already injured'},
+  'Chill Touch':     {icon:'bug',        die:'1d10',dmgType:'necrotic',   range:'Touch', toHit:true, notes:'Prevents HP regeneration'},
+  'Poison Spray':    {icon:'circle',     die:'1d12',dmgType:'poison',     range:'30 ft', toHit:false,notes:'CON save negates'},
+  'Shocking Grasp':  {icon:'zap',        die:'1d8', dmgType:'lightning',  range:'Touch', toHit:true, notes:'Advantage vs metal; target loses reaction'},
+  'Produce Flame':   {icon:'flame',      die:'1d8', dmgType:'fire',       range:'30 ft', toHit:true, notes:'Illuminates 20 ft or throw it'},
+  'Thorn Whip':      {icon:'leaf',       die:'1d6', dmgType:'piercing',   range:'30 ft', toHit:true, notes:'Pulls target 10 ft toward you'},
+  'Vicious Mockery': {icon:'masks',      die:'1d4', dmgType:'psychic',    range:'60 ft', toHit:false,notes:'WIS save — disadvantage on next attack'},
+  'Acid Splash':     {icon:'droplets',   die:'1d6', dmgType:'acid',       range:'60 ft', toHit:false,notes:'DEX save — can hit 2 adjacent targets'},
+  'Thunderclap':     {icon:'cloud-lightning',die:'1d6',dmgType:'thunder', range:'5 ft',  toHit:false,notes:'CON save — audible 100 ft away'},
+  'True Strike':     {icon:'target',     die:'1d6', dmgType:'radiant',    range:'5 ft',  toHit:true, notes:'Use action — then weapon attack as bonus action'},
+  'Booming Blade':   {icon:'zap',        die:'1d8', dmgType:'thunder',    range:'5 ft',  toHit:true, notes:'+1d8 extra if target moves'},
+  'Green-Flame Blade':{icon:'flame',     die:'1d8', dmgType:'fire',       range:'5 ft',  toHit:true, notes:'Fire splash on nearby creature'},
+  'Blade Ward':      {icon:'shield',     die:'—',   dmgType:'',           range:'Self',  toHit:false,notes:'Resistance to slashing/bludgeoning/piercing until your next turn'},
 };
 
 function cantripDice(lv){ return lv>=17?4:lv>=11?3:lv>=5?2:1; }
@@ -1779,6 +1720,8 @@ const CLASS_ACTIONS_MAP = {
      desc:"Channel your deity's power. Uses: 1 (lv.2–5), 2 (lv.6–17), 3 (lv.18+). Recharge: Short Rest. Options include Turn Undead and your Domain's feature (see subclass)."},
     {name:"Turn Undead",       icon:"",cat:"action",  uses:"1 Channel", resKey:"channel_div",   minLevel:2,
      desc:"Channel Divinity option. Each Undead within 30 ft that can see or hear you must succeed on a WIS save (DC = 8+PB+WIS) or have the Frightened and Incapacitated condition for 1 minute (flees). Undead with CR ≤ your Proficiency Bonus are Destroyed instead."},
+    {name:"Divine Spark",      icon:"",cat:"action",  uses:"1+ Channel",resKey:"channel_div",   minLevel:2,
+     desc:"Channel Divinity option. Choose a creature within 30 ft: it either regains HP or takes Radiant or Necrotic damage (your choice) equal to 2d8 + your WIS modifier. For each additional Channel Divinity use spent (beyond the first), add 1d8. The maximum additional uses scales with level: +1 at lv.2, +2 at lv.5, +3 at lv.8, +4 at lv.11, +5 at lv.14, +6 at lv.17."},
     {name:"Divine Intervention",icon:"",cat:"action", uses:"1 / LR",   resKey:"divine_intervention", minLevel:10,
      desc:"Implore your deity's aid. Roll 1d20: if the result ≤ your Cleric level, your deity intervenes (effect determined by the DM). At lv.20, this succeeds automatically. Recharge: Long Rest."},
     {name:"Blessed Strikes",   icon:"",cat:"action",  uses:"Passive",   minLevel:7,
@@ -1934,8 +1877,14 @@ const SUBCLASS_ACTIONS_MAP = {
                        desc:"Every Undead within 30 ft must succeed on a CON save or take 2d10+level radiant damage (half on success). Creatures that cannot see the light have disadvantage."}],
   'Cleric_Trickery': [{name:"Channel: Invoke Duplicity",    icon:"",cat:"action",  uses:"1 Channel / Conc.", resKey:"channel_div",
                        desc:"Create an illusory duplicate of yourself within 30 ft. As a bonus action you can move it (up to 30 ft). You can cast spells as if you were in its space."}],
-  'Cleric_War':      [{name:"Channel: Guided Strike",       icon:"",cat:"reaction",uses:"1 Channel", resKey:"channel_div",
-                       desc:"When you or an ally within 30 ft misses an attack: add +10 to the roll, potentially turning a miss into a hit."}],
+  'Cleric_War':      [
+    {name:"War Priest",                  icon:"",cat:"bonus",   uses:"PB / LR",   resKey:"war_priest",   minLevel:3,
+     desc:"After taking the Attack action on your turn, you can make one weapon attack as a Bonus Action. Uses = your Proficiency Bonus per Long Rest."},
+    {name:"Channel: Guided Strike",      icon:"",cat:"reaction",uses:"1 Channel", resKey:"channel_div",  minLevel:3,
+     desc:"Reaction when you or an ally within 30 ft misses an attack: expend one Channel Divinity use to add +10 to the roll, potentially turning a miss into a hit."},
+    {name:"Channel: War God's Blessing", icon:"",cat:"reaction",uses:"1 Channel", resKey:"channel_div",  minLevel:6,
+     desc:"Reaction when an ally within 30 ft makes an attack roll: expend one Channel Divinity use to add +10 to that roll. Can turn a miss into a hit."},
+  ],
   'Cleric_Knowledge':[{name:"Channel: Knowledge of the Ages",icon:"",cat:"action",uses:"1 Channel", resKey:"channel_div",
                        desc:"Choose a skill or tool: for 10 minutes gain proficiency (or double proficiency if already proficient)."}],
   // ─── PALADIN ───
@@ -2009,28 +1958,28 @@ const SUBCLASS_ACTIONS_MAP = {
 
 const STANDARD_ACTIONS = [
   // Universal actions
-  {name:"Attack",           icon:"⚔", cat:"action",   universal:true,  desc:"Make one weapon attack. With Extra Attack (Lv.5+) you can attack multiple times. Any attack can be replaced with a Grapple or Shove special attack (see Unarmed section below)."},
-  {name:"Dash",             icon:"🏃",cat:"action",   universal:true,  desc:"Your maximum Speed doubles for the turn (including movement already spent). Some classes can also Dash as a Bonus Action."},
-  {name:"Disengage",        icon:"💨",cat:"action",   universal:true,  desc:"Your movement doesn't provoke Opportunity Attacks for the rest of the turn. Some classes can also Disengage as a Bonus Action."},
-  {name:"Dodge",            icon:"🛡",cat:"action",   universal:true,  desc:"Focus on avoiding attacks. Until the start of your next turn: attack rolls against you have Disadvantage (if you can see the attacker), and you make DEX saving throws with Advantage. Effect ends early if you're Incapacitated or your Speed drops to 0."},
-  {name:"Help",             icon:"🤝",cat:"action",   universal:true,  desc:"Choose one: (A) give an ally Advantage on their next ability check to perform a task you can assist with; or (B) give an ally Advantage on their next attack roll against a target within 5 ft of you."},
-  {name:"Hide",             icon:"👁",cat:"action",   universal:true,  desc:"Make a DEX (Stealth) check (DC set by DM, typically 15 in a lightly obscured area). On success and if you have cover or concealment, you gain the Hidden condition. You lose it if you make noise, are revealed, or make an attack."},
-  {name:"Influence",        icon:"🎭",cat:"action",   universal:true,  desc:"Attempt to sway a creature's attitude or actions using: CHA (Deception, Intimidation, Performance, or Persuasion) or WIS (Animal Handling). The DM determines the DC or opposing check."},
-  {name:"Search",           icon:"🔍",cat:"action",   universal:true,  desc:"Make a WIS (Perception) or INT (Investigation) check to locate hidden objects, creatures, or clues. The DM sets the DC."},
-  {name:"Study",            icon:"📖",cat:"action",   universal:true,  desc:"Make an INT check (Arcana, History, Medicine, Nature, Religion, etc.) to recall lore or examine an object. The DM sets the DC and reveals what is known."},
-  {name:"Ready",            icon:"⏱",cat:"action",   universal:true,  desc:"Describe a perceivable trigger and choose a reaction (one action or one attack). When the trigger occurs before the start of your next turn, you use your Reaction to execute it. Spell concentration must be maintained until the spell fires."},
-  {name:"Utilize",          icon:"🎒",cat:"action",   universal:true,  desc:"Activate a non-magical item that requires an action (e.g. Healer's Kit, a trap). You can also use this to interact with a second object on your turn (the first object interaction is free)."},
+  {name:"Attack",           icon:"swords",      cat:"action",   universal:true,  desc:"Make one weapon attack. With Extra Attack (Lv.5+) you can attack multiple times. Any attack can be replaced with a Grapple or Shove special attack (see Unarmed section below)."},
+  {name:"Dash",             icon:"move-right",  cat:"action",   universal:true,  desc:"Your maximum Speed doubles for the turn (including movement already spent). Some classes can also Dash as a Bonus Action."},
+  {name:"Disengage",        icon:"wind",        cat:"action",   universal:true,  desc:"Your movement doesn't provoke Opportunity Attacks for the rest of the turn. Some classes can also Disengage as a Bonus Action."},
+  {name:"Dodge",            icon:"shield",      cat:"action",   universal:true,  desc:"Focus on avoiding attacks. Until the start of your next turn: attack rolls against you have Disadvantage (if you can see the attacker), and you make DEX saving throws with Advantage. Effect ends early if you're Incapacitated or your Speed drops to 0."},
+  {name:"Help",             icon:"handshake",   cat:"action",   universal:true,  desc:"Choose one: (A) give an ally Advantage on their next ability check to perform a task you can assist with; or (B) give an ally Advantage on their next attack roll against a target within 5 ft of you."},
+  {name:"Hide",             icon:"eye",         cat:"action",   universal:true,  desc:"Make a DEX (Stealth) check (DC set by DM, typically 15 in a lightly obscured area). On success and if you have cover or concealment, you gain the Hidden condition. You lose it if you make noise, are revealed, or make an attack."},
+  {name:"Influence",        icon:"masks",       cat:"action",   universal:true,  desc:"Attempt to sway a creature's attitude or actions using: CHA (Deception, Intimidation, Performance, or Persuasion) or WIS (Animal Handling). The DM determines the DC or opposing check."},
+  {name:"Search",           icon:"search",      cat:"action",   universal:true,  desc:"Make a WIS (Perception) or INT (Investigation) check to locate hidden objects, creatures, or clues. The DM sets the DC."},
+  {name:"Study",            icon:"book-open",   cat:"action",   universal:true,  desc:"Make an INT check (Arcana, History, Medicine, Nature, Religion, etc.) to recall lore or examine an object. The DM sets the DC and reveals what is known."},
+  {name:"Ready",            icon:"timer",       cat:"action",   universal:true,  desc:"Describe a perceivable trigger and choose a reaction (one action or one attack). When the trigger occurs before the start of your next turn, you use your Reaction to execute it. Spell concentration must be maintained until the spell fires."},
+  {name:"Utilize",          icon:"backpack",    cat:"action",   universal:true,  desc:"Activate a non-magical item that requires an action (e.g. Healer's Kit, a trap). You can also use this to interact with a second object on your turn (the first object interaction is free)."},
   // Casters only
-  {name:"Cast a Spell",     icon:"✨",cat:"action",   universal:false, casterOnly:true,  desc:"Cast a spell with a casting time of 1 Action. Also covers activating a spell-like feature or magic item that requires an Action (Magic action)."},
-  {name:"Spell (Reaction)", icon:"✨",cat:"reaction", universal:false, casterOnly:true,  desc:"Some spells use your Reaction in response to a trigger: Shield (damage), Absorb Elements (elemental damage), Counterspell (spell being cast), Hellish Rebuke, etc."},
+  {name:"Cast a Spell",     icon:"sparkles",    cat:"action",   universal:false, casterOnly:true,  desc:"Cast a spell with a casting time of 1 Action. Also covers activating a spell-like feature or magic item that requires an Action (Magic action)."},
+  {name:"Spell (Reaction)", icon:"sparkles",    cat:"reaction", universal:false, casterOnly:true,  desc:"Some spells use your Reaction in response to a trigger: Shield (damage), Absorb Elements (elemental damage), Counterspell (spell being cast), Hellish Rebuke, etc."},
   // Universal reaction
-  {name:"Opportunity Attack",icon:"⚡",cat:"reaction",universal:true,  desc:"When a hostile creature that you can see voluntarily leaves your reach, you can use your Reaction to make one melee attack against it. Forced movement (shoves, spells, etc.) does NOT trigger an Opportunity Attack."},
+  {name:"Opportunity Attack",icon:"zap",        cat:"reaction", universal:true,  desc:"When a hostile creature that you can see voluntarily leaves your reach, you can use your Reaction to make one melee attack against it. Forced movement (shoves, spells, etc.) does NOT trigger an Opportunity Attack."},
 ];
 
 const UNARMED_OPTIONS = [
-  {name:"Unarmed Strike",icon:"👊", desc:"Attack with a punch, kick, or headbutt. Replaces one attack in the Attack action. Damage = 1 + STR modifier (bludgeoning). Monks: use the Martial Arts die instead and can make a free Unarmed Strike as a Bonus Action.", cat:"attack"},
-  {name:"Grapple",       icon:"🤼", desc:"Replaces one attack in the Attack action. Target must be within reach and Large or smaller. Target makes a STR or DEX saving throw (target's choice) — DC = 8 + your PB + your STR modifier. Failure: target gains the Grappled condition. Requires a free hand. You move at half Speed while grappling unless your Speed exceeds the target's.", cat:"action"},
-  {name:"Shove",         icon:"💥", desc:"Replaces one attack in the Attack action. Target must be within 5 ft and Large or smaller. Target makes a STR or DEX saving throw (target's choice) — DC = 8 + your PB + your STR modifier. Failure: you either push the target 5 ft away OR knock it Prone (your choice).", cat:"action"},
+  {name:"Unarmed Strike",icon:"hand",         desc:"Attack with a punch, kick, or headbutt. Replaces one attack in the Attack action. Damage = 1 + STR modifier (bludgeoning). Monks: use the Martial Arts die instead and can make a free Unarmed Strike as a Bonus Action.", cat:"attack"},
+  {name:"Grapple",       icon:"users-round",  desc:"Replaces one attack in the Attack action. Target must be within reach and Large or smaller. Target makes a STR or DEX saving throw (target's choice) — DC = 8 + your PB + your STR modifier. Failure: target gains the Grappled condition. Requires a free hand. You move at half Speed while grappling unless your Speed exceeds the target's.", cat:"action"},
+  {name:"Shove",         icon:"arrow-right",  desc:"Replaces one attack in the Attack action. Target must be within 5 ft and Large or smaller. Target makes a STR or DEX saving throw (target's choice) — DC = 8 + your PB + your STR modifier. Failure: you either push the target 5 ft away OR knock it Prone (your choice).", cat:"action"},
 ];
 function toggleCard(id){ document.getElementById(id)?.classList.toggle('open'); }
 
@@ -2103,7 +2052,7 @@ function renderActionsTab(){
 
   // ── ATTACCHI ──
   if(show('attack')){
-    if(f==='all') html+='<div class="action-section-hdr">⚔ Attacks</div>';
+    if(f==='all') html+=`<div class="action-section-hdr">${luci('swords')} Attacks</div>`;
     if(!equippedWeapons.length && !cantrips.length){
       html+=`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:.3rem 0">
         💡 Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
@@ -2117,7 +2066,7 @@ function renderActionsTab(){
 
   // ── ACTIONS ──
   if(show('action')){
-    if(f==='all') html+='<div class="action-section-hdr">🎯 Actions</div>';
+    if(f==='all') html+=`<div class="action-section-hdr">${luci('target')} Actions</div>`;
     for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
     html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
@@ -2126,7 +2075,7 @@ function renderActionsTab(){
 
   // ── BONUS ACTIONS ──
   if(show('bonus')){
-    if(f==='all') html+='<div class="action-section-hdr">⚡ Bonus Actions</div>';
+    if(f==='all') html+=`<div class="action-section-hdr">${luci('zap')} Bonus Actions</div>`;
     for(const a of allClassActions.filter(a=>a.cat==='bonus')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='bonus')) html+=buildStdActionCard(a);
     if(!allClassActions.filter(a=>a.cat==='bonus').length)
@@ -2144,6 +2093,7 @@ function renderActionsTab(){
 
   wrap.innerHTML=html;
   if(wrap2) wrap2.innerHTML='';
+  refreshIcons();
 }
 
 function filterActions(type, btn){
@@ -2305,10 +2255,10 @@ function renderSpellsTab(){
     }
     const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const atkBtn = hasAtk
-      ? `<button class="roll-btn" style="font-size:9px;padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">🎲 ${fbonus(spellAtk)}</button>`
+      ? `<button class="roll-btn" style="font-size:9px;padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`
       : '';
     const dmgBtn = dmgFormula
-      ? `<button class="roll-btn dmg" style="font-size:9px;padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">💥 ${dmgFormula}</button>`
+      ? `<button class="roll-btn dmg" style="font-size:9px;padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">${luci('flame')} ${dmgFormula}</button>`
       : '';
     const spellId = 'spl_' + name.replace(/[^a-zA-Z0-9]/g,'_');
     const entryHtml = rE(full?.entries ?? snap?.entries ?? []);
@@ -2355,7 +2305,7 @@ function renderSpellsTab(){
       const src = getSpellSource(name);
       const srcLbl = String(src?.label || '').trim().toLowerCase();
       const showAutoBadge = isAuto && srcLbl !== 'auto';
-      h+=_spellRow(name, showAutoBadge ? `<span class="spell-badge auto">✦ Auto</span>` : '');
+      h+=_spellRow(name, showAutoBadge ? `<span class="spell-badge auto">${luci('sparkles')} Auto</span>` : '');
     }
     h+=`</div>`;
   }
@@ -2365,6 +2315,7 @@ function renderSpellsTab(){
   }
   h+='<div style="margin-top:.75rem"><button class="spl-add-btn" onclick="openSpellPicker()">+ Add / Remove Spell</button></div>';
   el.innerHTML = h;
+  refreshIcons();
 }
 
 function getSpellAbility(){
@@ -2753,8 +2704,8 @@ function renderInventoryList(){
     <div class="inv-stat-pill">Value: <b>${totalGP} GP</b></div>`;
   if(!sheetInventory.length){ el.innerHTML='<div class="phmsg">Inventory empty.</div>'; return; }
   const groupDefs = [
-    {g:'weapon',label:'⚔ Weapons'},{g:'armor',label:'🛡 Armor'},
-    {g:'magic',label:'✦ Magic'},{g:'gear',label:'🎒 Gear'},
+    {g:'weapon',label:`${luci('swords')} Weapons`},{g:'armor',label:`${luci('shield')} Armor`},
+    {g:'magic',label:`${luci('sparkles')} Magic`},{g:'gear',label:`${luci('backpack')} Gear`},
   ];
   let h='';
   for(const {g,label} of groupDefs){
@@ -2786,24 +2737,25 @@ function renderInventoryList(){
       h+=`<div class="inv-row${item.equipped?' equipped':''}">
         <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;min-width:52px">
           <div class="inv-badge" style="color:${rc};border-color:${rc}">${esc(rarity||typeLabel)}</div>
-          ${magicBonus>0?`<div class="inv-badge" style="color:var(--gold);border-color:var(--gold);font-weight:700">✦ +${magicBonus}</div>`:''}
+          ${magicBonus>0?`<div class="inv-badge" style="color:var(--gold);border-color:var(--gold);font-weight:700">${luci('sparkles')} +${magicBonus}</div>`:''}
         </div>
         <div style="flex:1;min-width:0;cursor:pointer" onclick="document.getElementById('${iid}').classList.toggle('open')">
           <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:9px;color:var(--text3)">[custom]</span>':''}</div>
           ${meta?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
-        ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?'✓ Equip.':'Equip'}</button>`:''}
+        ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?`${luci('check')} Equip.`:'Equip'}</button>`:''}
         <div class="inv-qty-wrap">
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},-1)">−</button>
           <div class="inv-qty-val">${item.qty||1}</div>
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},1)">+</button>
         </div>
-        <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Rimuovi">🗑</button>
+        <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Rimuovi">${luci('trash-2')}</button>
       </div>
       ${entryText?`<div id="${iid}" class="inv-entry-body">${entryText}…</div>`:''}`;
     }
   }
   el.innerHTML = h;
+  refreshIcons();
 }
 
 function renderFeaturesTab(){
@@ -2849,7 +2801,7 @@ function renderFeaturesTab(){
   let h = '';
 
   if(C.className){
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">⚔ ${esc(C.className)}</div>`;
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">${luci('swords')} ${esc(C.className)}</div>`;
     const byLv = {};
     for(const f of allF){ (byLv[f.level]||(byLv[f.level]=[])).push({...f,_type:'cls'}); }
     for(const f of allSF){ (byLv[f.level]||(byLv[f.level]=[])).push({...f,_type:'sub'}); }
@@ -2883,7 +2835,7 @@ function renderFeaturesTab(){
     const ecAllSF = ec.subclassShortName ? (ec.allSubFeatures||[]).filter(f=>f.subclassShortName===ec.subclassShortName&&f.level<=(ec.level||1)) : [];
     if(!ecAllF.length && !ecAllSF.length) continue;
     const ecSc = ec.subclassShortName ? ` (${ec.subclassShortName})` : '';
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:.75rem 0 .5rem">⚔ ${esc(ec.name)}${esc(ecSc)}</div>`;
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:.75rem 0 .5rem">${luci('swords')} ${esc(ec.name)}${esc(ecSc)}</div>`;
     const byLvE={};
     for(const f of ecAllF)  { (byLvE[f.level]||(byLvE[f.level]=[])).push({...f,_type:'cls'}); }
     for(const f of ecAllSF) { (byLvE[f.level]||(byLvE[f.level]=[])).push({...f,_type:'sub'}); }
@@ -2907,7 +2859,7 @@ function renderFeaturesTab(){
   }
 
   if(C.speciesName){
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">✦ ${esc(C.speciesName)}</div>`;
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(C.speciesName)}</div>`;
     for(const e of (C.speciesSnapshot?.entries||[])){
       if(typeof e==='object'&&e.name){
         const id='feat_'+Math.random().toString(36).slice(2);
@@ -2915,7 +2867,7 @@ function renderFeaturesTab(){
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
             <div style="flex:1;min-width:0">
               <div class="feature-name">${esc(e.name)}</div>
-              <div style="font-size:9px;color:var(--teal);margin-top:1px">✦ ${esc(C.speciesName)}</div>
+              <div style="font-size:9px;color:var(--teal);margin-top:1px">${luci('sparkles')} ${esc(C.speciesName)}</div>
             </div>
             <span class="feature-arrow">▶</span>
           </div>
@@ -2926,7 +2878,7 @@ function renderFeaturesTab(){
   }
 
   if(feats.length){
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:.75rem 0 .5rem">✧ Talenti</div>`;
+    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:.75rem 0 .5rem">${luci('star')} Talenti</div>`;
     for(const f of feats){
       const id='feat_'+Math.random().toString(36).slice(2);
       const slot = getFeatSlot(f.name);
@@ -2935,7 +2887,7 @@ function renderFeaturesTab(){
         <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
           <div style="flex:1;min-width:0">
             <div class="feature-name" style="color:var(--orange)">${esc(f.name)}</div>
-            <div style="font-size:9px;color:var(--orange);opacity:.7;margin-top:1px">✧ ${esc(slot||'Feat')}${catLabel}</div>
+            <div style="font-size:9px;color:var(--orange);opacity:.7;margin-top:1px">${luci('star')} ${esc(slot||'Feat')}${catLabel}</div>
           </div>
           <span class="feature-arrow">▶</span>
         </div>
@@ -2946,6 +2898,7 @@ function renderFeaturesTab(){
 
   if(!h) h='<div class="phmsg">No features available.</div>';
   el.innerHTML = h;
+  refreshIcons();
 }
 
 function renderBackgroundTab(){
@@ -2981,6 +2934,7 @@ function renderBackgroundTab(){
   }
 
   el.innerHTML = h;
+  refreshIcons();
 }
 
 /* ═══════ UI ═══════ */
@@ -3081,8 +3035,9 @@ function showDiceToast(label, rolls, mod, total, extra){
     el = document.createElement('div');
     el.id = 'dice-toast';
     el.className = 'dice-toast';
-    el.innerHTML = '<div class="dice-toast-close" onclick="this.parentElement.classList.remove(\'show\')">✕</div>';
+    el.innerHTML = `<div class="dice-toast-close" onclick="this.parentElement.classList.remove('show')">${luci('x')}</div>`;
     document.body.appendChild(el);
+    refreshIcons();
   }
   const isCrit = rolls.length===1 && rolls[0].faces===20 && rolls[0].v===20;
   const isFumble = rolls.length===1 && rolls[0].faces===20 && rolls[0].v===1;
@@ -3093,12 +3048,13 @@ function showDiceToast(label, rolls, mod, total, extra){
     return `<div class="dice-pip-val ${cls}">${r.v}</div>`;
   }).join('<span style="color:var(--text3);padding:0 2px">+</span>');
   el.innerHTML = `
-    <div class="dice-toast-close" onclick="this.parentElement.classList.remove('show')">✕</div>
+    <div class="dice-toast-close" onclick="this.parentElement.classList.remove('show')">${luci('x')}</div>
     <div class="dice-toast-label">${esc(label)}</div>
     ${rolls.length ? `<div class="dice-toast-rolls">${rollsHtml}${modStr?`<span class="dice-mod-str">${modStr}</span>`:''}</div>` : ''}
     <div class="dice-toast-total ${totalCls}">${total}</div>
     ${extra ? `<div class="dice-toast-extra">${esc(extra)}</div>` : ''}
   `;
+  refreshIcons();
   el.classList.add('show');
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.classList.remove('show'), 5000);
@@ -3109,67 +3065,91 @@ let charResources = {};
 
 const CLASS_RESOURCES_DEF = {
   Barbarian:[
-    {key:'rage',            name:'Rage',              icon:'😡', recharge:'LR',
+    {key:'rage',            name:'Rage',              icon:'angry',    recharge:'LR',
      max:(lv)=>lv>=20?Infinity:lv>=17?6:lv>=12?5:lv>=6?4:lv>=3?3:2 },
   ],
   Bard:[
-    {key:'bardic_insp',     name:'Bardic Inspiration', icon:'🎵', recharge:'SR',
+    {key:'bardic_insp',     name:'Bardic Inspiration', icon:'music',  recharge:'SR',
      max:(lv,s)=>Math.max(1,getMod(getFinal('cha'))) },
   ],
   Cleric:[
-    {key:'channel_div',     name:'Channel Divinity',  icon:'☀', recharge:'SR',
+    {key:'channel_div',          name:'Channel Divinity',   icon:'sun',   recharge:'SR',
      max:(lv)=>lv>=18?3:lv>=6?2:1 },
+    {key:'divine_intervention',  name:'Divine Intervention',icon:'hands', recharge:'LR',
+     max:(lv)=>lv>=10?1:0 },
   ],
   Druid:[
-    {key:'wild_shape',      name:'Wild Shape',        icon:'🐻', recharge:'SR',
+    {key:'wild_shape',      name:'Wild Shape',        icon:'paw-print', recharge:'SR',
      max:()=>2 },
   ],
   Fighter:[
-    {key:'second_wind',     name:'Second Wind',       icon:'💨', recharge:'SR',
-     max:()=>1 },
-    {key:'action_surge',    name:'Action Surge',      icon:'⚡', recharge:'SR',
+    {key:'second_wind',     name:'Second Wind',       icon:'wind',   recharge:'SR',
+     max:(lv)=>lv>=15?3:lv>=3?2:1 },
+    {key:'action_surge',    name:'Action Surge',      icon:'zap',    recharge:'SR',
      max:(lv)=>lv>=17?2:1 },
   ],
   Monk:[
-    {key:'ki',              name:'Ki Points',         icon:'🌀', recharge:'SR',
+    {key:'ki',              name:'Discipline Points',  icon:'orbit',  recharge:'SR',
      max:(lv)=>lv, pool:true },
   ],
   Paladin:[
-    {key:'lay_on_hands',    name:'Lay on Hands',      icon:'🙏', recharge:'LR',
+    {key:'lay_on_hands',    name:'Lay on Hands',      icon:'hands',  recharge:'LR',
      max:(lv)=>lv*5, pool:true },
-    {key:'divine_sense',    name:'Divine Sense',      icon:'✝', recharge:'LR',
+    {key:'divine_sense',    name:'Divine Sense',       icon:'cross',  recharge:'LR',
      max:()=>Math.max(1,getMod(getFinal('cha')))+1 },
   ],
   Sorcerer:[
-    {key:'sorc_pts',        name:'Sorcery Points',    icon:'🌀', recharge:'LR',
+    {key:'sorc_pts',        name:'Sorcery Points',    icon:'orbit',  recharge:'LR',
      max:(lv)=>lv, pool:true },
   ],
   Wizard:[
-    {key:'arc_recovery',    name:'Arcane Recovery',   icon:'📖', recharge:'LR',
+    {key:'arc_recovery',    name:'Arcane Recovery',   icon:'book-open', recharge:'LR',
      max:()=>1 },
   ],
 };
+
+const SUBCLASS_RESOURCES_DEF = {
+  'Cleric_War': [
+    {key:'war_priest',       name:'War Priest',       icon:'swords',  recharge:'LR',
+     max:()=>getPB() },
+  ],
+  'Fighter_Battle Master': [
+    {key:'superiority_dice', name:'Superiority Dice', icon:'swords',  recharge:'SR',
+     max:(lv)=>lv>=15?6:lv>=7?5:4, pool:true },
+  ],
+  'Fighter_Psi Warrior': [
+    {key:'psi_dice',         name:'Psi Points',       icon:'orbit',   recharge:'SR',
+     max:(lv)=>lv>=11?12:lv>=5?8:6, pool:true },
+  ],
+};
+
+function getAllResDefs(){
+  const cls=C?.className||'';
+  const subKey=cls+'_'+(C?.subclassShortName||'');
+  return [...(CLASS_RESOURCES_DEF[cls]||[]),...(SUBCLASS_RESOURCES_DEF[subKey]||[])];
+}
 
 // Key → action name mapping (so we know which action card gets pips)
 const RESOURCE_ACTION_MAP = {
   rage:'Rage', bardic_insp:'Bardic Inspiration', channel_div:'Channel Divinity',
   wild_shape:'Wild Shape', second_wind:'Second Wind', action_surge:'Action Surge',
-  ki:'Ki Points', lay_on_hands:'Lay on Hands', divine_sense:'Divine Sense',
+  ki:'Discipline Points', lay_on_hands:'Lay on Hands', divine_sense:'Divine Sense',
   sorc_pts:'Sorcery Points', arc_recovery:'Arcane Recovery',
+  divine_intervention:'Divine Intervention',
+  war_priest:'War Priest',
+  superiority_dice:'Combat Maneuvers', psi_dice:'Psionic Strike',
 };
 
 function getResMax(res){
-  const lv = C?.level||1;
+  const lv = C?.classLevel || C?.level || 1;
   return Math.min(res.max(lv), 20); // cap at 20 for pip display
 }
 
 function loadResources(){
   try {
     const stored = JSON.parse(localStorage.getItem('5e_resources')||'{}');
-    const cls = C?.className||'';
-    const defs = CLASS_RESOURCES_DEF[cls]||[];
     charResources = {};
-    for(const r of defs){
+    for(const r of getAllResDefs()){
       charResources[r.key] = stored[r.key] ?? getResMax(r);
     }
   } catch(e){ charResources = {}; }
@@ -3194,9 +3174,7 @@ function setResourcePip(key, idx){
 }
 
 function recoverResources(type){
-  const cls = C?.className||'';
-  const defs = CLASS_RESOURCES_DEF[cls]||[];
-  for(const r of defs){
+  for(const r of getAllResDefs()){
     if(type==='LR' || r.recharge==='SR'){
       charResources[r.key] = getResMax(r);
     }
@@ -3205,9 +3183,7 @@ function recoverResources(type){
 }
 
 function buildResourceBlock(actionName){
-  const cls = C?.className||'';
-  const defs = CLASS_RESOURCES_DEF[cls]||[];
-  // Find resource matching this action
+  const defs = getAllResDefs();
   const res = defs.find(r => RESOURCE_ACTION_MAP[r.key] === actionName ||
     r.name.toLowerCase() === actionName.toLowerCase().replace(/\'s/g,''));
   if(!res) return '';
@@ -3259,7 +3235,7 @@ function buildWeaponCard(item){
   const rarity=item.rarity&&item.rarity!=='none'?item.rarity:null;
   const rc=ITEM_RARITY_COLOR[rarity]||null;
   const src=SOURCE_LABELS[item.source]||item.source||'';
-  const icon=isRanged?'🏹':'⚔';
+  const icon=isRanged?luci('crosshair'):luci('swords');
   const id='ac_'+Math.random().toString(36).slice(2);
   const wName=esc(item.name);
   const tagHtml=`<span class="action-tag atk">ATK</span>`
@@ -3276,12 +3252,12 @@ function buildWeaponCard(item){
     </div>
     <div class="action-card-body">
       <div class="action-info-row">
-        <button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkMod},'Attack: ${wName}')">🎲 Hits ${fbonus(atkMod)}</button>
-        <button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','Damage: ${wName}')">💥 ${esc(dmgLabel)}</button>
-        ${versDie?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${versDie}${dmgSign}${dmgMod}','Damage (vers.): ${wName}')">🤲 ${versDie} vers.</button>`:''}
-        <div class="action-dmg-pill">📏 <b>${esc(range)}</b></div>
+        <button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkMod},'Attack: ${wName}')">${luci('dice-5')} Hits ${fbonus(atkMod)}</button>
+        <button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','Damage: ${wName}')">${luci('sword')} ${esc(dmgLabel)}</button>
+        ${versDie?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${versDie}${dmgSign}${dmgMod}','Damage (vers.): ${wName}')">${luci('swords')} ${versDie} vers.</button>`:''}
+        <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
         ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
-        ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">✦ Magica +${bonus}</div>`:''}
+        ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">${luci('sparkles')} Magica +${bonus}</div>`:''}
       </div>
     </div>
   </div>`;
@@ -3294,15 +3270,15 @@ function buildCantripCard(name){
   if(!d){
     return `<div class="action-card" id="${id}">
       <div class="action-card-hdr" onclick="toggleCard('${id}')">
-        <span class="action-card-icon">✦</span>
+        <span class="action-card-icon">${luci('sparkles')}</span>
         <div style="flex:1;min-width:0"><div class="action-card-name">${esc(name)}<span class="sub">Cantrip</span></div></div>
         <div class="action-card-tags"><span class="action-tag atk">SPELL</span></div>
         <div class="action-stat">${fbonus(sm+pb)}</div>
       </div>
       <div class="action-card-body">
         <div class="action-info-row">
-          <button class="roll-btn" onclick="event.stopPropagation();rollD20(${sm+pb},'${esc(name)}')">🎲 Attack ${fbonus(sm+pb)}</button>
-          <div class="action-dmg-pill">📏 varies</div>
+          <button class="roll-btn" onclick="event.stopPropagation();rollD20(${sm+pb},'${esc(name)}')">${luci('dice-5')} Attack ${fbonus(sm+pb)}</button>
+          <div class="action-dmg-pill">${luci('ruler')} varies</div>
         </div>
       </div>
     </div>`;
@@ -3314,7 +3290,7 @@ function buildCantripCard(name){
   const nEsc=esc(name);
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
-      <span class="action-card-icon">${d.icon}</span>
+      <span class="action-card-icon">${luci(d.icon)}</span>
       <div style="flex:1;min-width:0">
         <div class="action-card-name">${nEsc}<span class="sub">Cantrip · ${esc(d.dmgType||'utility')} · ${esc(d.range)}</span></div>
       </div>
@@ -3324,11 +3300,11 @@ function buildCantripCard(name){
     <div class="action-card-body">
       <div class="action-info-row">
         ${d.toHit
-          ?`<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'${nEsc}')">🎲 Attack ${fbonus(atkBonus)}</button>`
-          :`<div class="action-dmg-pill">🎲 Save DC: <b>${saveDC}</b></div>`}
-        ${dmgFormula!=='—'?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${nEsc}')">💥 ${esc(dmgLabel)}</button>`:''}
-        <div class="action-dmg-pill">📏 <b>${esc(d.range)}</b></div>
-        <div class="action-dmg-pill">📈 Scales at lv. 5/11/17</div>
+          ?`<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'${nEsc}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`
+          :`<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>`}
+        ${dmgFormula!=='—'?`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${nEsc}')">${luci('flame')} ${esc(dmgLabel)}</button>`:''}
+        <div class="action-dmg-pill">${luci('ruler')} <b>${esc(d.range)}</b></div>
+        <div class="action-dmg-pill">${luci('trending-up')} Scales at lv. 5/11/17</div>
         ${d.notes?`<div class="action-dmg-pill" style="color:var(--text3)">${esc(d.notes)}</div>`:''}
       </div>
     </div>
@@ -3342,14 +3318,81 @@ function buildClassActionCard(a){
 
   // Build roll buttons for specific actions
   let rollRow='';
-  if(a.name==="Second Wind"){
-    const lv=C?.level||1;
-    rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('1d10+${lv}','Second Wind - Heal')">💚 Heal 1d10+${lv}</button>`;
-  } else if(a.name==="Sneak Attack"){
-    const sd=Math.ceil((C?.level||1)/2);
-    rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${sd}d6','Sneak Attack')">🗡 ${sd}d6 extra damage</button>`;
-  } else if(a.name==="Divine Smite"){
-    rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('2d8','Divine Smite - 1st level')">✨ 2d8 radiant</button>`;
+  {
+    const pLv  = C?.classLevel || C?.level || 1;
+    const totLv= C?.level || 1;
+    const wisMod= getMod(getFinal('wis'));
+    const chaMod= getMod(getFinal('cha'));
+    const dexMod= getMod(getFinal('dex'));
+    const pb   = getPB();
+    const sign = v => v>=0?`+${v}`:String(v);
+
+    if(a.name==="Second Wind"){
+      rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('1d10${sign(pLv)}','Second Wind')">${luci('heart')} Heal 1d10${sign(pLv)}</button>`;
+
+    } else if(a.name==="Sneak Attack"){
+      const sd=Math.ceil(totLv/2);
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${sd}d6','Sneak Attack')">${luci('sword')} ${sd}d6 extra</button>`;
+
+    } else if(a.name==="Divine Smite"){
+      // max slot level by paladin level → max smite dice
+      const maxSlot=pLv>=13?5:pLv>=9?4:pLv>=5?3:pLv>=3?2:1;
+      const smiteDice=Math.min(maxSlot+1,6);
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${smiteDice}d8','Divine Smite')">${luci('sparkles')} ${smiteDice}d8 radiant</button>`;
+
+    } else if(a.name==="Divine Spark"){
+      // base: 2d8+WIS (1 channel use)
+      const f=`2d8${sign(wisMod)}`;
+      rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('${f}','Divine Spark')">${luci('sun')} 2d8${sign(wisMod)}</button>`;
+
+    } else if(a.name==="Blessed Strikes"){
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d8','Blessed Strikes')">${luci('sparkles')} +1d8 divine</button>`;
+
+    } else if(a.name==="Bardic Inspiration"){
+      const die=pLv>=15?12:pLv>=10?10:pLv>=5?8:6;
+      rollRow=`<button class="roll-btn" onclick="event.stopPropagation();rollDamage('1d${die}','Bardic Inspiration')">${luci('music')} 1d${die}</button>`;
+
+    } else if(a.name==="Martial Arts"){
+      const die=pLv>=17?12:pLv>=11?10:pLv>=5?8:6;
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d${die}','Martial Arts')">${luci('hand')} 1d${die}</button>`;
+
+    } else if(a.name==="Flurry of Blows"){
+      const die=pLv>=17?12:pLv>=11?10:pLv>=5?8:6;
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('2d${die}','Flurry of Blows')">${luci('hand')} 2d${die}</button>`;
+
+    } else if(a.name==="Deflect Attacks"){
+      const f=`1d10${sign(dexMod+pLv)}`;
+      rollRow=`<button class="roll-btn" onclick="event.stopPropagation();rollDamage('${f}','Deflect Attacks')">${luci('shield')} ${f} reduce</button>`;
+
+    } else if(a.name==="Brutal Strike"){
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d10','Brutal Strike')">${luci('axe')} +1d10</button>`;
+
+    } else if(a.name==="Tactical Mind"){
+      rollRow=`<button class="roll-btn" onclick="event.stopPropagation();rollDamage('1d10','Tactical Mind')">${luci('dice-5')} +1d10</button>`;
+
+    } else if(a.name==="Hunter's Mark"){
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d6','Hunters Mark')">${luci('crosshair')} +1d6</button>`;
+
+    } else if(a.name==="Radiant Strikes"){
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d8','Radiant Strikes')">${luci('sparkles')} +1d8 radiant</button>`;
+
+    } else if(a.name==="Channel: Radiance of the Dawn"){
+      const f=`2d10${sign(pLv)}`;
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${f}','Radiance of the Dawn')">${luci('sun')} ${f} radiant</button>`;
+
+    } else if(a.name==="Channel: Preserve Life"){
+      rollRow=`<div class="action-dmg-pill">${luci('heart')} Pool: <b>${5*pLv} HP</b></div>`;
+
+    } else if(a.name==="Lay on Hands"){
+      rollRow=`<div class="action-dmg-pill">${luci('heart')} Pool: <b>${5*pLv} HP</b></div>`;
+
+    } else if(a.name==="Elemental Fury"){
+      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d6','Elemental Fury')">${luci('flame')} +1d6</button>`;
+
+    } else if(a.name==="Dark One's Blessing"){
+      const tmp=totLv+chaMod;
+      rollRow=`<div class="action-dmg-pill">${luci('skull')} Temp HP: <b>${Math.max(1,tmp)}</b></div>`;
+    }
   }
 
   // Build resource block inline
@@ -3362,7 +3405,7 @@ function buildClassActionCard(a){
 
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
-      <span class="action-card-icon">${a.icon}</span>
+      <span class="action-card-icon">${a.icon?luci(a.icon):''}</span>
       <div style="flex:1;min-width:0">
         <div class="action-card-name">${esc(a.name)}${a.uses?`<span class="sub">${esc(a.uses)}</span>`:''}</div>
       </div>
@@ -3389,19 +3432,19 @@ function buildUnarmedCard(opt){
   let infoRow='';
   if(opt.cat==='attack'){
     infoRow=`<div class="action-info-row">
-      <button class="roll-btn" onclick="event.stopPropagation();rollD20(${strMod+pb},'Unarmed Strike')">🎲 Hits ${fbonus(strMod+pb)}</button>
-      <button class="roll-btn dmg" onclick="event.stopPropagation();showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">💥 ${Math.max(1,1+strMod)} bludg.</button>
-      <div class="action-dmg-pill">📏 5 ft</div>
+      <button class="roll-btn" onclick="event.stopPropagation();rollD20(${strMod+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(strMod+pb)}</button>
+      <button class="roll-btn dmg" onclick="event.stopPropagation();showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">${luci('sword')} ${Math.max(1,1+strMod)} bludg.</button>
+      <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>
     </div>`;
   } else if(isGrSh){
     infoRow=`<div class="action-info-row">
       <div class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></div>
-      <div class="action-dmg-pill">📏 5 ft (reach)</div>
+      <div class="action-dmg-pill">${luci('ruler')} 5 ft (reach)</div>
     </div>`;
   }
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
-      <span class="action-card-icon">${opt.icon}</span>
+      <span class="action-card-icon">${luci(opt.icon)}</span>
       <div style="flex:1;min-width:0"><div class="action-card-name">${esc(opt.name)}</div></div>
       <div class="action-card-tags"><span class="action-tag ${tag}">${catLbl}</span></div>
       ${stat!==null?`<div class="action-stat">${stat}</div>`:''}
@@ -3419,7 +3462,7 @@ function buildStdActionCard(a){
   const id='ac_'+Math.random().toString(36).slice(2);
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
-      <span class="action-card-icon">${a.icon}</span>
+      <span class="action-card-icon">${a.icon?luci(a.icon):''}</span>
       <div style="flex:1;min-width:0"><div class="action-card-name">${esc(a.name)}</div></div>
       <div class="action-card-tags"><span class="action-tag ${tagCls[a.cat]||'util'}">${catLbl}</span></div>
     </div>
@@ -3431,8 +3474,7 @@ function buildStdActionCard(a){
 
 // Inline resource block (for inside action-info-row)
 function buildResourceBlockInline(actionName){
-  const cls=C?.className||'';
-  const defs=CLASS_RESOURCES_DEF[cls]||[];
+  const defs=getAllResDefs();
   const res=defs.find(r=>
     RESOURCE_ACTION_MAP[r.key]===actionName ||
     r.name.toLowerCase()===actionName.toLowerCase()
@@ -3499,9 +3541,9 @@ function _getPickerModal(){
   m.innerHTML = `
     <div style="max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem">
       <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
-        <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);flex:1">✦ Spells</div>
+        <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);flex:1">${luci('sparkles')} Spells</div>
         <span id="spl-count" class="spl-count-badge"></span>
-        <button onclick="closeSpellPicker()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1">✕</button>
+        <button onclick="closeSpellPicker()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1">${luci('x')}</button>
       </div>
       <div id="spl-tabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem"></div>
       <input id="spl-q" type="text" placeholder="Search…" oninput="_renderPickerList()"
@@ -3511,6 +3553,7 @@ function _getPickerModal(){
       <div id="spl-list" style="max-height:52vh;overflow-y:auto"></div>
     </div>`;
   document.body.appendChild(m);
+  refreshIcons();
   return m;
 }
 
@@ -3611,9 +3654,10 @@ function _renderPickerList(){
       onclick="${blocked?'':'toggleSheetSpell(\''+safeName+'\','+s.level+')'}">
       <span class="spl-name">${esc(s.name)}</span>
       <span class="spl-school">${SCHOOL_SHORT[s.school]||s.school||''}</span>
-      ${on?`<span class="spl-check">✓</span>`:blocked?`<span class="spl-school">max</span>`:''}
+      ${on?`<span class="spl-check">${luci('check')}</span>`:blocked?`<span class="spl-school">max</span>`:''}
     </div>`;
   }).join('') || '<div class="phmsg">No spells found.</div>';
+  refreshIcons();
 }
 
 function toggleSheetSpell(name, level){
