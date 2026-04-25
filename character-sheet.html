@@ -9,35 +9,43 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg:    #0f0e0d;
-      --bg2:   #1a1815;
-      --bg3:   #232019;
-      --bg4:   #2c2820;
-      --bg5:   #332e24;
-      --bdr:   rgba(180,150,90,.18);
-      --bdr2:  rgba(180,150,90,.38);
-      --bdr3:  rgba(180,150,90,.6);
-      --gold:  #c8a84b;
-      --gold2: #e8c96a;
-      --gold3: #f5dfa0;
-      --gdim:  rgba(200,168,75,.12);
-      --red:   #c0392b;
-      --red2:  #e74c3c;
-      --redbg: rgba(192,57,43,.12);
-      --green: #27ae60;
-      --gbg:   rgba(39,174,96,.12);
-      --blue:  #3498db;
-      --bluebg:rgba(52,152,219,.12);
-      --purple:#9b59b6;
-      --pbg:   rgba(155,89,182,.14);
-      --teal:  #1abc9c;
-      --tbg:   rgba(26,188,156,.12);
-      --orange:#e67e22;
-      --obg:   rgba(230,126,34,.12);
-      --text:  #e8dcc8;
-      --text2: #a89878;
-      --text3: #6b5c40;
-      --r: 6px; --rl: 10px;
+      --bg: #12100e;
+      --bg2: #1a1713;
+      --bg3: #23201a;
+      --bg4: #2e2a22;
+      --bg5: #3a342a;
+      --bdr: rgba(199, 167, 99, .2);
+      --bdr2: rgba(199, 167, 99, .42);
+      --bdr3: rgba(199, 167, 99, .68);
+      --gold: #caa550;
+      --gold2: #edd48a;
+      --gold3: #f7e8bf;
+      --gdim: rgba(202, 165, 80, .14);
+      --red: #c54a3f;
+      --red2: #de5e52;
+      --redbg: rgba(222, 94, 82, .14);
+      --green: #3fa66c;
+      --gbg: rgba(63, 166, 108, .14);
+      --blue: #4d95d6;
+      --bluebg: rgba(77, 149, 214, .14);
+      --purple: #9d7fb8;
+      --pbg: rgba(157, 127, 184, .16);
+      --teal: #2ca797;
+      --tbg: rgba(44, 167, 151, .14);
+      --orange: #d58a3d;
+      --obg: rgba(213, 138, 61, .14);
+      --text: #efe6d4;
+      --text2: #c4b393;
+      --text3: #8f7a57;
+      --r: 9px;
+      --rl: 14px;
+      --fs-label: 10px;
+      --fs-meta: 11px;
+      --fs-body: 12px;
+      --fs-body-lg: 13px;
+      --fs-value-sm: 18px;
+      --fs-value-md: 22px;
+      --fs-value-lg: 28px;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -47,12 +55,28 @@
       font-family: 'EB Garamond', Georgia, serif;
       font-size: 15px;
       min-height: 100vh;
+      line-height: 1.58;
+      letter-spacing: .01em;
+      text-rendering: optimizeLegibility;
     }
     body::before {
       content:'';position:fixed;inset:0;pointer-events:none;
       background:
-        radial-gradient(ellipse at 15% 10%, rgba(200,168,75,.05) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 90%, rgba(192,57,43,.04) 0%, transparent 55%);
+        radial-gradient(ellipse at 18% 12%, rgba(202, 165, 80, .09) 0%, transparent 54%),
+        radial-gradient(ellipse at 82% 88%, rgba(213, 138, 61, .05) 0%, transparent 54%);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 1px;
     }
 
     /* ─── TOPBAR ─── */
@@ -90,11 +114,12 @@
     }
     .xp-bar-fill { height:100%;background:var(--gold);border-radius:3px;transition:width .4s }
     .xp-label { font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:var(--text3) }
+    #hd-label { font-size: var(--fs-meta); color: var(--text3); }
 
     .rest-btn {
-      padding: 6px 14px;border:1px solid;border-radius:var(--r);
+      padding: 6px 13px;border:1px solid;border-radius:var(--r);
       font-family:'Cinzel',serif;font-size:10px;font-weight:600;
-      letter-spacing:.06em;cursor:pointer;transition:all .12s;
+      letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .12s;
     }
     .rest-btn.short { border-color:var(--orange);color:var(--orange);background:var(--obg) }
     .rest-btn.short:hover { background:rgba(230,126,34,.2) }
@@ -104,7 +129,7 @@
     .back-btn {
       padding: 6px 12px;border:1px solid var(--bdr2);border-radius:var(--r);
       font-family:'Cinzel',serif;font-size:10px;font-weight:600;
-      letter-spacing:.06em;cursor:pointer;color:var(--text2);background:transparent;
+      letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--text2);background:transparent;
       transition:all .12s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;
     }
     .back-btn:hover { border-color:var(--gold);color:var(--gold) }
@@ -112,11 +137,11 @@
     /* ─── ABILITY SCORES ROW ─── */
     .scores-row {
       display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem;
-      padding:.8rem 1.2rem;background:var(--bg3);border-bottom:1px solid var(--bdr);
+      padding:.55rem 1.1rem;background:var(--bg3);border-bottom:1px solid var(--bdr);
     }
     .score-box {
-      background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);
-      display:flex;flex-direction:column;align-items:center;padding:.5rem .3rem;
+      background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);
+      display:flex;flex-direction:column;align-items:center;padding:.4rem .25rem;
       position:relative;transition:border-color .15s;
     }
     .score-box:hover { border-color:var(--gold) }
@@ -125,30 +150,30 @@
       letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:2px;
     }
     .score-mod {
-      font-family:'Cinzel',serif;font-size:26px;font-weight:700;
+      font-family:'Cinzel',serif;font-size:24px;font-weight:700;
       color:var(--gold2);line-height:1;
     }
     .score-base {
       font-family:'Cinzel',serif;font-size:11px;font-weight:600;
       color:var(--text2);
       background:var(--bg3);border:1px solid var(--bdr);border-radius:50%;
-      width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-      margin-top:5px;
+      width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+      margin-top:4px;
     }
 
     /* ─── STATS ROW ─── */
     .stats-row {
       display:flex;align-items:stretch;gap:.6rem;
-      padding:.6rem 1.2rem;background:var(--bg2);border-bottom:1px solid var(--bdr);
+      padding:.5rem 1.1rem;background:var(--bg2);border-bottom:1px solid var(--bdr);
       flex-wrap:wrap;
     }
     .stat-box {
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
       display:flex;flex-direction:column;align-items:center;justify-content:center;
-      padding:.5rem .8rem;text-align:center;min-width:72px;
+      padding:.42rem .68rem;text-align:center;min-width:64px;
     }
     .stat-box-val {
-      font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2);line-height:1;
+      font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--gold2);line-height:1;
     }
     .stat-box-lbl {
       font-family:'Cinzel',serif;font-size:8px;font-weight:600;
@@ -161,37 +186,72 @@
 
     /* HP section */
     .hp-block {
-      flex:1;min-width:220px;
+      flex:0 1 170px;min-width:165px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      padding:.5rem .8rem;
+      padding:.3rem .45rem;
     }
     .hp-title {
       font-family:'Cinzel',serif;font-size:8px;font-weight:600;
-      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.2rem;
     }
-    .hp-controls { display:flex;align-items:center;gap:.5rem }
+    .hp-controls { display:flex;align-items:center;gap:.3rem }
     .hp-btn {
-      padding:5px 12px;border-radius:var(--r);font-family:'Cinzel',serif;font-size:10px;
+      width:24px;height:24px;padding:0;border-radius:var(--r);font-family:'Cinzel',serif;font-size:10px;
       font-weight:600;cursor:pointer;border:1px solid;letter-spacing:.06em;
+      display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
     }
     .hp-btn.heal { border-color:var(--green);color:var(--green);background:var(--gbg) }
     .hp-btn.dmg  { border-color:var(--red2); color:var(--red2); background:var(--redbg) }
-    .hp-vals { display:flex;align-items:baseline;gap:.3rem;flex:1;justify-content:center }
+    .hp-vals { display:flex;align-items:baseline;gap:.3rem;flex:1;justify-content:center;white-space:nowrap }
     .hp-cur {
-      font-family:'Cinzel',serif;font-size:32px;font-weight:700;color:var(--green);line-height:1;
+      font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--green);line-height:1;
     }
-    .hp-sep { font-family:'Cinzel',serif;font-size:18px;color:var(--text3) }
-    .hp-max { font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--text2) }
-    .hp-temp-block { display:flex;flex-direction:column;align-items:center }
-    .hp-temp-val { font-family:'Cinzel',serif;font-size:18px;font-weight:600;color:var(--text3) }
-    .hp-sublbl { font-family:'Cinzel',serif;font-size:8px;color:var(--text3);letter-spacing:.1em }
+    .hp-sep { font-family:'Cinzel',serif;font-size:14px;color:var(--text3) }
+    .hp-max { font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--text2) }
+    .hp-subline {
+      display:grid;grid-template-columns:1fr auto auto;gap:4px;align-items:center;
+      margin-top:4px;
+    }
+    .hp-step {
+      width:46px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);
+      color:var(--text);font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+      text-align:center;padding:2px 4px;outline:none;
+    }
+    .hp-mini {
+      border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);
+      color:var(--text2);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;
+      display:inline-flex;align-items:center;gap:4px;padding:2px 6px;white-space:nowrap;
+    }
+    .hp-mini b { color:var(--gold2);font-weight:700; }
+    .hp-mini-btn {
+      width:18px;height:18px;border:1px solid var(--bdr2);border-radius:4px;
+      background:transparent;color:var(--text2);cursor:pointer;
+      display:inline-flex;align-items:center;justify-content:center;line-height:1;
+    }
+    .hp-mini-btn:hover { border-color:var(--gold);color:var(--gold2); }
+    .hp-mini-btn.temp:hover { border-color:var(--teal);color:var(--teal); }
+    .hp-mini-btn.max:hover { border-color:var(--purple);color:var(--purple); }
+    .hp-death {
+      margin-top:4px;padding-top:4px;border-top:1px dashed var(--bdr);
+      display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+    }
+    .hp-death[hidden] { display:none; }
+    .hp-ds-lbl {
+      font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);
+    }
+    .hp-ds-pips { display:flex;align-items:center;gap:3px; }
+    .hp-ds-pip {
+      width:12px;height:12px;border-radius:50%;border:1px solid var(--bdr2);background:transparent;
+    }
+    .hp-ds-pip.success.on { background:var(--green);border-color:var(--green); }
+    .hp-ds-pip.fail.on { background:var(--red2);border-color:var(--red2); }
 
     /* ─── MAIN GRID ─── */
     .main-grid {
       display:grid;
-      grid-template-columns: 200px 210px 1fr;
-      gap:.6rem;
-      padding:.6rem 1.2rem;
+      grid-template-columns: 200px 210px minmax(0, 1fr);
+      gap:.55rem;
+      padding:.55rem 1.1rem;
       align-items:start;
       min-height:calc(100vh - 220px);
     }
@@ -208,16 +268,17 @@
     .panel {
       background:var(--bg2);border:1px solid var(--bdr);
       border-radius:var(--rl);overflow:hidden;margin-bottom:.6rem;
+      box-shadow:0 8px 24px rgba(0,0,0,.26);
     }
     .panel-hdr {
       background:var(--bg3);border-bottom:1px solid var(--bdr);
-      padding:.45rem .9rem;display:flex;align-items:center;justify-content:space-between;
+      padding:.48rem .8rem;display:flex;align-items:center;justify-content:space-between;
     }
     .panel-title {
       font-family:'Cinzel',serif;font-size:9px;font-weight:700;
       letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
     }
-    .panel-body { padding:.6rem .9rem }
+    .panel-body { padding:.55rem .8rem }
 
     /* ─── SAVING THROWS ─── */
     .save-row {
@@ -296,16 +357,19 @@
 
     /* ─── RIGHT COLUMN ─── */
     .right-top-row {
-      display:flex;gap:.6rem;margin-bottom:.6rem;flex-wrap:wrap;
+      display:flex;gap:.45rem;margin-bottom:.5rem;flex-wrap:wrap;
     }
     .circle-stat {
-      width:72px;height:72px;border-radius:50%;
+      width:62px;height:62px;border-radius:50%;
       background:var(--bg3);border:2px solid var(--bdr2);
       display:flex;flex-direction:column;align-items:center;justify-content:center;
       flex-shrink:0;
     }
+    .circle-stat.clickable { cursor:pointer; transition:border-color .12s, transform .08s; }
+    .circle-stat.clickable:hover { border-color:var(--gold); }
+    .circle-stat.clickable:active { transform:translateY(1px); }
     .circle-stat-val {
-      font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--gold2);line-height:1;
+      font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--gold2);line-height:1;
     }
     .circle-stat-lbl {
       font-family:'Cinzel',serif;font-size:7px;font-weight:700;
@@ -314,7 +378,7 @@
     .defenses-block, .conditions-block {
       flex:1;min-width:140px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      padding:.5rem .8rem;
+      padding:.4rem .62rem;
     }
     .block-title {
       font-family:'Cinzel',serif;font-size:9px;font-weight:700;
@@ -334,14 +398,14 @@
     .tabs-bar::-webkit-scrollbar{height:2px}
     .tabs-bar::-webkit-scrollbar-thumb{background:var(--bdr2)}
     .tab-btn {
-      padding:.6rem 1rem;font-family:'Cinzel',serif;font-size:10px;font-weight:600;
-      letter-spacing:.08em;text-transform:uppercase;color:var(--text3);
+      padding:.62rem 1rem;font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--text3);
       border:none;background:transparent;cursor:pointer;white-space:nowrap;
       border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;
     }
     .tab-btn:hover { color:var(--text2) }
     .tab-btn.active { color:var(--gold2);border-bottom-color:var(--gold) }
-    .tab-content { display:none;padding:.8rem }
+    .tab-content { display:none;padding:.62rem }
     .tab-content.active { display:block }
 
     /* ─── ACTIONS TAB ─── */
@@ -349,9 +413,10 @@
       display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.75rem;
     }
     .af-btn {
-      padding:4px 10px;border:1px solid var(--bdr);border-radius:12px;
-      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.08em;
+      padding:4px 10px;border:1px solid var(--bdr);border-radius:999px;
+      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.09em;
       background:transparent;color:var(--text3);cursor:pointer;transition:all .12s;
+      text-transform:uppercase;
     }
     .af-btn:hover { border-color:var(--bdr2);color:var(--text2) }
     .af-btn.on { background:var(--gdim);border-color:var(--gold);color:var(--gold2) }
@@ -383,7 +448,7 @@
       border-bottom:1px solid var(--bluebg);padding-bottom:4px;margin-bottom:.4rem;
     }
     .spell-entry {
-      display:flex;align-items:center;gap:8px;padding:5px 8px;
+      display:flex;align-items:center;gap:8px;padding:4px 8px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
       margin-bottom:3px;font-size:13px;color:var(--text);cursor:pointer;
     }
@@ -409,7 +474,7 @@
     }
     .feature-hdr {
       display:flex;align-items:center;justify-content:space-between;
-      padding:7px 10px;cursor:pointer;transition:background .1s;
+      padding:6px 9px;cursor:pointer;transition:background .1s;
     }
     .feature-hdr:hover { background:var(--bg4) }
     .feature-name { font-size:13px;color:var(--text);font-weight:600 }
@@ -435,7 +500,7 @@
     }
     .inv-item {
       display:flex;align-items:center;gap:8px;
-      padding:5px 8px;font-size:13px;color:var(--text2);
+      padding:4px 8px;font-size:13px;color:var(--text2);
       border-bottom:1px solid var(--bdr);
     }
     .inv-item:last-child { border-bottom:none }
@@ -467,7 +532,7 @@
     }
     .spl-add-btn:hover { background:rgba(200,168,75,.2) }
     .spl-row {
-      display:flex;align-items:center;gap:.5rem;padding:7px 10px;border-radius:var(--r);
+      display:flex;align-items:center;gap:.5rem;padding:6px 9px;border-radius:var(--r);
       border:1px solid transparent;cursor:pointer;transition:all .12s;
     }
     .spl-row:hover { border-color:var(--bdr);background:var(--bg3) }
@@ -510,24 +575,104 @@
     ::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px}
 
     .condition-tag {
-      display:inline-flex;align-items:center;gap:4px;
-      padding:3px 9px;border-radius:12px;margin:2px;font-size:11px;
+      display:inline-flex;align-items:center;gap:5px;
+      padding:2px 8px;border-radius:999px;margin:0;font-size:10px;
       font-family:'Cinzel',serif;border:1px solid var(--bdr2);color:var(--text3);
+      background:var(--bg3);white-space:nowrap;
     }
+    .condition-tag.on { color:var(--orange); border-color:var(--orange); background:var(--obg); }
+    .condition-tag.empty { color:var(--text3); border-style:dashed; }
+    .conditions-wrap { display:flex; flex-direction:column; gap:6px; }
+    .cond-active { display:flex; flex-wrap:wrap; gap:4px; }
+    .cond-details { border:1px dashed var(--bdr); border-radius:var(--r); padding:3px 6px; }
+    .cond-summary {
+      list-style:none; cursor:pointer; font-family:'Cinzel',serif;
+      font-size:10px; color:var(--text2); letter-spacing:.06em;
+      display:inline-flex; align-items:center; gap:5px; user-select:none;
+    }
+    .cond-summary::-webkit-details-marker { display:none; }
+    .cond-picker {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr));
+      gap:4px; margin-top:6px;
+    }
+    .cond-btn {
+      border:1px solid var(--bdr2); border-radius:var(--r); background:var(--bg3);
+      color:var(--text2); padding:4px 6px; cursor:pointer; transition:all .12s;
+      display:flex; align-items:center; gap:5px; justify-content:flex-start;
+      font-family:'Cinzel',serif; font-size:9px; letter-spacing:.03em;
+    }
+    .cond-btn:hover { border-color:var(--gold); color:var(--gold2); }
+    .cond-btn.on { border-color:var(--orange); color:var(--orange); background:var(--obg); }
+    .cond-clear {
+      border:1px solid var(--bdr2); border-radius:var(--r); background:transparent;
+      color:var(--text3); padding:2px 7px; cursor:pointer;
+      font-family:'Cinzel',serif; font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+      width:max-content;
+    }
+    .cond-clear:hover { border-color:var(--red2); color:var(--red2); }
     .ac-shield {
       position:relative;display:flex;align-items:center;justify-content:center;
-      width:72px;height:80px;flex-shrink:0;
+      width:62px;height:68px;flex-shrink:0;
     }
     .ac-shield svg { position:absolute;inset:0;width:100%;height:100% }
     .ac-shield-val {
       position:relative;z-index:1;
-      font-family:'Cinzel',serif;font-size:26px;font-weight:700;color:var(--gold2);
+      font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2);
     }
     .ac-shield-lbl {
       position:relative;z-index:1;
       font-family:'Cinzel',serif;font-size:7px;font-weight:700;
       letter-spacing:.1em;text-transform:uppercase;color:var(--text3);
-      display:block;margin-top:22px;
+      display:block;margin-top:18px;
+    }
+
+    /* Typography normalization */
+    .panel-title,
+    .block-title,
+    .stat-box-lbl,
+    .score-lbl,
+    .skill-ability,
+    .save-stat,
+    .circle-stat-lbl,
+    .xp-label,
+    .hp-sublbl,
+    .tab-btn,
+    .af-btn,
+    .inv-chip,
+    .rest-btn,
+    .back-btn,
+    .spell-level-hdr,
+    .feature-lv-badge,
+    .inv-cat-title,
+    .bg-section-title,
+    .prof-section-title {
+      font-size: var(--fs-label);
+    }
+
+    .prof-text,
+    .def-text,
+    .sense-lbl,
+    .skill-name,
+    .skill-bonus,
+    .attacks-table,
+    .atk-dmg,
+    .action-card-body,
+    .action-desc,
+    .spell-entry,
+    .feature-name,
+    .feature-body,
+    .inv-item,
+    .inv-row-name,
+    .inv-row-meta,
+    .bg-text,
+    .notes-area {
+      font-size: var(--fs-body);
+    }
+
+    .action-card-name,
+    .spl-name,
+    .inv-search-name {
+      font-size: var(--fs-body-lg);
     }
 
     .slot-pips { display:flex;gap:4px;flex-wrap:wrap }
@@ -549,16 +694,18 @@
     /* ─── INVENTORY STYLES ─── */
     .inv-search-box {
       width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      padding:7px 11px;color:var(--text);font-family:'EB Garamond',serif;font-size:15px;
+      padding:8px 12px;color:var(--text);font-family:'EB Garamond',serif;font-size:15px;
       outline:none;transition:border-color .15s;margin-bottom:.5rem;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
     }
     .inv-search-box:focus { border-color:var(--gold) }
     .inv-search-box::placeholder { color:var(--text3) }
     .inv-filter-row { display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem }
     .inv-chip {
-      padding:3px 10px;border:1px solid var(--bdr);border-radius:12px;
-      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.06em;
+      padding:3px 10px;border:1px solid var(--bdr);border-radius:999px;
+      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.08em;
       cursor:pointer;background:transparent;color:var(--text3);transition:all .12s;
+      text-transform:uppercase;
     }
     .inv-chip:hover { border-color:var(--bdr2);color:var(--text2) }
     .inv-chip.on { background:var(--gdim);border-color:var(--gold);color:var(--gold2) }
@@ -656,10 +803,11 @@
     .action-section-hdr:first-child { margin-top:0 }
     .action-card {
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      margin-bottom:3px;overflow:hidden;
+      margin-bottom:4px;overflow:hidden;
+      box-shadow:0 6px 18px rgba(0,0,0,.2);
     }
     .action-card-hdr {
-      display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;
+      display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;
       transition:background .1s;
     }
     .action-card-hdr:hover { background:var(--bg4) }
@@ -757,9 +905,9 @@
     /* ── ROLL BUTTON ── */
     .roll-btn {
       display:inline-flex;align-items:center;gap:4px;
-      padding:3px 9px;border:1px solid var(--bdr2);border-radius:var(--r);
+      padding:4px 10px;border:1px solid var(--bdr2);border-radius:var(--r);
       background:var(--bg4);color:var(--text2);font-family:'Cinzel',serif;
-      font-size:10px;font-weight:600;letter-spacing:.04em;cursor:pointer;
+      font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;
       transition:all .12s;white-space:nowrap;
     }
     .roll-btn:hover { border-color:var(--gold);color:var(--gold2);background:var(--gdim) }
@@ -870,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     <div class="panel">
       <div class="panel-hdr">
         <span class="panel-title"><i data-lucide="dice-5" class="lucide-emoji"></i> Hit Dice</span>
-        <span id="hd-label" style="font-size:11px;color:var(--text3)"></span>
+        <span id="hd-label"></span>
       </div>
       <div class="panel-body" id="hd-body"></div>
     </div>
@@ -896,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     <!-- Top info row -->
     <div class="right-top-row">
-      <div class="circle-stat">
+      <div class="circle-stat clickable" onclick="rollInitiative()" title="Roll Initiative">
         <div class="circle-stat-val" id="init-val">+0</div>
         <div class="circle-stat-lbl">Initiative</div>
       </div>
@@ -907,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         </svg>
         <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:1">
           <div class="circle-stat-val" id="ac-val">10</div>
-          <div style="font-family:'Cinzel',serif;font-size:7px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase">AC</div>
+          <div class="circle-stat-lbl">AC</div>
         </div>
       </div>
       <div class="defenses-block" id="defenses-block">
@@ -1042,6 +1190,24 @@ const COMBAT_ACTIONS = [
   {name:'Shove',     desc:'Try to push or knock prone a creature.'},
 ];
 
+const CONDITION_OPTIONS = [
+  { key:'blinded',      label:'Blinded',      icon:'eye-off' },
+  { key:'charmed',      label:'Charmed',      icon:'heart' },
+  { key:'deafened',     label:'Deafened',     icon:'ear' },
+  { key:'frightened',   label:'Frightened',   icon:'ghost' },
+  { key:'grappled',     label:'Grappled',     icon:'hand' },
+  { key:'incapacitated',label:'Incapacitated',icon:'pause' },
+  { key:'invisible',    label:'Invisible',    icon:'circle-dashed' },
+  { key:'paralyzed',    label:'Paralyzed',    icon:'brain' },
+  { key:'petrified',    label:'Petrified',    icon:'mountain' },
+  { key:'poisoned',     label:'Poisoned',     icon:'flask-conical' },
+  { key:'prone',        label:'Prone',        icon:'arrow-down' },
+  { key:'restrained',   label:'Restrained',   icon:'link' },
+  { key:'stunned',      label:'Stunned',      icon:'zap' },
+  { key:'unconscious',  label:'Unconscious',  icon:'moon' },
+  { key:'exhaustion',   label:'Exhaustion',   icon:'battery-low' },
+];
+
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function clean(s){
   if(!s)return'';
@@ -1085,12 +1251,17 @@ function rE(e){
 let C = null; // character data
 let currentHP = 0;
 let maxHP = 0;
+let tempHP = 0;
+let maxHPBonus = 0;
+let deathSaves = { success: 0, fail: 0 };
 let usedHD = 0;
 let spellSlotUsed = {}; // {lvl: count}
 let sheetInventory = []; // live inventory for this session
 let sheetCurrency = { cp:0, sp:0, ep:0, gp:10, pp:0 };
 let allItemsDb = []; // loaded from 5etools
 let invFilter = 'all';
+let activeConditions = [];
+let hpStepValue = Math.max(1, parseInt(localStorage.getItem('5e_hp_step') || 1) || 1);
 const BASE_URL = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
 const ALLOWED_SOURCES = ['XPHB','FRAiF','FRHoF','EFA'];
 
@@ -1257,8 +1428,12 @@ function calcAC(){
 function renderAll(){
   if(!C){ showNoChar(); return; }
 
-  maxHP = calcMaxHP();
-  currentHP = parseInt(localStorage.getItem('5e_hp_current') || maxHP);
+  maxHPBonus = parseInt(localStorage.getItem('5e_hp_max_bonus') || 0) || 0;
+  maxHP = Math.max(1, calcMaxHP() + maxHPBonus);
+  currentHP = parseInt(localStorage.getItem('5e_hp_current') || maxHP) || maxHP;
+  currentHP = Math.max(0, Math.min(maxHP, currentHP));
+  tempHP = Math.max(0, parseInt(localStorage.getItem('5e_hp_temp') || 0) || 0);
+  loadDeathSaves();
   usedHD = parseInt(localStorage.getItem('5e_hd_used') || 0);
   spellSlotUsed = JSON.parse(localStorage.getItem('5e_slots_used')||'{}');
   const notes = localStorage.getItem('5e_notes')||'';
@@ -1266,6 +1441,7 @@ function renderAll(){
   // Load inventory & currency from localStorage (builder saves these separately too)
   try { sheetInventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(C.inventory||[])); } catch(e){ sheetInventory = C.inventory||[]; }
   try { sheetCurrency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(C.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})); } catch(e){ sheetCurrency = {cp:0,sp:0,ep:0,gp:10,pp:0}; }
+  loadConditionsState();
   loadResources();
 
   renderTopBar();
@@ -1283,6 +1459,112 @@ function renderAll(){
   renderFeaturesTab();
   renderBackgroundTab();
   document.getElementById('notes-area').value = notes;
+}
+
+function _saveHpState(){
+  localStorage.setItem('5e_hp_current', String(currentHP));
+  localStorage.setItem('5e_hp_temp', String(tempHP));
+  localStorage.setItem('5e_hp_max_bonus', String(maxHPBonus));
+}
+
+function _saveDeathSaves(){
+  localStorage.setItem('5e_death_saves', JSON.stringify(deathSaves));
+}
+
+function loadDeathSaves(){
+  try {
+    const v = JSON.parse(localStorage.getItem('5e_death_saves') || '{}');
+    const s = Math.max(0, Math.min(3, parseInt(v.success) || 0));
+    const f = Math.max(0, Math.min(3, parseInt(v.fail) || 0));
+    deathSaves = { success: s, fail: f };
+  } catch(e){
+    deathSaves = { success: 0, fail: 0 };
+  }
+  if (currentHP > 0 && (deathSaves.success || deathSaves.fail)) {
+    deathSaves = { success: 0, fail: 0 };
+    _saveDeathSaves();
+  }
+}
+
+function resetDeathSaves(){
+  deathSaves = { success: 0, fail: 0 };
+  _saveDeathSaves();
+}
+
+function _setCurrentHp(next){
+  currentHP = Math.max(0, Math.min(maxHP, parseInt(next) || 0));
+  if (currentHP > 0) resetDeathSaves();
+  _saveHpState();
+}
+
+function _getHpStep(){
+  const inp = document.getElementById('hp-step');
+  const n = inp ? parseInt(inp.value) : hpStepValue;
+  hpStepValue = Math.max(1, Math.min(999, n || hpStepValue || 1));
+  localStorage.setItem('5e_hp_step', String(hpStepValue));
+  return hpStepValue;
+}
+
+function loadConditionsState(){
+  try {
+    const raw = JSON.parse(localStorage.getItem('5e_conditions_active') || '[]');
+    if (!Array.isArray(raw)) { activeConditions = []; return; }
+    const valid = new Set(CONDITION_OPTIONS.map(c => c.key));
+    activeConditions = raw.filter(k => valid.has(k));
+  } catch(e){
+    activeConditions = [];
+  }
+}
+
+function saveConditionsState(){
+  localStorage.setItem('5e_conditions_active', JSON.stringify(activeConditions));
+}
+
+function toggleCondition(key){
+  const i = activeConditions.indexOf(key);
+  if(i >= 0) activeConditions.splice(i, 1);
+  else activeConditions.push(key);
+  saveConditionsState();
+  renderConditions();
+}
+
+function clearConditions(){
+  activeConditions = [];
+  saveConditionsState();
+  renderConditions();
+}
+
+function renderConditions(){
+  const el = document.getElementById('conditions-content');
+  if(!el) return;
+
+  const active = CONDITION_OPTIONS.filter(c => activeConditions.includes(c.key));
+  const activeHtml = active.length
+    ? active.map(c =>
+        `<button class="condition-tag on" onclick="toggleCondition('${c.key}')" title="Remove ${esc(c.label)}">
+          ${luci(c.icon)} ${esc(c.label)}
+        </button>`
+      ).join('')
+    : `<span class="condition-tag empty">${luci('circle')} None</span>`;
+
+  const pickerHtml = CONDITION_OPTIONS.map(c => {
+    const on = activeConditions.includes(c.key);
+    return `<button class="cond-btn${on?' on':''}" onclick="toggleCondition('${c.key}')" title="${on?'Remove':'Apply'} ${esc(c.label)}">
+      ${luci(c.icon)} <span>${esc(c.label)}</span>
+    </button>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="conditions-wrap">
+      <div class="cond-active">${activeHtml}</div>
+      <details class="cond-details">
+        <summary class="cond-summary">${luci('list-checks')} Manage (${active.length})</summary>
+        <div class="cond-picker">${pickerHtml}</div>
+      </details>
+      ${active.length ? `<button class="cond-clear" onclick="clearConditions()">${luci('x')} Clear</button>` : ''}
+    </div>
+  `;
+  refreshIcons();
 }
 
 function showNoChar(){
@@ -1343,7 +1625,6 @@ function renderStatsRow(){
   if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
   const spd = C.speciesSnapshot?.speed||30;
   const spdVal = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
-  const initMod = getMod(getFinal('dex'));
 
   el.innerHTML = `
     <div class="stat-box green">
@@ -1354,45 +1635,123 @@ function renderStatsRow(){
       <div class="stat-box-val">${spdVal} ft.</div>
       <div class="stat-box-lbl">Speed</div>
     </div>
-    <div class="stat-box" style="cursor:pointer" onclick="rollD20(${initMod},'Initiative')" title="Roll Initiative">
-      <div class="stat-box-val">${fbonus(initMod)}</div>
-      <div class="stat-box-lbl">Initiative ${luci('dice-5')}</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-val">${calcAC()}</div>
-      <div class="stat-box-lbl">AC</div>
-    </div>
     <div class="stat-box">
       <div class="stat-box-val">d${faces}</div>
       <div class="stat-box-lbl">Hit Die</div>
     </div>
     ${buildHPBlock()}
   `;
-}
-
-function buildHPBlock(){
-  return `<div class="hp-block">
-    <div class="hp-title">Hit Points</div>
-    <div class="hp-controls">
-      <button class="hp-btn heal" onclick="adjustHP(+1, true)">⬆ Heal</button>
-      <div class="hp-vals">
-        <div class="hp-cur" id="hp-cur-display">${currentHP}</div>
-        <div class="hp-sep">/</div>
-        <div class="hp-max">${maxHP}</div>
-      </div>
-      <button class="hp-btn dmg" onclick="adjustHP(-1, true)">${luci('download')} Damage</button>
-    </div>
-  </div>`;
+  const hpBtns = el.querySelectorAll('.hp-btn');
+  if (hpBtns[0]) hpBtns[0].innerHTML = luci('plus');
+  if (hpBtns[1]) hpBtns[1].innerHTML = luci('minus');
+  const hpMiniBtns = el.querySelectorAll('.hp-mini-btn');
+  hpMiniBtns.forEach((btn, idx) => { btn.innerHTML = idx % 2 === 0 ? luci('minus') : luci('plus'); });
   refreshIcons();
 }
 
-function adjustHP(dir, prompt){
-  const amtStr = window.prompt(dir>0 ? 'How many HP do you recover?' : 'How much damage do you take?', '0');
-  if(amtStr===null) return;
-  const amt = parseInt(amtStr)||0;
-  currentHP = Math.max(0, Math.min(maxHP, currentHP + dir*amt));
-  localStorage.setItem('5e_hp_current', currentHP);
-  document.getElementById('hp-cur-display').textContent = currentHP;
+function buildHPBlock(){
+  const dsSuccess = Math.max(0, Math.min(3, deathSaves.success || 0));
+  const dsFail = Math.max(0, Math.min(3, deathSaves.fail || 0));
+  const maxBonusLabel = maxHPBonus ? `${maxHPBonus > 0 ? '+' : ''}${maxHPBonus}` : '0';
+  return `<div class="hp-block">
+    <div class="hp-title">HP</div>
+    <div class="hp-controls">
+      <button class="hp-btn heal" onclick="adjustHP(1)" title="Heal"></button>
+      <div class="hp-vals">
+        <div class="hp-cur" id="hp-cur-display">${currentHP}</div>
+        <div class="hp-sep">/</div>
+        <div class="hp-max" id="hp-max-display">${maxHP}</div>
+      </div>
+      <button class="hp-btn dmg" onclick="adjustHP(-1)" title="Damage"></button>
+    </div>
+    <div class="hp-subline">
+      <span class="hp-mini"><i data-lucide="gauge" class="lucide-emoji"></i> STEP <input id="hp-step" class="hp-step" type="number" min="1" max="999" value="${hpStepValue}"></span>
+      <span class="hp-mini"><i data-lucide="sparkles" class="lucide-emoji"></i> TEMP <b id="hp-temp-display">${tempHP}</b></span>
+      <span>
+        <button class="hp-mini-btn temp" onclick="adjustTempHP(-1)" title="Decrease Temp HP"></button>
+        <button class="hp-mini-btn temp" onclick="adjustTempHP(1)" title="Increase Temp HP"></button>
+      </span>
+    </div>
+    <div class="hp-subline" style="grid-template-columns:1fr auto;">
+      <span class="hp-mini"><i data-lucide="heart-pulse" class="lucide-emoji"></i> MAX MOD <b id="hp-max-bonus-display">${maxBonusLabel}</b></span>
+      <span>
+        <button class="hp-mini-btn max" onclick="adjustMaxHpBonus(-1)" title="Decrease Max HP"></button>
+        <button class="hp-mini-btn max" onclick="adjustMaxHpBonus(1)" title="Increase Max HP"></button>
+      </span>
+    </div>
+    <div class="hp-death" ${currentHP===0?'':'hidden'}>
+      <span class="hp-ds-lbl">Death Saves</span>
+      <span class="hp-ds-pips">${Array.from({length:3},(_,i)=>`<span class="hp-ds-pip success${i<dsSuccess?' on':''}"></span>`).join('')}</span>
+      <span class="hp-ds-pips">${Array.from({length:3},(_,i)=>`<span class="hp-ds-pip fail${i<dsFail?' on':''}"></span>`).join('')}</span>
+      <button class="roll-btn" onclick="rollDeathSave()">${luci('dice-5')} Roll</button>
+      <button class="roll-btn" onclick="resetDeathSaves();renderStatsRow();">${luci('rotate-ccw')} Reset</button>
+    </div>
+  </div>`;
+}
+
+function adjustHP(dir){
+  const amt = _getHpStep();
+  if(dir > 0){
+    _setCurrentHp(currentHP + amt);
+  } else if (dir < 0){
+    let dmg = amt;
+    if(tempHP > 0){
+      const absorbed = Math.min(tempHP, dmg);
+      tempHP -= absorbed;
+      dmg -= absorbed;
+    }
+    _setCurrentHp(currentHP - dmg);
+  }
+  _saveHpState();
+  renderStatsRow();
+}
+
+function adjustTempHP(dir){
+  const amt = _getHpStep();
+  tempHP = Math.max(0, tempHP + dir * amt);
+  _saveHpState();
+  renderStatsRow();
+}
+
+function adjustMaxHpBonus(dir){
+  const amt = _getHpStep();
+  maxHPBonus += dir * amt;
+  maxHP = Math.max(1, calcMaxHP() + maxHPBonus);
+  if (currentHP > maxHP) _setCurrentHp(maxHP);
+  _saveHpState();
+  renderStatsRow();
+}
+
+function rollDeathSave(){
+  if (currentHP > 0) {
+    showDiceToast('Death Save', [], 0, 0, 'Available only at 0 HP');
+    return;
+  }
+  if (deathSaves.success >= 3) {
+    showDiceToast('Death Save', [], 0, 0, 'Already stable');
+    return;
+  }
+  if (deathSaves.fail >= 3) {
+    showDiceToast('Death Save', [], 0, 0, 'Character is dead');
+    return;
+  }
+  const roll = _rollDie(20);
+  if (roll === 1) deathSaves.fail = Math.min(3, deathSaves.fail + 2);
+  else if (roll === 20) {
+    resetDeathSaves();
+    _setCurrentHp(1);
+    showDiceToast('Death Save', [{ v: roll, faces: 20 }], 0, roll, 'Critical success: regain 1 HP');
+    renderStatsRow();
+    return;
+  } else if (roll >= 10) deathSaves.success = Math.min(3, deathSaves.success + 1);
+  else deathSaves.fail = Math.min(3, deathSaves.fail + 1);
+
+  _saveDeathSaves();
+  let extra = '';
+  if (deathSaves.success >= 3) extra = 'Stable (0 HP, unconscious).';
+  if (deathSaves.fail >= 3) extra = 'Dead.';
+  showDiceToast('Death Save', [{ v: roll, faces: 20 }], 0, roll, extra || `${deathSaves.success} success / ${deathSaves.fail} fail`);
+  renderStatsRow();
 }
 
 function renderSaves(){
@@ -1724,10 +2083,9 @@ function toggleHD(idx){
     const roll = Math.floor(Math.random()*faces)+1;
     const conMod = getMod(getFinal('con'));
     const heal = Math.max(1, roll+conMod);
-    currentHP = Math.min(maxHP, currentHP+heal);
-    localStorage.setItem('5e_hp_current', currentHP);
-    const d = document.getElementById('hp-cur-display');
-    if(d) d.textContent = currentHP;
+    _setCurrentHp(Math.min(maxHP, currentHP + heal));
+    _saveHpState();
+    renderStatsRow();
     alert(`Hit Die: rolled ${roll} + CON (${fbonus(conMod)}) = +${heal} HP`);
   }
   localStorage.setItem('5e_hd_used', usedHD);
@@ -1776,6 +2134,11 @@ function rollSkill(name, bonus, adv){
   rollD20(bonus, name, a);
 }
 
+function rollInitiative(){
+  const initMod = getMod(getFinal('dex'));
+  rollD20(initMod, 'Initiative');
+}
+
 function renderRightTop(){
   const initMod = getMod(getFinal('dex'));
   document.getElementById('init-val').textContent = fbonus(initMod);
@@ -1820,6 +2183,7 @@ function renderRightTop(){
   }
   if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
+  renderConditions();
 }
 
 /* ═══════════════ ACTIONS SYSTEM ═══════════════ */
@@ -3303,15 +3667,17 @@ function switchTab(name, btn){
 
 function doRest(type){
   if(type==='long'){
-    currentHP = maxHP;
+    maxHP = Math.max(1, calcMaxHP() + maxHPBonus);
+    _setCurrentHp(maxHP);
+    tempHP = 0;
+    resetDeathSaves();
     usedHD = 0;
     spellSlotUsed = {};
     recoverResources('LR');
-    localStorage.setItem('5e_hp_current', currentHP);
+    _saveHpState();
     localStorage.setItem('5e_hd_used', usedHD);
     localStorage.setItem('5e_slots_used', '{}');
-    const d = document.getElementById('hp-cur-display');
-    if(d) d.textContent = currentHP;
+    renderStatsRow();
     renderHitDice();
     renderSpellsTab();
     renderActionsTab();
@@ -3411,12 +3777,11 @@ function _applyShortRest(count, faces){
     totalHeal += Math.max(1, r+conMod);
   }
   if(count>0){
-    currentHP = Math.min(maxHP, currentHP+totalHeal);
+    _setCurrentHp(Math.min(maxHP, currentHP+totalHeal));
     usedHD += count;
-    localStorage.setItem('5e_hp_current', currentHP);
+    _saveHpState();
     localStorage.setItem('5e_hd_used', usedHD);
-    const d = document.getElementById('hp-cur-display');
-    if(d) d.textContent = currentHP;
+    renderStatsRow();
     renderHitDice();
   }
   // Recover SR resources (class features, maneuvers, etc.)
@@ -4203,7 +4568,7 @@ function goBackToBuilder(e) {
 function downloadSheet() {
   try {
     // Bundle all 5e_ keys so the downloaded file is fully self-contained
-    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state'];
+    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_hp_step','5e_death_saves','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state'];
     const data = {};
     keys.forEach(k => { const v = localStorage.getItem(k); if (v != null) data[k] = v; });
     const safeJson = JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
