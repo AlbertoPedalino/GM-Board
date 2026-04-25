@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Scheda Personaggio — D&D 5e</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1020,6 +1023,97 @@
       border:1px solid var(--bdr);border-radius:3px;padding:0 4px;margin-left:2px;
     }
     .lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}
+
+    /* ─── ENHANCED UI ─── */
+
+    /* ── Topbar ── */
+    .topbar {
+      background: linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 100%);
+      box-shadow: 0 4px 32px rgba(0,0,0,.55), 0 1px 0 rgba(202,165,80,.07);
+    }
+    .char-name { text-shadow: 0 0 32px rgba(202,165,80,.22); }
+
+    /* ── Scores row ── */
+    .score-box {
+      background: linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 100%);
+      transition: border-color .15s, transform .12s, box-shadow .15s;
+    }
+    .score-box:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0,0,0,.35);
+    }
+    .score-mod { text-shadow: 0 0 24px rgba(202,165,80,.2); }
+
+    /* ── Panels ── */
+    .panel {
+      box-shadow: 0 6px 28px rgba(0,0,0,.35), 0 1px 0 rgba(202,165,80,.04) inset;
+    }
+    .panel-hdr {
+      background: linear-gradient(90deg, rgba(202,165,80,.11) 0%, var(--bg3) 55%);
+      border-left: 3px solid var(--gold);
+      padding-left: calc(.8rem - 3px);
+    }
+
+    /* ── Tabs ── */
+    .tab-btn.active {
+      border-bottom-width: 3px;
+      text-shadow: 0 0 20px rgba(202,165,80,.22);
+    }
+
+    /* ── Skills ── */
+    .skill-row:hover {
+      background: linear-gradient(90deg, rgba(202,165,80,.05) 0%, transparent 70%);
+    }
+    .skill-dot.prof { box-shadow: 0 0 4px rgba(202,165,80,.28); }
+    .skill-dot.exp  { box-shadow: 0 0 4px rgba(44,167,151,.35); }
+
+    /* ── Saving throws ── */
+    .save-row:hover {
+      background: linear-gradient(90deg, rgba(202,165,80,.04) 0%, transparent 70%);
+    }
+    .save-dot.on { box-shadow: 0 0 6px rgba(202,165,80,.38); }
+
+    /* ── Right column ── */
+    .circle-stat {
+      background: linear-gradient(135deg, var(--bg3) 0%, var(--bg2) 100%);
+    }
+    .circle-stat.clickable:hover { box-shadow: 0 0 16px rgba(202,165,80,.1); }
+    .hp-block {
+      background: linear-gradient(180deg, var(--bg3) 0%, rgba(35,32,26,.85) 100%);
+    }
+    .hp-cur { text-shadow: 0 0 22px rgba(63,166,108,.22); }
+
+    /* ── Action cards ── */
+    .action-card { transition: box-shadow .15s; }
+    .action-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+    .action-card-hdr { transition: background .12s; }
+    .action-card-hdr:hover {
+      background: linear-gradient(90deg, rgba(202,165,80,.04) 0%, var(--bg4) 65%);
+    }
+
+    /* ── Spells ── */
+    .spell-level-hdr {
+      border-left: 2px solid var(--blue);
+      padding-left: 5px;
+      background: linear-gradient(90deg, rgba(77,149,214,.06) 0%, transparent 50%);
+    }
+    .spell-entry { transition: border-color .12s, background .12s; }
+
+    /* ── Features ── */
+    .feature-hdr:hover {
+      background: linear-gradient(90deg, rgba(202,165,80,.03) 0%, var(--bg4) 60%);
+    }
+
+    /* ── Resources ── */
+    .res-pip.used  { box-shadow: 0 0 6px rgba(202,165,80,.28); }
+    .slot-pip.used { box-shadow: 0 0 5px rgba(77,149,214,.3); }
+
+    /* ── Dice toast ── */
+    .dice-toast {
+      backdrop-filter: blur(8px);
+      background: rgba(26,23,19,.97);
+    }
+    .dice-toast-total.crit { text-shadow: 0 0 30px rgba(202,165,80,.4); }
   </style>
 <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 <script>
@@ -1949,6 +2043,21 @@ function renderProficiencies(){
     });
     return out;
   };
+  const selectedFeatSnapshots = Array.isArray(C?.allFeatSnapshots) ? C.allFeatSnapshots : [];
+  const collectFixedFeatProfs = (field, excluded) => {
+    const out = new Set();
+    selectedFeatSnapshots.forEach(feat => {
+      (feat?.[field] || []).forEach(block => {
+        if (typeof block === 'string') {
+          const n = normalize(block);
+          if (n) out.add(n);
+          return;
+        }
+        fixedKeysFromBlock(block, excluded).forEach(v => out.add(v));
+      });
+    });
+    return out;
+  };
   const adapterProfGrants = [];
   const appendAdapterGrants = (grants, lv) => {
     (Array.isArray(grants) ? grants : []).forEach(g => {
@@ -1992,6 +2101,8 @@ function renderProficiencies(){
   const weaponMasterySet = new Set();
   collectFixedFeatureProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
   collectFixedFeatureProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
+  collectFixedFeatProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
+  collectFixedFeatProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
   if (C?.choices) {
     for (const [key, val] of Object.entries(C.choices)) {
       if (!val) continue;
@@ -2046,6 +2157,7 @@ function renderProficiencies(){
   });
   (bsp.toolProficiencies||[]).forEach(t => fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool));
   collectFixedFeatureProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
+  collectFixedFeatProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
   (C.selectedTools || []).forEach(t => {
     addTool(t);
   });
@@ -2070,6 +2182,7 @@ function renderProficiencies(){
 
   const langSet = new Set((C.selectedLanguages || []).map(normalize).filter(Boolean));
   collectFixedFeatureProfs('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langSet.add(v));
+  collectFixedFeatProfs('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langSet.add(v));
   adapterProfGrants
     .filter(g => g.type === 'language')
     .forEach(g => {
@@ -2756,12 +2869,14 @@ function renderSpellsTab(){
   } else if(prog==='full') slots = FULL_SLOTS[lv]||[];
   else if(prog==='1/2' || prog==='half') slots = HALF_SLOTS[lv]||[];
   else if(prog==='artificer') slots = FULL_SLOTS[Math.min(Math.ceil(lv/2),20)]||[];
+  const castableSlotLevels = new Set();
   if(slots.length){
     h+=`<div style="margin-bottom:.75rem">
       <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Spell Slots</div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">`;
     for(let i=0;i<slots.length;i++){
       const tot=slots[i]; if(!tot) continue;
+      castableSlotLevels.add(i+1);
       const used=spellSlotUsed[i+1]||0;
       h+=`<div>
         <div style="font-family:var(--ff-display);font-size:var(--fs-micro);color:var(--text3);text-align:center;margin-bottom:3px">${i+1}°</div>
@@ -2774,6 +2889,7 @@ function renderSpellsTab(){
   } else if(prog==='pact' && !extra.length){
     // Single-class Warlock: show pact slots
     const ps=PACT_SLOTS[lv]||{n:1,l:1};
+    if(ps.n > 0) castableSlotLevels.add(ps.l);
     const used=spellSlotUsed[ps.l]||0;
     h+=`<div style="margin-bottom:.75rem">
       <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Slot Patto (${ps.n}x ${ps.l}°)</div>
@@ -2790,6 +2906,7 @@ function renderSpellsTab(){
   // Warlock pact slots in multiclass: always shown separately per 5e rules
   if(extra.length && warlockLv > 0){
     const ps=PACT_SLOTS[Math.min(warlockLv,20)]||{n:1,l:1};
+    if(ps.n > 0) castableSlotLevels.add(ps.l);
     const used=spellSlotUsed[ps.l]||0;
     h+=`<div style="margin-bottom:.75rem">
       <div class="spell-level-hdr" style="color:var(--purple);border-bottom-color:rgba(155,89,182,.25)">Slot Patto Warlock (${ps.n}x ${ps.l}°) — SR</div>
@@ -2804,27 +2921,185 @@ function renderSpellsTab(){
     </div>`;
   }
 
+  const _upcastStepRegex = (kind) => {
+    const term = kind === 'heal'
+      ? '(?:healing|hit points|regain|regains)'
+      : '(?:damage|takes?\\s+extra\\s+damage)';
+    return [
+      new RegExp(`${term}[^.]{0,220}?increases?\\s+by\\s+(\\d+d\\d+(?:\\s*[+-]\\s*\\d+)?)\\s+for\\s+each\\s+slot\\s+level\\s+above\\s+(\\d+)(?:st|nd|rd|th)`, 'i'),
+      new RegExp(`for\\s+each\\s+slot\\s+level\\s+above\\s+(\\d+)(?:st|nd|rd|th)[^.]{0,220}?${term}[^.]{0,220}?increases?\\s+by\\s+(\\d+d\\d+(?:\\s*[+-]\\s*\\d+)?)`, 'i'),
+      new RegExp(`using\\s+a\\s+spell\\s+slot\\s+of\\s+(\\d+)(?:st|nd|rd|th)?\\s+level\\s+or\\s+higher[^.]{0,220}?increases?\\s+by\\s+(\\d+d\\d+(?:\\s*[+-]\\s*\\d+)?)`, 'i'),
+      new RegExp(`${term}[^.]{0,220}?increases?\\s+by\\s+(\\d+d\\d+(?:\\s*[+-]\\s*\\d+)?)\\s+for\\s+each\\s+slot\\s+level\\s+above\\s+(\\d+)`, 'i'),
+      new RegExp(`for\\s+each\\s+slot\\s+level\\s+above\\s+(\\d+)[^.]{0,220}?${term}[^.]{0,220}?increases?\\s+by\\s+(\\d+d\\d+(?:\\s*[+-]\\s*\\d+)?)`, 'i')
+    ];
+  };
+  function _fmtDiceFormula(count, faces, mod){
+    const c = Number(count || 0);
+    const f = Number(faces || 0);
+    const m = Number(mod || 0);
+    if(!Number.isFinite(c) || !Number.isFinite(f) || c < 1 || f < 1) return '';
+    return `${c}d${f}${m ? (m >= 0 ? '+' : '') + m : ''}`;
+  }
+  function _extractFirstHealFormulaFromEntries(entries){
+    const txt = JSON.stringify(entries || []);
+    if(!txt || txt === '[]') return null;
+    const healContext = /\b(regain|regains|healing|hit points|restore|restores)\b/i.test(txt);
+    const tagMatches = txt.matchAll(/\{@(?:heal|dice|scaledice)\s+([^}|]+)[^}]*\}/ig);
+    for(const m of tagMatches){
+      const wholeTag = String(m?.[0] || '').toLowerCase();
+      if (!wholeTag.startsWith('{@heal') && !healContext) continue;
+      const f = _normalizeDiceFormula(m?.[1] || '');
+      if(_parseFormula(f)) return f;
+    }
+    const plainNear = txt.match(/\b(?:regain|regains|restore|restores)\b[^.]{0,220}?\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
+    if(plainNear){
+      const f = _normalizeDiceFormula(plainNear[1]);
+      if(_parseFormula(f)) return f;
+    }
+    const plainEqual = healContext
+      ? txt.match(/\b(?:equal(?:s)?\s+to|plus)\b[^.]{0,120}?\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i)
+      : null;
+    if(plainEqual){
+      const f = _normalizeDiceFormula(plainEqual[1]);
+      if(_parseFormula(f)) return f;
+    }
+    return null;
+  }
+  function _applySpellcastingModIfNeeded(baseFormula, entries, kind){
+    const base = _normalizeDiceFormula(baseFormula || '');
+    const p = _parseFormula(base);
+    if(!p) return base;
+    const txt = JSON.stringify(entries || []).replace(/\\"/g,'"').toLowerCase();
+    if(!txt || txt === '[]') return base;
+    const hasBonusPhrase = /(?:\+|plus|add(?:ed|s|ing)?|equal to)[^.]{0,80}\b(?:your\s+)?spellcasting ability modifier\b/i.test(txt);
+    const hasUseAbilityForDamageRolls = /\buse(?:s|d)?\s+your\s+spellcasting ability modifier[^.]{0,140}\b(?:damage rolls?|attack and damage rolls?)\b/i.test(txt);
+    if(!hasBonusPhrase && !hasUseAbilityForDamageRolls) return base;
+    if(kind === 'heal' && !/\b(regain|regains|healing|hit points|restore|restores)\b/i.test(txt)) return base;
+    if(kind === 'damage' && !/\b(damage|takes?)\b/i.test(txt)) return base;
+    const sm = getMod(getFinal(getSpellAbility()));
+    return _fmtDiceFormula(p.count, p.faces, p.mod + sm) || base;
+  }
+  function _scaleFormulaByStep(baseFormula, stepFormula, steps){
+    const b = _parseFormula(_normalizeDiceFormula(baseFormula || ''));
+    const s = _parseFormula(_normalizeDiceFormula(stepFormula || ''));
+    if(!b || !s || !steps || steps < 1) return _normalizeDiceFormula(baseFormula || '');
+    if(b.faces !== s.faces || s.mod !== 0) return _normalizeDiceFormula(baseFormula || '');
+    const cnt = b.count + (s.count * steps);
+    const mod = b.mod || 0;
+    return _fmtDiceFormula(cnt, b.faces, mod) || _normalizeDiceFormula(baseFormula || '');
+  }
+  function _extractUpcastStep(entries, kind){
+    const txt = JSON.stringify(entries || []).replace(/\\"/g,'"');
+    if(!txt || txt === '[]') return null;
+    const scaledTag = txt.match(/\{@scaled(?:amage|ice)\s+([^|}]+)\|([^|}]*)\|([^}|]+)(?:\|[^}]*)?\}/i);
+    if(scaledTag){
+      const baseRange = String(scaledTag[2] || '');
+      const stepFormula = _normalizeDiceFormula(scaledTag[3] || '');
+      const rangeStart = Number(String(baseRange).split('-')[0] || 0);
+      const baseLv = Number.isFinite(rangeStart) && rangeStart > 0 ? Math.max(1, rangeStart - 1) : 1;
+      if(_parseFormula(stepFormula) && Number.isFinite(baseLv) && baseLv > 0){
+        return { stepFormula, baseLv };
+      }
+    }
+    for(const rx of _upcastStepRegex(kind)){
+      const m = txt.match(rx);
+      if(!m) continue;
+      const dice = /\d+d\d+/i.test(String(m[1] || '')) ? m[1] : m[2];
+      const lvl = /\d+d\d+/i.test(String(m[1] || '')) ? m[2] : m[1];
+      const stepFormula = _normalizeDiceFormula(dice || '');
+      const baseLv = Number(lvl || 0);
+      if(_parseFormula(stepFormula) && Number.isFinite(baseLv) && baseLv > 0){
+        return { stepFormula, baseLv };
+      }
+    }
+    return null;
+  }
+  function _formulaForCastLevel(baseFormula, entries, baseLevel, castLevel, kind){
+    const base = _normalizeDiceFormula(baseFormula || '');
+    if(!base || !castLevel || castLevel <= baseLevel) return base;
+    const up = _extractUpcastStep(entries, kind);
+    if(!up) return base;
+    const fromLv = Math.max(Number(up.baseLv || baseLevel), Number(baseLevel || 1));
+    const steps = castLevel - fromLv;
+    if(steps < 1) return base;
+    return _scaleFormulaByStep(base, up.stepFormula, steps);
+  }
+  function _hasLifeDomainDisciple(){
+    const norm = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isLifeCleric = (clsName, subShort, lv) =>
+      norm(clsName) === 'cleric' && norm(subShort) === 'life' && Number(lv || 0) >= 3;
+    if(isLifeCleric(C?.className, C?.subclassShortName, C?.classLevel || C?.level)) return true;
+    for(const ec of (C?.extraClasses || [])){
+      if(isLifeCleric(ec?.name, ec?.subclassShortName, ec?.level)) return true;
+    }
+    return false;
+  }
+  function _applyDiscipleOfLifeBonus(baseFormula, castLevel, hasHealContext){
+    const base = _normalizeDiceFormula(baseFormula || '');
+    if(!base) return base;
+    if(!hasHealContext) return base;
+    if(!_hasLifeDomainDisciple()) return base;
+    const castLv = Number(castLevel || 0);
+    if(!Number.isFinite(castLv) || castLv < 1) return base;
+    if(!castableSlotLevels.has(castLv)) return base;
+    const p = _parseFormula(base);
+    if(!p) return base;
+    const bonus = 2 + castLv;
+    return _fmtDiceFormula(p.count, p.faces, Number(p.mod || 0) + bonus) || base;
+  }
+
   // Helper for a spell row with source badge and dice buttons
-  function _spellRow(name, extra=''){
+  function _spellRow(name, extra='', castLevel=null){
     const snap = snapshots.find(s=>s.name===name);
     // sheetSpellDb is authoritative for attack/damage metadata once loaded
     const full = sheetSpellDb?.find(s=>s.name===name);
+    const fullLevel = Number(full?.level);
+    const snapLevel = Number(snap?.level);
+    const baseLevel = Number.isFinite(fullLevel)
+      ? fullLevel
+      : (Number.isFinite(snapLevel) ? snapLevel : null);
+    const castLvNum = Number(castLevel);
+    const effCastLevel = (Number.isFinite(castLvNum) && castLvNum > 0)
+      ? castLvNum
+      : (typeof baseLevel === 'number' ? baseLevel : null);
     const school = snap ? (SCHOOL_LABELS[snap.school]||snap.school||'') : (full ? (SCHOOL_LABELS[full.school]||full.school||'') : '');
     const isConc = snap?.concentration ?? full?.concentration;
     const isRit  = snap?.ritual ?? full?.ritual;
     const src = getSpellSource(name);
-    const spellMod = getMod(getFinal(getSpellAbility()));
+    const spellAbility = (src?.ability && STATS.includes(src.ability)) ? src.ability : getSpellAbility();
+    const spellMod = getMod(getFinal(spellAbility));
     const spellAtk = spellMod + getPB();
     const entries = (snap?.entries ?? full?.entries ?? []);
-    const dmgFormula = _extractFirstDamageFormulaFromEntries(entries);
+    const entriesHigher = (snap?.entriesHigherLevel ?? full?.entriesHigherLevel ?? []);
+    const ruleEntries = [
+      ...(Array.isArray(entries) ? entries : [entries]),
+      ...(Array.isArray(entriesHigher) ? entriesHigher : [entriesHigher]),
+    ].filter(Boolean);
+    const rawDmgFormula = _applySpellcastingModIfNeeded(_extractFirstDamageFormulaFromEntries(entries), ruleEntries, 'damage');
+    const rawHealFormula = _applySpellcastingModIfNeeded(_extractFirstHealFormulaFromEntries(entries), ruleEntries, 'heal');
+    const dmgFormula = (typeof baseLevel === 'number' && typeof effCastLevel === 'number')
+      ? _formulaForCastLevel(rawDmgFormula, ruleEntries, baseLevel, effCastLevel, 'damage')
+      : rawDmgFormula;
+    const healFormulaBase = (typeof baseLevel === 'number' && typeof effCastLevel === 'number')
+      ? _formulaForCastLevel(rawHealFormula, ruleEntries, baseLevel, effCastLevel, 'heal')
+      : rawHealFormula;
     const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const textBlob = JSON.stringify(entries || []).toLowerCase();
+    const textBlob = JSON.stringify(ruleEntries || []).toLowerCase();
+    const hasDamageContext = /\b(?:damage|takes?)\b/.test(textBlob);
+    const hasHealContext = /\b(?:regain|regains|healing|hit points|restore|restores)\b/.test(textBlob);
+    const healFormula = _applyDiscipleOfLifeBonus(healFormulaBase, effCastLevel, hasHealContext);
     const hasAttack = !!(full?.spellAttack?.length || /\{@atk\s+/i.test(textBlob) || /\b(?:spell attack|melee spell attack|ranged spell attack)\b/.test(textBlob));
-    const atkBtn = hasAttack
-      ? `<button class="roll-btn" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`
+    const castSuffix = (typeof effCastLevel === 'number' && typeof baseLevel === 'number' && effCastLevel > baseLevel)
+      ? ` [${effCastLevel}°]`
       : '';
-    const dmgBtn = dmgFormula
-      ? `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">${luci('flame')} ${dmgFormula}</button>`
+    const atkBtn = hasAttack
+      ? `<button class="roll-btn" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}${castSuffix}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`
+      : '';
+    const dmgBtn = (hasDamageContext && dmgFormula)
+      ? `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${_jsEsc(dmgFormula)}','${safeName}${castSuffix}')">${luci('flame')} ${dmgFormula}</button>`
+      : '';
+    const healBtn = (hasHealContext && healFormula)
+      ? `<button class="roll-btn heal" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${_jsEsc(healFormula)}','Heal: ${safeName}${castSuffix}')">${luci('heart')} ${healFormula}</button>`
       : '';
     const spellId = 'spl_' + name.replace(/[^a-zA-Z0-9]/g,'_');
     const entryHtml = rE(entries);
@@ -2834,12 +3109,15 @@ function renderSpellsTab(){
     const comp = [compArr.v?'V':null, compArr.m?'M':null, compArr.s?'S':null].filter(Boolean).join(', ');
     const dur = full?.duration?.[0]?.type||snap?.duration?.[0]?.type||'';
     const metaLine = [castTime, range, comp, dur].filter(Boolean).join(' · ');
+    const castBadge = (typeof effCastLevel === 'number' && typeof baseLevel === 'number' && effCastLevel > baseLevel)
+      ? `<span class="spell-badge" style="border:1px solid var(--blue);color:var(--blue);background:var(--bg3)">${effCastLevel}° slot</span>`
+      : '';
     return `<div>
       <div class="spell-entry" onclick="toggleSpellDesc('${spellId}')">
         <span>${esc(name)}</span>
         ${src?`<span class="spell-badge" style="background:var(--pbg);border-color:var(--purple);color:var(--purple);border:1px solid;border-radius:3px;padding:1px 5px;font-size:var(--fs-xs);flex-shrink:0">${esc(src.label)}</span>`:''}
-        ${extra}
-        ${atkBtn}${dmgBtn}
+        ${extra}${castBadge}
+        ${atkBtn}${dmgBtn}${healBtn}
         ${isConc?`<span class="spell-badge conc">C</span>`:''}
         ${isRit?`<span class="spell-badge rit">R</span>`:''}
         <span class="sp-school">${esc(school)}</span>
@@ -2859,20 +3137,42 @@ function renderSpellsTab(){
     h+=`</div>`;
   }
 
-  // Spells by level
+  // Spells by slot level (includes upcast options when a higher slot is available)
+  const leveledKnownNames = [...new Set([
+    ...Object.values(allSpells).flat(),
+    ...Object.values(choiceSpellsByLevel).flat(),
+    ...auto.filter(a => typeof a?.level === 'number' && a.level >= 1 && a.level <= 9).map(a => a.name),
+  ])];
+  const leveledByBase = {};
+  leveledKnownNames.forEach(name => {
+    const base = spellLevelByName(name);
+    if(typeof base !== 'number' || base < 1 || base > 9) return;
+    if(!leveledByBase[base]) leveledByBase[base] = [];
+    leveledByBase[base].push(name);
+  });
+
   for(let slv=1;slv<=9;slv++){
-    const chosen = (allSpells[slv]||[]);
-    const choiceAtLv = (choiceSpellsByLevel[slv]||[]);
-    const autoAtLv = auto.filter(a=>a.level===slv).map(a=>a.name);
-    const combined = [...new Set([...chosen, ...choiceAtLv, ...autoAtLv])];
+    const exactAtLv = [...new Set(leveledByBase[slv] || [])];
+    const canCastAtLv = castableSlotLevels.has(slv);
+    const combined = canCastAtLv
+      ? [...new Set(leveledKnownNames.filter(name => {
+          const base = spellLevelByName(name);
+          return typeof base === 'number' && base >= 1 && base <= slv;
+        }))]
+      : exactAtLv;
     if(!combined.length) continue;
+    combined.sort((a,b)=>String(a).localeCompare(String(b)));
     h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[slv]}</div>`;
     for(const name of combined){
-      const isAuto = autoAtLv.includes(name);
+      const isAuto = auto.some(a => String(a?.name || '').toLowerCase() === String(name || '').toLowerCase());
       const src = getSpellSource(name);
       const srcLbl = String(src?.label || '').trim().toLowerCase();
       const showAutoBadge = isAuto && srcLbl !== 'auto';
-      h+=_spellRow(name, showAutoBadge ? `<span class="spell-badge auto">${luci('sparkles')} Auto</span>` : '');
+      h+=_spellRow(
+        name,
+        showAutoBadge ? `<span class="spell-badge auto">${luci('sparkles')} Auto</span>` : '',
+        canCastAtLv ? slv : null
+      );
     }
     h+=`</div>`;
   }
@@ -2895,6 +3195,19 @@ function getSpellAbility(){
   return 'cha';
 }
 
+function _inferAbilityFromSourceLabel(label, sourceType){
+  const txt = String(label || '').toLowerCase();
+  if(sourceType === 'species'){
+    const speciesAbility = C?.choices?.species_spell_ability;
+    if(STATS.includes(speciesAbility)) return speciesAbility;
+  }
+  if(/\b(wizard|arcane trickster|eldritch knight|artificer)\b/.test(txt)) return 'int';
+  if(/\b(cleric|domain|druid|ranger|primal)\b/.test(txt)) return 'wis';
+  if(/\b(bard|sorcerer|warlock|paladin|oath)\b/.test(txt)) return 'cha';
+  if(sourceType === 'class' || sourceType === 'subclass') return getSpellAbility();
+  return null;
+}
+
 // Returns source label for a spell name — checks auto grants, choices, then class
 function getSpellSource(spellName){
   const n = spellName.toLowerCase();
@@ -2902,32 +3215,41 @@ function getSpellSource(spellName){
   // Auto-granted (species, subclass domain spells)
   const auto = C.autoGrantedSpells||[];
   const autoEntry = auto.find(a=>a.name.toLowerCase()===n);
-  if(autoEntry) return {label: autoEntry.source||'Auto', cls:'t'};
+  if(autoEntry){
+    const lbl = autoEntry.source || 'Auto';
+    return {label: lbl, cls:'t', ability: _inferAbilityFromSourceLabel(lbl, autoEntry.sourceType)};
+  }
   // Choice-based grants: adapter keys
   const CHOICE_SOURCE = {
-    'cleric_thaumaturge_cantrip':  'Divine Order (Thaumaturge)',
-    'druid_magician_cantrip':      'Primal Order (Magician)',
-    'subclass_ek_cantrip_1':       'Eldritch Knight',
-    'subclass_ek_cantrip_2':       'Eldritch Knight',
-    'subclass_at_cantrip_1':       'Arcane Trickster',
-    'subclass_at_cantrip_2':       'Arcane Trickster',
-    'warlock_tome_cantrip_1':      'Pact of the Tome',
-    'warlock_tome_cantrip_2':      'Pact of the Tome',
-    'warlock_tome_cantrip_3':      'Pact of the Tome',
-    'wizard_spell_mastery_l1':     'Spell Mastery (Lv.18)',
-    'wizard_spell_mastery_l2':     'Spell Mastery (Lv.18)',
-    'wizard_signature_1':          'Signature Spell (Lv.20)',
-    'wizard_signature_2':          'Signature Spell (Lv.20)',
+    'cleric_thaumaturge_cantrip':  { label:'Divine Order (Thaumaturge)', ability:'wis' },
+    'druid_magician_cantrip':      { label:'Primal Order (Magician)', ability:'wis' },
+    'subclass_ek_cantrip_1':       { label:'Eldritch Knight', ability:'int' },
+    'subclass_ek_cantrip_2':       { label:'Eldritch Knight', ability:'int' },
+    'subclass_at_cantrip_1':       { label:'Arcane Trickster', ability:'int' },
+    'subclass_at_cantrip_2':       { label:'Arcane Trickster', ability:'int' },
+    'warlock_tome_cantrip_1':      { label:'Pact of the Tome', ability:'cha' },
+    'warlock_tome_cantrip_2':      { label:'Pact of the Tome', ability:'cha' },
+    'warlock_tome_cantrip_3':      { label:'Pact of the Tome', ability:'cha' },
+    'wizard_spell_mastery_l1':     { label:'Spell Mastery (Lv.18)', ability:'int' },
+    'wizard_spell_mastery_l2':     { label:'Spell Mastery (Lv.18)', ability:'int' },
+    'wizard_signature_1':          { label:'Signature Spell (Lv.20)', ability:'int' },
+    'wizard_signature_2':          { label:'Signature Spell (Lv.20)', ability:'int' },
   };
   if(C?.choices){
     for(const [key,val] of Object.entries(C.choices)){
       if(!val) continue;
       const vals = Array.isArray(val)?val:[val];
       if(vals.some(v=>typeof v==='string'&&_choiceSpellName(v)===n)){
-        if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key],cls:'p'};
-        if(key.startsWith('feat_')) return {label:'Feat',cls:'g'};
-        if(key.startsWith('subclass_')) return {label:C.subclassShortName||'Subclass',cls:'p'};
-        if(key.startsWith('species_')) return {label:C?.speciesName||'Species',cls:'t'};
+        if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key].label, cls:'p', ability:CHOICE_SOURCE[key].ability};
+        if(key.startsWith('feat_')) return {label:'Feat',cls:'g', ability:getSpellAbility()};
+        if(key.startsWith('subclass_')) {
+          const lbl = C.subclassShortName||'Subclass';
+          return {label:lbl,cls:'p', ability:_inferAbilityFromSourceLabel(lbl, 'subclass')};
+        }
+        if(key.startsWith('species_')) {
+          const lbl = C?.speciesName||'Species';
+          return {label:lbl,cls:'t', ability:_inferAbilityFromSourceLabel(lbl, 'species')};
+        }
       }
     }
   }
@@ -4286,7 +4608,7 @@ function _extractFirstDamageFormulaFromEntries(entries){
     const p = _parseFormula(f);
     if(p && !(p.faces === 20 && p.count <= 2)) return f;
   }
-  const plain = txt.match(/\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
+  const plain = txt.match(/\b(?:takes?|deal(?:s|ing)?|damage)\b[^.]{0,220}?\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
   if(plain){
     const f = _normalizeDiceFormula(plain[1]);
     const p = _parseFormula(f);
@@ -4947,3 +5269,4 @@ _loadSheetSpells().then(()=>{ if(C) renderSpellsTab(); });
 </script>
 </body>
 </html>
+

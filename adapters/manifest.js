@@ -114,6 +114,11 @@ const ADAPTER_MANIFEST = [
   'adapters/species/shifter.js',
   'adapters/species/warforged.js',
 
+  // Feat adapter runtime
+  'adapters/feats/core.js',
+  'adapters/feats/all-feats.js',
+  'adapters/feats/magic-initiate.js',
+
   // Post-load defaults
   'adapters/classes/common-choice-meta.js',
 ];

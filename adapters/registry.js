@@ -7,6 +7,8 @@
 const ClassAdapters    = {};
 const SubclassAdapters = {};
 const SpeciesAdapters  = {};
+const FeatAdapters     = {};
+const GlobalFeatAdapters = [];
 
 const ClassSheetActions = {};
 const SubclassSheetActions = {};
@@ -58,6 +60,11 @@ function _toSpeciesCanonicalKey(speciesName, speciesSource) {
   const n = _normAdapterKey(speciesName);
   const src = _normAdapterKey(speciesSource);
   return n && src ? `${n}_${src}` : "";
+}
+function _toFeatCanonicalKey(name, source) {
+  const n = _normAdapterKey(name);
+  const src = _normAdapterKey(source);
+  return n && src ? `${n}_${src}` : n;
 }
 function _toSpeciesCanonicalKeyFromRaw(rawKey) {
   const parts = _splitLastUnderscore(rawKey);
@@ -208,6 +215,26 @@ function registerSubclassAdapter(key, fn) {
 }
 function registerSpeciesAdapter(key, fn) {
   _setStoreValue(SpeciesAdapters, key, _toSpeciesCanonicalKeyFromRaw(key), fn);
+}
+function registerFeatAdapter(key, fn) {
+  if (typeof fn !== "function") return;
+  if (typeof key === "string") {
+    const raw = key;
+    const canonical = key.includes("|")
+      ? _toFeatCanonicalKey(raw.split("|")[0], raw.split("|")[1])
+      : _toFeatCanonicalKey(raw, "");
+    _setStoreValue(FeatAdapters, raw, canonical, fn);
+    return;
+  }
+  if (key && typeof key === "object") {
+    const raw = key.name && key.source ? `${key.name}|${key.source}` : key.name;
+    const canonical = _toFeatCanonicalKey(key.name, key.source);
+    _setStoreValue(FeatAdapters, raw || "", canonical, fn);
+  }
+}
+function registerGlobalFeatAdapter(fn) {
+  if (typeof fn !== "function") return;
+  GlobalFeatAdapters.push(fn);
 }
 
 function registerClassSheetActions(name, actions) {
@@ -393,6 +420,13 @@ function getSubclassAdapter(className, subclassShortName) {
 function getSpeciesAdapter(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesAdapters, raw, _toSpeciesCanonicalKey(speciesName, speciesSource));
+}
+function getFeatAdapter(name, source) {
+  const raw = name && source ? `${name}|${source}` : String(name || "");
+  return _getStoreValue(FeatAdapters, raw, _toFeatCanonicalKey(name, source));
+}
+function getGlobalFeatAdapters() {
+  return GlobalFeatAdapters.slice();
 }
 
 function getClassSheetActions(name) {

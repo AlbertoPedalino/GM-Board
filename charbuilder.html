@@ -1948,6 +1948,161 @@
     .currency-inp:focus {
       border-bottom-color: var(--gold)
     }
+
+    /* ─── ENHANCED UI ─── */
+
+    /* ── Header ── */
+    h1 { text-shadow: 0 0 60px rgba(200,168,75,.35), 0 2px 4px rgba(0,0,0,.5); }
+
+    /* ── Step bar ── */
+    .steps {
+      background: linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 100%);
+      border: 1px solid var(--bdr2);
+      box-shadow: 0 4px 24px rgba(0,0,0,.45), inset 0 1px 0 rgba(202,165,80,.08);
+    }
+    .step { overflow: hidden; transition: background .15s; }
+    .step.done::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: rgba(63,166,108,.35);
+    }
+    .step.active {
+      background: linear-gradient(180deg, rgba(202,165,80,.09) 0%, rgba(202,165,80,.02) 100%);
+    }
+    .step.active::after {
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+      box-shadow: 0 0 14px rgba(202,165,80,.55);
+    }
+    .step-num { font-size: var(--fs-ui-sm); }
+
+    /* ── Panels ── */
+    .panel {
+      transition: box-shadow .2s;
+      box-shadow: 0 6px 28px rgba(0,0,0,.35), 0 1px 0 rgba(202,165,80,.04) inset;
+    }
+    .ph {
+      background: linear-gradient(90deg, rgba(202,165,80,.11) 0%, var(--bg3) 55%);
+      border-left: 3px solid var(--gold);
+      padding-left: calc(1.15rem - 3px);
+      padding-top: .82rem;
+      padding-bottom: .82rem;
+    }
+
+    /* ── Lists ── */
+    .item-row { transition: border-color .12s, background .12s, box-shadow .12s; }
+    .item-row:hover { box-shadow: 0 2px 8px rgba(0,0,0,.22); }
+    .item-row.on {
+      border-left-width: 3px;
+      border-left-color: var(--gold2);
+      padding-left: 8px;
+      box-shadow: inset 3px 0 10px rgba(202,165,80,.06);
+    }
+    .item-list::-webkit-scrollbar { width: 4px; }
+    .item-list::-webkit-scrollbar-track { background: var(--bg2); }
+    .item-list::-webkit-scrollbar-thumb { background: var(--bdr3); border-radius: 2px; }
+
+    /* ── Option cards ── */
+    .option-card { transition: border-color .12s, transform .13s, box-shadow .14s; }
+    .option-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 18px rgba(0,0,0,.32);
+    }
+    .option-card.on {
+      box-shadow: inset 0 0 0 1px rgba(202,165,80,.22), 0 0 20px rgba(202,165,80,.05);
+    }
+
+    /* ── Info card ── */
+    .info-card {
+      border-left: 3px solid var(--bdr2);
+      background: linear-gradient(135deg, var(--bg3) 0%, rgba(35,32,26,.75) 100%);
+    }
+    .info-card-name { text-shadow: 0 0 32px rgba(202,165,80,.18); }
+
+    /* ── Buttons ── */
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 0 24px rgba(202,165,80,.14), inset 0 1px 0 rgba(255,255,255,.04);
+      border-color: var(--gold2);
+    }
+    .btn-sec { transition: all .13s; }
+    .btn-sec:hover { box-shadow: 0 2px 8px rgba(0,0,0,.22); }
+    .btn-roll:hover { box-shadow: 0 0 12px rgba(155,89,182,.14); }
+
+    /* ── Choice section header ── */
+    .choice-block-hdr {
+      background: linear-gradient(90deg, rgba(213,138,61,.1) 0%, transparent 58%);
+      border-left: 3px solid var(--orange);
+      padding-left: 8px;
+    }
+
+    /* ── Toggles / chips ── */
+    .chip.on {
+      box-shadow: 0 0 12px rgba(202,165,80,.1), inset 0 0 0 1px rgba(237,212,138,.12);
+    }
+    .lvl-btn.on     { box-shadow: 0 0 10px rgba(202,165,80,.1); }
+    .sc-btn.on      { box-shadow: 0 0 10px rgba(157,127,184,.1); }
+    .choice-btn.on  { box-shadow: 0 0 10px rgba(63,166,108,.08); }
+    .exp-btn.on     { box-shadow: 0 0 10px rgba(44,167,151,.08); }
+
+    /* ── Form focus ── */
+    input[type=text]:focus, .search-box:focus {
+      box-shadow: 0 0 0 2px rgba(202,165,80,.09);
+    }
+
+    /* ── Global scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 2px; }
+
+    /* ── Score cells (ability scores step) ── */
+    .score-cell { transition: border-color .13s, box-shadow .13s; }
+    .score-cell.focused {
+      box-shadow: 0 0 0 2px rgba(202,165,80,.1);
+    }
+    .score-val { text-shadow: 0 0 20px rgba(202,165,80,.15); }
+
+    /* ── Level buttons ── */
+    .lvl-btn { transition: all .12s; }
+    .lvl-btn:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,.22);
+    }
+
+    /* ── MC tabs ── */
+    .mc-tab.active { box-shadow: 0 -2px 8px rgba(202,165,80,.06) inset; }
+
+    /* ── Preview panel ── */
+    #preview-header {
+      margin-bottom: .75rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--bdr);
+    }
+    #prev-name {
+      font-family: var(--ff-display);
+      font-size: var(--fs-ui-display);
+      font-weight: 700;
+      color: var(--gold2);
+      letter-spacing: .03em;
+      text-shadow: 0 0 24px rgba(202,165,80,.2);
+    }
+    #prev-meta {
+      font-size: var(--fs-ui-md);
+      color: var(--text2);
+      font-style: italic;
+      margin-top: 3px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem 0 1rem;
+      font-size: var(--fs-caption);
+      color: var(--text3);
+      letter-spacing: .04em;
+      border-top: 1px solid var(--bdr);
+      margin-top: 1rem;
+    }
+    footer a { color: var(--text2); text-decoration: none; transition: color .12s; }
+    footer a:hover { color: var(--gold); }
   </style>
   <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
   <script>
@@ -2249,11 +2404,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         <div class="panel" style="position:sticky;top:1rem;max-height:90vh;overflow-y:auto">
           <div class="ph"><span class="pt">Preview</span></div>
           <div class="pb">
-            <div id="preview-header"
-              style="margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)">
-              <div style="font-family:var(--ff-display);font-size:var(--fs-ui-xxl);font-weight:700;color:var(--gold2)" id="prev-name">—
-              </div>
-              <div style="font-size:var(--fs-ui-md);color:var(--text2);font-style:italic;margin-top:2px" id="prev-meta"></div>
+            <div id="preview-header">
+              <div id="prev-name">—</div>
+              <div id="prev-meta"></div>
             </div>
             <div id="prev-scores"
               style="display:none;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)"></div>
@@ -2365,6 +2518,66 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     let classCache = {}, allSpecies = [], allBgs = [], allFeats = [], allOptFeats = [], spellDb = [], allItemsDb = [];
     // classSpellIndex[className_lc] = Set<spellName_lc> — costruito da gendata-spell-source-lookup.json
     let classSpellIndex = {};
+    const CANON_CLASS_KEYS = new Set([
+      'artificer', 'barbarian', 'bard', 'cleric', 'druid', 'fighter',
+      'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard',
+    ]);
+
+    function normalizeClassKey(raw) {
+      const base = String(raw || '').split('|')[0].trim().toLowerCase();
+      if (!base) return '';
+      const compact = base.replace(/[^a-z]/g, '');
+      if (!compact) return '';
+      const aliases = {
+        artificers: 'artificer',
+        barbarians: 'barbarian',
+        bards: 'bard',
+        clerics: 'cleric',
+        druids: 'druid',
+        fighters: 'fighter',
+        monks: 'monk',
+        paladins: 'paladin',
+        rangers: 'ranger',
+        rogues: 'rogue',
+        sorcerers: 'sorcerer',
+        warlocks: 'warlock',
+        wizards: 'wizard',
+      };
+      return aliases[compact] || compact;
+    }
+
+    function normalizeSpellLookupKey(raw) {
+      return String(raw || '').split('|')[0].trim().toLowerCase();
+    }
+
+    function _collectClassNamesFromLookupNode(node, out) {
+      if (!node) return;
+      if (typeof node === 'string') {
+        const cn = normalizeClassKey(node);
+        if (CANON_CLASS_KEYS.has(cn)) out.add(cn);
+        return;
+      }
+      if (Array.isArray(node)) {
+        node.forEach(it => _collectClassNamesFromLookupNode(it, out));
+        return;
+      }
+      if (typeof node !== 'object') return;
+
+      const classObjName = (node.class && typeof node.class === 'object') ? node.class.name : null;
+      [node.name, node.className, classObjName].forEach(v => {
+        const cn = normalizeClassKey(v);
+        if (CANON_CLASS_KEYS.has(cn)) out.add(cn);
+      });
+
+      for (const rawKey of Object.keys(node)) {
+        const cn = normalizeClassKey(rawKey);
+        if (CANON_CLASS_KEYS.has(cn)) out.add(cn);
+      }
+
+      for (const [k, v] of Object.entries(node)) {
+        _collectClassNamesFromLookupNode(v, out);
+      }
+    }
 
     /* ════════════════════════════════════ PARSER */
     const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -2477,11 +2690,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const r = await fetch(BASE + 'feats.json');
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
-        allFeats = (d.feat || []).filter(f => ALLOWED.includes(f.source)).sort((a, b) => a.name.localeCompare(b.name));
-        if (!allFeats.length) {
-          allFeats = (d.feat || []).sort((a, b) => a.name.localeCompare(b.name));
-          console.warn('No allowed feats, using full database');
-        }
+        const rawFeats = Array.isArray(d.feat) ? d.feat : [];
+        const filtered = rawFeats.filter(f => ALLOWED.includes(f.source));
+        allFeats = (typeof adaptFeatsDataset === 'function')
+          ? adaptFeatsDataset(filtered, { allowedSources: ALLOWED })
+          : filtered;
+        allFeats.sort((a, b) => a.name.localeCompare(b.name));
         el.textContent = allFeats.length + ' feats';
         if (char.bgObj) renderFeatsPanel();
         else if (char.className) renderFeatsPanel();
@@ -2491,8 +2705,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     /* ════════════════════════════════════ TALENTI */
 
     function getFeatCatClass(cat) {
-      if (!cat) return 'general';
-      const c = String(cat);
+      const c = Array.isArray(cat) ? String(cat[0] || '') : String(cat || '');
+      if (!c) return 'general';
       // Categorie 5etools: O=Origin, G=General, FS=Fighting Style, EB=Epic Boon, D=Druidic
       if (c === 'O' || c.toLowerCase().includes('origin')) return 'origin';
       if (c === 'FS' || c.startsWith('FS:')) return 'fighting';
@@ -2501,14 +2715,39 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     function getFeatCatLabel(cat) {
-      if (!cat) return 'General';
+      const c = Array.isArray(cat) ? String(cat[0] || '') : String(cat || '');
+      if (!c) return 'General';
       const map = { 'O': 'Origin', 'G': 'General', 'FS': 'Fighting Style', 'FS:P': 'Style (Paladin)', 'FS:R': 'Style (Ranger)', 'EB': 'Epic Boon', 'D': 'Druidic' };
-      return map[cat] || cat;
+      return map[c] || c;
     }
 
     // camelCase → "Title Case" (mantenuto per getBgOriginFeat)
     function camelToTitle(s) { return s.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim(); }
     function normFeat(s) { return s.toLowerCase().replace(/[^a-z]/g, ''); }
+    function _featMinLevel(feat) {
+      if (typeof getFeatMinLevel === 'function') return getFeatMinLevel(feat);
+      const prereq = Array.isArray(feat?.prerequisite) ? feat.prerequisite : [];
+      const levels = prereq
+        .map(p => p?.level?.level || p?.level || null)
+        .map(v => Number(v))
+        .filter(v => Number.isFinite(v));
+      if (!levels.length) return null;
+      return Math.min(...levels);
+    }
+    function _featMatchesAnyCategory(feat, categories) {
+      const wanted = Array.isArray(categories) ? categories : [];
+      if (!wanted.length) return true;
+      if (typeof featHasCategory === 'function') return wanted.some(cat => featHasCategory(feat, cat));
+      return wanted.some(cat => feat?.category === cat || String(feat?.category || '').startsWith(cat));
+    }
+    function _featPrereqLabel(feat) {
+      if (typeof formatFeatPrerequisite === 'function') return formatFeatPrerequisite(feat);
+      return (feat?.prerequisite || []).map(p => {
+        if (p?.level) return `Lv.${p.level.level || p.level}`;
+        if (p?.ability) return Object.entries(p.ability[0] || {}).map(([k, v]) => `${SLBL[k] || k} ${v}`).join(', ');
+        return '';
+      }).filter(Boolean).join(' · ');
+    }
 
     function getBgOriginFeat() {
       const b = char.bgObj;
@@ -2517,10 +2756,35 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!fe) return { fixed: null };
       const keys = Object.keys(fe).filter(k => k !== 'choose');
       if (keys.length) {
-        const raw = keys[0].split(';')[0].trim().split('|')[0];
+        const keyRaw = String(keys[0] || '');
+        const raw = keyRaw.split(';')[0].trim().split('|')[0];
+        const classHint = (() => {
+          const allowed = (typeof CANON_CLASS_KEYS !== 'undefined' && CANON_CLASS_KEYS instanceof Set)
+            ? CANON_CLASS_KEYS
+            : new Set(['artificer','barbarian','bard','cleric','druid','fighter','monk','paladin','ranger','rogue','sorcerer','warlock','wizard']);
+          const norm = (v) => {
+            if (typeof normalizeClassKey === 'function') return normalizeClassKey(v);
+            return String(v || '').toLowerCase().replace(/[^a-z]/g, '');
+          };
+
+          // Formato "magicInitiate; cleric"
+          const semicol = keyRaw.split(';').slice(1).map(s => s.trim().split('|')[0]).find(Boolean);
+          if (semicol) {
+            const n = norm(semicol);
+            if (allowed.has(n)) return n;
+          }
+
+          // Formato 5etools comune "magicInitiate|XPHB|cleric"
+          const pipeParts = keyRaw.split('|').map(s => s.trim()).filter(Boolean);
+          if (pipeParts.length >= 3) {
+            const n = norm(pipeParts[2]);
+            if (allowed.has(n)) return n;
+          }
+          return null;
+        })();
         const title = camelToTitle(raw);
         const match = allFeats.find(f => normFeat(f.name) === normFeat(title) || normFeat(f.name).startsWith(normFeat(title)));
-        return { fixed: match ? match.name : title };
+        return { fixed: match ? match.name : title, classHint };
       }
       return { fixed: null };
     }
@@ -2531,10 +2795,48 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
      * char.choices = unico stato piatto: {key: value_or_array}
      * ══════════════════════════════════════════════════════════════════════════════════════ */
 
-    function _asiLevelsFromClass(cls) {
-      return (cls.classFeatures || [])
-        .filter(r => typeof r === 'string' && r.includes('Ability Score Improvement'))
-        .map(r => parseInt(r.split('|')[3])).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    function _asiLevelsFromClass(cls, classFeatures) {
+      const out = new Set();
+      const extractRefLevel = (ref) => {
+        const parts = String(ref || '').split('|');
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const n = parseInt(parts[i], 10);
+          if (!Number.isNaN(n) && n >= 1 && n <= 20) return n;
+        }
+        return null;
+      };
+      const walk = (node) => {
+        if (!node) return;
+        if (typeof node === 'string') {
+          if (!/ability score improvement/i.test(node)) return;
+          const lv = extractRefLevel(node);
+          if (Number.isFinite(lv)) out.add(lv);
+          return;
+        }
+        if (Array.isArray(node)) {
+          node.forEach(walk);
+          return;
+        }
+        if (typeof node === 'object') {
+          if (/ability score improvement/i.test(String(node.name || ''))) {
+            const lv = Number(node.level);
+            if (Number.isFinite(lv)) out.add(lv);
+          }
+          if (node.classFeature) walk(node.classFeature);
+          if (node.subclassFeature) walk(node.subclassFeature);
+          return;
+        }
+      };
+      walk(cls?.classFeatures || []);
+      (Array.isArray(classFeatures) ? classFeatures : []).forEach(f => {
+        if (!f || !/ability score improvement/i.test(String(f.name || ''))) return;
+        const lv = Number(f.level);
+        if (Number.isFinite(lv) && lv >= 1 && lv <= 20) out.add(lv);
+      });
+      return Array.from(out)
+        .map(n => Number(n))
+        .filter(n => Number.isFinite(n) && n >= 1 && n <= 20)
+        .sort((a, b) => a - b);
     }
     function _progressionCount(prog, lv) {
       if (Array.isArray(prog)) return prog[lv - 1] || 0;
@@ -2816,6 +3118,40 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const canonical = `${_normAdapterKey(className)}_${_normAdapterKey(subclassShortName)}`;
       return typeof SubclassAdapters[canonical] === 'function' ? SubclassAdapters[canonical] : null;
     }
+    function _specCategories(spec) {
+      if (!spec) return [];
+      if (Array.isArray(spec.categories)) return spec.categories;
+      if (spec.category) return [spec.category];
+      return [];
+    }
+    function _hasFeatSlotAtLevel(specs, level, wantedCategories) {
+      const wants = Array.isArray(wantedCategories) ? wantedCategories : [];
+      return (specs || []).some(s => {
+        if (!s || s.type !== 'feat_cat') return false;
+        if (Number(s.level || 0) !== Number(level || 0)) return false;
+        if (!wants.length) return true;
+        const cats = _specCategories(s).map(c => String(c || ''));
+        return wants.some(w => cats.some(c => c === w || c.startsWith(w)));
+      });
+    }
+    function _injectAsiFeatSlots(specs, clsObj, classLevel, classFeatures) {
+      const lv = Number(classLevel || 0);
+      if (!lv || !clsObj) return;
+      const asiLvls = _asiLevelsFromClass(clsObj, classFeatures).filter(n => n > 0 && n <= lv);
+      asiLvls.forEach(asiLv => {
+        const isEpic = asiLv >= 19;
+        const cats = isEpic ? ['EB', 'G'] : ['G'];
+        if (_hasFeatSlotAtLevel(specs, asiLv, cats)) return;
+        specs.push({
+          key: `feat_asi_lv${asiLv}`,
+          label: isEpic ? 'Epic Boon / General Feat' : `Feat (Lv.${asiLv})`,
+          type: 'feat_cat',
+          categories: cats,
+          count: 1,
+          level: asiLv
+        });
+      });
+    }
 
     function deriveAllChoices() {
       const cls = char.cls;
@@ -2904,7 +3240,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       // 2. Talenti e ASI (Logica Generale)
       const bgf = getBgOriginFeat();
       if (bgf.fixed) {
-        if (!char.choices.feat_origin) char.choices.feat_origin = bgf.fixed;
+        char.choices.feat_origin = bgf.fixed; // always sync — feat_fixed can't be changed by user
+        // Auto-select additionalSpells entry if background specifies a class (e.g. "magic initiate; cleric")
+        if (bgf.classHint) {
+          const _bgFeat = allFeats.find(f => normFeat(f.name) === normFeat(bgf.fixed));
+          if (_bgFeat?.additionalSpells?.length > 1) {
+            const _entryIdx = _bgFeat.additionalSpells.findIndex((g, i) => {
+              const lbl = _grantEntryLabel ? _grantEntryLabel(g).toLowerCase() : '';
+              return lbl.startsWith(bgf.classHint) || lbl.includes(bgf.classHint);
+            });
+            if (_entryIdx >= 0 && char.choices['feat_origin_entry'] === undefined)
+              char.choices['feat_origin_entry'] = _entryIdx;
+          }
+        }
         specs.push({ key: 'feat_origin', label: 'Origin Feat', type: 'feat_fixed', fixed: bgf.fixed, count: 1, level: 0 });
       }
 
@@ -2920,6 +3268,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const _subAdapter = _getSubclassAdapterFn(char.className, char.subclassShortName);
         if (_subAdapter) _subAdapter(cls, _primaryLv, specs);
       }
+      _injectAsiFeatSlots(specs, cls, _primaryLv, char.allFeatures || []);
 
       // 3b. Fallback generico dai dati feature (copre scelte non mappate negli adapter)
       {
@@ -2948,6 +3297,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const _ecSubAdapter = _getSubclassAdapterFn(_ec.name, _ec.subclassShortName);
           if (_ecSubAdapter) _ecSubAdapter(_ec.cls, _ec.level||1, _ecSpecs);
         }
+        _injectAsiFeatSlots(_ecSpecs, _ec.cls, _ec.level || 1, _ec.allFeatures || []);
         const _ecFeatures = [
           ...(_ec.allFeatures || []),
           ...(_ec.subclassShortName
@@ -3127,9 +3477,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (k.startsWith(slotKey + '_') && k !== slotKey + '_entry') delete char.choices[k];
       }
       char.choices[`${slotKey}_entry`] = entryIdx;
+      renderSpeciesChoicesPanel();
       renderChoicesPanel();
       renderSpellPanel();
       renderPreviewSpells();
+      renderPreview();
+      updateSteps();
     }
 
     function getSelectedFeats() {
@@ -3154,8 +3507,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function renderChoicesPanel() {
       if (!char.cls) return;
       const specs = deriveAllChoices();
-      _renderFeatPanel(specs.filter(s => s.type === 'feat_fixed'));
-      _renderClassPanel(specs.filter(s => s.type !== 'feat_fixed'));
+      _renderFeatPanel(specs.filter(s => ['feat_fixed', 'feat_cat'].includes(s.type)));
+      _renderClassPanel(specs.filter(s => !['feat_fixed', 'feat_cat'].includes(s.type)));
     }
 
     // Alias per compatibilità
@@ -3219,21 +3572,22 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const spec = deriveAllChoices().find(s => s.key === slotKey)
         || (char.speciesObj ? deriveSpeciesChoices(char.speciesObj).find(s => s.key === slotKey) : null);
       if (!spec) return;
+      const wantedCats = Array.isArray(spec.categories) ? spec.categories : [];
+      const totalLv = Number(char?.level || 0);
+      const primaryLv = Number(typeof getPrimaryClassLevel === 'function' ? getPrimaryClassLevel() : 0);
+      const extraLv = (char?.extraClasses || []).reduce((sum, ec) => sum + Number(ec?.level || 0), 0);
+      const effectiveLv = Math.max(totalLv, primaryLv + extraLv, primaryLv, 1);
       let list = allFeats.filter(f => {
-        if ((f.prerequisite || []).some(p => p.level && (p.level.level || p.level) > char.level)) return false;
-        if (!spec.categories.length) return true;
-        return spec.categories.some(cat => f.category === cat || String(f.category || '').startsWith(cat));
+        const minLevel = _featMinLevel(f);
+        if (Number.isFinite(minLevel) && minLevel > effectiveLv) return false;
+        return _featMatchesAnyCategory(f, wantedCats);
       });
       if (q) list = list.filter(f => f.name.toLowerCase().includes(q));
       list = list.slice(0, 40);
       if (!list.length) { el.innerHTML = '<div class="phmsg">No feats found.</div>'; return; }
       el.innerHTML = list.map(f => {
         const catCls = getFeatCatClass(f.category);
-        const prereq = (f.prerequisite || []).map(p => {
-          if (p.level) return `Lv.${p.level.level || p.level}`;
-          if (p.ability) return Object.entries(p.ability[0]).map(([k, v]) => `${SLBL[k] || k} ${v}`).join(', ');
-          return '';
-        }).filter(Boolean).join(' · ');
+        const prereq = _featPrereqLabel(f);
         const sk = slotKey.replace(/'/g, "\\'");
         return `<div class="item-row${char.choices[slotKey] === f.name ? ' on' : ''}"
       onclick="selectChoice('${sk}','${f.name.replace(/'/g, "\\'")}')">
@@ -3272,26 +3626,29 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _renderGrantBlocksForSlot(slotKey) {
       const featName = char.choices[slotKey];
       if (!featName) return '';
-      const feat = allFeats.find(f => f.name === featName);
+      const feat = allFeats.find(f => f.name === featName || normFeat(f.name) === normFeat(featName));
       if (!feat) return '';
       if (!char.choices) char.choices = {};
       let h = '';
 
       /* ── 1. additionalSpells ── */
       if (feat.additionalSpells?.length) {
+        
+
         if (feat.additionalSpells.length > 1) {
-          const selectedEntry = char.choices[`${slotKey}_entry`] ?? 0;
+          const selectedEntry = (char.choices[`${slotKey}_entry`] ?? 0);
           h += `<div style="margin-top:.75rem">
         <div class="feat-section-hdr" style="color:var(--orange)">✧ ${esc(featName)} — Scegli lista</div>
+        
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem">`;
           feat.additionalSpells.forEach((g, idx) => {
             const label = _grantEntryLabel(g);
             const isSel = idx === selectedEntry;
             const sk = slotKey.replace(/'/g, "\\'");
-            h += `<button onclick="selGrantEntry('${sk}',${idx})"
+            h += `<button type="button" onclick="selGrantEntry('${sk}',${idx});return false;"
           style="padding:5px 12px;border:1px solid ${isSel ? 'var(--teal)' : 'var(--bdr)'};
             border-radius:var(--r);background:${isSel ? 'var(--tealbg)' : 'var(--bg3)'};
-            color:${isSel ? 'var(--teal)' : 'var(--text2)'};cursor:pointer;
+            color:${isSel ? 'var(--teal)' : 'var(--text2)'};cursor:pointer;opacity:1;
             font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(label)}</button>`;
           });
           h += `</div></div>`;
@@ -3324,6 +3681,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         'Horn','Lute','Lyre','Pan Flute','Shawm','Viol',
       ];
       const ALL_TOOLS = [...ALL_ARTISAN_TOOLS, ...ALL_INSTRUMENTS, "Thieves' Tools", "Disguise Kit", "Forgery Kit", "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit"];
+      const ALL_LANGS = (typeof _ALL_LANGS !== 'undefined' && Array.isArray(_ALL_LANGS) && _ALL_LANGS.length)
+        ? _ALL_LANGS
+        : ['Common','Elvish','Dwarvish','Giant','Gnomish','Goblin','Halfling','Orc','Draconic','Infernal','Celestial','Undercommon','Abyssal','Sylvan','Deep Speech','Primordial'];
+      const EXOTIC_LANGS = ['Abyssal','Sylvan','Deep Speech','Primordial'];
 
       // Helper: render a "choose N from list" picker
       function profPicker(key, label, items, count, color = 'var(--orange)') {
@@ -3370,6 +3731,52 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
       }
 
+      // languageProficiencies
+      for (const [idx, block] of (feat.languageProficiencies || []).entries()) {
+        if (!block || typeof block !== 'object') continue;
+        const choose = block.choose || {};
+        const count = choose.count || block.any || block.anyStandard || block.anyExotic || 0;
+        if (!count) continue;
+        let from = Array.isArray(choose.from) ? choose.from.slice() : [];
+        if (!from.length) {
+          if (block.anyExotic) from = ALL_LANGS.filter(l => EXOTIC_LANGS.includes(String(l)));
+          else if (block.anyStandard) from = ALL_LANGS.filter(l => !EXOTIC_LANGS.includes(String(l)));
+          else from = ALL_LANGS.slice();
+        }
+        const key = `${slotKey}_lang_${idx}`;
+        h += profPicker(key, `${feat.name} — Language`, from, count, 'var(--teal)');
+      }
+
+      // weaponProficiencies
+      for (const [idx, block] of (feat.weaponProficiencies || []).entries()) {
+        if (!block || typeof block !== 'object') continue;
+        const choose = block.choose || {};
+        const count = choose.count || block.any || 0;
+        if (!count) continue;
+        let from = Array.isArray(choose.from) ? choose.from.slice() : [];
+        if (!from.length) {
+          from = _extractFixedKeys(block, ['choose', 'any']);
+        }
+        if (!from.length) continue;
+        const key = `${slotKey}_weapon_${idx}`;
+        h += profPicker(key, `${feat.name} — Weapon Proficiency`, from, count, 'var(--orange)');
+      }
+
+      // armorProficiencies
+      for (const [idx, block] of (feat.armorProficiencies || []).entries()) {
+        if (!block || typeof block !== 'object') continue;
+        const choose = block.choose || {};
+        const count = choose.count || block.any || 0;
+        if (!count) continue;
+        let from = Array.isArray(choose.from) ? choose.from.slice() : [];
+        if (!from.length) {
+          from = _extractFixedKeys(block, ['choose', 'any']);
+        }
+        if (!from.length) continue;
+        const key = `${slotKey}_armor_${idx}`;
+        h += profPicker(key, `${feat.name} — Armor Proficiency`, from, count, 'var(--orange)');
+      }
+
       // skillToolLanguageProficiencies (es. Skilled: choose 3 from anySkill|anyTool)
       for (const [idx, block] of (feat.skillToolLanguageProficiencies || []).entries()) {
         const chooseArr = block.choose || [];
@@ -3380,7 +3787,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           let items = [];
           if (from.includes('anySkill')) items = [...items, ...ALL_SKILLS];
           if (from.includes('anyTool')) items = [...items, ...ALL_TOOLS];
-          if (from.includes('anyLanguage')) items = [...items, 'Language (choose)'];
+          if (from.includes('anyLanguage')) items = [...items, ...ALL_LANGS];
           if (items.length) h += profPicker(key, `${feat.name} — Proficiency`, items, count, 'var(--teal)');
         }
       }
@@ -3446,10 +3853,15 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
               </div>`;
             }
           }
+          inner += `<div id="feat-grant-${sk}"></div>`;
           subEl.innerHTML = inner;
         }
       });
-      specs.filter(s => s.type === 'feat_cat').forEach(s => _renderFeatList(s.key));
+      specs.filter(s => s.type === 'feat_cat').forEach(s => {
+        _renderFeatList(s.key);
+        const gd = document.getElementById('feat-grant-' + s.key);
+        if (gd) gd.innerHTML = _renderGrantBlocksForSlot(s.key);
+      });
     }
     
     
@@ -3570,11 +3982,17 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const filter = choice.spellFilter || choice;
       if (filter.spellLevel == null && !filter.classes && !filter.schools && !filter.allSpells) return ''; // Safety check - no spell data
       const choiceKey = choice.key || choice.storeKey; // Support both old and new structure
-      const selected = Array.isArray(char.choices[choiceKey]) ? char.choices[choiceKey] : [];
-      const spells = getSpellsForChoice({
+      let selected = Array.isArray(char.choices[choiceKey]) ? char.choices[choiceKey] : [];
+      let spells = getSpellsForChoice({
         spellLevel: filter.spellLevel,
         classes: filter.classes, schools: null
       });
+      const allowedNames = new Set(spells.map(s => String(s?.name || '').toLowerCase()));
+      const cleanedSelected = selected.filter(n => allowedNames.has(String(n || '').toLowerCase()));
+      if (cleanedSelected.length !== selected.length) {
+        selected = cleanedSelected;
+        char.choices[choiceKey] = cleanedSelected;
+      }
       const remaining = choice.count - selected.length;
       const sk = choiceKey.replace(/'/g, "\\'");
       let h = `<div style="margin-top:.75rem">
@@ -3626,7 +4044,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const res = { level: null, classes: null, schools: null };
       for (const part of str.split('|')) {
         if (part.startsWith('level=')) res.level = parseInt(part.slice(6));
-        else if (part.startsWith('class=')) res.classes = part.slice(6).split(';').map(s => s.trim()).filter(Boolean);
+        else if (part.startsWith('class=')) res.classes = part.slice(6).split(/[;,]/).map(s => s.trim()).filter(Boolean);
         else if (part.startsWith('school=')) res.schools = part.slice(7).split(';').map(s => s.trim()).filter(Boolean);
       }
       return res;
@@ -3859,7 +4277,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           return choice.schools.some(sc => s.school === sc);
         }
         if (choice.classes) {
-          return choice.classes.some(cn => spellBelongsToClass(s, cn));
+          return choice.classes.some(cn => spellMatchesClassSafe(s, cn));
         }
         return true;
       });
@@ -4940,6 +5358,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
               </div>
               <div class="feat-item-body">${rE(feat.entries)}</div>
             </div>` : ''}
+            <div id="feat-grant-${sk}"></div>
           </div>`;
         } else {
           // Visualizzazione Standard per Lingue/Skill (Bottoni verdi)
@@ -4961,6 +5380,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       specs.forEach(s => {
         if (s.type === 'feat_cat') {
           _renderFeatList(s.key);
+          const gd = document.getElementById('feat-grant-' + s.key);
+          if (gd) gd.innerHTML = _renderGrantBlocksForSlot(s.key);
         } else if (s.type === 'ability_choice') {
           _renderAbilityChoiceList(s.key, s.from, s.label);
         } else if (s.type !== 'option') {
@@ -5097,9 +5518,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           }
         }
       }
+      if (adapterSpecs) {
+        // Adapter already calls genericSpeciesParser internally — trust it fully
+        return _applySpeciesTextFallbacks(adapterSpecs);
+      }
       const genericSpecs = genericSpeciesParser(species);
-      const mergedSpecs = _mergeSpeciesSpecs(adapterSpecs || [], genericSpecs);
-      return _applySpeciesTextFallbacks(mergedSpecs);
+      return _applySpeciesTextFallbacks(genericSpecs);
     }
 
     // SpeciesAdapters è ora definito in adapters/registry.js e popolato da adapters/species/*.js
@@ -5973,7 +6397,15 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           entries: char.bgObj?.entries || [],
         },
         allFeatSnapshots: allFeats.filter(f => Object.values(char.choices || {}).includes(f.name))
-          .map(f => ({ name: f.name, source: f.source, category: f.category, entries: f.entries, prerequisite: f.prerequisite })),
+          .map(f => ({
+            name: f.name,
+            source: f.source,
+            category: f.category,
+            categories: f.categories,
+            entries: f.entries,
+            prerequisite: f.prerequisite,
+            prerequisiteText: _featPrereqLabel(f),
+          })),
         allClassFeatures: char.allFeatures,
         allSubFeatures: char.allSubFeatures,
         selectedCantrips: char.selectedCantrips,
@@ -6136,6 +6568,20 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return map;
     }
 
+    function _getSelectedFeatObjects() {
+      const out = [];
+      const seen = new Set();
+      const selected = getSelectedFeats();
+      Object.values(selected || {}).forEach(name => {
+        if (!name || seen.has(name)) return;
+        const feat = allFeats.find(f => f.name === name);
+        if (!feat) return;
+        seen.add(name);
+        out.push(feat);
+      });
+      return out;
+    }
+
     function _normCompare(v) {
       return String(v || '').toLowerCase().trim();
     }
@@ -6150,6 +6596,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       _collectFixedFromBlocks(char.speciesObj?.skillProficiencies, ['choose', 'any']).forEach(v => skills.add(v));
       _collectFixedFromBlocks(char.bgObj?.skillProficiencies, ['choose', 'any']).forEach(v => skills.add(v));
       _collectFixedFeatureProficiencies('skillProficiencies', ['choose', 'any']).forEach(v => skills.add(v));
+      _getSelectedFeatObjects().forEach(feat => {
+        _collectFixedFromBlocks(feat?.skillProficiencies, ['choose', 'any']).forEach(v => skills.add(v));
+      });
 
       // Fixed skills from class starting proficiencies (if present in source)
       const _addClassFixedSkills = (cls) => {
@@ -6205,6 +6654,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       _collectFixedFromBlocks(char.speciesObj?.languageProficiencies, ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
       _collectFixedFromBlocks(char.bgObj?.languageProficiencies, ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
       _collectFixedFeatureProficiencies('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
+      _getSelectedFeatObjects().forEach(feat => {
+        _collectFixedFromBlocks(feat?.languageProficiencies, ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langs.add(v));
+      });
 
       // 2. Lingue FISSE della Classe — controlla tutti i possibili campi del JSON 5etools
       const _addClsLangs = (cls) => {
@@ -6321,6 +6773,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
       _collectFixedFromBlocks(char.speciesObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
       _collectFixedFeatureProficiencies('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+      _getSelectedFeatObjects().forEach(feat => {
+        _collectFixedFromBlocks(feat?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+      });
 
       if (char.choices) {
         Object.entries(char.choices).forEach(([key, val]) => {
@@ -6371,6 +6826,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     async function loadSpells() {
       const el = document.getElementById('spell-loading');
       el.textContent = 'Loading…';
+      classSpellIndex = {};
 
       // 1. Carica gendata-spell-source-lookup.json e costruisce l'indice classe→spell
       try {
@@ -6380,15 +6836,24 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           // Itera ogni source (xphb, phb, ecc.) e ogni spell
           for (const [src, spells] of Object.entries(lookup)) {
             for (const [spellLc, data] of Object.entries(spells)) {
-              const classData = data.class || {};
-              // Itera le source dei class entries (es. "XPHB", "PHB")
-              for (const classBySource of Object.values(classData)) {
-                for (const className of Object.keys(classBySource)) {
-                  const lc = className.toLowerCase();
-                  if (!classSpellIndex[lc]) classSpellIndex[lc] = new Set();
-                  classSpellIndex[lc].add(spellLc);
-                }
+              const spellKey = normalizeSpellLookupKey(spellLc);
+              if (!spellKey) continue;
+              const classNames = new Set();
+              const classNode = data?.class;
+              if (classNode && typeof classNode === 'object' && !Array.isArray(classNode)) {
+                Object.keys(classNode).forEach(rawKey => {
+                  const cn = normalizeClassKey(rawKey);
+                  if (CANON_CLASS_KEYS.has(cn)) classNames.add(cn);
+                });
               }
+              _collectClassNamesFromLookupNode(classNode?.fromClassList, classNames);
+              _collectClassNamesFromLookupNode(classNode?.fromClassListVariant, classNames);
+              if (!classNames.size) _collectClassNamesFromLookupNode(classNode, classNames);
+              classNames.forEach(cn => {
+                if (!CANON_CLASS_KEYS.has(cn)) return;
+                if (!classSpellIndex[cn]) classSpellIndex[cn] = new Set();
+                classSpellIndex[cn].add(spellKey);
+              });
             }
           }
         }
@@ -6408,28 +6873,74 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       spellDb.sort((a, b) => a.name.localeCompare(b.name));
       el.textContent = spellDb.length + ' spell';
-      if (char.className) renderSpellPanel();
+      if (char.className) {
+        renderSpellPanel();
+        renderChoicesPanel();
+      }
     }
 
     /* ── Controlla se una spell appartiene a una classe ── */
     function spellBelongsToClass(spell, className) {
-      const lc = className.toLowerCase();
-      // 1. Usa l'indice da gendata-spell-source-lookup (fonte autorevole)
-      const set = classSpellIndex[lc];
-      if (set && set.size > 0) return set.has(spell.name.toLowerCase());
-      // 2. Fallback su fromClassList (per sorgenti non coperte dall'indice)
-      const c = spell.classes;
-      if (!c) return false;
-      for (const key of Object.keys(c)) {
-        if (!key.startsWith('from')) continue;
-        const arr = c[key];
-        if (!Array.isArray(arr)) continue;
-        for (const item of arr) {
-          if (item.name?.toLowerCase() === lc) return true;
-          if (item.class?.name?.toLowerCase() === lc) return true;
+      const lc = normalizeClassKey(className);
+      if (!lc) return false;
+      const c = spell?.classes;
+      if (c && typeof c === 'object') {
+        // Strict class-list match: evita leakage da sottoclassi/expanded lists.
+        let hasDirectClassList = false;
+        for (const [key, arr] of Object.entries(c)) {
+          if (!/^fromclasslist/i.test(String(key || ''))) continue;
+          hasDirectClassList = true;
+          if (!Array.isArray(arr)) continue;
+          for (const item of arr) {
+            if (typeof item === 'string' && normalizeClassKey(item) === lc) return true;
+            if (normalizeClassKey(item?.name) === lc) return true;
+            if (normalizeClassKey(item?.class?.name) === lc) return true;
+          }
+        }
+        if (hasDirectClassList) {
+          const set = classSpellIndex[lc];
+          if (set && set.size > 0) return set.has(String(spell?.name || '').toLowerCase());
+          return false;
         }
       }
+      // Fallback su indice lookup solo quando manca una class-list diretta.
+      const set = classSpellIndex[lc];
+      if (set && set.size > 0) return set.has(String(spell?.name || '').toLowerCase());
       return false;
+    }
+    function spellMatchesClassSafe(spell, className) {
+      const wanted = normalizeClassKey(className);
+      if (!wanted) return false;
+      if (spellBelongsToClass(spell, wanted)) return true;
+      const classesNode = spell?.classes;
+      if (!classesNode || typeof classesNode !== 'object') return false;
+      const seen = new Set();
+      const walk = (node) => {
+        if (!node) return;
+        if (typeof node === 'string') {
+          const cn = normalizeClassKey(node);
+          if (cn) seen.add(cn);
+          return;
+        }
+        if (Array.isArray(node)) {
+          node.forEach(walk);
+          return;
+        }
+        if (typeof node !== 'object') return;
+        const cnA = normalizeClassKey(node?.name);
+        const cnB = normalizeClassKey(node?.class?.name);
+        if (cnA) seen.add(cnA);
+        if (cnB) seen.add(cnB);
+        Object.keys(node).forEach(k => {
+          const ck = normalizeClassKey(k);
+          if (CANON_CLASS_KEYS.has(ck)) seen.add(ck);
+        });
+        Object.values(node).forEach(walk);
+      };
+      walk(classesNode);
+      if (seen.has(wanted)) return true;
+      const blob = JSON.stringify(classesNode || {}).toLowerCase();
+      return blob.includes(`"${wanted}"`) || blob.includes(`|${wanted}|`) || new RegExp(`\\b${wanted}\\b`, 'i').test(blob);
     }
 
     // ═══════════════════════════════════════ RESTORE DAL BUILDER STATE ═══════════════════════════════════════
@@ -6537,8 +7048,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
         return Array.from(byName.values());
       }
-      console.warn(`[getClassSpells] Nessuna spell per "${className}" — uso tutto il database`);
-      return spellDb;
+      return [];
     }
 
     function calcSpellCounts() {

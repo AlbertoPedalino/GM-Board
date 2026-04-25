@@ -10,7 +10,11 @@
       "Bash(taskkill *)",
       "PowerShell(Stop-Process *)",
       "Bash(git *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/feats.json\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/races.json\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/backgrounds.json\")",
+      "Bash(grep -n \"DOMContentLoaded\\\\|^{$\\\\|^  char = \" charbuilder.html)"
     ]
   }
 }
