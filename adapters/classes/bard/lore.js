@@ -25,6 +25,8 @@ registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
 });
 
 registerSubclassSheetActions("Bard_Lore", [
+  { name: "Bonus Proficiencies", icon: "", cat: "action",   uses: "Passive",           minLevel: 3,
+    desc: "Gain proficiency in three skills of your choice. Select them in the builder." },
   { name: "Cutting Words",      icon: "", cat: "reaction", uses: "With Bardic Insp.", minLevel: 3,
     desc: "When a creature you can see within 60 ft makes an attack roll, ability check, or damage roll, use your Reaction and expend one Bardic Inspiration: roll the die and subtract the result from the roll. Declare after seeing the roll but before knowing the outcome." },
   { name: "Magical Discoveries",icon: "", cat: "action",   uses: "Passive",           minLevel: 6,

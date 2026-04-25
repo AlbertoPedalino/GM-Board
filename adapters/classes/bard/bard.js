@@ -53,3 +53,51 @@ registerClassSheetResources("Bard", [
     actionName: 'Bardic Inspiration',
     max: () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 3) },
 ]);
+
+registerClassSheetChoiceMeta("Bard", {
+  sectionTitle: "Bard Choices",
+  labels: {
+    bard_instrument_1: "Musical Instrument 1",
+    bard_instrument_2: "Musical Instrument 2",
+    bard_instrument_3: "Musical Instrument 3",
+    bard_expertise_1: "Expertise 1",
+    bard_expertise_2: "Expertise 2",
+    bard_expertise_3: "Expertise 3",
+    bard_expertise_4: "Expertise 4",
+    bard_magical_secrets_1: "Magical Secrets 1",
+    bard_magical_secrets_2: "Magical Secrets 2",
+    bard_magical_secrets_3: "Magical Secrets 3",
+    bard_magical_secrets_4: "Magical Secrets 4",
+    subclass_lore_bonus_skill_1: "Bonus Proficiency 1 (Lore)",
+    subclass_lore_bonus_skill_2: "Bonus Proficiency 2 (Lore)",
+    subclass_lore_bonus_skill_3: "Bonus Proficiency 3 (Lore)",
+    subclass_lore_magical_discovery_1: "Magical Discoveries 1 (Lore)",
+    subclass_lore_magical_discovery_2: "Magical Discoveries 2 (Lore)",
+    subclass_swords_fighting_style: "Fighting Style (Swords)",
+    subclass_moon_primal_lore_skill: "Primal Lore Skill (Moon)",
+    subclass_moon_primal_lore_cantrip: "Primal Lore Cantrip (Moon)",
+  },
+  isChoiceKey: (key) => {
+    const k = String(key || "");
+    if (/^bard_epic_boon$/i.test(k)) return false;
+    if (/^bard_/i.test(k)) return true;
+    if (/^subclass_(lore|swords|moon)_/i.test(k)) return true;
+    return false;
+  },
+  getLabel: (key) => {
+    const k = String(key || "");
+    return k
+      .replace(/^bard_/, "")
+      .replace(/^subclass_(lore|swords|moon)_/, "")
+      .replace(/_/g, " ")
+      .replace(/\b[a-z]/g, c => c.toUpperCase())
+      .trim();
+  },
+  normalizeChoiceValue: (value) => {
+    return String(value || "")
+      .split("|")[0]
+      .replace(/\{@\w+ /g, "")
+      .replace(/\}/g, "")
+      .trim();
+  },
+});

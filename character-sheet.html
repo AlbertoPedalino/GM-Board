@@ -1172,6 +1172,38 @@ function getSkillBonus(sk){
   return m;
 }
 
+function _getClassLevelByName(name){
+  const target = String(name || "").toLowerCase();
+  if (!target) return 0;
+  if ((C?.className || "").toLowerCase() === target) return C?.classLevel || C?.level || 1;
+  const ec = (C?.extraClasses || []).find(x => String(x?.name || "").toLowerCase() === target);
+  return ec ? (ec.level || 1) : 0;
+}
+
+function _hasBardDanceSubclass(minLevel=3){
+  const primary = C?.className === "Bard"
+    && C?.subclassShortName === "Dance"
+    && (C?.classLevel || C?.level || 1) >= minLevel;
+  const extra = (C?.extraClasses || []).some(ec =>
+    ec?.name === "Bard"
+    && ec?.subclassShortName === "Dance"
+    && (ec?.level || 1) >= minLevel
+  );
+  return !!(primary || extra);
+}
+
+function _getBardClassLevel(){
+  return _getClassLevelByName("Bard");
+}
+
+function _getBardicInspirationDieSize(bardLevel){
+  const lv = Number(bardLevel || 0);
+  if (lv >= 15) return 12;
+  if (lv >= 10) return 10;
+  if (lv >= 5) return 8;
+  return 6;
+}
+
 function calcMaxHP(){
   if(!C) return 10;
   const hd = C.clsSnapshot?.hd;
@@ -1189,6 +1221,7 @@ function calcAC(){
   const dex = getMod(getFinal('dex'));
   const con = getMod(getFinal('con'));
   const wis = getMod(getFinal('wis'));
+  const cha = getMod(getFinal('cha'));
   const inv = sheetInventory || C.inventory || [];
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
@@ -1215,6 +1248,7 @@ function calcAC(){
   const candidates = [10 + dex + shieldBonus];
   if (hasBarbarian) candidates.push(10 + dex + con + shieldBonus);
   if (hasMonk && !equippedShield) candidates.push(10 + dex + wis);
+  if (_hasBardDanceSubclass(3) && !equippedShield) candidates.push(10 + dex + cha);
   ac = Math.max(...candidates);
   return ac;
 }
@@ -1510,9 +1544,36 @@ function renderProficiencies(){
     if (!fixed) return;
     fixed.forEach(addFn);
   };
+  const addBardSubclassFixedArmorWeaponProfs = (className, subclassShortName, classLevel) => {
+    if (className !== 'Bard') return;
+    if ((classLevel || 0) < 3) return;
+    if (subclassShortName !== 'Valor') return;
+    armorSet.add('Medium');
+    armorSet.add('Shield');
+    weaponSet.add('Martial');
+  };
+  const addBardMoonFixedLanguage = (className, subclassShortName, classLevel, addFn) => {
+    if (className !== 'Bard') return;
+    if ((classLevel || 0) < 3) return;
+    if (subclassShortName !== 'Moon') return;
+    addFn('Druidic');
+  };
 
-  const armorSet = new Set((Array.isArray(sp.armor) ? sp.armor : [sp.armor]).map(normalize).filter(Boolean));
-  const weaponSet = new Set((Array.isArray(sp.weapons) ? sp.weapons : [sp.weapons]).map(normalize).filter(Boolean));
+  const armorSet = new Set();
+  const weaponSet = new Set();
+  const addFixedProfsFromBlocks = (src, set) => {
+    const arr = Array.isArray(src) ? src : [src];
+    arr.forEach(entry => {
+      if (!entry) return;
+      if (typeof entry === 'string') {
+        splitAndNormalize(entry).forEach(v => set.add(v));
+        return;
+      }
+      fixedKeysFromBlock(entry, ['choose', 'any']).forEach(v => set.add(v));
+    });
+  };
+  addFixedProfsFromBlocks(sp.armor, armorSet);
+  addFixedProfsFromBlocks(sp.weapons, weaponSet);
   const weaponMasterySet = new Set();
   collectFixedFeatureProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
   collectFixedFeatureProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
@@ -1546,11 +1607,15 @@ function renderProficiencies(){
     if (C.subclassShortName === 'Armorer') armorSet.add('Heavy');
     if (C.subclassShortName === 'Artillerist') weaponSet.add('Firearms');
   }
+  addBardSubclassFixedArmorWeaponProfs(C?.className, C?.subclassShortName, C?.classLevel || C?.level || 1);
   for (const ec of (C?.extraClasses || [])) {
     if ((ec?.level || 1) < 3) continue;
     if (ec?.name !== 'Artificer') continue;
     if (ec.subclassShortName === 'Armorer') armorSet.add('Heavy');
     if (ec.subclassShortName === 'Artillerist') weaponSet.add('Firearms');
+  }
+  for (const ec of (C?.extraClasses || [])) {
+    addBardSubclassFixedArmorWeaponProfs(ec?.name, ec?.subclassShortName, ec?.level || 1);
   }
   const armor   = armorSet.size ? Array.from(armorSet).join(', ') : '—';
   const weapons = weaponSet.size ? Array.from(weaponSet).join(', ') : '—';
@@ -1593,6 +1658,10 @@ function renderProficiencies(){
 
   const langSet = new Set((C.selectedLanguages || []).map(normalize).filter(Boolean));
   collectFixedFeatureProfs('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langSet.add(v));
+  addBardMoonFixedLanguage(C?.className, C?.subclassShortName, C?.classLevel || C?.level || 1, (v) => langSet.add(normalize(v)));
+  for (const ec of (C?.extraClasses || [])) {
+    addBardMoonFixedLanguage(ec?.name, ec?.subclassShortName, ec?.level || 1, (v) => langSet.add(normalize(v)));
+  }
   if (!langSet.size) langSet.add('Common');
   const langs = Array.from(langSet).join(', ') || 'Common';
 
@@ -1720,13 +1789,19 @@ function renderRightTop(){
     force:'Force',bludgeoning:'Bludgeoning',piercing:'Piercing',slashing:'Slashing'};
   const resist = C.speciesSnapshot?.resist||[];
   const immune = C.speciesSnapshot?.immune||[];
+  function _dmgLabel(r){
+    const raw = typeof r==='string' ? r : (r.special||'');
+    if(!raw||raw==='—') return raw||'—';
+    const stripped = raw.replace(/^(resistance|immunity)[-:]\s*/i,'').trim();
+    return DMGTYPE_EN[stripped.toLowerCase()] || DMGTYPE_EN[raw.toLowerCase()] || stripped || raw;
+  }
   for(const r of resist){
-    const lbl = typeof r==='string'?DMGTYPE_EN[r.toLowerCase()]||r:r.special||'—';
-    items.push({l:`Resistance: ${lbl}`,c:'b'});
+    const lbl = _dmgLabel(r);
+    if(lbl&&lbl!=='—') items.push({l:`Resistance: ${lbl}`,c:'b'});
   }
   for(const r of immune){
-    const lbl = typeof r==='string'?DMGTYPE_EN[r.toLowerCase()]||r:r.special||'—';
-    items.push({l:`Immunity: ${lbl}`,c:'r'});
+    const lbl = _dmgLabel(r);
+    if(lbl&&lbl!=='—') items.push({l:`Immunity: ${lbl}`,c:'r'});
   }
   if(C.speciesSnapshot?.darkvision) items.push({l:`Darkvision ${C.speciesSnapshot.darkvision} ft`,c:'t'});
   // Unarmored Defense badge
@@ -1735,11 +1810,13 @@ function renderRightTop(){
     if ((C?.className || '').toLowerCase() === n) return true;
     return (C?.extraClasses || []).some(ec => (ec?.name || '').toLowerCase() === n);
   };
+  const hasBardDance = _hasBardDanceSubclass(3);
   const hasArmor = !!(sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type));
   const hasShield = !!(sheetInventory||[]).find(i=>i.equipped&&i.type==='S');
   if(!hasArmor){
     if(hasClass('Barbarian')) items.push({l:'Unarmored Defense (DEX+CON)',c:'g'});
     if(hasClass('Monk') && !hasShield) items.push({l:'Unarmored Defense (DEX+WIS)',c:'g'});
+    if(hasBardDance && !hasShield) items.push({l:'Unarmored Defense (DEX+CHA)',c:'g'});
   }
   if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
@@ -3785,19 +3862,32 @@ function buildClassActionCard(a){
 }
 
 function buildUnarmedCard(opt){
-  const strMod=getMod(getFinal('str')), pb=getPB();
+  const strMod=getMod(getFinal('str')), dexMod=getMod(getFinal('dex')), pb=getPB();
+  const inv = sheetInventory || C.inventory || [];
+  const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
+  const equippedShield = inv.find(i => i.equipped && i.type === 'S');
+  const bardDanceActive = _hasBardDanceSubclass(3) && !equippedArmor && !equippedShield;
+  const bardLv = _getBardClassLevel();
+  const bardDie = _getBardicInspirationDieSize(bardLv);
+  const atkAbility = bardDanceActive ? dexMod : strMod;
   const id='ac_'+Math.random().toString(36).slice(2);
   const isGrSh=opt.name==='Grapple'||opt.name==='Shove';
   const dc=8+pb+strMod;
   const tag=opt.cat==='attack'?'atk':'util';
   const catLbl=opt.cat==='attack'?'ATK':'ACTION';
-  const stat=opt.cat==='attack'?fbonus(strMod+pb):isGrSh?`DC ${dc}`:null;
+  const stat=opt.cat==='attack'?fbonus(atkAbility+pb):isGrSh?`DC ${dc}`:null;
   let barContent='';
   if(opt.cat==='attack'){
+    const normalDmg = Math.max(1,1+strMod);
+    const bardDmgFormula = `1d${bardDie}${dexMod>=0?'+':''}${dexMod}`;
     barContent=`
-      <button class="roll-btn" onclick="rollD20(${strMod+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(strMod+pb)}</button>
-      <button class="roll-btn dmg" onclick="showDiceToast('Damage',[], ${Math.max(1,1+strMod)},${Math.max(1,1+strMod)},'1 + STR')">${luci('sword')} ${Math.max(1,1+strMod)} bludg.</button>
-      <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>`;
+      <button class="roll-btn" onclick="rollD20(${atkAbility+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(atkAbility+pb)}</button>
+      ${bardDanceActive
+        ? `<button class="roll-btn dmg" onclick="rollDamage('${bardDmgFormula}','Bardic Damage (Unarmed)')">${luci('sword')} 1d${bardDie}${dexMod>=0?'+':''}${dexMod} bludg.</button>`
+        : `<button class="roll-btn dmg" onclick="showDiceToast('Damage',[], ${normalDmg},${normalDmg},'1 + STR')">${luci('sword')} ${normalDmg} bludg.</button>`
+      }
+      <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>
+      ${bardDanceActive ? `<div class="action-dmg-pill">${luci('music')} Bardic Damage</div>` : ''}`;
   } else if(isGrSh){
     barContent=`
       <div class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></div>
