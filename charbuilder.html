@@ -2271,7 +2271,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       </div>
     </div>
 
-    <footer>Data from <a href="https://5e.tools" target="_blank">5etools</a> via GitHub mirror · D&amp;D 5e is a trademark of Wizards of the Coast</footer>
+    <footer>Data from <a href="https://5e.tools">5etools</a> via GitHub mirror · D&amp;D 5e is a trademark of Wizards of the Coast</footer>
   </div>
   <script src="adapters/registry.js"></script>
   <script src="adapters/manifest.js"></script>
@@ -2368,6 +2368,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     /* ════════════════════════════════════ PARSER */
     const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    function showBuilderToast(msg, ms = 2200) {
+      let el = document.getElementById('builder-toast');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'builder-toast';
+        el.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:5000;background:rgba(12,16,26,.96);border:1px solid var(--bdr2);color:var(--text);padding:10px 12px;border-radius:10px;font-size:var(--fs-body);box-shadow:0 10px 26px rgba(0,0,0,.35);display:none;max-width:320px';
+        document.body.appendChild(el);
+      }
+      el.textContent = String(msg || '');
+      el.style.display = 'block';
+      clearTimeout(el._t);
+      el._t = setTimeout(() => { el.style.display = 'none'; }, ms);
+    }
     function clean(s) {
       if (!s) return '';
       return String(s)
@@ -4707,7 +4720,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function addExtraClass() {
       if (!char.extraClasses) char.extraClasses = [];
       const extraTotal = (char.extraClasses||[]).reduce((s,c)=>s+(c.level||1),0);
-      if ((char.classLevel||1) + extraTotal >= 20) { alert('Livello totale massimo 20 raggiunto.'); return; }
+      if ((char.classLevel||1) + extraTotal >= 20) { showBuilderToast('Livello totale massimo 20 raggiunto.'); return; }
       char.extraClasses.push({ name:null,source:null,cls:null,level:1,subclassShortName:null,subclasses:[],allFeatures:[],allSubFeatures:[] });
       updateTotalLevel();
       switchMCTab(char.extraClasses.length); // switch to new tab
@@ -6020,7 +6033,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         currency: {...(char.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})},
         xp: char.xp||0,
       }));
-      window.open('character-sheet.html', '_blank');
+      window.location.href = 'character-sheet.html';
     }
 
     /* ════════════════════════════════════ SCELTA PROFICIENZE ════════════════════════════════════ */

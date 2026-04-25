@@ -11,3 +11,12 @@ registerSubclassSheetActions("Warlock_Archfey", [
     "desc": "Bonus action: teleport to an unoccupied space within 30 ft. The old space is cloaked in illusion until your next turn."
   }
 ]);
+registerSubclassSheetResources("Warlock_Archfey", [
+  {
+    "key": "fey_step",
+    "name": "Fey Step",
+    "icon": "sparkles",
+    "recharge": "SR",
+    "max": ()=>1
+  }
+]);

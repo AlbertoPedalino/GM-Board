@@ -98,6 +98,13 @@ registerClassSheetResources("Paladin", [
     "icon": "cross",
     "recharge": "LR",
     "max": ()=>Math.max(1,getMod(getFinal('cha')))+1
+  },
+  {
+    "key": "paladin_channel_div",
+    "name": "Channel Divinity",
+    "icon": "sparkles",
+    "recharge": "SR",
+    "max": (lv)=>lv>=11?2:1
   }
 ]);
 // [SheetRuntime] END

@@ -23,4 +23,13 @@ registerSubclassSheetActions("Druid_Land", [
     "desc": "After a short rest: regain spell slots with total levels <= half Druid level (min 1)."
   }
 ]);
+registerSubclassSheetResources("Druid_Land", [
+  {
+    "key": "natural_recovery",
+    "name": "Natural Recovery",
+    "icon": "leaf",
+    "recharge": "LR",
+    "max": ()=>1
+  }
+]);
 // [SheetRuntime] END

@@ -11,3 +11,12 @@ registerSubclassSheetActions("Wizard_Diviner", [
     "desc": "After a long rest: roll 2d20, keep the results. Before any creature makes a roll, you can replace it with one of your Portent dice (used or unused)."
   }
 ]);
+registerSubclassSheetResources("Wizard_Diviner", [
+  {
+    "key": "portent",
+    "name": "Portent",
+    "icon": "eye",
+    "recharge": "LR",
+    "max": ()=>2
+  }
+]);

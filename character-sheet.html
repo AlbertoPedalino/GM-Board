@@ -2141,7 +2141,13 @@ function toggleHD(idx){
     _setCurrentHp(Math.min(maxHP, currentHP + heal));
     _saveHpState();
     renderStatsRow();
-    alert(`Hit Die: rolled ${roll} + CON (${fbonus(conMod)}) = +${heal} HP`);
+    showDiceToast(
+      'Hit Die',
+      [{ v: roll, faces }],
+      conMod,
+      heal,
+      `HP recuperati: +${heal}`
+    );
   }
   localStorage.setItem('5e_hd_used', usedHD);
   renderHitDice();
@@ -2515,6 +2521,7 @@ function renderActionsTab(){
   const inv=sheetInventory||[];
   const equippedWeapons=inv.filter(i=>i.equipped&&['M','R'].includes(i.type));
   const cantripSet = new Set(C?.selectedCantrips||[]);
+  const _choiceSpellName = (v) => String(v || '').split('|')[0].trim();
   if(C?.choices){
     const snapshots = C?.spellSnapshots||[];
     const spellLevelByName = (name)=>{
@@ -2528,7 +2535,9 @@ function renderActionsTab(){
       const vals = Array.isArray(val) ? val : [val];
       vals.forEach(v=>{
         if(typeof v !== 'string') return;
-        if(spellLevelByName(v) === 0) cantripSet.add(v);
+        const sn = _choiceSpellName(v);
+        if(!sn) return;
+        if(spellLevelByName(sn) === 0) cantripSet.add(sn);
       });
     }
   }
@@ -2644,13 +2653,16 @@ function renderSpellsTab(){
   };
 
   const choiceSpellNames = [];
+  const _choiceSpellName = (v) => String(v || '').split('|')[0].trim();
   if(C?.choices){
     for(const val of Object.values(C.choices)){
       const vals = Array.isArray(val) ? val : [val];
       vals.forEach(v=>{
         if(typeof v !== 'string') return;
-        const slv = spellLevelByName(v);
-        if(slv === 0 || (typeof slv === 'number' && slv >= 1 && slv <= 9)) choiceSpellNames.push(v);
+        const sn = _choiceSpellName(v);
+        if(!sn) return;
+        const slv = spellLevelByName(sn);
+        if(slv === 0 || (typeof slv === 'number' && slv >= 1 && slv <= 9)) choiceSpellNames.push(sn);
       });
     }
   }
@@ -2806,10 +2818,14 @@ function renderSpellsTab(){
     const entries = (snap?.entries ?? full?.entries ?? []);
     const dmgFormula = _extractFirstDamageFormulaFromEntries(entries);
     const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const atkBtn = `<button class="roll-btn" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`;
+    const textBlob = JSON.stringify(entries || []).toLowerCase();
+    const hasAttack = !!(full?.spellAttack?.length || /\{@atk\s+/i.test(textBlob) || /\b(?:spell attack|melee spell attack|ranged spell attack)\b/.test(textBlob));
+    const atkBtn = hasAttack
+      ? `<button class="roll-btn" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`
+      : '';
     const dmgBtn = dmgFormula
       ? `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">${luci('flame')} ${dmgFormula}</button>`
-      : `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamagePrompt('${safeName}','1d6')">${luci('flame')} ?</button>`;
+      : '';
     const spellId = 'spl_' + name.replace(/[^a-zA-Z0-9]/g,'_');
     const entryHtml = rE(entries);
     const castTime = full?.time?.[0] ? `${full.time[0].number} ${full.time[0].unit}` : (snap?.time?.[0] ? `${snap.time[0].number} ${snap.time[0].unit}` : '');
@@ -2882,6 +2898,7 @@ function getSpellAbility(){
 // Returns source label for a spell name — checks auto grants, choices, then class
 function getSpellSource(spellName){
   const n = spellName.toLowerCase();
+  const _choiceSpellName = (v) => String(v || '').split('|')[0].trim().toLowerCase();
   // Auto-granted (species, subclass domain spells)
   const auto = C.autoGrantedSpells||[];
   const autoEntry = auto.find(a=>a.name.toLowerCase()===n);
@@ -2906,7 +2923,7 @@ function getSpellSource(spellName){
     for(const [key,val] of Object.entries(C.choices)){
       if(!val) continue;
       const vals = Array.isArray(val)?val:[val];
-      if(vals.some(v=>typeof v==='string'&&v.toLowerCase()===n)){
+      if(vals.some(v=>typeof v==='string'&&_choiceSpellName(v)===n)){
         if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key],cls:'p'};
         if(key.startsWith('feat_')) return {label:'Feat',cls:'g'};
         if(key.startsWith('subclass_')) return {label:C.subclassShortName||'Subclass',cls:'p'};
@@ -3922,11 +3939,59 @@ function rollDamage(formula, label){
 
 function rollDamagePrompt(label, defaultFormula){
   const seed = String(defaultFormula || '1d6').trim() || '1d6';
-  const raw = window.prompt(`Damage formula for ${label}`, seed);
-  if(raw == null) return null;
-  const formula = String(raw || '').trim();
-  if(!formula) return null;
-  return rollDamage(formula, label);
+  const modal = _ensureFormulaPromptModal();
+  const inp = document.getElementById('formula-prompt-input');
+  const title = document.getElementById('formula-prompt-title');
+  if(title) title.textContent = `Damage formula · ${label}`;
+  if(inp){
+    inp.value = seed;
+    inp.select();
+  }
+  modal._submit = function () {
+    const formula = String(inp?.value || '').trim();
+    if(!formula){ _closeFormulaPromptModal(); return; }
+    if(!_parseFormula(formula)){
+      showDiceToast(label, [], 0, 0, 'Formula non valida');
+      return;
+    }
+    _closeFormulaPromptModal();
+    rollDamage(formula, label);
+  };
+  modal.style.display = 'flex';
+  return null;
+}
+
+function _closeFormulaPromptModal(){
+  const modal = document.getElementById('formula-prompt-modal');
+  if(!modal) return;
+  modal.style.display = 'none';
+}
+
+function _ensureFormulaPromptModal(){
+  let modal = document.getElementById('formula-prompt-modal');
+  if(modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'formula-prompt-modal';
+  modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:3000;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = `
+    <div style="width:min(460px,100%);background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1rem">
+      <div id="formula-prompt-title" style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);margin-bottom:.6rem">Damage formula</div>
+      <input id="formula-prompt-input" class="search-box" style="margin:0" placeholder="e.g. 2d6+3" />
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.75rem">
+        <button class="chip" onclick="_closeFormulaPromptModal()">Cancel</button>
+        <button class="chip on" onclick="document.getElementById('formula-prompt-modal')._submit && document.getElementById('formula-prompt-modal')._submit()">Roll</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) _closeFormulaPromptModal(); });
+  document.body.appendChild(modal);
+  const inp = modal.querySelector('#formula-prompt-input');
+  if(inp){
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape') { _closeFormulaPromptModal(); return; }
+      if(e.key === 'Enter'){ e.preventDefault(); if(modal._submit) modal._submit(); }
+    });
+  }
+  return modal;
 }
 
 function rollFormula(formula, label){
@@ -3978,11 +4043,52 @@ function getAllResDefs(){
   const cls=C?.className||'';
   const speciesName=C?.speciesName||'';
   const speciesSource=C?.speciesSource||'';
-  return [
-    ..._sheetGetClassResources(cls),
-    ..._sheetGetSubclassResources(cls, C?.subclassShortName||''),
-    ..._sheetGetSpeciesResources(speciesName, speciesSource),
-  ];
+  const defs = [];
+  const pushDefs = (arr, meta) => {
+    (Array.isArray(arr) ? arr : []).forEach(r => {
+      if (!r || !r.key) return;
+      defs.push({
+        ...r,
+        _ownerClass: meta?.ownerClass || '',
+        _ownerLevel: Number(meta?.ownerLevel || 1),
+        _ownerToken: String(meta?.ownerToken || 'pc'),
+      });
+    });
+  };
+
+  const pLv = Number(C?.classLevel || C?.level || 1);
+  pushDefs(_sheetGetClassResources(cls), { ownerClass: cls, ownerLevel: pLv, ownerToken: 'pc' });
+  pushDefs(_sheetGetSubclassResources(cls, C?.subclassShortName||''), { ownerClass: cls, ownerLevel: pLv, ownerToken: 'pc' });
+
+  (C?.extraClasses || []).forEach((ec, idx) => {
+    if (!ec?.name) return;
+    const ecLv = Number(ec.level || 1);
+    const tok = `mc${idx}`;
+    pushDefs(_sheetGetClassResources(ec.name), { ownerClass: ec.name, ownerLevel: ecLv, ownerToken: tok });
+    pushDefs(_sheetGetSubclassResources(ec.name, ec.subclassShortName || ''), { ownerClass: ec.name, ownerLevel: ecLv, ownerToken: tok });
+  });
+
+  pushDefs(_sheetGetSpeciesResources(speciesName, speciesSource), {
+    ownerClass: speciesName,
+    ownerLevel: Number(C?.level || 1),
+    ownerToken: 'species',
+  });
+
+  const byKeyOwners = new Map();
+  defs.forEach(r => {
+    const k = String(r.key || '');
+    if (!byKeyOwners.has(k)) byKeyOwners.set(k, new Set());
+    byKeyOwners.get(k).add(String(r._ownerToken || 'pc'));
+  });
+  defs.forEach(r => {
+    const owners = byKeyOwners.get(String(r.key || ''));
+    r._stateKey = owners && owners.size > 1 ? `${r._ownerToken}_${r.key}` : String(r.key || '');
+  });
+  return defs;
+}
+
+function _getResStateKey(res){
+  return String(res?._stateKey || res?.key || '');
 }
 
 function _normResActionName(v){
@@ -3991,6 +4097,8 @@ function _normResActionName(v){
 function _resourceMatchesAction(res, actionRef){
   if(!res || !actionRef) return false;
   const actionObj = typeof actionRef === 'object' ? actionRef : { name: String(actionRef || '') };
+  const actionOwner = String(actionObj._cls || C?.className || '');
+  if (actionOwner && res._ownerClass && actionOwner !== res._ownerClass) return false;
   const resKey = String(actionObj.resKey || '').trim();
   if (resKey && res.key === resKey) return true;
   const target = _normResActionName(actionObj.name || actionRef);
@@ -4004,7 +4112,7 @@ function _resourceMatchesAction(res, actionRef){
 }
 
 function getResMax(res){
-  const lv = C?.classLevel || C?.level || 1;
+  const lv = Number(res?._ownerLevel || C?.classLevel || C?.level || 1);
   return Math.min(res.max(lv), 20); // cap at 20 for pip display
 }
 
@@ -4013,7 +4121,8 @@ function loadResources(){
     const stored = JSON.parse(localStorage.getItem('5e_resources')||'{}');
     charResources = {};
     for(const r of getAllResDefs()){
-      charResources[r.key] = stored[r.key] ?? getResMax(r);
+      const rk = _getResStateKey(r);
+      charResources[rk] = stored[rk] ?? stored[r.key] ?? getResMax(r);
     }
   } catch(e){ charResources = {}; }
 }
@@ -4047,19 +4156,21 @@ function setResourcePip(key, idx, max){
 function recoverResources(type){
   for(const r of getAllResDefs()){
     const max = getResMax(r);
+    const rk = _getResStateKey(r);
     if(type==='LR'){
-      charResources[r.key] = max;
+      charResources[rk] = max;
       continue;
     }
     if(r.recharge==='SR'){
-      charResources[r.key] = max;
+      charResources[rk] = max;
       continue;
     }
     if(type==='SR' && r.srRecover){
-      const gain = typeof r.srRecover === 'function' ? Number(r.srRecover(C?.classLevel || C?.level || 1)) : Number(r.srRecover);
+      const ownerLv = Number(r?._ownerLevel || C?.classLevel || C?.level || 1);
+      const gain = typeof r.srRecover === 'function' ? Number(r.srRecover(ownerLv)) : Number(r.srRecover);
       if (gain > 0) {
-        const cur = charResources[r.key] ?? max;
-        charResources[r.key] = Math.min(max, cur + gain);
+        const cur = charResources[rk] ?? max;
+        charResources[rk] = Math.min(max, cur + gain);
       }
     }
   }
@@ -4069,7 +4180,8 @@ function recoverResources(type){
 function _getResourceRechargeLabel(res){
   if (res.recharge === 'SR') return 'RS';
   if (res.srRecover) {
-    const gain = typeof res.srRecover === 'function' ? Number(res.srRecover(C?.classLevel || C?.level || 1)) : Number(res.srRecover);
+    const ownerLv = Number(res?._ownerLevel || C?.classLevel || C?.level || 1);
+    const gain = typeof res.srRecover === 'function' ? Number(res.srRecover(ownerLv)) : Number(res.srRecover);
     if (gain > 0) return `RL+${gain}RS`;
   }
   return 'RL';
@@ -4081,27 +4193,28 @@ function buildResourceBlock(actionRef){
   if(!res) return '';
   const max = getResMax(res);
   if(max===0) return '';
-  const cur = charResources[res.key]??max;
+  const rk = _getResStateKey(res);
+  const cur = charResources[rk]??max;
   const rechargeLabel = _getResourceRechargeLabel(res);
 
   if(res.pool){
     // Show as number +/- for pools (Ki, Lay on Hands, etc.)
     return `<div class="res-block">
       <div class="res-block-label">${esc(res.name)} <span class="res-recharge">${rechargeLabel}</span></div>
-      <button class="res-badge" onclick="spendResource('${res.key}',1)">−</button>
+      <button class="res-badge" onclick="spendResource('${rk}',1)">−</button>
       <span style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold2);min-width:24px;text-align:center">${cur}</span>
       <span style="font-size:var(--fs-meta);color:var(--text3)">/ ${max}</span>
-      <button class="res-badge" onclick="charResources['${res.key}']=Math.min(${max},${cur}+1);saveResources();renderActionsTab()">+</button>
+      <button class="res-badge" onclick="charResources['${rk}']=Math.min(${max},${cur}+1);saveResources();renderActionsTab()">+</button>
     </div>`;
   } else {
     // Show as pips
     let pipsHtml = '';
     for(let i=0;i<max;i++){
-      pipsHtml += `<div class="res-pip${i<max-cur?' used':''}" onclick="setResourcePip('${res.key}',${i},${max})" title="${i<max-cur?'Consumato':'Disponibile'}"></div>`;
+      pipsHtml += `<div class="res-pip${i<max-cur?' used':''}" onclick="setResourcePip('${rk}',${i},${max})" title="${i<max-cur?'Consumato':'Disponibile'}"></div>`;
     }
     return `<div class="res-block">
       <div class="res-block-label">${esc(res.name)} <span class="res-recharge">${rechargeLabel}</span></div>
-      <div class="res-pip-group" data-key="${res.key}" data-max="${max}">${pipsHtml}</div>
+      <div class="res-pip-group" data-key="${rk}" data-max="${max}">${pipsHtml}</div>
     </div>`;
   }
 }
@@ -4270,13 +4383,33 @@ function _inferActionAttackBonus(a){
 }
 
 function _buildGenericActionRollButtons(a){
-  const atkBonus = _inferActionAttackBonus(a);
   const dmgFormula = _extractActionDamageFormula(a);
+  const text = `${String(a?.name || '')} ${String(a?.desc || '')}`.toLowerCase();
+  const hasAttackSignal =
+    a?.cat === 'attack' ||
+    a?.attackRoll !== undefined ||
+    a?.attackAbility !== undefined ||
+    typeof a?.attackBonus === 'number' ||
+    /\b(?:spell attack|weapon attack|to hit|make(?:s)? .*attack|melee attack|ranged attack)\b/.test(text);
+  const hasDamageSignal =
+    a?.damageFormula !== undefined ||
+    a?.rollDamage !== undefined ||
+    a?.damage !== undefined ||
+    (Array.isArray(a?.damageRolls) && a.damageRolls.length > 0) ||
+    !!dmgFormula ||
+    /\b(?:damage|takes? .*damage)\b/.test(text);
+  if(!hasAttackSignal && !hasDamageSignal) return '';
+
+  const atkBonus = _inferActionAttackBonus(a);
   const safeLabel = _jsEsc(a?.name || 'Action');
-  const atkBtn = `<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'Attack: ${safeLabel}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`;
+  const atkBtn = hasAttackSignal
+    ? `<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'Attack: ${safeLabel}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`
+    : '';
   const dmgBtn = dmgFormula
     ? `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${_jsEsc(dmgFormula)}','Damage: ${safeLabel}')">${luci('flame')} ${esc(dmgFormula)}</button>`
-    : `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamagePrompt('Damage: ${safeLabel}','1d6')">${luci('flame')} Damage ?</button>`;
+    : (hasDamageSignal
+      ? `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamagePrompt('Damage: ${safeLabel}','1d6')">${luci('flame')} Damage ?</button>`
+      : '');
   return atkBtn + dmgBtn;
 }
 
@@ -4327,10 +4460,10 @@ function buildCantripCard(name){
       <div class="action-stat">${hitStr}</div>
     </div>
     <div class="action-card-bar">
-      <button class="roll-btn" onclick="rollD20(${atkBonus},'Attack: ${safeName}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>
+      ${toHit ? `<button class="roll-btn" onclick="rollD20(${atkBonus},'Attack: ${safeName}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>` : ''}
       ${dmgFormula
         ? `<button class="roll-btn dmg" onclick="rollDamage('${_jsEsc(dmgFormula)}','Damage: ${safeName}')">${luci('flame')} ${esc(dmgLabel)}</button>`
-        : `<button class="roll-btn dmg" onclick="rollDamagePrompt('Damage: ${safeName}','1d6')">${luci('flame')} Damage ?</button>`}
+        : ''}
       ${!toHit ? `<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>` : ''}
       <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
       <div class="action-dmg-pill">${luci('trending-up')} x5/11/17</div>
@@ -4426,7 +4559,7 @@ function buildClassActionCard(a){
   // Build resource block inline
   const resInline = buildResourceBlockInline(a);
 
-  const genericRollRow = _buildGenericActionRollButtons(a);
+  const genericRollRow = rollRow ? '' : _buildGenericActionRollButtons(a);
   const barHtml = (resInline || rollRow || genericRollRow) ? (resInline + rollRow + genericRollRow) : '';
 
   return `<div class="action-card" id="${id}">
@@ -4516,25 +4649,26 @@ function buildResourceBlockInline(actionRef){
   if(!res) return '';
   const max=getResMax(res);
   if(max===0) return '';
-  const cur=charResources[res.key]??max;
+  const rk = _getResStateKey(res);
+  const cur=charResources[rk]??max;
   const rechargeLabel=_getResourceRechargeLabel(res);
   if(res.pool){
     return `<div class="res-inline">
       <span class="res-inline-label">${esc(res.name)}</span>
-      <button class="res-badge" onclick="event.stopPropagation();spendResource('${res.key}',1)">−</button>
+      <button class="res-badge" onclick="event.stopPropagation();spendResource('${rk}',1)">−</button>
       <span style="font-family:var(--ff-display);font-size:var(--fs-body-lg);font-weight:700;color:var(--gold2)">${cur}</span>
       <span style="font-size:var(--fs-label);color:var(--text3)">/${max}</span>
-      <button class="res-badge" onclick="event.stopPropagation();charResources['${res.key}']=Math.min(${max},(charResources['${res.key}']||0)+1);saveResources();renderActionsTab()">+</button>
+      <button class="res-badge" onclick="event.stopPropagation();charResources['${rk}']=Math.min(${max},(charResources['${rk}']||0)+1);saveResources();renderActionsTab()">+</button>
       <span class="res-recharge">${rechargeLabel}</span>
     </div>`;
   } else {
     let pipsHtml='';
     for(let i=0;i<max;i++){
-      pipsHtml+=`<div class="res-pip${i<max-cur?' used':''}" onclick="event.stopPropagation();setResourcePip('${res.key}',${i},${max})" title="${i<max-cur?'Consumato':'Disponibile'}"></div>`;
+      pipsHtml+=`<div class="res-pip${i<max-cur?' used':''}" onclick="event.stopPropagation();setResourcePip('${rk}',${i},${max})" title="${i<max-cur?'Consumato':'Disponibile'}"></div>`;
     }
     return `<div class="res-inline">
       <span class="res-inline-label">${esc(res.name)}</span>
-      <div class="res-pip-group" data-key="${res.key}" data-max="${max}">${pipsHtml}</div>
+      <div class="res-pip-group" data-key="${rk}" data-max="${max}">${pipsHtml}</div>
       <span class="res-recharge">${rechargeLabel}</span>
     </div>`;
   }
@@ -4799,7 +4933,9 @@ function downloadSheet() {
     a.download = (C && C.name ? C.name : 'personaggio').replace(/[^a-z0-9_\-\.]/gi, '_') + '_scheda.html';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  } catch(e) { alert('Errore download: ' + e.message); }
+  } catch(e) {
+    showDiceToast('Download', [], 0, 0, 'Errore download: ' + (e?.message || 'sconosciuto'));
+  }
 }
 
 /* ═══════ INIT ═══════ */

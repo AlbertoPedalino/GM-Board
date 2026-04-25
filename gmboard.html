@@ -833,8 +833,8 @@ function saveTables(){
   for(let i=0;i<4;i++){localStorage.setItem('gm_enc'+i,JSON.stringify(T.enc[i]));localStorage.setItem('gm_trap'+i,JSON.stringify(T.trap[i]));}
   showToast(luci('check') + ' Tables saved');
 }
-function resetTables(){
-  if(!confirm('Restore original tables?'))return;
+async function resetTables(){
+  if(!await uiConfirm('Restore original tables?'))return;
   T.weather=cp(DEF_WEATHER);T.events=cp(DEF_EVENTS);T.loot=cp(DEF_LOOT);T.compl=cp(DEF_COMPL);T.env=cp(DEF_ENV);
   for(let i=0;i<4;i++){T.enc[i]=cp(DEF_ENC[i]);T.trap[i]=cp(DEF_TRAP[i]);}
   ['gm_wea','gm_ev','gm_lo','gm_co','gm_env'].forEach(k=>localStorage.removeItem(k));
@@ -842,6 +842,54 @@ function resetTables(){
   buildEditor();showToast('↺ Restored');
 }
 function showToast(m=luci('check')){const t=document.getElementById('toast');if(!t)return;t.innerHTML=m;t.style.display='block';refreshIcons();setTimeout(()=>t.style.display='none',2000);}
+function uiConfirm(message){
+  return new Promise(resolve=>{
+    let modal=document.getElementById('gm-confirm-modal');
+    if(!modal){
+      modal=document.createElement('div');
+      modal.id='gm-confirm-modal';
+      modal.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:3500;align-items:center;justify-content:center;padding:1rem';
+      modal.innerHTML=`
+        <div style="width:min(440px,100%);background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1rem">
+          <div id="gm-confirm-text" style="font-size:18px;color:var(--text);margin-bottom:.9rem;line-height:1.35"></div>
+          <div style="display:flex;justify-content:flex-end;gap:.55rem">
+            <button class="chip" id="gm-confirm-cancel">Cancel</button>
+            <button class="chip on" id="gm-confirm-ok">Confirm</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click',e=>{
+        if(e.target===modal&&typeof modal._resolve==='function'){
+          modal.style.display='none';
+          modal._resolve(false);
+          modal._resolve=null;
+        }
+      });
+      document.addEventListener('keydown',e=>{
+        if(e.key==='Escape'&&modal.style.display==='flex'&&typeof modal._resolve==='function'){
+          modal.style.display='none';
+          modal._resolve(false);
+          modal._resolve=null;
+        }
+      });
+      modal.querySelector('#gm-confirm-cancel').addEventListener('click',()=>{
+        if(typeof modal._resolve!=='function')return;
+        modal.style.display='none';
+        modal._resolve(false);
+        modal._resolve=null;
+      });
+      modal.querySelector('#gm-confirm-ok').addEventListener('click',()=>{
+        if(typeof modal._resolve!=='function')return;
+        modal.style.display='none';
+        modal._resolve(true);
+        modal._resolve=null;
+      });
+    }
+    modal.querySelector('#gm-confirm-text').textContent=String(message||'Confirm?');
+    modal._resolve=resolve;
+    modal.style.display='flex';
+  });
+}
 
 function getEvent(s){readEditor();return T.events.find(e=>e.r===s)||{name:'—',type:'nothing'};}
 function getLoot(s){readEditor();return T.loot.find(e=>e.r===s)||{tipo:'Nothing found',rarita:'—',qualita:'—',valore:'—',extra:''};}

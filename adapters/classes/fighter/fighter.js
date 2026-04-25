@@ -108,6 +108,13 @@ registerClassSheetResources("Fighter", [
     "icon": "zap",
     "recharge": "SR",
     "max": (lv)=>lv>=17?2:1
+  },
+  {
+    "key": "indomitable",
+    "name": "Indomitable",
+    "icon": "shield",
+    "recharge": "LR",
+    "max": (lv)=>lv>=17?3:lv>=13?2:1
   }
 ]);
 // [SheetRuntime] END
