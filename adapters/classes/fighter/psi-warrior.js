@@ -25,6 +25,7 @@ registerSubclassSheetResources("Fighter_Psi Warrior", [
   {
     "key": "psi_dice",
     "name": "Psi Points",
+    "actionName": "Psionic Strike",
     "icon": "orbit",
     "recharge": "SR",
     "max": (lv)=>lv>=11?12:lv>=5?8:6,

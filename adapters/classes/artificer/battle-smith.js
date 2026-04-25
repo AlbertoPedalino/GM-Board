@@ -33,4 +33,7 @@ registerSubclassSheetActions("Artificer_Battle Smith", [
     "desc": "When you or your Steel Defender hits, channel arcane energy to deal extra force damage or restore hit points."
   }
 ]);
+registerSubclassSheetProficiencies("Artificer_Battle Smith", [
+  { type: "tool", values: ["Smith's Tools"], minLevel: 3 }
+]);
 // [SheetRuntime] END

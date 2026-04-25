@@ -9,6 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
+      --ff-body: 'EB Garamond', Georgia, serif;
+      --ff-display: 'Cinzel', Georgia, serif;
+      --fs-base: 15px;
+      --fs-tiny: 7px;
+      --fs-micro: 8px;
+      --fs-xs: 9px;
       --bg: #12100e;
       --bg2: #1a1713;
       --bg3: #23201a;
@@ -43,19 +49,25 @@
       --fs-meta: 11px;
       --fs-body: 12px;
       --fs-body-lg: 13px;
+      --fs-ui-lg: 14px;
+      --fs-ui-xl: 16px;
+      --fs-ui-xxl: 20px;
       --fs-value-sm: 18px;
       --fs-value-md: 22px;
+      --fs-value-xl: 24px;
       --fs-value-lg: 28px;
+      --fs-dice: 38px;
+      --lh-body: 1.58;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 15px;
+      font-family: var(--ff-body);
+      font-size: var(--fs-base);
       min-height: 100vh;
-      line-height: 1.58;
+      line-height: var(--lh-body);
       letter-spacing: .01em;
       text-rendering: optimizeLegibility;
     }
@@ -97,15 +109,15 @@
       border: 2px solid var(--bdr2);
       background: var(--bg4);
       display:flex;align-items:center;justify-content:center;
-      font-size: 22px;flex-shrink:0;
+      font-size:var(--fs-value-md);flex-shrink:0;
     }
     .char-identity { flex:1;min-width:0 }
     .char-name {
-      font-family:'Cinzel',serif;font-size:18px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-value-sm);font-weight:700;
       color:var(--gold2);letter-spacing:.04em;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
-    .char-meta { font-size:12px;color:var(--text2);margin-top:1px }
+    .char-meta { font-size:var(--fs-body);color:var(--text2);margin-top:1px }
 
     .xp-block { display:flex;flex-direction:column;align-items:center;gap:3px;min-width:120px }
     .xp-bar-wrap {
@@ -113,12 +125,12 @@
       border-radius:3px;border:1px solid var(--bdr);overflow:hidden;
     }
     .xp-bar-fill { height:100%;background:var(--gold);border-radius:3px;transition:width .4s }
-    .xp-label { font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;color:var(--text3) }
+    .xp-label { font-family:var(--ff-display);font-size:var(--fs-xs);letter-spacing:.1em;color:var(--text3) }
     #hd-label { font-size: var(--fs-meta); color: var(--text3); }
 
     .rest-btn {
       padding: 6px 13px;border:1px solid;border-radius:var(--r);
-      font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-label);font-weight:600;
       letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .12s;
     }
     .rest-btn.short { border-color:var(--orange);color:var(--orange);background:var(--obg) }
@@ -128,7 +140,7 @@
 
     .back-btn {
       padding: 6px 12px;border:1px solid var(--bdr2);border-radius:var(--r);
-      font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-label);font-weight:600;
       letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--text2);background:transparent;
       transition:all .12s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;
     }
@@ -136,8 +148,16 @@
 
     /* ─── ABILITY SCORES ROW ─── */
     .scores-row {
-      display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem;
+      display:flex;align-items:stretch;gap:.6rem;
       padding:.55rem 1.1rem;background:var(--bg3);border-bottom:1px solid var(--bdr);
+      flex-wrap:wrap;
+    }
+    .scores-left {
+      display:grid;
+      grid-template-columns:repeat(8,minmax(62px,1fr));
+      gap:.6rem;
+      flex:1 1 520px;
+      min-width:0;
     }
     .score-box {
       background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);
@@ -146,15 +166,15 @@
     }
     .score-box:hover { border-color:var(--gold) }
     .score-lbl {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:700;
       letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:2px;
     }
     .score-mod {
-      font-family:'Cinzel',serif;font-size:24px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-value-xl);font-weight:700;
       color:var(--gold2);line-height:1;
     }
     .score-base {
-      font-family:'Cinzel',serif;font-size:11px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-meta);font-weight:600;
       color:var(--text2);
       background:var(--bg3);border:1px solid var(--bdr);border-radius:50%;
       width:24px;height:24px;display:flex;align-items:center;justify-content:center;
@@ -162,21 +182,17 @@
     }
 
     /* ─── STATS ROW ─── */
-    .stats-row {
-      display:flex;align-items:stretch;gap:.6rem;
-      padding:.5rem 1.1rem;background:var(--bg2);border-bottom:1px solid var(--bdr);
-      flex-wrap:wrap;
-    }
+    .stats-row { display:none; }
     .stat-box {
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
       display:flex;flex-direction:column;align-items:center;justify-content:center;
       padding:.42rem .68rem;text-align:center;min-width:64px;
     }
     .stat-box-val {
-      font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--gold2);line-height:1;
+      font-family:var(--ff-display);font-size:var(--fs-ui-xxl);font-weight:700;color:var(--gold2);line-height:1;
     }
     .stat-box-lbl {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:600;
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:4px;
     }
     .stat-box.green .stat-box-val { color:var(--green) }
@@ -186,17 +202,17 @@
 
     /* HP section */
     .hp-block {
-      flex:0 1 170px;min-width:165px;
+      flex:0 1 260px;min-width:220px;max-width:300px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
       padding:.3rem .45rem;
     }
     .hp-title {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:600;
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.2rem;
     }
     .hp-controls { display:flex;align-items:center;gap:.3rem }
     .hp-btn {
-      width:24px;height:24px;padding:0;border-radius:var(--r);font-family:'Cinzel',serif;font-size:10px;
+      width:24px;height:24px;padding:0;border-radius:var(--r);font-family:var(--ff-display);font-size:var(--fs-label);
       font-weight:600;cursor:pointer;border:1px solid;letter-spacing:.06em;
       display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
     }
@@ -204,25 +220,18 @@
     .hp-btn.dmg  { border-color:var(--red2); color:var(--red2); background:var(--redbg) }
     .hp-vals { display:flex;align-items:baseline;gap:.3rem;flex:1;justify-content:center;white-space:nowrap }
     .hp-cur {
-      font-family:'Cinzel',serif;font-size:24px;font-weight:700;color:var(--green);line-height:1;
+      font-family:var(--ff-display);font-size:var(--fs-value-xl);font-weight:700;color:var(--green);line-height:1;
     }
-    .hp-sep { font-family:'Cinzel',serif;font-size:14px;color:var(--text3) }
-    .hp-max { font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--text2) }
-    .hp-subline {
-      display:grid;grid-template-columns:1fr auto auto;gap:4px;align-items:center;
-      margin-top:4px;
-    }
-    .hp-step {
-      width:46px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--r);
-      color:var(--text);font-family:'Cinzel',serif;font-size:10px;font-weight:700;
-      text-align:center;padding:2px 4px;outline:none;
-    }
+    .hp-sep { font-family:var(--ff-display);font-size:var(--fs-ui-lg);color:var(--text3) }
+    .hp-max { font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:600;color:var(--text2) }
+    .hp-subline { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;margin-top:4px; }
     .hp-mini {
       border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);
-      color:var(--text2);font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;
-      display:inline-flex;align-items:center;gap:4px;padding:2px 6px;white-space:nowrap;
+      color:var(--text2);font-family:var(--ff-display);font-size:var(--fs-xs);letter-spacing:.06em;
+      display:inline-flex;align-items:center;gap:4px;padding:2px 6px;white-space:nowrap;width:100%;
     }
-    .hp-mini b { color:var(--gold2);font-weight:700; }
+    .hp-mini b { color:var(--gold2);font-weight:700; margin-left:auto; }
+    .hp-mini-actions { display:inline-flex;align-items:center;gap:4px; }
     .hp-mini-btn {
       width:18px;height:18px;border:1px solid var(--bdr2);border-radius:4px;
       background:transparent;color:var(--text2);cursor:pointer;
@@ -237,7 +246,7 @@
     }
     .hp-death[hidden] { display:none; }
     .hp-ds-lbl {
-      font-family:'Cinzel',serif;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);
+      font-family:var(--ff-display);font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--text3);
     }
     .hp-ds-pips { display:flex;align-items:center;gap:3px; }
     .hp-ds-pip {
@@ -245,6 +254,13 @@
     }
     .hp-ds-pip.success.on { background:var(--green);border-color:var(--green); }
     .hp-ds-pip.fail.on { background:var(--red2);border-color:var(--red2); }
+    .hp-amount-input {
+      width:34px;height:24px;text-align:center;border:1px solid var(--bdr2);border-radius:var(--r);
+      background:var(--bg2);color:var(--text2);font-family:var(--ff-display);font-size:var(--fs-meta);font-weight:600;
+      -moz-appearance:textfield;flex-shrink:0;
+    }
+    .hp-amount-input::-webkit-outer-spin-button,.hp-amount-input::-webkit-inner-spin-button{-webkit-appearance:none}
+    .hp-amount-input:focus{outline:1px solid var(--gold);border-color:var(--gold)}
 
     /* ─── MAIN GRID ─── */
     .main-grid {
@@ -256,11 +272,67 @@
       min-height:calc(100vh - 220px);
     }
     @media(max-width:960px){
+      :root{
+        --fs-base: 16px;
+        --fs-tiny: 8px;
+        --fs-micro: 9px;
+        --fs-xs: 10px;
+        --fs-label: 11px;
+        --fs-meta: 12px;
+        --fs-body: 13px;
+        --fs-body-lg: 14px;
+        --fs-ui-lg: 15px;
+        --fs-ui-xl: 17px;
+        --fs-value-sm: 20px;
+        --fs-value-md: 24px;
+        --fs-value-xl: 26px;
+      }
+      .topbar {
+        padding: .55rem .75rem;
+        gap: .55rem;
+        flex-wrap: wrap;
+      }
+      .char-avatar { width:46px;height:46px;font-size:var(--fs-value-sm); }
+      .char-meta { font-size:var(--fs-meta); }
+      .xp-block {
+        order: 10;
+        flex: 1 1 100%;
+        min-width: 0;
+        align-items: stretch;
+      }
+      .xp-block > div { justify-content: flex-start; }
+      .rest-btn, .back-btn { padding: 6px 10px; }
+      .scores-row { padding: .5rem .75rem; }
+      .main-grid { padding: .5rem .75rem; gap: .5rem; }
+      .panel-hdr { padding: .5rem .7rem; }
+      .panel-body { padding: .6rem .7rem; }
+      .tab-btn {
+        padding: .66rem .9rem;
+        font-size: var(--fs-meta);
+        letter-spacing: .08em;
+      }
+      .scores-left { grid-template-columns:repeat(4,minmax(62px,1fr)); }
       .main-grid { grid-template-columns:1fr 1fr; }
       .main-col-right { grid-column:1 / -1; }
     }
     @media(max-width:600px){
-      .main-grid { grid-template-columns:1fr }
+      .topbar { padding: .5rem .6rem; }
+      .char-identity { flex: 1 1 100%; order: 2; }
+      .rest-btn, .back-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+        text-align: center;
+      }
+      .scores-row { gap:.45rem; padding:.45rem .6rem; }
+      .scores-left { gap:.45rem; grid-template-columns:repeat(2,minmax(62px,1fr)); }
+      .score-box { padding:.35rem .2rem; }
+      .main-grid { grid-template-columns:1fr; padding:.45rem .6rem; gap:.45rem; }
+      .right-top-row { gap:.35rem; }
+      .circle-stat { width:58px;height:58px; }
+      .defenses-block, .conditions-block { min-width:120px; padding:.38rem .55rem; }
+      .hp-btn { width:26px; height:26px; }
+      .hp-amount-input { width:40px; height:26px; }
+      .tab-content { padding:.55rem; }
       .main-col-right { grid-column:1 }
     }
 
@@ -275,7 +347,7 @@
       padding:.48rem .8rem;display:flex;align-items:center;justify-content:space-between;
     }
     .panel-title {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:700;
       letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
     }
     .panel-body { padding:.55rem .8rem }
@@ -291,11 +363,11 @@
     }
     .save-dot.on { background:var(--gold);border-color:var(--gold) }
     .save-stat {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:600;
       color:var(--text3);letter-spacing:.08em;width:28px;flex-shrink:0;
     }
     .save-bonus {
-      font-family:'Cinzel',serif;font-size:12px;font-weight:600;
+      font-family:var(--ff-display);font-size:var(--fs-body);font-weight:600;
       color:var(--text);margin-left:auto;
     }
 
@@ -306,24 +378,24 @@
       border-radius:var(--r);margin-bottom:3px;
     }
     .sense-val {
-      font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold2);
+      font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold2);
       flex-shrink:0;
     }
-    .sense-lbl { font-size:11px;color:var(--text2) }
+    .sense-lbl { font-size:var(--fs-meta);color:var(--text2) }
 
     /* ─── PROFICIENCIES ─── */
     .prof-section { margin-bottom:.7rem }
     .prof-section-title {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:700;
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;
     }
-    .prof-text { font-size:12px;color:var(--text2);line-height:1.5 }
+    .prof-text { font-size:var(--fs-body);color:var(--text2);line-height:1.5 }
 
     /* ─── SKILLS ─── */
     .skills-header {
       display:grid;grid-template-columns:20px 30px 1fr auto;
       gap:4px;padding:0 .9rem .3rem;
-      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:700;
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
     }
     .skill-row {
@@ -340,18 +412,18 @@
     .skill-dot.exp  { background:var(--teal);border-color:var(--teal) }
     .skill-dot.joat { background:rgba(200,168,75,.35);border-color:var(--gold);border-style:dashed }
     .adv-badge {
-      font-size:9px;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.04em;
+      font-size:var(--fs-xs);font-family:var(--ff-display);font-weight:700;letter-spacing:.04em;
       padding:1px 5px;border-radius:3px;flex-shrink:0;
     }
     .adv-badge.adv   { background:rgba(39,174,96,.2);color:var(--green);border:1px solid var(--green) }
     .adv-badge.disadv{ background:rgba(192,57,43,.2);color:var(--red2);border:1px solid var(--red2) }
     .skill-ability {
-      font-family:'Cinzel',serif;font-size:9px;color:var(--text3);
+      font-family:var(--ff-display);font-size:var(--fs-xs);color:var(--text3);
       letter-spacing:.06em;
     }
-    .skill-name { font-size:12px;color:var(--text2) }
+    .skill-name { font-size:var(--fs-body);color:var(--text2) }
     .skill-bonus {
-      font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--text);
+      font-family:var(--ff-display);font-size:var(--fs-body);font-weight:600;color:var(--text);
       text-align:right;
     }
 
@@ -369,10 +441,10 @@
     .circle-stat.clickable:hover { border-color:var(--gold); }
     .circle-stat.clickable:active { transform:translateY(1px); }
     .circle-stat-val {
-      font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--gold2);line-height:1;
+      font-family:var(--ff-display);font-size:var(--fs-ui-xxl);font-weight:700;color:var(--gold2);line-height:1;
     }
     .circle-stat-lbl {
-      font-family:'Cinzel',serif;font-size:7px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-tiny);font-weight:700;
       letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:2px;
     }
     .defenses-block, .conditions-block {
@@ -381,12 +453,12 @@
       padding:.4rem .62rem;
     }
     .block-title {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:700;
       letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;
     }
-    .def-text { font-size:12px;color:var(--text2) }
+    .def-text { font-size:var(--fs-body);color:var(--text2) }
     .def-tag {
-      display:inline-block;font-size:10px;font-family:'Cinzel',serif;
+      display:inline-block;font-size:var(--fs-label);font-family:var(--ff-display);
       padding:2px 7px;border-radius:3px;border:1px solid var(--bdr2);
       color:var(--text2);margin:2px;
     }
@@ -398,7 +470,7 @@
     .tabs-bar::-webkit-scrollbar{height:2px}
     .tabs-bar::-webkit-scrollbar-thumb{background:var(--bdr2)}
     .tab-btn {
-      padding:.62rem 1rem;font-family:'Cinzel',serif;font-size:10px;font-weight:600;
+      padding:.62rem 1rem;font-family:var(--ff-display);font-size:var(--fs-label);font-weight:600;
       letter-spacing:.1em;text-transform:uppercase;color:var(--text3);
       border:none;background:transparent;cursor:pointer;white-space:nowrap;
       border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;
@@ -414,16 +486,16 @@
     }
     .af-btn {
       padding:4px 10px;border:1px solid var(--bdr);border-radius:999px;
-      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.09em;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:600;letter-spacing:.09em;
       background:transparent;color:var(--text3);cursor:pointer;transition:all .12s;
       text-transform:uppercase;
     }
     .af-btn:hover { border-color:var(--bdr2);color:var(--text2) }
     .af-btn.on { background:var(--gdim);border-color:var(--gold);color:var(--gold2) }
 
-    .attacks-table { width:100%;border-collapse:collapse;font-size:12px }
+    .attacks-table { width:100%;border-collapse:collapse;font-size:var(--fs-body) }
     .attacks-table th {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:700;
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
       border-bottom:1px solid var(--bdr);padding:4px 6px;text-align:left;
     }
@@ -434,33 +506,33 @@
     .attacks-table tr:last-child td { border-bottom:none }
     .attacks-table tr:hover td { background:var(--bg3) }
     .atk-name { color:var(--text);font-weight:600 }
-    .atk-sub  { font-size:10px;color:var(--text3) }
-    .atk-hit  { font-family:'Cinzel',serif;font-weight:700;
-      color:var(--gold2);font-size:14px; }
-    .atk-dmg  { font-family:'Cinzel',serif;color:var(--text);font-size:12px }
-    .atk-icon { font-size:14px;margin-right:4px }
+    .atk-sub  { font-size:var(--fs-label);color:var(--text3) }
+    .atk-hit  { font-family:var(--ff-display);font-weight:700;
+      color:var(--gold2);font-size:var(--fs-ui-lg); }
+    .atk-dmg  { font-family:var(--ff-display);color:var(--text);font-size:var(--fs-body) }
+    .atk-icon { font-size:var(--fs-ui-lg);margin-right:4px }
 
     /* ─── SPELLS TAB ─── */
     .spell-level-section { margin-bottom:1rem }
     .spell-level-hdr {
-      font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;
       letter-spacing:.1em;color:var(--blue);text-transform:uppercase;
       border-bottom:1px solid var(--bluebg);padding-bottom:4px;margin-bottom:.4rem;
     }
     .spell-entry {
       display:flex;align-items:center;gap:8px;padding:4px 8px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      margin-bottom:3px;font-size:13px;color:var(--text);cursor:pointer;
+      margin-bottom:3px;font-size:var(--fs-body-lg);color:var(--text);cursor:pointer;
     }
     .spell-entry-body {
-      display:none;font-size:11px;color:var(--text2);line-height:1.5;
+      display:none;font-size:var(--fs-meta);color:var(--text2);line-height:1.5;
       background:var(--bg);border:1px solid var(--bdr);border-top:none;
       border-radius:0 0 var(--r) var(--r);padding:6px 10px;margin-top:-3px;margin-bottom:3px;
     }
     .spell-entry-body.open { display:block }
-    .spell-entry .sp-school { font-size:10px;color:var(--text3);flex:1;text-align:right }
+    .spell-entry .sp-school { font-size:var(--fs-label);color:var(--text3);flex:1;text-align:right }
     .spell-badge {
-      font-size:9px;font-family:'Cinzel',serif;padding:1px 6px;
+      font-size:var(--fs-xs);font-family:var(--ff-display);padding:1px 6px;
       border-radius:3px;flex-shrink:0;
     }
     .spell-badge.auto { border:1px solid var(--teal);color:var(--teal);background:var(--tbg) }
@@ -477,57 +549,57 @@
       padding:6px 9px;cursor:pointer;transition:background .1s;
     }
     .feature-hdr:hover { background:var(--bg4) }
-    .feature-name { font-size:13px;color:var(--text);font-weight:600 }
-    .feature-src  { font-size:10px;color:var(--text3);font-style:italic }
-    .feature-arrow { font-size:10px;color:var(--text3);transition:transform .15s }
+    .feature-name { font-size:var(--fs-body-lg);color:var(--text);font-weight:600 }
+    .feature-src  { font-size:var(--fs-label);color:var(--text3);font-style:italic }
+    .feature-arrow { font-size:var(--fs-label);color:var(--text3);transition:transform .15s }
     .feature-item.open .feature-arrow { transform:rotate(90deg) }
     .feature-body {
-      display:none;padding:8px 12px;font-size:13px;color:var(--text2);
+      display:none;padding:8px 12px;font-size:var(--fs-body-lg);color:var(--text2);
       border-top:1px solid var(--bdr);line-height:1.6;
     }
     .feature-item.open .feature-body { display:block }
     .feature-lv-badge {
-      font-family:'Cinzel',serif;font-size:8px;padding:2px 6px;
+      font-family:var(--ff-display);font-size:var(--fs-micro);padding:2px 6px;
       border:1px solid var(--bdr2);border-radius:3px;color:var(--text3);flex-shrink:0;
     }
 
     /* ─── INVENTORY TAB ─── */
     .inv-category { margin-bottom:.8rem }
     .inv-cat-title {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:700;
       letter-spacing:.12em;text-transform:uppercase;color:var(--text3);
       border-bottom:1px solid var(--bdr);padding-bottom:3px;margin-bottom:.4rem;
     }
     .inv-item {
       display:flex;align-items:center;gap:8px;
-      padding:4px 8px;font-size:13px;color:var(--text2);
+      padding:4px 8px;font-size:var(--fs-body-lg);color:var(--text2);
       border-bottom:1px solid var(--bdr);
     }
     .inv-item:last-child { border-bottom:none }
-    .inv-icon { font-size:14px;flex-shrink:0 }
+    .inv-icon { font-size:var(--fs-ui-lg);flex-shrink:0 }
 
     /* ─── BACKGROUND TAB ─── */
     .bg-section { margin-bottom:1rem }
     .bg-section-title {
-      font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;
       letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;
     }
-    .bg-text { font-size:13px;color:var(--text2);line-height:1.6 }
+    .bg-text { font-size:var(--fs-body-lg);color:var(--text2);line-height:1.6 }
 
     /* ─── NOTES TAB ─── */
     .notes-area {
       width:100%;min-height:200px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      color:var(--text);font-family:'EB Garamond',serif;font-size:14px;
+      color:var(--text);font-family:var(--ff-body);font-size:var(--fs-ui-lg);
       padding:.75rem;outline:none;resize:vertical;
     }
     .notes-area:focus { border-color:var(--gold) }
 
     /* ─── MISC ─── */
-    .phmsg { font-size:13px;color:var(--text3);font-style:italic;padding:.5rem 0 }
+    .phmsg { font-size:var(--fs-body-lg);color:var(--text3);font-style:italic;padding:.5rem 0 }
     .spl-add-btn {
       background:var(--gdim);border:1px solid var(--gold);border-radius:var(--r);
-      color:var(--gold);font-family:'Cinzel',serif;font-size:11px;font-weight:600;
+      color:var(--gold);font-family:var(--ff-display);font-size:var(--fs-meta);font-weight:600;
       letter-spacing:.06em;padding:5px 14px;cursor:pointer;transition:all .12s;
     }
     .spl-add-btn:hover { background:rgba(200,168,75,.2) }
@@ -538,17 +610,17 @@
     .spl-row:hover { border-color:var(--bdr);background:var(--bg3) }
     .spl-row.on { border-color:var(--green);background:rgba(39,174,96,.08) }
     .spl-row.blocked { opacity:.45;cursor:not-allowed }
-    .spl-name { flex:1;min-width:0;font-size:13px }
-    .spl-school { font-size:10px;color:var(--text3);flex-shrink:0 }
-    .spl-check { font-size:11px;color:var(--green);flex-shrink:0 }
+    .spl-name { flex:1;min-width:0;font-size:var(--fs-body-lg) }
+    .spl-school { font-size:var(--fs-label);color:var(--text3);flex-shrink:0 }
+    .spl-check { font-size:var(--fs-meta);color:var(--green);flex-shrink:0 }
     .spl-count-badge {
-      font-family:'Cinzel',serif;font-size:11px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-meta);font-weight:700;
       color:var(--gold2);background:var(--gdim);border:1px solid var(--bdr2);
       border-radius:10px;padding:1px 10px;
     }
     .divider { height:1px;background:var(--bdr);margin:.6rem 0 }
     .tag {
-      display:inline-block;font-size:10px;font-family:'Cinzel',serif;
+      display:inline-block;font-size:var(--fs-label);font-family:var(--ff-display);
       padding:2px 7px;border-radius:3px;border:1px solid;margin:2px;
     }
     .tag.g  { border-color:var(--gold);  color:var(--gold);  background:var(--gdim) }
@@ -564,7 +636,7 @@
       width:18px;height:18px;border-radius:3px;
       border:1px solid var(--bdr2);background:var(--bg3);
       display:flex;align-items:center;justify-content:center;
-      font-size:9px;color:var(--text3);
+      font-size:var(--fs-xs);color:var(--text3);
     }
     .hd-pip.used { opacity:.3 }
     .hd-pip.full { background:var(--gdim);border-color:var(--gold);color:var(--gold) }
@@ -576,8 +648,8 @@
 
     .condition-tag {
       display:inline-flex;align-items:center;gap:5px;
-      padding:2px 8px;border-radius:999px;margin:0;font-size:10px;
-      font-family:'Cinzel',serif;border:1px solid var(--bdr2);color:var(--text3);
+      padding:2px 8px;border-radius:999px;margin:0;font-size:var(--fs-label);
+      font-family:var(--ff-display);border:1px solid var(--bdr2);color:var(--text3);
       background:var(--bg3);white-space:nowrap;
     }
     .condition-tag.on { color:var(--orange); border-color:var(--orange); background:var(--obg); }
@@ -586,8 +658,8 @@
     .cond-active { display:flex; flex-wrap:wrap; gap:4px; }
     .cond-details { border:1px dashed var(--bdr); border-radius:var(--r); padding:3px 6px; }
     .cond-summary {
-      list-style:none; cursor:pointer; font-family:'Cinzel',serif;
-      font-size:10px; color:var(--text2); letter-spacing:.06em;
+      list-style:none; cursor:pointer; font-family:var(--ff-display);
+      font-size:var(--fs-label); color:var(--text2); letter-spacing:.06em;
       display:inline-flex; align-items:center; gap:5px; user-select:none;
     }
     .cond-summary::-webkit-details-marker { display:none; }
@@ -599,14 +671,14 @@
       border:1px solid var(--bdr2); border-radius:var(--r); background:var(--bg3);
       color:var(--text2); padding:4px 6px; cursor:pointer; transition:all .12s;
       display:flex; align-items:center; gap:5px; justify-content:flex-start;
-      font-family:'Cinzel',serif; font-size:9px; letter-spacing:.03em;
+      font-family:var(--ff-display); font-size:var(--fs-xs); letter-spacing:.03em;
     }
     .cond-btn:hover { border-color:var(--gold); color:var(--gold2); }
     .cond-btn.on { border-color:var(--orange); color:var(--orange); background:var(--obg); }
     .cond-clear {
       border:1px solid var(--bdr2); border-radius:var(--r); background:transparent;
       color:var(--text3); padding:2px 7px; cursor:pointer;
-      font-family:'Cinzel',serif; font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+      font-family:var(--ff-display); font-size:var(--fs-xs); letter-spacing:.06em; text-transform:uppercase;
       width:max-content;
     }
     .cond-clear:hover { border-color:var(--red2); color:var(--red2); }
@@ -617,11 +689,11 @@
     .ac-shield svg { position:absolute;inset:0;width:100%;height:100% }
     .ac-shield-val {
       position:relative;z-index:1;
-      font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2);
+      font-family:var(--ff-display);font-size:var(--fs-value-md);font-weight:700;color:var(--gold2);
     }
     .ac-shield-lbl {
       position:relative;z-index:1;
-      font-family:'Cinzel',serif;font-size:7px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-tiny);font-weight:700;
       letter-spacing:.1em;text-transform:uppercase;color:var(--text3);
       display:block;margin-top:18px;
     }
@@ -687,14 +759,14 @@
     .xp-block { position:relative }
     .xp-edit-input {
       background:transparent;border:none;border-bottom:1px solid var(--gold);
-      color:var(--gold2);font-family:'Cinzel',serif;font-size:11px;font-weight:600;
+      color:var(--gold2);font-family:var(--ff-display);font-size:var(--fs-meta);font-weight:600;
       text-align:center;outline:none;width:100px;padding:2px 0;
     }
 
     /* ─── INVENTORY STYLES ─── */
     .inv-search-box {
       width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      padding:8px 12px;color:var(--text);font-family:'EB Garamond',serif;font-size:15px;
+      padding:8px 12px;color:var(--text);font-family:var(--ff-body);font-size:var(--fs-base);
       outline:none;transition:border-color .15s;margin-bottom:.5rem;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
     }
@@ -703,7 +775,7 @@
     .inv-filter-row { display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem }
     .inv-chip {
       padding:3px 10px;border:1px solid var(--bdr);border-radius:999px;
-      font-family:'Cinzel',serif;font-size:9px;font-weight:600;letter-spacing:.08em;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:600;letter-spacing:.08em;
       cursor:pointer;background:transparent;color:var(--text3);transition:all .12s;
       text-transform:uppercase;
     }
@@ -719,9 +791,9 @@
       cursor:pointer;transition:all .1s;
     }
     .inv-search-row:hover { border-color:var(--gold);background:var(--bg4) }
-    .inv-search-name { flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
-    .inv-search-meta { font-size:11px;color:var(--text3);flex-shrink:0 }
-    .inv-search-price { font-size:10px;color:var(--text2);flex-shrink:0 }
+    .inv-search-name { flex:1;font-size:var(--fs-body-lg);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+    .inv-search-meta { font-size:var(--fs-meta);color:var(--text3);flex-shrink:0 }
+    .inv-search-price { font-size:var(--fs-label);color:var(--text2);flex-shrink:0 }
     .inv-row {
       display:flex;align-items:center;gap:7px;padding:6px 10px;
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:3px;
@@ -729,29 +801,29 @@
     .inv-row:hover { border-color:var(--bdr2) }
     .inv-row.equipped { border-color:var(--teal);background:rgba(26,188,156,.06) }
     .inv-entry-body {
-      display:none;font-size:11px;color:var(--text2);line-height:1.45;
+      display:none;font-size:var(--fs-meta);color:var(--text2);line-height:1.45;
       background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r);
       padding:6px 10px;margin:-2px 0 4px;
     }
     .inv-entry-body.open { display:block }
-    .inv-row-name { flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
-    .inv-row-meta { font-size:11px;color:var(--text3);flex-shrink:0 }
+    .inv-row-name { flex:1;font-size:var(--fs-body-lg);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
+    .inv-row-meta { font-size:var(--fs-meta);color:var(--text3);flex-shrink:0 }
     .inv-badge {
-      font-size:8px;font-family:'Cinzel',serif;padding:1px 5px;border-radius:3px;
+      font-size:var(--fs-micro);font-family:var(--ff-display);padding:1px 5px;border-radius:3px;
       border:1px solid var(--bdr2);flex-shrink:0;
     }
     .inv-qty-wrap { display:flex;align-items:center;gap:4px;flex-shrink:0 }
     .inv-qty-btn {
       width:20px;height:20px;border:1px solid var(--bdr2);border-radius:3px;
-      background:transparent;color:var(--text2);font-size:13px;cursor:pointer;
+      background:transparent;color:var(--text2);font-size:var(--fs-body-lg);cursor:pointer;
       display:flex;align-items:center;justify-content:center;line-height:1;transition:all .1s;
     }
     .inv-qty-btn:hover { border-color:var(--gold);color:var(--gold) }
     .inv-qty-btn.del:hover { border-color:var(--red2);color:var(--red2) }
-    .inv-qty-val { font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--gold2);min-width:18px;text-align:center }
+    .inv-qty-val { font-family:var(--ff-display);font-size:var(--fs-body);font-weight:600;color:var(--gold2);min-width:18px;text-align:center }
     .inv-equip-btn {
       padding:2px 7px;border:1px solid var(--bdr2);border-radius:3px;
-      font-size:9px;font-family:'Cinzel',serif;cursor:pointer;background:transparent;
+      font-size:var(--fs-xs);font-family:var(--ff-display);cursor:pointer;background:transparent;
       color:var(--text3);transition:all .1s;flex-shrink:0;
     }
     .inv-equip-btn:hover { border-color:var(--teal);color:var(--teal) }
@@ -765,15 +837,15 @@
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
       padding:5px 4px;text-align:center;
     }
-    .currency-lbl { font-family:'Cinzel',serif;font-size:8px;letter-spacing:.08em;margin-bottom:3px }
+    .currency-lbl { font-family:var(--ff-display);font-size:var(--fs-micro);letter-spacing:.08em;margin-bottom:3px }
     .currency-inp {
       width:100%;background:transparent;border:none;border-bottom:1px solid var(--bdr2);
-      color:var(--gold2);font-family:'Cinzel',serif;font-size:14px;font-weight:700;
+      color:var(--gold2);font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;
       text-align:center;outline:none;padding:2px 0;
     }
     .currency-inp:focus { border-bottom-color:var(--gold) }
     .inv-section-hdr {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.12em;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;
       text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--bdr);
       padding-bottom:3px;margin:.6rem 0 .4rem;
     }
@@ -782,9 +854,9 @@
     }
     .inv-stat-pill {
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-      padding:4px 10px;font-size:12px;color:var(--text2);
+      padding:4px 10px;font-size:var(--fs-body);color:var(--text2);
     }
-    .inv-stat-pill b { color:var(--gold2);font-family:'Cinzel',serif }
+    .inv-stat-pill b { color:var(--gold2);font-family:var(--ff-display) }
     .item-detail-popup {
       position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
       display:flex;align-items:center;justify-content:center;padding:1rem;
@@ -796,7 +868,7 @@
 
     /* ─── ACTION CARDS ─── */
     .action-section-hdr {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.14em;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:700;letter-spacing:.14em;
       text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--bdr);
       padding-bottom:4px;margin:.9rem 0 .45rem;
     }
@@ -811,17 +883,17 @@
       transition:background .1s;
     }
     .action-card-hdr:hover { background:var(--bg4) }
-    .action-card-icon { font-size:15px;flex-shrink:0 }
+    .action-card-icon { font-size:var(--fs-base);flex-shrink:0 }
     .action-card-name {
-      flex:1;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;
+      flex:1;font-size:var(--fs-body-lg);font-weight:600;color:var(--text);overflow:hidden;
     }
     .action-card-name .sub {
-      display:block;font-size:10px;font-weight:400;color:var(--text3);
+      display:block;font-size:var(--fs-label);font-weight:400;color:var(--text3);
       font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
     .action-card-tags { display:flex;gap:3px;align-items:center;flex-shrink:0 }
     .action-tag {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:700;letter-spacing:.04em;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:700;letter-spacing:.04em;
       padding:2px 5px;border-radius:3px;border:1px solid;white-space:nowrap;
     }
     .action-tag.atk   { border-color:var(--red2);  color:var(--red2);  background:var(--redbg)  }
@@ -831,12 +903,12 @@
     .action-tag.react { border-color:var(--purple); color:var(--purple);background:var(--pbg)    }
     .action-tag.cls   { border-color:var(--gold);   color:var(--gold);  background:var(--gdim)   }
     .action-stat {
-      font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold2);
+      font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold2);
       flex-shrink:0;min-width:32px;text-align:right;
     }
     .action-card-body {
       display:none;padding:6px 10px 8px;border-top:1px solid var(--bdr);
-      font-size:12px;color:var(--text2);line-height:1.5;
+      font-size:var(--fs-body);color:var(--text2);line-height:1.5;
     }
     .action-card.open .action-card-body { display:block }
     .action-dmg-row { display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.35rem }
@@ -846,16 +918,16 @@
     }
     .action-dmg-pill {
       background:var(--bg4);border:1px solid var(--bdr2);border-radius:3px;
-      padding:3px 9px;font-family:'Cinzel',serif;font-size:11px;white-space:nowrap;
+      padding:3px 9px;font-family:var(--ff-display);font-size:var(--fs-meta);white-space:nowrap;
     }
     .action-dmg-pill b { color:var(--gold2) }
-    .action-desc { font-size:13px;color:var(--text2);line-height:1.6 }
+    .action-desc { font-size:var(--fs-body-lg);color:var(--text2);line-height:1.6 }
     /* res-block inline variant */
     .res-inline {
       display:flex;align-items:center;gap:5px;flex-wrap:wrap;
     }
     .res-inline-label {
-      font-family:'Cinzel',serif;font-size:8px;font-weight:700;letter-spacing:.08em;
+      font-family:var(--ff-display);font-size:var(--fs-micro);font-weight:700;letter-spacing:.08em;
       text-transform:uppercase;color:var(--text3);
     }
 
@@ -868,7 +940,7 @@
     }
     .dice-toast.show { bottom:1.2rem }
     .dice-toast-label {
-      font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.12em;
+      font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.12em;
       text-transform:uppercase;color:var(--text3);margin-bottom:.3rem;
     }
     .dice-toast-rolls {
@@ -877,37 +949,37 @@
     .dice-pip-val {
       background:var(--bg4);border:1px solid var(--bdr2);border-radius:5px;
       width:32px;height:32px;display:flex;align-items:center;justify-content:center;
-      font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--text);
+      font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--text);
     }
     .dice-pip-val.max { border-color:var(--gold);color:var(--gold2);background:var(--gdim) }
     .dice-pip-val.min { border-color:var(--red2);color:var(--red2) }
-    .dice-mod-str { font-family:'Cinzel',serif;font-size:13px;color:var(--text2) }
+    .dice-mod-str { font-family:var(--ff-display);font-size:var(--fs-body-lg);color:var(--text2) }
     .dice-toast-total {
-      font-family:'Cinzel',serif;font-size:38px;font-weight:900;line-height:1;
+      font-family:var(--ff-display);font-size:var(--fs-dice);font-weight:900;line-height:1;
       text-align:center;margin:.3rem 0 .1rem;
     }
     .dice-toast-total.crit  { color:var(--gold2) }
     .dice-toast-total.fail  { color:var(--red2) }
     .dice-toast-total.normal{ color:var(--text) }
     .dice-toast-detail {
-      font-size:11px;color:var(--text3);text-align:center;margin-bottom:.4rem;
+      font-size:var(--fs-meta);color:var(--text3);text-align:center;margin-bottom:.4rem;
     }
     .dice-toast-close {
       position:absolute;top:6px;right:8px;cursor:pointer;
-      color:var(--text3);font-size:13px;padding:2px 5px;
+      color:var(--text3);font-size:var(--fs-body-lg);padding:2px 5px;
     }
     .dice-toast-close:hover { color:var(--text) }
     .dice-toast-extra {
       border-top:1px solid var(--bdr);padding-top:.4rem;margin-top:.3rem;
-      font-size:12px;color:var(--text2);
+      font-size:var(--fs-body);color:var(--text2);
     }
 
     /* ── ROLL BUTTON ── */
     .roll-btn {
       display:inline-flex;align-items:center;gap:4px;
       padding:4px 10px;border:1px solid var(--bdr2);border-radius:var(--r);
-      background:var(--bg4);color:var(--text2);font-family:'Cinzel',serif;
-      font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;
+      background:var(--bg4);color:var(--text2);font-family:var(--ff-display);
+      font-size:var(--fs-label);font-weight:600;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;
       transition:all .12s;white-space:nowrap;
     }
     .roll-btn:hover { border-color:var(--gold);color:var(--gold2);background:var(--gdim) }
@@ -923,7 +995,7 @@
       padding:5px 10px;border-top:1px solid var(--bdr);flex-wrap:wrap;
     }
     .res-block-label {
-      font-family:'Cinzel',serif;font-size:9px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:700;
       letter-spacing:.08em;text-transform:uppercase;color:var(--text3);flex-shrink:0;
     }
     .res-pip {
@@ -938,13 +1010,13 @@
       padding:5px 10px;border-top:1px solid var(--bdr);
     }
     .res-badge {
-      font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+      font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;
       color:var(--gold2);background:var(--gdim);border:1px solid var(--gold);
       border-radius:3px;padding:1px 6px;cursor:pointer;transition:all .1s;
     }
     .res-badge:hover { background:var(--gold);color:var(--bg) }
     .res-recharge {
-      font-size:8px;color:var(--text3);font-family:'Cinzel',serif;
+      font-size:var(--fs-micro);color:var(--text3);font-family:var(--ff-display);
       border:1px solid var(--bdr);border-radius:3px;padding:0 4px;margin-left:2px;
     }
     .lucide-emoji{width:1em;height:1em;display:inline-block;vertical-align:-0.12em;stroke-width:2;color:currentColor;}
@@ -998,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     <!-- Saving Throws -->
     <div class="panel">
-      <div class="panel-hdr"><span class="panel-title">⚄ Saving Throws</span></div>
+      <div class="panel-hdr"><span class="panel-title"><i data-lucide="dice-5" class="lucide-emoji"></i> Saving Throws</span></div>
       <div class="panel-body" id="saves-body"></div>
     </div>
 
@@ -1010,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     <!-- Proficiencies -->
     <div class="panel">
-      <div class="panel-hdr"><span class="panel-title">📜 Proficiencies</span></div>
+      <div class="panel-hdr"><span class="panel-title"><i data-lucide="scroll-text" class="lucide-emoji"></i> Proficiencies</span></div>
       <div class="panel-body" id="profs-body"></div>
     </div>
 
@@ -1123,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         <div style="display:flex;gap:6px;margin-bottom:.75rem">
           <input class="inv-search-box" id="inv-custom-name" placeholder="Add custom item…"
             style="margin-bottom:0;flex:1"/>
-          <button onclick="addCustomItemSheet()" style="padding:6px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);font-family:'Cinzel',serif;font-size:10px;cursor:pointer;white-space:nowrap;transition:all .12s"
+          <button onclick="addCustomItemSheet()" style="padding:6px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);font-family:var(--ff-display);font-size:var(--fs-label);cursor:pointer;white-space:nowrap;transition:all .12s"
             onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
             onmouseout="this.style.borderColor='var(--bdr2)';this.style.color='var(--text2)'">+ Add</button>
         </div>
@@ -1233,8 +1305,8 @@ function rE(e){
   if(typeof e==='object'){
     if(e.type==='list')return`<ul style="margin:.3rem 0 .3rem 1.2rem">${(e.items||[]).map(i=>`<li>${rE(i)}</li>`).join('')}</ul>`;
     if(e.type==='table'){
-      let h=`<table style="width:100%;border-collapse:collapse;font-size:12px;margin:.4rem 0">`;
-      if(e.colLabels)h+=`<thead><tr>${e.colLabels.map(l=>`<th style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;color:var(--text3);padding:3px 6px;border-bottom:1px solid var(--bdr)">${clean(l)}</th>`).join('')}</tr></thead>`;
+      let h=`<table style="width:100%;border-collapse:collapse;font-size:var(--fs-body);margin:.4rem 0">`;
+      if(e.colLabels)h+=`<thead><tr>${e.colLabels.map(l=>`<th style="font-family:var(--ff-display);font-size:var(--fs-xs);letter-spacing:.08em;color:var(--text3);padding:3px 6px;border-bottom:1px solid var(--bdr)">${clean(l)}</th>`).join('')}</tr></thead>`;
       h+=`<tbody>${(e.rows||[]).map(r=>`<tr>${r.map(c=>`<td style="padding:2px 6px;color:var(--text2);border-bottom:1px solid var(--bdr)">${rE(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       return h;
     }
@@ -1252,6 +1324,7 @@ let C = null; // character data
 let currentHP = 0;
 let maxHP = 0;
 let tempHP = 0;
+let hpAdjustAmt = 1;
 let maxHPBonus = 0;
 let deathSaves = { success: 0, fail: 0 };
 let usedHD = 0;
@@ -1261,7 +1334,6 @@ let sheetCurrency = { cp:0, sp:0, ep:0, gp:10, pp:0 };
 let allItemsDb = []; // loaded from 5etools
 let invFilter = 'all';
 let activeConditions = [];
-let hpStepValue = Math.max(1, parseInt(localStorage.getItem('5e_hp_step') || 1) || 1);
 const BASE_URL = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
 const ALLOWED_SOURCES = ['XPHB','FRAiF','FRHoF','EFA'];
 
@@ -1445,7 +1517,6 @@ function renderAll(){
   loadResources();
 
   renderTopBar();
-  renderScores();
   renderStatsRow();
   renderSaves();
   renderSenses();
@@ -1495,14 +1566,6 @@ function _setCurrentHp(next){
   currentHP = Math.max(0, Math.min(maxHP, parseInt(next) || 0));
   if (currentHP > 0) resetDeathSaves();
   _saveHpState();
-}
-
-function _getHpStep(){
-  const inp = document.getElementById('hp-step');
-  const n = inp ? parseInt(inp.value) : hpStepValue;
-  hpStepValue = Math.max(1, Math.min(999, n || hpStepValue || 1));
-  localStorage.setItem('5e_hp_step', String(hpStepValue));
-  return hpStepValue;
 }
 
 function loadConditionsState(){
@@ -1602,8 +1665,16 @@ function renderTopBar(){
 }
 
 function renderScores(){
-  const el = document.getElementById('scores-row');
-  el.innerHTML = STATS.map(s => {
+  renderStatsRow();
+}
+
+function renderStatsRow(){
+  const topEl = document.getElementById('scores-row');
+  const oldStatsEl = document.getElementById('stats-row');
+  const pb = getPB();
+  const spd = C.speciesSnapshot?.speed||30;
+  const spdVal = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
+  const scoresHtml = STATS.map(s => {
     const val = getFinal(s);
     const mod = getMod(val);
     const modStr = (mod>=0?'+':'')+mod;
@@ -1614,37 +1685,26 @@ function renderScores(){
       <div class="score-base">${val}</div>
     </div>`;
   }).join('');
-  refreshIcons();
-}
 
-function renderStatsRow(){
-  const el = document.getElementById('stats-row');
-  const pb = getPB();
-  const hd = C.clsSnapshot?.hd;
-  let faces = 8;
-  if(hd){ if(hd.faces) faces=hd.faces; else if(Array.isArray(hd)&&hd[0]?.faces) faces=hd[0].faces; }
-  const spd = C.speciesSnapshot?.speed||30;
-  const spdVal = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
-
-  el.innerHTML = `
-    <div class="stat-box green">
-      <div class="stat-box-val">${fbonus(pb)}</div>
-      <div class="stat-box-lbl">Prof. Bonus</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-val">${spdVal} ft.</div>
-      <div class="stat-box-lbl">Speed</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-val">d${faces}</div>
-      <div class="stat-box-lbl">Hit Die</div>
+  topEl.innerHTML = `
+    <div class="scores-left">
+      ${scoresHtml}
+      <div class="stat-box green">
+        <div class="stat-box-val">${fbonus(pb)}</div>
+        <div class="stat-box-lbl">Prof. Bonus</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-box-val">${spdVal} ft.</div>
+        <div class="stat-box-lbl">Speed</div>
+      </div>
     </div>
     ${buildHPBlock()}
   `;
-  const hpBtns = el.querySelectorAll('.hp-btn');
+  if (oldStatsEl) oldStatsEl.innerHTML = '';
+  const hpBtns = topEl.querySelectorAll('.hp-btn');
   if (hpBtns[0]) hpBtns[0].innerHTML = luci('plus');
   if (hpBtns[1]) hpBtns[1].innerHTML = luci('minus');
-  const hpMiniBtns = el.querySelectorAll('.hp-mini-btn');
+  const hpMiniBtns = topEl.querySelectorAll('.hp-mini-btn');
   hpMiniBtns.forEach((btn, idx) => { btn.innerHTML = idx % 2 === 0 ? luci('minus') : luci('plus'); });
   refreshIcons();
 }
@@ -1656,25 +1716,25 @@ function buildHPBlock(){
   return `<div class="hp-block">
     <div class="hp-title">HP</div>
     <div class="hp-controls">
-      <button class="hp-btn heal" onclick="adjustHP(1)" title="Heal"></button>
       <div class="hp-vals">
         <div class="hp-cur" id="hp-cur-display">${currentHP}</div>
         <div class="hp-sep">/</div>
         <div class="hp-max" id="hp-max-display">${maxHP}</div>
       </div>
+      <button class="hp-btn heal" onclick="adjustHP(1)" title="Heal"></button>
+      <input class="hp-amount-input" id="hp-amount-input" type="number" min="1" value="${hpAdjustAmt}" title="Amount" oninput="hpAdjustAmt=Math.max(1,parseInt(this.value)||1)" />
       <button class="hp-btn dmg" onclick="adjustHP(-1)" title="Damage"></button>
     </div>
     <div class="hp-subline">
-      <span class="hp-mini"><i data-lucide="gauge" class="lucide-emoji"></i> STEP <input id="hp-step" class="hp-step" type="number" min="1" max="999" value="${hpStepValue}"></span>
       <span class="hp-mini"><i data-lucide="sparkles" class="lucide-emoji"></i> TEMP <b id="hp-temp-display">${tempHP}</b></span>
-      <span>
+      <span class="hp-mini-actions">
         <button class="hp-mini-btn temp" onclick="adjustTempHP(-1)" title="Decrease Temp HP"></button>
         <button class="hp-mini-btn temp" onclick="adjustTempHP(1)" title="Increase Temp HP"></button>
       </span>
     </div>
-    <div class="hp-subline" style="grid-template-columns:1fr auto;">
+    <div class="hp-subline">
       <span class="hp-mini"><i data-lucide="heart-pulse" class="lucide-emoji"></i> MAX MOD <b id="hp-max-bonus-display">${maxBonusLabel}</b></span>
-      <span>
+      <span class="hp-mini-actions">
         <button class="hp-mini-btn max" onclick="adjustMaxHpBonus(-1)" title="Decrease Max HP"></button>
         <button class="hp-mini-btn max" onclick="adjustMaxHpBonus(1)" title="Increase Max HP"></button>
       </span>
@@ -1690,7 +1750,7 @@ function buildHPBlock(){
 }
 
 function adjustHP(dir){
-  const amt = _getHpStep();
+  const amt = hpAdjustAmt;
   if(dir > 0){
     _setCurrentHp(currentHP + amt);
   } else if (dir < 0){
@@ -1707,14 +1767,14 @@ function adjustHP(dir){
 }
 
 function adjustTempHP(dir){
-  const amt = _getHpStep();
+  const amt = 1;
   tempHP = Math.max(0, tempHP + dir * amt);
   _saveHpState();
   renderStatsRow();
 }
 
 function adjustMaxHpBonus(dir){
-  const amt = _getHpStep();
+  const amt = 1;
   maxHPBonus += dir * amt;
   maxHP = Math.max(1, calcMaxHP() + maxHPBonus);
   if (currentHP > maxHP) _setCurrentHp(maxHP);
@@ -1762,7 +1822,7 @@ function renderSaves(){
     return `<div class="save-row" onclick="rollSave('${st}')" title="Roll ${FULL_LBL[st]} saving throw">
       <div class="save-dot${prof?' on':''}"></div>
       <span class="save-stat">${SLBL[st]}</span>
-      <span style="font-size:12px;color:var(--text2)">${FULL_LBL[st]}</span>
+      <span style="font-size:var(--fs-body);color:var(--text2)">${FULL_LBL[st]}</span>
       <span class="save-bonus">${fbonus(bonus)}</span>
     </div>`;
   }).join('');
@@ -1889,34 +1949,30 @@ function renderProficiencies(){
     });
     return out;
   };
-  const ARTIFICER_SUBCLASS_FIXED_TOOLS = {
-    'Alchemist': ["Alchemist's Supplies", 'Herbalism Kit'],
-    'Armorer': ["Smith's Tools"],
-    'Artillerist': ["Woodcarver's Tools"],
-    'Battle Smith': ["Smith's Tools"],
-    'Cartographer': ["Calligrapher's Supplies", "Cartographer's Tools"],
+  const adapterProfGrants = [];
+  const appendAdapterGrants = (grants, lv) => {
+    (Array.isArray(grants) ? grants : []).forEach(g => {
+      if (!g || typeof g !== 'object') return;
+      const minLevel = Number(g.minLevel || 1);
+      if ((lv || 1) < minLevel) return;
+      adapterProfGrants.push(g);
+    });
   };
-  const addArtificerSubclassFixedToolProfs = (className, subclassShortName, classLevel, addFn) => {
-    if (className !== 'Artificer') return;
-    if ((classLevel || 0) < 3) return;
-    const fixed = ARTIFICER_SUBCLASS_FIXED_TOOLS[subclassShortName];
-    if (!fixed) return;
-    fixed.forEach(addFn);
+  const collectEntityAdapterGrants = (className, subclassShortName, lv) => {
+    if (typeof getClassSheetProficiencies === 'function') {
+      appendAdapterGrants(getClassSheetProficiencies(className), lv);
+    }
+    if (typeof getSubclassSheetProficiencies === 'function') {
+      appendAdapterGrants(getSubclassSheetProficiencies(className, subclassShortName), lv);
+    }
   };
-  const addBardSubclassFixedArmorWeaponProfs = (className, subclassShortName, classLevel) => {
-    if (className !== 'Bard') return;
-    if ((classLevel || 0) < 3) return;
-    if (subclassShortName !== 'Valor') return;
-    armorSet.add('Medium');
-    armorSet.add('Shield');
-    weaponSet.add('Martial');
-  };
-  const addBardMoonFixedLanguage = (className, subclassShortName, classLevel, addFn) => {
-    if (className !== 'Bard') return;
-    if ((classLevel || 0) < 3) return;
-    if (subclassShortName !== 'Moon') return;
-    addFn('Druidic');
-  };
+  collectEntityAdapterGrants(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1);
+  for (const ec of (C?.extraClasses || [])) {
+    collectEntityAdapterGrants(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1);
+  }
+  if (typeof getSpeciesSheetProficiencies === 'function') {
+    appendAdapterGrants(getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1);
+  }
 
   const armorSet = new Set();
   const weaponSet = new Set();
@@ -1962,20 +2018,15 @@ function renderProficiencies(){
       }
     }
   }
-  if ((C?.classLevel || C?.level || 1) >= 3 && C?.className === 'Artificer') {
-    if (C.subclassShortName === 'Armorer') armorSet.add('Heavy');
-    if (C.subclassShortName === 'Artillerist') weaponSet.add('Firearms');
-  }
-  addBardSubclassFixedArmorWeaponProfs(C?.className, C?.subclassShortName, C?.classLevel || C?.level || 1);
-  for (const ec of (C?.extraClasses || [])) {
-    if ((ec?.level || 1) < 3) continue;
-    if (ec?.name !== 'Artificer') continue;
-    if (ec.subclassShortName === 'Armorer') armorSet.add('Heavy');
-    if (ec.subclassShortName === 'Artillerist') weaponSet.add('Firearms');
-  }
-  for (const ec of (C?.extraClasses || [])) {
-    addBardSubclassFixedArmorWeaponProfs(ec?.name, ec?.subclassShortName, ec?.level || 1);
-  }
+  adapterProfGrants
+    .filter(g => g.type === 'armor' || g.type === 'weapon')
+    .forEach(g => {
+      const vals = Array.isArray(g.values) ? g.values : [g.values];
+      vals.map(normalize).filter(Boolean).forEach(v => {
+        if (g.type === 'armor') armorSet.add(v);
+        else weaponSet.add(v);
+      });
+    });
   const armor   = armorSet.size ? Array.from(armorSet).join(', ') : '—';
   const weapons = weaponSet.size ? Array.from(weaponSet).join(', ') : '—';
   const weaponMasteries = weaponMasterySet.size ? Array.from(weaponMasterySet).join(', ') : '—';
@@ -2009,18 +2060,22 @@ function renderProficiencies(){
       }
     }
   }
-  addArtificerSubclassFixedToolProfs(C?.className, C?.subclassShortName, C?.classLevel || C?.level || 1, addTool);
-  for (const ec of (C?.extraClasses || [])) {
-    addArtificerSubclassFixedToolProfs(ec?.name, ec?.subclassShortName, ec?.level || 1, addTool);
-  }
+  adapterProfGrants
+    .filter(g => g.type === 'tool')
+    .forEach(g => {
+      const vals = Array.isArray(g.values) ? g.values : [g.values];
+      vals.forEach(addTool);
+    });
   const tools = toolSet.size ? Array.from(toolSet).join(', ') : '—';
 
   const langSet = new Set((C.selectedLanguages || []).map(normalize).filter(Boolean));
   collectFixedFeatureProfs('languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any']).forEach(v => langSet.add(v));
-  addBardMoonFixedLanguage(C?.className, C?.subclassShortName, C?.classLevel || C?.level || 1, (v) => langSet.add(normalize(v)));
-  for (const ec of (C?.extraClasses || [])) {
-    addBardMoonFixedLanguage(ec?.name, ec?.subclassShortName, ec?.level || 1, (v) => langSet.add(normalize(v)));
-  }
+  adapterProfGrants
+    .filter(g => g.type === 'language')
+    .forEach(g => {
+      const vals = Array.isArray(g.values) ? g.values : [g.values];
+      vals.map(normalize).filter(Boolean).forEach(v => langSet.add(v));
+    });
   if (!langSet.size) langSet.add('Common');
   const langs = Array.from(langSet).join(', ') || 'Common';
 
@@ -2061,7 +2116,7 @@ function renderHitDice(){
     h+=`<div class="hd-pip${used?' used':' full'}" title="d${faces}" onclick="toggleHD(${i})">${used?'':luci('hexagon')}</div>`;
   }
   h+='</div>';
-  h+=`<div style="margin-top:.5rem;font-size:11px;color:var(--text3)">
+  h+=`<div style="margin-top:.5rem;font-size:var(--fs-meta);color:var(--text3)">
     <i>Click to use/recover a hit die</i>
   </div>`;
   document.getElementById('hd-body').innerHTML = h;
@@ -2181,7 +2236,7 @@ function renderRightTop(){
     if(hasClass('Monk') && !hasShield) items.push({l:'Unarmored Defense (DEX+WIS)',c:'g'});
     if(hasBardDance && !hasShield) items.push({l:'Unarmored Defense (DEX+CHA)',c:'g'});
   }
-  if(!items.length){ defEl.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic">None</span>'; }
+  if(!items.length){ defEl.innerHTML='<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
   renderConditions();
 }
@@ -2284,39 +2339,46 @@ function _sheetGetAdapterValue(store, key){
 }
 
 function _sheetGetClassActions(className){
+  if (typeof getClassSheetActions === 'function') return getClassSheetActions(className);
   return _sheetGetAdapterValue(typeof ClassSheetActions !== 'undefined' ? ClassSheetActions : {}, className) || [];
 }
 
 function _sheetGetSubclassActions(className, subclassShortName){
+  if (typeof getSubclassSheetActions === 'function') return getSubclassSheetActions(className, subclassShortName);
   const key = className && subclassShortName ? `${className}_${subclassShortName}` : '';
-  return _sheetGetAdapterValue(typeof SubclassSheetActions !== 'undefined' ? SubclassSheetActions : {}, key) || [];
+  const canonical = `${_normSheetAdapterKey(className)}_${_normSheetAdapterKey(subclassShortName)}`;
+  const store = typeof SubclassSheetActions !== 'undefined' ? SubclassSheetActions : {};
+  return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || [];
 }
 
 function _sheetGetClassResources(className){
+  if (typeof getClassSheetResources === 'function') return getClassSheetResources(className);
   return _sheetGetAdapterValue(typeof ClassSheetResources !== 'undefined' ? ClassSheetResources : {}, className) || [];
 }
 
 function _sheetGetSubclassResources(className, subclassShortName){
+  if (typeof getSubclassSheetResources === 'function') return getSubclassSheetResources(className, subclassShortName);
   const key = className && subclassShortName ? `${className}_${subclassShortName}` : '';
-  return _sheetGetAdapterValue(typeof SubclassSheetResources !== 'undefined' ? SubclassSheetResources : {}, key) || [];
+  const canonical = `${_normSheetAdapterKey(className)}_${_normSheetAdapterKey(subclassShortName)}`;
+  const store = typeof SubclassSheetResources !== 'undefined' ? SubclassSheetResources : {};
+  return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || [];
 }
 
 function _sheetGetClassChoiceMeta(className){
+  if (typeof getClassSheetChoiceMeta === 'function') return getClassSheetChoiceMeta(className);
   return _sheetGetAdapterValue(typeof ClassSheetChoiceMeta !== 'undefined' ? ClassSheetChoiceMeta : {}, className) || {};
 }
 
 function _sheetGetSubclassChoiceMeta(className, subclassShortName){
+  if (typeof getSubclassSheetChoiceMeta === 'function') return getSubclassSheetChoiceMeta(className, subclassShortName);
   const key = className && subclassShortName ? `${className}_${subclassShortName}` : '';
-  return _sheetGetAdapterValue(typeof SubclassSheetChoiceMeta !== 'undefined' ? SubclassSheetChoiceMeta : {}, key) || {};
+  const canonical = `${_normSheetAdapterKey(className)}_${_normSheetAdapterKey(subclassShortName)}`;
+  const store = typeof SubclassSheetChoiceMeta !== 'undefined' ? SubclassSheetChoiceMeta : {};
+  return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || {};
 }
 
 function _sheetSpeciesBaseName(name){
-  const n = String(name || '');
-  if (/elf|elfo/i.test(n)) return 'Elf';
-  if (/tiefling/i.test(n)) return 'Tiefling';
-  if (/aasimar/i.test(n)) return 'Aasimar';
-  if (/dragonborn|dragonide/i.test(n)) return 'Dragonborn';
-  return n.trim();
+  return String(name || '').trim();
 }
 
 function _sheetGetSpeciesAdapterKey(speciesName, speciesSource){
@@ -2327,31 +2389,48 @@ function _sheetGetSpeciesAdapterKey(speciesName, speciesSource){
 }
 
 function _sheetGetSpeciesActions(speciesName, speciesSource){
+  if (typeof getSpeciesSheetActions === 'function') return getSpeciesSheetActions(speciesName, speciesSource);
   const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
-  return _sheetGetAdapterValue(typeof SpeciesSheetActions !== 'undefined' ? SpeciesSheetActions : {}, key) || [];
+  const canonical = `${_normSheetAdapterKey(speciesName)}_${_normSheetAdapterKey(speciesSource)}`;
+  const store = typeof SpeciesSheetActions !== 'undefined' ? SpeciesSheetActions : {};
+  return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || [];
 }
 
 function _sheetGetSpeciesResources(speciesName, speciesSource){
+  if (typeof getSpeciesSheetResources === 'function') return getSpeciesSheetResources(speciesName, speciesSource);
   const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
-  return _sheetGetAdapterValue(typeof SpeciesSheetResources !== 'undefined' ? SpeciesSheetResources : {}, key) || [];
+  const canonical = `${_normSheetAdapterKey(speciesName)}_${_normSheetAdapterKey(speciesSource)}`;
+  const store = typeof SpeciesSheetResources !== 'undefined' ? SpeciesSheetResources : {};
+  return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || [];
 }
 
 function _sheetGetSpeciesChoiceMeta(speciesName, speciesSource){
+  if (typeof getSpeciesSheetChoiceMeta === 'function') return getSpeciesSheetChoiceMeta(speciesName, speciesSource);
   const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
-  return _sheetGetAdapterValue(typeof SpeciesSheetChoiceMeta !== 'undefined' ? SpeciesSheetChoiceMeta : {}, key) || {};
+  const canonical = `${_normSheetAdapterKey(speciesName)}_${_normSheetAdapterKey(speciesSource)}`;
+  const store = typeof SpeciesSheetChoiceMeta !== 'undefined' ? SpeciesSheetChoiceMeta : {};
+  return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || {};
 }
 
 function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
   let out = Array.isArray(features) ? features : [];
 
-  const classFilters = _sheetGetAdapterValue(typeof ClassSheetFeatureFilters !== 'undefined' ? ClassSheetFeatureFilters : {}, className) || [];
+  const classFilters = typeof getClassSheetFeatureFilters === 'function'
+    ? getClassSheetFeatureFilters(className)
+    : (_sheetGetAdapterValue(typeof ClassSheetFeatureFilters !== 'undefined' ? ClassSheetFeatureFilters : {}, className) || []);
   for(const fn of classFilters){
     if(typeof fn !== 'function') continue;
     out = fn({ ...(ctx||{}), className, subclassShortName }, out) || out;
   }
 
-  const subKey = className && subclassShortName ? `${className}_${subclassShortName}` : '';
-  const subclassFilters = _sheetGetAdapterValue(typeof SubclassSheetFeatureFilters !== 'undefined' ? SubclassSheetFeatureFilters : {}, subKey) || [];
+  const subclassFilters = typeof getSubclassSheetFeatureFilters === 'function'
+    ? getSubclassSheetFeatureFilters(className, subclassShortName)
+    : (() => {
+        const subKey = className && subclassShortName ? `${className}_${subclassShortName}` : '';
+        const canonical = `${_normSheetAdapterKey(className)}_${_normSheetAdapterKey(subclassShortName)}`;
+        const store = typeof SubclassSheetFeatureFilters !== 'undefined' ? SubclassSheetFeatureFilters : {};
+        return _sheetGetAdapterValue(store, subKey) || _sheetGetAdapterValue(store, canonical) || [];
+      })();
   for(const fn of subclassFilters){
     if(typeof fn !== 'function') continue;
     out = fn({ ...(ctx||{}), className, subclassShortName }, out) || out;
@@ -2362,29 +2441,46 @@ function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
 
 function _applySpeciesSheetFeatureFilters(speciesName, speciesSource, features, ctx){
   let out = Array.isArray(features) ? features : [];
-  const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
-  const filters = _sheetGetAdapterValue(typeof SpeciesSheetFeatureFilters !== 'undefined' ? SpeciesSheetFeatureFilters : {}, key) || [];
+  const filters = typeof getSpeciesSheetFeatureFilters === 'function'
+    ? getSpeciesSheetFeatureFilters(speciesName, speciesSource)
+    : (() => {
+        const key = _sheetGetSpeciesAdapterKey(speciesName, speciesSource);
+        const canonical = `${_normSheetAdapterKey(speciesName)}_${_normSheetAdapterKey(speciesSource)}`;
+        const store = typeof SpeciesSheetFeatureFilters !== 'undefined' ? SpeciesSheetFeatureFilters : {};
+        return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || [];
+      })();
   for(const fn of filters){
     if(typeof fn !== 'function') continue;
-    out = fn({ ...(ctx||{}), speciesName, speciesSource, speciesKey:key }, out) || out;
+    out = fn({ ...(ctx||{}), speciesName, speciesSource, speciesKey:_sheetGetSpeciesAdapterKey(speciesName, speciesSource) }, out) || out;
   }
   return out;
 }
 
-function _sheetNormalizeArmorerModel(value){
+function _sheetNormalizeChoiceToken(value){
   const nk = String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   if (!nk) return '';
-  if (nk === 'dreadnaught' || nk.includes('dreadnought')) return 'dreadnought';
-  if (nk.includes('guardian')) return 'guardian';
-  if (nk.includes('infiltrator')) return 'infiltrator';
+  if (nk === 'dreadnaught') return 'dreadnought';
   return nk;
 }
+function _sheetFilterActionsByChoice(actions, choicePrefix){
+  const prefix = String(choicePrefix || '');
+  return (Array.isArray(actions) ? actions : []).filter(a => {
+    if (!a || typeof a !== 'object') return false;
+    const choiceKey = a.choiceKey ? String(a.choiceKey) : '';
+    if (!choiceKey) return true;
+    const raw = C?.choices?.[prefix + choiceKey];
+    const selectedVals = (Array.isArray(raw) ? raw : [raw]).map(_sheetNormalizeChoiceToken).filter(Boolean);
+    if (!selectedVals.length) return false;
 
-function _sheetGetArmorerModelFromChoices(choicePrefix){
-  const key = String(choicePrefix || '') + 'armorer_model';
-  const raw = C?.choices?.[key];
-  const first = Array.isArray(raw) ? raw[0] : raw;
-  return _sheetNormalizeArmorerModel(first);
+    let expected = [];
+    if (Array.isArray(a.choiceValues)) expected = a.choiceValues;
+    else if (a.choiceValue !== undefined && a.choiceValue !== null) expected = [a.choiceValue];
+    else if (a.model !== undefined && a.model !== null) expected = [a.model];
+    if (!expected.length) return true;
+    const want = expected.map(_sheetNormalizeChoiceToken).filter(Boolean);
+    if (!want.length) return true;
+    return selectedVals.some(v => want.includes(v));
+  });
 }
 
 function getSheetClassActions(className, classLevel){
@@ -2401,16 +2497,7 @@ function getSheetSubclassActions(subclassKey, classLevel, choicePrefix){
 
   let actions = _sheetGetSubclassActions(className, subclassShortName)
     .filter(a => !a?.minLevel || lv >= Number(a.minLevel));
-
-  // Optional conditional filter for model-based subclass actions (e.g. Armorer).
-  if (_normSheetAdapterKey(className) === 'artificer' && _normSheetAdapterKey(subclassShortName) === 'armorer') {
-    const selectedModel = _sheetGetArmorerModelFromChoices(choicePrefix || '');
-    if (selectedModel) {
-      actions = actions.filter(a => !a?.model || _sheetNormalizeArmorerModel(a.model) === selectedModel);
-    }
-  }
-
-  return actions;
+  return _sheetFilterActionsByChoice(actions, choicePrefix || '');
 }
 
 function getSheetSpeciesActions(speciesName, speciesSource, charLevel){
@@ -2488,8 +2575,8 @@ function renderActionsTab(){
   if(show('attack')){
     if(f==='all') html+=`<div class="action-section-hdr">${luci('swords')} Attacks</div>`;
     if(!equippedWeapons.length && !cantrips.length){
-      html+=`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:.3rem 0">
-        💡 Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
+      html+=`<div style="font-size:var(--fs-body);color:var(--text3);font-style:italic;padding:.3rem 0">
+        ${luci('lightbulb')} Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
       </div>`;
     }
     for(const w of equippedWeapons) html+=buildWeaponCard(w);
@@ -2513,14 +2600,14 @@ function renderActionsTab(){
     for(const a of allClassActions.filter(a=>a.cat==='bonus')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='bonus')) html+=buildStdActionCard(a);
     if(!allClassActions.filter(a=>a.cat==='bonus').length)
-      html+=`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:.3rem 0">
+      html+=`<div style="font-size:var(--fs-body);color:var(--text3);font-style:italic;padding:.3rem 0">
         No bonus actions specific to ${esc(cls)||'this class'}.
       </div>`;
   }
 
   // ── REACTIONS ──
   if(show('reaction')){
-    if(f==='all') html+='<div class="action-section-hdr">🔄 Reactions</div>';
+    if(f==='all') html+=`<div class="action-section-hdr">${luci('rotate-ccw')} Reactions</div>`;
     for(const a of allClassActions.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildStdActionCard(a);
   }
@@ -2611,15 +2698,15 @@ function renderSpellsTab(){
 
   let h = `<div style="display:flex;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap">
     <div class="stat-box" style="min-width:80px">
-      <div class="stat-box-val" style="font-size:18px">${dc}</div>
+      <div class="stat-box-val" style="font-size:var(--fs-value-sm)">${dc}</div>
       <div class="stat-box-lbl">Spell DC</div>
     </div>
     <div class="stat-box" style="min-width:80px">
-      <div class="stat-box-val" style="font-size:18px">${atk}</div>
+      <div class="stat-box-val" style="font-size:var(--fs-value-sm)">${atk}</div>
       <div class="stat-box-lbl">Spell Attack</div>
     </div>
     <div class="stat-box" style="min-width:80px">
-      <div class="stat-box-val" style="font-size:18px">${SLBL[getSpellAbility()]}</div>
+      <div class="stat-box-val" style="font-size:var(--fs-value-sm)">${SLBL[getSpellAbility()]}</div>
       <div class="stat-box-lbl">Spell Ability</div>
     </div>
   </div>`;
@@ -2665,7 +2752,7 @@ function renderSpellsTab(){
       const tot=slots[i]; if(!tot) continue;
       const used=spellSlotUsed[i+1]||0;
       h+=`<div>
-        <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${i+1}°</div>
+        <div style="font-family:var(--ff-display);font-size:var(--fs-micro);color:var(--text3);text-align:center;margin-bottom:3px">${i+1}°</div>
         <div class="slot-pips" id="slot-pips-${i+1}">
           ${Array.from({length:tot},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="toggleSlot(${i+1},${k})"></div>`).join('')}
         </div>
@@ -2680,7 +2767,7 @@ function renderSpellsTab(){
       <div class="spell-level-hdr" style="color:var(--gold);border-bottom-color:var(--gdim)">Slot Patto (${ps.n}x ${ps.l}°)</div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
         <div>
-          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
+          <div style="font-family:var(--ff-display);font-size:var(--fs-micro);color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
           <div class="slot-pips" id="slot-pips-pact-${ps.l}">
             ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="togglePactSlot(${ps.l},${ps.n},${k})"></div>`).join('')}
           </div>
@@ -2696,7 +2783,7 @@ function renderSpellsTab(){
       <div class="spell-level-hdr" style="color:var(--purple);border-bottom-color:rgba(155,89,182,.25)">Slot Patto Warlock (${ps.n}x ${ps.l}°) — SR</div>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
         <div>
-          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
+          <div style="font-family:var(--ff-display);font-size:var(--fs-micro);color:var(--text3);text-align:center;margin-bottom:3px">${ps.l}°</div>
           <div class="slot-pips" id="slot-pips-pact-${ps.l}">
             ${Array.from({length:ps.n},(_,k)=>`<div class="slot-pip${k<used?' used':''}" onclick="togglePactSlot(${ps.l},${ps.n},${k})"></div>`).join('')}
           </div>
@@ -2716,22 +2803,15 @@ function renderSpellsTab(){
     const src = getSpellSource(name);
     const spellMod = getMod(getFinal(getSpellAbility()));
     const spellAtk = spellMod + getPB();
-    const entriesStr = JSON.stringify(snap?.entries ?? full?.entries ?? []);
-    const hasAtk = !!(snap?.spellAttack?.length || full?.spellAttack?.length || entriesStr.includes('{@atk '));
-    let dmgFormula = null;
-    if(entriesStr && entriesStr !== '[]'){
-      const m = entriesStr.match(/\{@(?:damage|scaledamage) (\d+d\d+(?:[+-]\d+)?)/);
-      if(m) dmgFormula = m[1];
-    }
+    const entries = (snap?.entries ?? full?.entries ?? []);
+    const dmgFormula = _extractFirstDamageFormulaFromEntries(entries);
     const safeName = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const atkBtn = hasAtk
-      ? `<button class="roll-btn" style="font-size:9px;padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`
-      : '';
+    const atkBtn = `<button class="roll-btn" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:3px" onclick="event.stopPropagation();rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} ${fbonus(spellAtk)}</button>`;
     const dmgBtn = dmgFormula
-      ? `<button class="roll-btn dmg" style="font-size:9px;padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">${luci('flame')} ${dmgFormula}</button>`
-      : '';
+      ? `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${dmgFormula}','${safeName}')">${luci('flame')} ${dmgFormula}</button>`
+      : `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamagePrompt('${safeName}','1d6')">${luci('flame')} ?</button>`;
     const spellId = 'spl_' + name.replace(/[^a-zA-Z0-9]/g,'_');
-    const entryHtml = rE(full?.entries ?? snap?.entries ?? []);
+    const entryHtml = rE(entries);
     const castTime = full?.time?.[0] ? `${full.time[0].number} ${full.time[0].unit}` : (snap?.time?.[0] ? `${snap.time[0].number} ${snap.time[0].unit}` : '');
     const range = full?.range?.distance?.amount != null ? `${full.range.distance.amount} ${full.range.distance.type||''}`.trim() : (full?.range?.type||snap?.range?.type||'');
     const compArr = (full?.components ?? snap?.components ?? {});
@@ -2741,7 +2821,7 @@ function renderSpellsTab(){
     return `<div>
       <div class="spell-entry" onclick="toggleSpellDesc('${spellId}')">
         <span>${esc(name)}</span>
-        ${src?`<span class="spell-badge" style="background:var(--pbg);border-color:var(--purple);color:var(--purple);border:1px solid;border-radius:3px;padding:1px 5px;font-size:9px;flex-shrink:0">${esc(src.label)}</span>`:''}
+        ${src?`<span class="spell-badge" style="background:var(--pbg);border-color:var(--purple);color:var(--purple);border:1px solid;border-radius:3px;padding:1px 5px;font-size:var(--fs-xs);flex-shrink:0">${esc(src.label)}</span>`:''}
         ${extra}
         ${atkBtn}${dmgBtn}
         ${isConc?`<span class="spell-badge conc">C</span>`:''}
@@ -2749,7 +2829,7 @@ function renderSpellsTab(){
         <span class="sp-school">${esc(school)}</span>
       </div>
       ${entryHtml?`<div id="${spellId}" class="spell-entry-body">
-        ${metaLine?`<div style="font-size:10px;color:var(--text3);margin-bottom:5px">${esc(metaLine)}</div>`:''}
+        ${metaLine?`<div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:5px">${esc(metaLine)}</div>`:''}
         ${entryHtml}
       </div>`:''}
     </div>`;
@@ -3001,7 +3081,7 @@ const normalizeItemType = (item) => {
 async function loadItems(){
   invLoadingState='loading';
   const loadingEl = document.getElementById('inv-search-results');
-  if(loadingEl) loadingEl.innerHTML='<div class="phmsg" style="font-size:12px">Loading item database…</div>';
+  if(loadingEl) loadingEl.innerHTML='<div class="phmsg" style="font-size:var(--fs-body)">Loading item database…</div>';
   try{
     const [r1,r2,r3] = await Promise.all([
       fetch(BASE_URL+'items-base.json'),
@@ -3033,7 +3113,7 @@ async function loadItems(){
     invLoadingState='idle';
     console.warn('Items DB failed to load:',e);
     const el=document.getElementById('inv-search-results');
-    if(el) el.innerHTML='<div class="phmsg" style="color:var(--red2);font-size:12px">Error loading items.</div>';
+    if(el) el.innerHTML='<div class="phmsg" style="color:var(--red2);font-size:var(--fs-body)">Error loading items.</div>';
   }
 }
 
@@ -3047,13 +3127,13 @@ function setInvFilter(f, btn){
 function renderItemSearch(){
   const el = document.getElementById('inv-search-results');
   if(!el) return;
-  if(invLoadingState==='loading'){ el.innerHTML='<div class="phmsg" style="font-size:12px">Loading…</div>'; return; }
+  if(invLoadingState==='loading'){ el.innerHTML='<div class="phmsg" style="font-size:var(--fs-body)">Loading…</div>'; return; }
   const q = (document.getElementById('inv-search')?.value||'').toLowerCase().trim();
   let list = allItemsDb;
   if(invFilter!=='all') list = list.filter(i=>ITEM_TYPE_GROUP(i)===invFilter);
   if(q) list = list.filter(i=>i.name.toLowerCase().includes(q));
   list = list.slice(0,60);
-  if(!list.length){ el.innerHTML='<div class="phmsg" style="font-size:12px">No items found.</div>'; return; }
+  if(!list.length){ el.innerHTML='<div class="phmsg" style="font-size:var(--fs-body)">No items found.</div>'; return; }
   el.innerHTML = list.map(item=>{
     const typeLabel = ITEM_TYPE_LABELS[item.type]||item.type||'—';
     const rarity = item.rarity && item.rarity!=='none' ? item.rarity : null;
@@ -3074,7 +3154,7 @@ function renderItemSearch(){
       <div class="inv-search-meta" style="color:${rc}">${esc(rarity||typeLabel)}${dmg}${bonus}${ac}</div>
       <div class="inv-search-price" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
         <span>${esc(valueGP)}</span>
-        <span style="font-size:9px;color:var(--text3)">${esc(srcLabel)}</span>
+        <span style="font-size:var(--fs-xs);color:var(--text3)">${esc(srcLabel)}</span>
       </div>
     </div>`;
   }).join('');
@@ -3224,8 +3304,8 @@ function renderInventoryList(){
           ${magicBonus>0?`<div class="inv-badge" style="color:var(--gold);border-color:var(--gold);font-weight:700">${luci('sparkles')} +${magicBonus}</div>`:''}
         </div>
         <div style="flex:1;min-width:0;cursor:pointer" onclick="document.getElementById('${iid}').classList.toggle('open')">
-          <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:9px;color:var(--text3)">[custom]</span>':''}</div>
-          ${meta?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
+          <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:var(--fs-xs);color:var(--text3)">[custom]</span>':''}</div>
+          ${meta?`<div style="font-size:var(--fs-label);color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
         ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?`${luci('check')} Equip.`:'Equip'}</button>`:''}
         <div class="inv-qty-wrap">
@@ -3336,8 +3416,8 @@ function renderFeaturesTab(){
     if(!entries) return '';
     const detailName = found.name || modelName;
     return `<div style="margin-top:.55rem;padding-top:.55rem;border-top:1px solid var(--bdr)">
-      <div style="font-size:10px;color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
+      <div style="font-size:var(--fs-label);color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
+      <div style="font-size:var(--fs-body);font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
       <div style="margin-top:.25rem">${rE(entries)}</div>
     </div>`;
   }
@@ -3347,11 +3427,11 @@ function renderFeaturesTab(){
       <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div style="flex:1;min-width:0">
           <div class="feature-name" style="${badgeStyle?'color:'+badgeStyle:''}">
-            ${badge?`<span style="font-size:9px;margin-right:5px;opacity:.7">${badge}</span>`:''}
+            ${badge?`<span style="font-size:var(--fs-xs);margin-right:5px;opacity:.7">${badge}</span>`:''}
             ${esc(clean(name||''))}
           </div>
         </div>
-        <span class="feature-arrow">▶</span>
+        <span class="feature-arrow">${luci('chevron-right')}</span>
       </div>
       <div class="feature-body">${body||'<i style="color:var(--text3)">No description.</i>'}</div>
     </div>`;
@@ -3360,7 +3440,7 @@ function renderFeaturesTab(){
   let h = '';
 
   if(C.className){
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">${luci('swords')} ${esc(C.className)}</div>`;
+    h+=`<div style="font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">${luci('swords')} ${esc(C.className)}</div>`;
     const byLv = {};
     for(const f of allF){ (byLv[f.level]||(byLv[f.level]=[])).push({...f,_type:'cls'}); }
     for(const f of allSF){ (byLv[f.level]||(byLv[f.level]=[])).push({...f,_type:'sub'}); }
@@ -3377,9 +3457,9 @@ function renderFeaturesTab(){
               <div class="feature-name${isSub?' sub':''}">
                 ${esc(clean(f.name||''))}
               </div>
-              <div style="font-size:9px;color:${isSub?'var(--purple)':'var(--text3)'};margin-top:1px">${esc(srcLabel)}</div>
+              <div style="font-size:var(--fs-xs);color:${isSub?'var(--purple)':'var(--text3)'};margin-top:1px">${esc(srcLabel)}</div>
             </div>
-            <span class="feature-arrow">▶</span>
+            <span class="feature-arrow">${luci('chevron-right')}</span>
           </div>
           <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">No description.</i>'}</div>
         </div>`;
@@ -3397,7 +3477,7 @@ function renderFeaturesTab(){
     const ecAllSF = _applySheetFeatureFilters(ec.name, ec.subclassShortName, ecAllSFRaw, { character:C, choices:C?.choices||{}, choicePrefix:ecPrefix, classLevel:ec.level||1 });
     if(!ecAllF.length && !ecAllSF.length) continue;
     const ecSc = ec.subclassShortName ? ` (${ec.subclassShortName})` : '';
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:.75rem 0 .5rem">${luci('swords')} ${esc(ec.name)}${esc(ecSc)}</div>`;
+    h+=`<div style="font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:.75rem 0 .5rem">${luci('swords')} ${esc(ec.name)}${esc(ecSc)}</div>`;
     const byLvE={};
     for(const f of ecAllF)  { (byLvE[f.level]||(byLvE[f.level]=[])).push({...f,_type:'cls'}); }
     for(const f of ecAllSF) { (byLvE[f.level]||(byLvE[f.level]=[])).push({...f,_type:'sub'}); }
@@ -3410,9 +3490,9 @@ function renderFeaturesTab(){
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
             <div style="flex:1;min-width:0">
               <div class="feature-name${isSub?' sub':''}">${esc(clean(f.name||''))}</div>
-              <div style="font-size:9px;color:${isSub?'var(--purple)':'var(--text3)'};margin-top:1px">${esc(srcLabel)}</div>
+              <div style="font-size:var(--fs-xs);color:${isSub?'var(--purple)':'var(--text3)'};margin-top:1px">${esc(srcLabel)}</div>
             </div>
-            <span class="feature-arrow">▶</span>
+            <span class="feature-arrow">${luci('chevron-right')}</span>
           </div>
           <div class="feature-body">${rE(f.entries)||'<i style="color:var(--text3)">No description.</i>'}</div>
         </div>`;
@@ -3427,7 +3507,7 @@ function renderFeaturesTab(){
       choices:C?.choices||{},
       speciesKey:_sheetGetSpeciesAdapterKey(C.speciesName, C?.speciesSource || ''),
     });
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(C.speciesName)}</div>`;
+    h+=`<div style="font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(C.speciesName)}</div>`;
     for(const e of speciesEntries){
       if(typeof e==='object'&&e.name){
         const id='feat_'+Math.random().toString(36).slice(2);
@@ -3435,9 +3515,9 @@ function renderFeaturesTab(){
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
             <div style="flex:1;min-width:0">
               <div class="feature-name">${esc(e.name)}</div>
-              <div style="font-size:9px;color:var(--teal);margin-top:1px">${luci('sparkles')} ${esc(C.speciesName)}</div>
+              <div style="font-size:var(--fs-xs);color:var(--teal);margin-top:1px">${luci('sparkles')} ${esc(C.speciesName)}</div>
             </div>
-            <span class="feature-arrow">▶</span>
+            <span class="feature-arrow">${luci('chevron-right')}</span>
           </div>
           <div class="feature-body">${rE(e.entries||'')||'—'}</div>
         </div>`;
@@ -3446,7 +3526,7 @@ function renderFeaturesTab(){
   }
 
   if(feats.length){
-    h+=`<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:.75rem 0 .5rem">${luci('star')} Talenti</div>`;
+    h+=`<div style="font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:.75rem 0 .5rem">${luci('star')} Talenti</div>`;
     for(const f of feats){
       const id='feat_'+Math.random().toString(36).slice(2);
       const slot = getFeatSlot(f.name);
@@ -3455,9 +3535,9 @@ function renderFeaturesTab(){
         <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
           <div style="flex:1;min-width:0">
             <div class="feature-name" style="color:var(--orange)">${esc(f.name)}</div>
-            <div style="font-size:9px;color:var(--orange);opacity:.7;margin-top:1px">${luci('star')} ${esc(slot||'Feat')}${catLabel}</div>
+            <div style="font-size:var(--fs-xs);color:var(--orange);opacity:.7;margin-top:1px">${luci('star')} ${esc(slot||'Feat')}${catLabel}</div>
           </div>
-          <span class="feature-arrow">▶</span>
+          <span class="feature-arrow">${luci('chevron-right')}</span>
         </div>
         <div class="feature-body">${rE(f.entries)||'—'}</div>
       </div>`;
@@ -3526,26 +3606,14 @@ function renderFeaturesTab(){
       }
       if (!label) label = k.replace(/^.*?_/, '').replace(/_/g, ' ');
 
-      let detailHtml = '';
-      if (ownerClass === 'Artificer' && ownerSubclass === 'Armorer') {
-        const ownerSubFeatures = _applySheetFeatureFilters(ownerClass, ownerSubclass, ownerSubFeaturesRaw, {
-          character:C,
-          choices:C?.choices||{},
-          choicePrefix:ownerPrefix,
-          classLevel:ownerLevel,
-        });
-        const looksLikeModelChoice = k === 'armorer_model' || /^auto_(primary|ec\d+)_feat_.*_opt_\d+$/i.test(k);
-        if (looksLikeModelChoice) {
-          detailHtml = vals.map(v => _extractArmorerModelDetailHtml(ownerSubFeatures, v)).filter(Boolean).join('');
-        }
-      }
+      const detailHtml = '';
 
       rows.push({ label: scope + label, values: vals, detailHtml, sectionTitle: subMeta.sectionTitle || clsMeta.sectionTitle || 'Class Choices' });
     }
 
     if (rows.length) {
       const title = rows[0].sectionTitle || 'Class Choices';
-      h += `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('wrench')} ${esc(title)}</div>`;
+      h += `<div style="font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('wrench')} ${esc(title)}</div>`;
       for (const row of rows) {
         const id = 'choice_' + Math.random().toString(36).slice(2);
         const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>${row.detailHtml || ''}`;
@@ -3553,9 +3621,9 @@ function renderFeaturesTab(){
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
             <div style="flex:1;min-width:0">
               <div class="feature-name" style="color:var(--teal)">${esc(row.label)}</div>
-              <div style="font-size:9px;color:var(--teal);opacity:.75;margin-top:1px">${row.values.length} selected</div>
+              <div style="font-size:var(--fs-xs);color:var(--teal);opacity:.75;margin-top:1px">${row.values.length} selected</div>
             </div>
-            <span class="feature-arrow">▶</span>
+            <span class="feature-arrow">${luci('chevron-right')}</span>
           </div>
           <div class="feature-body">${body}</div>
         </div>`;
@@ -3590,6 +3658,7 @@ function renderFeaturesTab(){
 
       let label = labels[choiceKey] || '';
       if (!label && typeof speciesMeta.getLabel === 'function') label = speciesMeta.getLabel(choiceKey, choiceCtx) || '';
+      if (!label) label = String(choiceKey || '').replace(/^species_/i, '').replace(/_+/g, ' ').trim();
       if (!label) continue;
 
       rows.push({ label, values: vals });
@@ -3597,7 +3666,7 @@ function renderFeaturesTab(){
 
     if (rows.length) {
       const title = speciesMeta.sectionTitle || 'Species Choices';
-      h += `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(title)}</div>`;
+      h += `<div style="font-family:var(--ff-display);font-size:var(--fs-label);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:.75rem 0 .5rem">${luci('sparkles')} ${esc(title)}</div>`;
       for (const row of rows) {
         const id = 'species_choice_' + Math.random().toString(36).slice(2);
         const body = `<ul style="margin:0;padding-left:18px">${row.values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
@@ -3605,9 +3674,9 @@ function renderFeaturesTab(){
           <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
             <div style="flex:1;min-width:0">
               <div class="feature-name" style="color:var(--teal)">${esc(row.label)}</div>
-              <div style="font-size:9px;color:var(--teal);opacity:.75;margin-top:1px">${row.values.length} selected</div>
+              <div style="font-size:var(--fs-xs);color:var(--teal);opacity:.75;margin-top:1px">${row.values.length} selected</div>
             </div>
-            <span class="feature-arrow">▶</span>
+            <span class="feature-arrow">${luci('chevron-right')}</span>
           </div>
           <div class="feature-body">${body}</div>
         </div>`;
@@ -3626,7 +3695,7 @@ function renderBackgroundTab(){
   const snap = C.bgSnapshot||{};
 
   let h = `<div class="bg-section">
-    <div class="bg-section-title">📜 ${esc(C.bgName)}</div>`;
+    <div class="bg-section-title">${luci('scroll-text')} ${esc(C.bgName)}</div>`;
 
   const skills = (snap.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose'));
   if(skills.length) h+=`<p class="bg-text"><strong>Skills:</strong> ${skills.join(', ')}</p>`;
@@ -3645,7 +3714,7 @@ function renderBackgroundTab(){
       h+=`<div class="feature-item" id="${id}">
         <div class="feature-hdr" onclick="document.getElementById('${id}').classList.toggle('open')">
           <div class="feature-name" style="color:var(--text2)">${esc(e.name)}</div>
-          <span class="feature-arrow">▶</span>
+          <span class="feature-arrow">${luci('chevron-right')}</span>
         </div>
         <div class="feature-body">${rE(e.entries||'')||'—'}</div>
       </div>`;
@@ -3707,8 +3776,8 @@ function _showShortRestModal(){
   if(!hdLeft){
     m.style.display = 'flex';
     m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:340px;width:100%;text-align:center">
-      <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:1rem">${luci('sun')} Short Rest</div>
-      <div style="color:var(--text3);font-size:13px;margin-bottom:1rem">Nessun Dado Vita rimasto.</div>
+      <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);margin-bottom:1rem">${luci('sun')} Short Rest</div>
+      <div style="color:var(--text3);font-size:var(--fs-body-lg);margin-bottom:1rem">Nessun Dado Vita rimasto.</div>
       <button onclick="_applyShortRest(0,${faces})" style="padding:7px 20px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--text2);cursor:pointer;font-family:inherit">Riposa (solo risorse)</button>
       <button onclick="_closeShortRestModal()" style="margin-left:8px;padding:7px 20px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Annulla</button>
     </div>`;
@@ -3716,18 +3785,18 @@ function _showShortRestModal(){
   }
   m.style.display = 'flex';
   m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:340px;width:100%">
-    <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:1rem">${luci('sun')} Short Rest</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">Dadi Vita disponibili: <b style="color:var(--gold2)">${hdLeft} d${faces}</b> &nbsp;·&nbsp; CON ${fbonus(getMod(getFinal('con')))}</div>
+    <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);margin-bottom:1rem">${luci('sun')} Short Rest</div>
+    <div style="font-size:var(--fs-body);color:var(--text3);margin-bottom:.75rem">Dadi Vita disponibili: <b style="color:var(--gold2)">${hdLeft} d${faces}</b> &nbsp;·&nbsp; CON ${fbonus(getMod(getFinal('con')))}</div>
     <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
-      <span style="font-size:12px;color:var(--text2)">Dadi da usare:</span>
-      <button onclick="_srAdj(-1)" style="width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:16px;line-height:1">−</button>
-      <span id="sr-count" style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2);min-width:24px;text-align:center">1</span>
-      <button onclick="_srAdj(1)" style="width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:16px;line-height:1">+</button>
+      <span style="font-size:var(--fs-body);color:var(--text2)">Dadi da usare:</span>
+      <button onclick="_srAdj(-1)" style="width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:var(--fs-ui-xl);line-height:1">−</button>
+      <span id="sr-count" style="font-family:var(--ff-display);font-size:var(--fs-value-sm);font-weight:700;color:var(--gold2);min-width:24px;text-align:center">1</span>
+      <button onclick="_srAdj(1)" style="width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);cursor:pointer;font-size:var(--fs-ui-xl);line-height:1">+</button>
     </div>
-    <div id="sr-preview" style="font-size:12px;color:var(--text3);margin-bottom:1rem;min-height:18px;font-style:italic"></div>
+    <div id="sr-preview" style="font-size:var(--fs-body);color:var(--text3);margin-bottom:1rem;min-height:18px;font-style:italic"></div>
     <div style="display:flex;gap:8px">
       <button onclick="_applyShortRest(parseInt(document.getElementById('sr-count').textContent),${faces})"
-        style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:pointer;font-family:'Cinzel',serif;font-size:12px;font-weight:700">
+        style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:pointer;font-family:var(--ff-display);font-size:var(--fs-body);font-weight:700">
         ${luci('dice-5')} Riposa
       </button>
       <button onclick="_closeShortRestModal()" style="padding:8px 16px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Annulla</button>
@@ -3851,6 +3920,15 @@ function rollDamage(formula, label){
   return total;
 }
 
+function rollDamagePrompt(label, defaultFormula){
+  const seed = String(defaultFormula || '1d6').trim() || '1d6';
+  const raw = window.prompt(`Damage formula for ${label}`, seed);
+  if(raw == null) return null;
+  const formula = String(raw || '').trim();
+  if(!formula) return null;
+  return rollDamage(formula, label);
+}
+
 function rollFormula(formula, label){
   const p = _parseFormula(formula);
   if(!p) return;
@@ -3907,22 +3985,23 @@ function getAllResDefs(){
   ];
 }
 
-// Key → action name mapping (so we know which action card gets pips)
-const RESOURCE_ACTION_MAP = {
-  rage:'Rage', channel_div:'Channel Divinity',
-  wild_shape:'Wild Shape', second_wind:'Second Wind', action_surge:'Action Surge',
-  ki:'Discipline Points', lay_on_hands:'Lay on Hands', divine_sense:'Divine Sense',
-  sorc_pts:'Sorcery Points', arc_recovery:'Arcane Recovery',
-  flash_genius:'Flash of Genius',
-  divine_intervention:'Divine Intervention',
-  war_priest:'War Priest',
-  superiority_dice:'Combat Maneuvers', psi_dice:'Psionic Strike',
-  armorer_giant_stature:'Giant Stature',
-  dragonborn_breath:'Breath Weapon',
-  aasimar_revelation:'Celestial Revelation',
-  orc_adrenaline_rush:'Adrenaline Rush',
-  shifter_shift:'Shift',
-};
+function _normResActionName(v){
+  return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+function _resourceMatchesAction(res, actionRef){
+  if(!res || !actionRef) return false;
+  const actionObj = typeof actionRef === 'object' ? actionRef : { name: String(actionRef || '') };
+  const resKey = String(actionObj.resKey || '').trim();
+  if (resKey && res.key === resKey) return true;
+  const target = _normResActionName(actionObj.name || actionRef);
+  if(!target) return false;
+  const candidates = [
+    res.actionName,
+    res.name,
+    res.key,
+  ].map(_normResActionName).filter(Boolean);
+  return candidates.includes(target);
+}
 
 function getResMax(res){
   const lv = C?.classLevel || C?.level || 1;
@@ -3996,10 +4075,9 @@ function _getResourceRechargeLabel(res){
   return 'RL';
 }
 
-function buildResourceBlock(actionName){
+function buildResourceBlock(actionRef){
   const defs = getAllResDefs();
-  const res = defs.find(r => RESOURCE_ACTION_MAP[r.key] === actionName ||
-    r.name.toLowerCase() === actionName.toLowerCase().replace(/\'s/g,''));
+  const res = defs.find(r => _resourceMatchesAction(r, actionRef));
   if(!res) return '';
   const max = getResMax(res);
   if(max===0) return '';
@@ -4011,8 +4089,8 @@ function buildResourceBlock(actionName){
     return `<div class="res-block">
       <div class="res-block-label">${esc(res.name)} <span class="res-recharge">${rechargeLabel}</span></div>
       <button class="res-badge" onclick="spendResource('${res.key}',1)">−</button>
-      <span style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold2);min-width:24px;text-align:center">${cur}</span>
-      <span style="font-size:11px;color:var(--text3)">/ ${max}</span>
+      <span style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold2);min-width:24px;text-align:center">${cur}</span>
+      <span style="font-size:var(--fs-meta);color:var(--text3)">/ ${max}</span>
       <button class="res-badge" onclick="charResources['${res.key}']=Math.min(${max},${cur}+1);saveResources();renderActionsTab()">+</button>
     </div>`;
   } else {
@@ -4075,46 +4153,188 @@ function buildWeaponCard(item){
   </div>`;
 }
 
-function buildCantripCard(name){
-  const d=CANTRIP_DB[name], lv=C?.level||1, sm=getSpellMod(), pb=getPB();
-  const dc=cantripDice(lv);
-  const id='ac_'+Math.random().toString(36).slice(2);
-  if(!d){
-    return `<div class="action-card" id="${id}">
-      <div class="action-card-hdr">
-        <span class="action-card-icon">${luci('sparkles')}</span>
-        <div style="flex:1;min-width:0"><div class="action-card-name">${esc(name)}<span class="sub">Cantrip</span></div></div>
-        <div class="action-card-tags"><span class="action-tag atk">SPELL</span></div>
-        <div class="action-stat">${fbonus(sm+pb)}</div>
-      </div>
-      <div class="action-card-bar">
-        <button class="roll-btn" onclick="rollD20(${sm+pb},'${esc(name)}')">${luci('dice-5')} Attack ${fbonus(sm+pb)}</button>
-        <div class="action-dmg-pill">${luci('ruler')} varies</div>
-      </div>
-    </div>`;
+function _jsEsc(v){
+  return String(v || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+function _normalizeDiceFormula(formula){
+  return String(formula || '')
+    .replace(/[−–—]/g,'-')
+    .replace(/\s+/g,'')
+    .trim();
+}
+
+function _extractFirstDamageFormulaFromEntries(entries){
+  const txt = JSON.stringify(entries || []);
+  if(!txt || txt === '[]') return null;
+  const tagMatch = txt.match(/\{@(?:damage|scaledamage)\s+([^}|]+)[^}]*\}/i);
+  if(tagMatch){
+    const f = _normalizeDiceFormula(tagMatch[1]);
+    const p = _parseFormula(f);
+    if(p && !(p.faces === 20 && p.count <= 2)) return f;
   }
-  const atkBonus=sm+pb, saveDC=8+pb+sm;
-  const dmgFormula=d.die!=='—'?`${dc}${d.die}`:'—';
-  const dmgLabel=d.die!=='—'?`${dc}${d.die} ${d.dmgType}`.trim():'—';
-  const hitStr=d.toHit?fbonus(atkBonus):`CD ${saveDC}`;
-  const nEsc=esc(name);
+  const plain = txt.match(/\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
+  if(plain){
+    const f = _normalizeDiceFormula(plain[1]);
+    const p = _parseFormula(f);
+    if(p && !(p.faces === 20 && p.count <= 2)) return f;
+  }
+  return null;
+}
+
+function _scaleCantripFormula(baseFormula, lv){
+  const p = _parseFormula(_normalizeDiceFormula(baseFormula));
+  if(!p) return _normalizeDiceFormula(baseFormula);
+  const mult = cantripDice(lv || 1);
+  return `${p.count * mult}d${p.faces}${p.mod ? (p.mod >= 0 ? '+' : '') + p.mod : ''}`;
+}
+
+function _getActionOwnerLevel(a){
+  const totalLv = Number(C?.level || 1);
+  if(!a || !a._cls) return Number(C?.classLevel || totalLv || 1);
+  if(String(C?.className || '') === String(a._cls)) return Number(C?.classLevel || totalLv || 1);
+  const ec = (C?.extraClasses || []).find(x => String(x?.name || '') === String(a._cls));
+  if(ec) return Number(ec.level || 1);
+  return totalLv;
+}
+
+function _extractActionDamageFormula(a){
+  const fromField = (() => {
+    if(typeof a?.damageFormula === 'function'){
+      try { return a.damageFormula({ character: C, action: a, ownerLevel: _getActionOwnerLevel(a) }); }
+      catch(_) { return null; }
+    }
+    if(typeof a?.damageFormula === 'string') return a.damageFormula;
+    if(typeof a?.rollDamage === 'string') return a.rollDamage;
+    if(typeof a?.damage === 'string') return a.damage;
+    if(Array.isArray(a?.damageRolls) && a.damageRolls.length){
+      const first = a.damageRolls.find(r => r && (typeof r === 'string' || typeof r.formula === 'string'));
+      if(typeof first === 'string') return first;
+      if(first && typeof first.formula === 'string') return first.formula;
+    }
+    return null;
+  })();
+  if(fromField){
+    const f = _normalizeDiceFormula(fromField);
+    return _parseFormula(f) ? f : null;
+  }
+
+  const desc = String(a?.desc || '');
+  const ownerLv = _getActionOwnerLevel(a);
+  const pb = getPB();
+  const modOf = (ab) => getMod(getFinal(String(ab || '').toLowerCase()));
+  const sign = (n) => (n >= 0 ? `+${n}` : String(n));
+
+  let m = desc.match(/(\d+d\d+)\s*\+\s*your\s*(STR|DEX|CON|INT|WIS|CHA)\s*modifier\s*\+\s*(?:your\s+)?[A-Za-z' ]*level/i);
+  if(m){
+    const v = modOf(m[2]) + ownerLv;
+    return _normalizeDiceFormula(`${m[1]}${sign(v)}`);
+  }
+  m = desc.match(/(\d+d\d+)\s*\+\s*your\s*(STR|DEX|CON|INT|WIS|CHA)\s*modifier/i);
+  if(m){
+    const v = modOf(m[2]);
+    return _normalizeDiceFormula(`${m[1]}${sign(v)}`);
+  }
+  m = desc.match(/(\d+d\d+)\s*\+\s*your\s*proficiency\s*bonus/i);
+  if(m) return _normalizeDiceFormula(`${m[1]}${sign(pb)}`);
+  m = desc.match(/(\d+d\d+)\s*\+\s*half\s+your\s+[A-Za-z' ]*level/i);
+  if(m) return _normalizeDiceFormula(`${m[1]}${sign(Math.floor(ownerLv/2))}`);
+  m = desc.match(/(\d+d\d+)\s*\+\s*(?:your\s+)?[A-Za-z' ]*level/i);
+  if(m) return _normalizeDiceFormula(`${m[1]}${sign(ownerLv)}`);
+  m = desc.match(/\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
+  if(m){
+    const f = _normalizeDiceFormula(m[1]);
+    const p = _parseFormula(f);
+    if(p && !(p.faces === 20 && p.count <= 2)) return f;
+  }
+  return null;
+}
+
+function _inferActionAttackBonus(a){
+  const pb = getPB();
+  const strMod = getMod(getFinal('str'));
+  const dexMod = getMod(getFinal('dex'));
+  const text = `${a?.name || ''} ${a?.desc || ''}`.toLowerCase();
+
+  if(typeof a?.attackBonus === 'number') return a.attackBonus;
+  if(typeof a?.attackAbility === 'string'){
+    const ab = a.attackAbility.toLowerCase().trim();
+    if(['str','dex','con','int','wis','cha'].includes(ab)){
+      return getMod(getFinal(ab)) + pb + Number(a?.attackBonusExtra || 0);
+    }
+  }
+  if(a?.attackRoll === 'spell' || /\bspell\b|\bcantrip\b|\bmagic\b/.test(text)) return getSpellAttackBonus();
+  if(/\branged\b/.test(text)) return dexMod + pb;
+  if(/\bunarmed\b/.test(text)) return Math.max(strMod, dexMod) + pb;
+  return Math.max(strMod, dexMod) + pb;
+}
+
+function _buildGenericActionRollButtons(a){
+  const atkBonus = _inferActionAttackBonus(a);
+  const dmgFormula = _extractActionDamageFormula(a);
+  const safeLabel = _jsEsc(a?.name || 'Action');
+  const atkBtn = `<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'Attack: ${safeLabel}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`;
+  const dmgBtn = dmgFormula
+    ? `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${_jsEsc(dmgFormula)}','Damage: ${safeLabel}')">${luci('flame')} ${esc(dmgFormula)}</button>`
+    : `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamagePrompt('Damage: ${safeLabel}','1d6')">${luci('flame')} Damage ?</button>`;
+  return atkBtn + dmgBtn;
+}
+
+function buildCantripCard(name){
+  const known = CANTRIP_DB[name];
+  const lv = C?.level || 1;
+  const sm = getSpellMod();
+  const pb = getPB();
+  const atkBonus = sm + pb;
+  const saveDC = 8 + pb + sm;
+  const id = 'ac_' + Math.random().toString(36).slice(2);
+  const full = Array.isArray(sheetSpellDb)
+    ? sheetSpellDb.find(s => String(s?.name || '').toLowerCase() === String(name || '').toLowerCase())
+    : null;
+  const entries = full?.entries || [];
+  const safeName = _jsEsc(name);
+
+  const toHit = known
+    ? !!known.toHit
+    : !!(full?.spellAttack?.length || JSON.stringify(entries).includes('{@atk '));
+  const range = known?.range
+    || (full?.range?.distance?.amount != null
+      ? `${full.range.distance.amount} ${full.range.distance.type || ''}`.trim()
+      : (full?.range?.type || 'varies'));
+  const dmgType = known?.dmgType || '';
+  const school = full ? (SCHOOL_LABELS[full.school] || full.school || '') : '';
+
+  let dmgFormula = null;
+  const knownDie = _normalizeDiceFormula(known?.die || '');
+  if(known && /^\d+d\d+$/i.test(knownDie)){
+    dmgFormula = `${cantripDice(lv)}${knownDie}`;
+  } else {
+    const base = _extractFirstDamageFormulaFromEntries(entries);
+    if(base) dmgFormula = _scaleCantripFormula(base, lv);
+  }
+  const dmgLabel = dmgFormula ? `${dmgFormula} ${dmgType}`.trim() : 'Damage ?';
+  const icon = known?.icon || 'sparkles';
+  const hitStr = toHit ? fbonus(atkBonus) : `CD ${saveDC}`;
+  const notes = known?.notes || '';
+
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr">
-      <span class="action-card-icon">${luci(d.icon)}</span>
+      <span class="action-card-icon">${luci(icon)}</span>
       <div style="flex:1;min-width:0">
-        <div class="action-card-name">${nEsc}<span class="sub">Cantrip · ${esc(d.dmgType||'utility')} · ${esc(d.range)}</span></div>
+        <div class="action-card-name">${esc(name)}<span class="sub">Cantrip | ${esc(dmgType || school || 'utility')} | ${esc(range)}</span></div>
       </div>
-      <div class="action-card-tags"><span class="action-tag ${d.toHit?'atk':'save'}">${d.toHit?'ATK':'SAV'}</span></div>
+      <div class="action-card-tags"><span class="action-tag ${toHit ? 'atk' : 'save'}">${toHit ? 'ATK' : 'SAV'}</span></div>
       <div class="action-stat">${hitStr}</div>
     </div>
     <div class="action-card-bar">
-      ${d.toHit
-        ?`<button class="roll-btn" onclick="rollD20(${atkBonus},'${nEsc}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`
-        :`<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>`}
-      ${dmgFormula!=='—'?`<button class="roll-btn dmg" onclick="rollDamage('${dmgFormula}','${nEsc}')">${luci('flame')} ${esc(dmgLabel)}</button>`:''}
-      <div class="action-dmg-pill">${luci('ruler')} <b>${esc(d.range)}</b></div>
-      <div class="action-dmg-pill">${luci('trending-up')} ×5/11/17</div>
-      ${d.notes?`<div class="action-dmg-pill" style="color:var(--text3)">${esc(d.notes)}</div>`:''}
+      <button class="roll-btn" onclick="rollD20(${atkBonus},'Attack: ${safeName}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>
+      ${dmgFormula
+        ? `<button class="roll-btn dmg" onclick="rollDamage('${_jsEsc(dmgFormula)}','Damage: ${safeName}')">${luci('flame')} ${esc(dmgLabel)}</button>`
+        : `<button class="roll-btn dmg" onclick="rollDamagePrompt('Damage: ${safeName}','1d6')">${luci('flame')} Damage ?</button>`}
+      ${!toHit ? `<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>` : ''}
+      <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
+      <div class="action-dmg-pill">${luci('trending-up')} x5/11/17</div>
+      ${notes ? `<div class="action-dmg-pill" style="color:var(--text3)">${esc(notes)}</div>` : ''}
     </div>
   </div>`;
 }
@@ -4204,9 +4424,10 @@ function buildClassActionCard(a){
   }
 
   // Build resource block inline
-  const resInline = buildResourceBlockInline(a.name);
+  const resInline = buildResourceBlockInline(a);
 
-  const barHtml = resInline || rollRow ? resInline + rollRow : '';
+  const genericRollRow = _buildGenericActionRollButtons(a);
+  const barHtml = (resInline || rollRow || genericRollRow) ? (resInline + rollRow + genericRollRow) : '';
 
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
@@ -4289,12 +4510,9 @@ function buildStdActionCard(a){
 }
 
 // Inline resource block (for inside action-info-row)
-function buildResourceBlockInline(actionName){
+function buildResourceBlockInline(actionRef){
   const defs=getAllResDefs();
-  const res=defs.find(r=>
-    RESOURCE_ACTION_MAP[r.key]===actionName ||
-    r.name.toLowerCase()===actionName.toLowerCase()
-  );
+  const res=defs.find(r=>_resourceMatchesAction(r, actionRef));
   if(!res) return '';
   const max=getResMax(res);
   if(max===0) return '';
@@ -4304,8 +4522,8 @@ function buildResourceBlockInline(actionName){
     return `<div class="res-inline">
       <span class="res-inline-label">${esc(res.name)}</span>
       <button class="res-badge" onclick="event.stopPropagation();spendResource('${res.key}',1)">−</button>
-      <span style="font-family:'Cinzel',serif;font-size:13px;font-weight:700;color:var(--gold2)">${cur}</span>
-      <span style="font-size:10px;color:var(--text3)">/${max}</span>
+      <span style="font-family:var(--ff-display);font-size:var(--fs-body-lg);font-weight:700;color:var(--gold2)">${cur}</span>
+      <span style="font-size:var(--fs-label);color:var(--text3)">/${max}</span>
       <button class="res-badge" onclick="event.stopPropagation();charResources['${res.key}']=Math.min(${max},(charResources['${res.key}']||0)+1);saveResources();renderActionsTab()">+</button>
       <span class="res-recharge">${rechargeLabel}</span>
     </div>`;
@@ -4357,15 +4575,15 @@ function _getPickerModal(){
   m.innerHTML = `
     <div style="max-width:560px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem">
       <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
-        <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:700;color:var(--gold);flex:1">${luci('sparkles')} Spells</div>
+        <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);flex:1">${luci('sparkles')} Spells</div>
         <span id="spl-count" class="spl-count-badge"></span>
-        <button onclick="closeSpellPicker()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;line-height:1">${luci('x')}</button>
+        <button onclick="closeSpellPicker()" style="background:none;border:none;color:var(--text2);font-size:var(--fs-value-sm);cursor:pointer;line-height:1">${luci('x')}</button>
       </div>
       <div id="spl-tabs" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem"></div>
       <input id="spl-q" type="text" placeholder="Search…" oninput="_renderPickerList()"
         style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
-               color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit;margin-bottom:.6rem"/>
-      <div id="spl-loading" style="color:var(--text3);font-size:13px;font-style:italic;display:none">Loading…</div>
+               color:var(--text);padding:6px 10px;font-size:var(--fs-body-lg);font-family:inherit;margin-bottom:.6rem"/>
+      <div id="spl-loading" style="color:var(--text3);font-size:var(--fs-body-lg);font-style:italic;display:none">Loading…</div>
       <div id="spl-list" style="max-height:52vh;overflow-y:auto"></div>
     </div>`;
   document.body.appendChild(m);
@@ -4401,7 +4619,7 @@ function _buildPickerTabs(){
     const lim = _getSpellLimit(i===0);
     const badge = lim.max!==null ? ` (${i===0?cantripCount:spellCount}/${lim.max})` : '';
     return `<button class="af-btn${_splFilter.level===i?' on':''}"
-      onclick="setPickerLevel(${i})" style="font-size:10px;padding:3px 8px">${l}${badge}</button>`;
+      onclick="setPickerLevel(${i})" style="font-size:var(--fs-label);padding:3px 8px">${l}${badge}</button>`;
   }).join('');
   // Update count badge
   const cb = document.getElementById('spl-count');

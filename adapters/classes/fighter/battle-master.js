@@ -76,6 +76,7 @@ registerSubclassSheetResources("Fighter_Battle Master", [
   {
     "key": "superiority_dice",
     "name": "Superiority Dice",
+    "actionName": "Combat Maneuvers",
     "icon": "swords",
     "recharge": "SR",
     "max": (lv)=>lv>=15?6:lv>=7?5:4,

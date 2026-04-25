@@ -1,0 +1,720 @@
+{
+  "classRows": [
+    {
+      "entity": "Artificer|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Barbarian|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Bard|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Cleric|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Druid|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Fighter|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Monk|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Paladin|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Ranger|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Rogue|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Sorcerer|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Warlock|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Wizard|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    }
+  ],
+  "subclassRows": [
+    {
+      "entity": "Artificer|Alchemist|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Artificer|Armorer|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": true,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Artificer|Artillerist|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Artificer|Battle Smith|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Artificer|Cartographer|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Barbarian|Berserker|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Barbarian|Wild Heart|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Barbarian|World Tree|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Barbarian|Zealot|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Bard|Dance|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Bard|Glamour|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Bard|Lore|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Bard|Moon|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Bard|Valor|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Cleric|Knowledge|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Cleric|Life|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Cleric|Light|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Cleric|Trickery|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Cleric|War|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Druid|Land|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Druid|Moon|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Druid|Sea|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Druid|Stars|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Fighter|Banneret|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Fighter|Battle Master|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Fighter|Champion|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Fighter|Eldritch Knight|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Fighter|Psi Warrior|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Monk|Elements|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Monk|Mercy|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Monk|Open Hand|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Monk|Shadow|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Paladin|Ancients|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Paladin|Devotion|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Paladin|Glory|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Paladin|Noble Genies|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Paladin|Vengeance|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Ranger|Beast Master|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Ranger|Fey Wanderer|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Ranger|Gloom Stalker|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Ranger|Hunter|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Ranger|Winter Walker|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Rogue|Arcane Trickster|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Rogue|Assassin|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Rogue|Scion of the Three|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Rogue|Soulknife|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Rogue|Thief|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Sorcerer|Aberrant|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Sorcerer|Clockwork|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Sorcerer|Draconic|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Sorcerer|Spellfire|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Sorcerer|Wild Magic|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Warlock|Archfey|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Warlock|Celestial|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Warlock|Fiend|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Warlock|Great Old One|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Wizard|Abjurer|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Wizard|Bladesinger|FRHoF",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Wizard|Diviner|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Wizard|Evoker|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    },
+    {
+      "entity": "Wizard|Illusionist|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": false
+    }
+  ],
+  "speciesRows": [
+    {
+      "entity": "Aasimar|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Changeling|EFA",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Dragonborn|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Dwarf|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Elf|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Gnome|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Goliath|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Halfling|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Human|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Kalashtar|EFA",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Khoravar|EFA",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Orc|XPHB",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Shifter|EFA",
+      "adapter": true,
+      "actions": true,
+      "resources": true,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Tiefling|XPHB",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    },
+    {
+      "entity": "Warforged|EFA",
+      "adapter": true,
+      "actions": false,
+      "resources": false,
+      "filters": false,
+      "choiceMeta": true
+    }
+  ]
+}

@@ -29,6 +29,12 @@ registerSpeciesSheetActions("Dragonborn_XPHB", [
     cat: 'action',
     uses: 'PB / LR',
     resKey: 'dragonborn_breath',
+    attackAbility: 'con',
+    damageFormula: ({ character }) => {
+      const lv = Number(character?.level || 1);
+      const dice = lv >= 17 ? 4 : lv >= 11 ? 3 : lv >= 5 ? 2 : 1;
+      return `${dice}d10`;
+    },
     minLevel: 1,
     desc: 'Exhale destructive draconic energy; damage type depends on your Draconic Ancestry.',
   },

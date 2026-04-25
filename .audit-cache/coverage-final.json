@@ -1,0 +1,898 @@
+{
+  "classRows": [
+    {
+      "entity": "Artificer",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Barbarian",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Bard",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Cleric",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Druid",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Fighter",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Monk",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Paladin",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Ranger",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Rogue",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Sorcerer",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Warlock",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Wizard",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    }
+  ],
+  "subclassRows": [
+    {
+      "entity": "Artificer / Alchemist",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Artificer / Armorer",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "YES",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Artificer / Artillerist",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Artificer / Battle Smith",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Artificer / Cartographer",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Barbarian / Berserker",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Barbarian / Wild Heart",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Barbarian / World Tree",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Barbarian / Zealot",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Bard / Dance",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Bard / Glamour",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Bard / Lore",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Bard / Moon",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Bard / Valor",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "YES",
+      "status": "OK"
+    },
+    {
+      "entity": "Cleric / Knowledge",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Cleric / Life",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Cleric / Light",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Cleric / Trickery",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Cleric / War",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Druid / Land",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Druid / Moon",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Druid / Sea",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Druid / Stars",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Fighter / Banneret",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Fighter / Battle Master",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Fighter / Champion",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Fighter / Eldritch Knight",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Fighter / Psi Warrior",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Monk / Elements",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Monk / Mercy",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Monk / Open Hand",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Monk / Shadow",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Paladin / Ancients",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Paladin / Devotion",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Paladin / Glory",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Paladin / Noble Genies",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Paladin / Vengeance",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Ranger / Beast Master",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Ranger / Fey Wanderer",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Ranger / Gloom Stalker",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Ranger / Hunter",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Ranger / Winter Walker",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Rogue / Arcane Trickster",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Rogue / Assassin",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Rogue / Scion of the Three",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Rogue / Soulknife",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Rogue / Thief",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Sorcerer / Aberrant",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Sorcerer / Clockwork",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Sorcerer / Draconic",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Sorcerer / Spellfire",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Sorcerer / Wild Magic",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Warlock / Archfey",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Warlock / Celestial",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Warlock / Fiend",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Warlock / Great Old One",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Wizard / Abjurer",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Wizard / Bladesinger",
+      "source": "FRHoF",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Wizard / Diviner",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Wizard / Evoker",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Wizard / Illusionist",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    }
+  ],
+  "speciesRows": [
+    {
+      "entity": "Aasimar",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Changeling",
+      "source": "EFA",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Dragonborn",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Dwarf",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Elf",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Gnome",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Goliath",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Halfling",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Human",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Kalashtar",
+      "source": "EFA",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Khoravar",
+      "source": "EFA",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Orc",
+      "source": "XPHB",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Shifter",
+      "source": "EFA",
+      "actions": "YES",
+      "resources": "YES",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Tiefling",
+      "source": "XPHB",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    },
+    {
+      "entity": "Warforged",
+      "source": "EFA",
+      "actions": "N/A",
+      "resources": "N/A",
+      "filters": "N/A",
+      "choiceMeta": "YES",
+      "proficiencies": "GENERIC",
+      "status": "OK"
+    }
+  ]
+}

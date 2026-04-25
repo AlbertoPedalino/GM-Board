@@ -40,6 +40,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "attack",
     "uses": "At will",
     "minLevel": 3,
+    "choiceKey": "armorer_model",
     "model": "Guardian",
     "desc": "Guardian model weapon. On hit, the target has disadvantage on attack rolls against creatures other than you until the start of your next turn."
   },
@@ -49,6 +50,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "bonus",
     "uses": "PB / LR",
     "minLevel": 3,
+    "choiceKey": "armorer_model",
     "model": "Guardian",
     "desc": "Guardian model. Gain temporary hit points as a Bonus Action; you can use this feature a number of times equal to your Proficiency Bonus per Long Rest."
   },
@@ -58,6 +60,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "attack",
     "uses": "At will",
     "minLevel": 3,
+    "choiceKey": "armorer_model",
     "model": "Infiltrator",
     "desc": "Infiltrator model ranged weapon. Once on each of your turns, one hit deals extra lightning damage."
   },
@@ -67,6 +70,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "attack",
     "uses": "At will",
     "minLevel": 3,
+    "choiceKey": "armorer_model",
     "model": "Dreadnaught",
     "desc": "Dreadnaught model weapon. Arcane wrecking ball/sledgehammer that deals 1d10 Force damage. On hit against a creature at least one size smaller than you, you can push it 10 ft away or pull it 10 ft toward you."
   },
@@ -77,6 +81,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "uses": "INT mod / LR",
     "resKey": "armorer_giant_stature",
     "minLevel": 3,
+    "choiceKey": "armorer_model",
     "model": "Dreadnaught",
     "desc": "Bonus Action. Enlarge your armor for 1 minute: reach +5 ft, and if you are smaller than Large you become Large (space permitting). Uses equal to INT modifier (minimum 1), regained on Long Rest."
   },
@@ -86,6 +91,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "reaction",
     "uses": "At will",
     "minLevel": 15,
+    "choiceKey": "armorer_model",
     "model": "Guardian",
     "desc": "Guardian perfected armor feature."
   },
@@ -95,6 +101,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "reaction",
     "uses": "At will",
     "minLevel": 15,
+    "choiceKey": "armorer_model",
     "model": "Infiltrator",
     "desc": "Infiltrator perfected armor feature."
   },
@@ -104,6 +111,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "reaction",
     "uses": "At will",
     "minLevel": 15,
+    "choiceKey": "armorer_model",
     "model": "Dreadnaught",
     "desc": "Dreadnought perfected armor feature."
   }
@@ -116,6 +124,10 @@ registerSubclassSheetResources("Artificer_Armorer", [
     "recharge": "LR",
     "max": ()=>Math.max(1,getMod(getFinal('int')))
   }
+]);
+registerSubclassSheetProficiencies("Artificer_Armorer", [
+  { type: "tool", values: ["Smith's Tools"], minLevel: 3 },
+  { type: "armor", values: ["Heavy"], minLevel: 3 }
 ]);
 registerSubclassSheetFeatureFilter("Artificer_Armorer", (ctx, features) => {
   const prefix = String(ctx?.choicePrefix || "");

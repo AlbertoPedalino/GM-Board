@@ -25,4 +25,8 @@ registerSubclassSheetActions("Artificer_Artillerist", [
     "desc": "Create a magical cannon and command it in combat. Cannon type (Flamethrower, Force Ballista, Protector) is chosen when you create it."
   }
 ]);
+registerSubclassSheetProficiencies("Artificer_Artillerist", [
+  { type: "tool", values: ["Woodcarver's Tools"], minLevel: 3 },
+  { type: "weapon", values: ["Firearms"], minLevel: 3 }
+]);
 // [SheetRuntime] END

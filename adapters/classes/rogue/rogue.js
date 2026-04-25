@@ -153,4 +153,7 @@ registerClassSheetActions("Rogue", [
     "desc": "Once per Long Rest: turn a failed ability check into a success, or turn a miss into a hit."
   }
 ]);
+registerClassSheetProficiencies("Rogue", [
+  { type: "language", values: ["Thieves' Cant"], minLevel: 1 }
+]);
 // [SheetRuntime] END

@@ -28,3 +28,22 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
     });
   }
 });
+
+registerSubclassSheetActions("Fighter_Banneret", [
+  {
+    name: "Royal Envoy",
+    icon: "",
+    cat: "action",
+    uses: "Passive",
+    minLevel: 3,
+    desc: "Gain Persuasion mastery benefits and an extra language; if already trained, choose a related social skill."
+  },
+  {
+    name: "Inspiring Surge",
+    icon: "",
+    cat: "bonus",
+    uses: "Action Surge rider",
+    minLevel: 10,
+    desc: "When using Action Surge, one ally can attack using their Reaction."
+  }
+]);

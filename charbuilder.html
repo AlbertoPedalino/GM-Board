@@ -13,6 +13,23 @@
     rel="stylesheet" />
   <style>
     :root {
+      --ff-body: 'EB Garamond', Georgia, serif;
+      --ff-display: 'Cinzel', Georgia, serif;
+      --fs-body: 16px;
+      --fs-body-sm: 15px;
+      --fs-title: 32px;
+      --fs-subtitle: 12px;
+      --fs-label: 11px;
+      --fs-caption: 10px;
+      --fs-ui-sm: 12px;
+      --fs-ui-md: 13px;
+      --fs-ui-lg: 14px;
+      --fs-ui-xl: 16px;
+      --fs-ui-xxl: 18px;
+      --fs-ui-display: 22px;
+      --fs-ui-micro: 8px;
+      --lh-body: 1.55;
+
       --bg: #12100e;
       --bg2: #1a1713;
       --bg3: #23201a;
@@ -56,10 +73,10 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 16px;
+      font-family: var(--ff-body);
+      font-size: var(--fs-body);
       min-height: 100vh;
-      line-height: 1.58;
+      line-height: var(--lh-body);
       letter-spacing: .01em;
       text-rendering: optimizeLegibility
     }
@@ -78,6 +95,43 @@
     textarea {
       font: inherit;
       color: inherit
+    }
+
+    h1,
+    h2,
+    h3,
+    .pt,
+    .step-num,
+    .step-label,
+    .sub,
+    .chip,
+    .item-row-meta,
+    .info-card-name {
+      font-family: var(--ff-display);
+    }
+
+    .step-num,
+    .step-label,
+    .pt,
+    .chip,
+    .ph-note,
+    .item-row-src,
+    .item-row-meta,
+    .mc-tab-close,
+    .inv-type-badge {
+      font-size: var(--fs-label);
+      line-height: 1.2;
+    }
+
+    .item-row-name,
+    .choice-row,
+    .optfeat-row,
+    .spell-row,
+    .feat-item-body,
+    .phmsg,
+    .info-card {
+      font-size: var(--fs-body-sm);
+      line-height: 1.45;
     }
 
     :focus-visible {
@@ -109,7 +163,7 @@
       background: var(--bg);
       padding: 0 1rem;
       color: var(--gold);
-      font-size: 13px;
+      font-size:var(--fs-ui-md);
       line-height: 1;
       display: flex;
       align-items: center;
@@ -117,8 +171,7 @@
     }
 
     h1 {
-      font-family: 'Cinzel', Georgia, serif;
-      font-size: 2rem;
+      font-size: var(--fs-title);
       font-weight: 700;
       color: var(--gold2);
       letter-spacing: .06em;
@@ -127,8 +180,7 @@
     }
 
     .sub {
-      font-family: 'Cinzel', Georgia, serif;
-      font-size: 11px;
+      font-size: var(--fs-subtitle);
       color: var(--text3);
       letter-spacing: .1em;
       text-transform: uppercase
@@ -157,8 +209,6 @@
     }
 
     .step-num {
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
       font-weight: 700;
       letter-spacing: .1em;
       color: var(--text3);
@@ -167,8 +217,6 @@
     }
 
     .step-label {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
       font-weight: 600;
       color: var(--text3);
       letter-spacing: .04em
@@ -257,8 +305,6 @@
     }
 
     .pt {
-      font-family: 'Cinzel', Georgia, serif;
-      font-size: 9px;
       font-weight: 600;
       letter-spacing: .14em;
       text-transform: uppercase;
@@ -271,7 +317,6 @@
     }
 
     .ph-note {
-      font-size: 11px;
       color: var(--text3);
       font-style: italic
     }
@@ -283,8 +328,7 @@
       border-radius: var(--r);
       padding: 8px 12px;
       color: var(--text);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 15px;
+      font-size: var(--fs-body-sm);
       outline: none;
       transition: border-color .15s;
       margin-bottom: .75rem;
@@ -311,8 +355,6 @@
       padding: 4px 12px;
       border: 1px solid var(--bdr);
       border-radius: 999px;
-      font-size: 10px;
-      font-family: 'Cinzel', Georgia, serif;
       font-weight: 600;
       cursor: pointer;
       background: transparent;
@@ -375,7 +417,6 @@
     }
 
     .item-row-name {
-      font-size: 14px;
       color: var(--text);
       flex: 1;
       overflow: hidden;
@@ -384,17 +425,14 @@
     }
 
     .item-row-src {
-      font-size: 10px;
       color: var(--text3);
       font-style: italic;
       flex-shrink: 0
     }
 
     .item-row-meta {
-      font-size: 11px;
       color: var(--text2);
       flex-shrink: 0;
-      font-family: 'Cinzel', serif
     }
 
     .info-card {
@@ -406,8 +444,7 @@
     }
 
     .info-card-name {
-      font-family: 'Cinzel', serif;
-      font-size: 16px;
+      font-size:var(--fs-ui-xxl);
       font-weight: 700;
       color: var(--gold2);
       margin-bottom: 6px
@@ -421,8 +458,8 @@
     }
 
     .info-tag {
-      font-size: 11px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-label);
+      font-family:var(--ff-display);
       padding: 2px 8px;
       border-radius: 3px;
       border: 1px solid var(--bdr2);
@@ -460,7 +497,7 @@
     }
 
     .info-row {
-      font-size: 13px;
+      font-size:var(--fs-ui-md);
       color: var(--text2);
       margin-bottom: 3px;
       line-height: 1.4
@@ -481,8 +518,8 @@
     .lvl-btn {
       padding: 6px 4px;
       text-align: center;
-      font-family: 'Cinzel', serif;
-      font-size: 12px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-sm);
       font-weight: 600;
       border: 1px solid var(--bdr);
       border-radius: var(--r);
@@ -529,16 +566,16 @@
     }
 
     .lvl-stat-v {
-      font-family: 'Cinzel', serif;
-      font-size: 18px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-xxl);
       font-weight: 700;
       color: var(--gold2)
     }
 
     .lvl-stat-l {
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--text3);
-      font-family: 'Cinzel', serif;
+      font-family:var(--ff-display);
       letter-spacing: .08em;
       text-transform: uppercase;
       margin-top: 1px
@@ -556,8 +593,8 @@
       border-radius: var(--r);
       background: transparent;
       color: var(--text2);
-      font-size: 12px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-ui-sm);
+      font-family:var(--ff-display);
       font-weight: 600;
       cursor: pointer;
       text-align: left;
@@ -578,9 +615,9 @@
     }
 
     .sc-src {
-      font-size: 9px;
+      font-size:var(--fs-caption);
       color: var(--text3);
-      font-family: 'EB Garamond', serif;
+      font-family:var(--ff-body);
       font-style: italic;
       display: block;
       margin-top: 1px
@@ -594,7 +631,7 @@
     .mc-tab {
       padding: 5px 13px; border: 1px solid var(--bdr); border-bottom: none;
       border-radius: var(--r) var(--r) 0 0; background: var(--bg3);
-      color: var(--text2); font-family: 'Cinzel', serif; font-size: 11px;
+      color: var(--text2); font-family:var(--ff-display); font-size:var(--fs-label);
       cursor: pointer; margin-right: 3px; white-space: nowrap;
       position: relative; bottom: -2px;
     }
@@ -603,11 +640,11 @@
       border-bottom: 2px solid var(--bg2); z-index: 1; font-weight: 700;
     }
     .mc-tab:hover:not(.active) { color: var(--text); border-color: var(--bdr2); }
-    .mc-tab-close { margin-left: 6px; font-size: 9px; color: var(--text3); }
+    .mc-tab-close { margin-left: 6px; font-size:var(--fs-caption); color: var(--text3); }
     .mc-tab-close:hover { color: var(--red2); }
     .mc-tab-add {
       padding: 4px 11px; border: 1px dashed var(--bdr2); border-radius: var(--r);
-      background: transparent; color: var(--text3); font-size: 18px; line-height: 1;
+      background: transparent; color: var(--text3); font-size:var(--fs-ui-xxl); line-height: 1;
       cursor: pointer; margin-bottom: 4px; margin-left: 4px;
     }
     .mc-tab-add:hover { color: var(--gold); border-color: var(--gold); }
@@ -615,13 +652,13 @@
     .slot-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size:var(--fs-ui-sm);
       margin-top: .5rem
     }
 
     .slot-table th {
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       letter-spacing: .08em;
       text-transform: uppercase;
       color: var(--text3);
@@ -643,7 +680,7 @@
 
     .slot-table td.has {
       color: var(--gold2);
-      font-family: 'Cinzel', serif;
+      font-family:var(--ff-display);
       font-weight: 600
     }
 
@@ -661,8 +698,8 @@
       border-radius: var(--r);
       background: transparent;
       color: var(--text3);
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 600;
       letter-spacing: .07em;
       text-transform: uppercase;
@@ -702,8 +739,8 @@
     }
 
     .score-label {
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 700;
       letter-spacing: .08em;
       text-transform: uppercase;
@@ -712,21 +749,21 @@
     }
 
     .score-val {
-      font-family: 'Cinzel', serif;
-      font-size: 22px;
+      font-family:var(--ff-display);
+      font-size: var(--fs-ui-display);
       font-weight: 700;
       color: var(--gold2);
       line-height: 1
     }
 
     .score-mod {
-      font-size: 11px;
+      font-size:var(--fs-label);
       color: var(--text2);
       margin-top: 2px
     }
 
     .score-bonus {
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--teal);
       margin-top: 1px
     }
@@ -738,7 +775,7 @@
       border-radius: 3px;
       background: transparent;
       color: var(--text2);
-      font-size: 14px;
+      font-size:var(--fs-ui-lg);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -762,7 +799,7 @@
     }
 
     .pb-label {
-      font-size: 12px;
+      font-size:var(--fs-ui-sm);
       color: var(--text2);
       margin-bottom: 4px;
       display: flex;
@@ -798,8 +835,8 @@
       padding: 4px 10px;
       border: 1px solid var(--bdr2);
       border-radius: var(--r);
-      font-family: 'Cinzel', serif;
-      font-size: 14px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-lg);
       font-weight: 600;
       color: var(--text2);
       cursor: pointer;
@@ -829,8 +866,8 @@
       padding: 4px 10px;
       border: 1px solid var(--bdr2);
       border-radius: var(--r);
-      font-family: 'Cinzel', serif;
-      font-size: 14px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-lg);
       font-weight: 600;
       color: var(--text2);
       background: var(--bg3);
@@ -855,8 +892,8 @@
       border-radius: 3px;
       background: var(--greenbg);
       color: var(--green);
-      font-size: 11px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-label);
+      font-family:var(--ff-display);
       cursor: pointer
     }
 
@@ -866,7 +903,7 @@
       border-radius: 3px;
       background: transparent;
       color: var(--text3);
-      font-size: 11px;
+      font-size:var(--fs-label);
       cursor: pointer
     }
 
@@ -883,8 +920,8 @@
     }
 
     .bg-ap-title {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 600;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -896,8 +933,8 @@
       padding: 4px 10px;
       border: 1px solid var(--bdr);
       border-radius: var(--r);
-      font-family: 'Cinzel', serif;
-      font-size: 12px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-sm);
       font-weight: 600;
       cursor: pointer;
       background: transparent;
@@ -926,8 +963,8 @@
 
     /* Feature accordion */
     .feat-section-hdr {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
@@ -958,8 +995,8 @@
     }
 
     .feat-level-hdr {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -977,7 +1014,7 @@
       border: 1px solid var(--bdr2);
       border-radius: 3px;
       padding: 1px 6px;
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--gold2)
     }
 
@@ -986,7 +1023,7 @@
       border: 1px solid var(--purple);
       border-radius: 3px;
       padding: 1px 6px;
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: #c39bd3
     }
 
@@ -1014,8 +1051,8 @@
     }
 
     .feat-item-name {
-      font-family: 'Cinzel', serif;
-      font-size: 12px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-sm);
       font-weight: 600;
       color: var(--text);
       flex: 1
@@ -1034,7 +1071,7 @@
     }
 
     .feat-arrow {
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--text3);
       transition: transform .15s;
       flex-shrink: 0
@@ -1048,7 +1085,7 @@
       display: none;
       padding: 10px 14px;
       background: var(--bg2);
-      font-size: 14px;
+      font-size:var(--fs-ui-lg);
       color: var(--text2);
       border-top: 1px solid var(--bdr);
       line-height: 1.6
@@ -1075,7 +1112,7 @@
       width: 100%;
       border-collapse: collapse;
       margin: 8px 0;
-      font-size: 13px
+      font-size:var(--fs-ui-md)
     }
 
     .feat-item-body th {
@@ -1083,8 +1120,8 @@
       color: var(--text2);
       padding: 4px 8px;
       border: 1px solid var(--bdr);
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       text-transform: uppercase;
       letter-spacing: .06em
     }
@@ -1099,7 +1136,7 @@
       text-align: center;
       padding: 2rem 1rem;
       color: var(--text3);
-      font-size: 14px;
+      font-size:var(--fs-ui-lg);
       font-style: italic
     }
 
@@ -1110,8 +1147,8 @@
       border-radius: var(--r);
       padding: 8px 12px;
       color: var(--text);
-      font-family: 'EB Garamond', Georgia, serif;
-      font-size: 15px;
+      font-family:var(--ff-body);
+      font-size:var(--fs-body-sm);
       outline: none;
       transition: border-color .15s
     }
@@ -1131,8 +1168,8 @@
       border-radius: var(--r);
       background: var(--gdim);
       color: var(--gold2);
-      font-size: 12px;
-      font-family: 'Cinzel', Georgia, serif;
+      font-size:var(--fs-ui-sm);
+      font-family:var(--ff-display);
       font-weight: 600;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -1158,8 +1195,8 @@
       border-radius: var(--r);
       background: transparent;
       color: var(--text2);
-      font-size: 11px;
-      font-family: 'Cinzel', Georgia, serif;
+      font-size:var(--fs-label);
+      font-family:var(--ff-display);
       cursor: pointer;
       letter-spacing: .08em;
       text-transform: uppercase;
@@ -1179,8 +1216,8 @@
       border-radius: var(--r);
       background: var(--purplebg);
       color: #c39bd3;
-      font-size: 11px;
-      font-family: 'Cinzel', Georgia, serif;
+      font-size:var(--fs-label);
+      font-family:var(--ff-display);
       font-weight: 600;
       letter-spacing: .06em;
       text-transform: uppercase;
@@ -1199,8 +1236,8 @@
     }
 
     .choice-block-hdr {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
@@ -1214,10 +1251,10 @@
     }
 
     .choice-count {
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--text3);
       font-style: italic;
-      font-family: 'EB Garamond', serif
+      font-family:var(--ff-body)
     }
 
     .option-grid {
@@ -1260,8 +1297,8 @@
     }
 
     .option-name {
-      font-family: 'Cinzel', serif;
-      font-size: 13px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-md);
       font-weight: 600;
       color: var(--text);
       margin-bottom: 4px
@@ -1280,7 +1317,7 @@
     }
 
     .option-desc {
-      font-size: 12px;
+      font-size:var(--fs-ui-sm);
       color: var(--text2);
       line-height: 1.4
     }
@@ -1324,7 +1361,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--orange)
     }
 
@@ -1345,8 +1382,8 @@
       border-radius: var(--r);
       background: transparent;
       color: var(--text2);
-      font-size: 12px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-ui-sm);
+      font-family:var(--ff-display);
       cursor: pointer;
       transition: all .12s;
       text-align: left
@@ -1382,8 +1419,8 @@
       border-radius: var(--r);
       background: transparent;
       color: var(--text2);
-      font-size: 12px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-ui-sm);
+      font-family:var(--ff-display);
       font-weight: 600;
       cursor: pointer;
       transition: all .12s;
@@ -1445,7 +1482,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: transparent
     }
 
@@ -1493,7 +1530,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size:var(--fs-ui-sm);
       color: var(--teal);
       transition: all .1s
     }
@@ -1521,8 +1558,8 @@
       border-radius: 999px;
       background: transparent;
       color: var(--text3);
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 600;
       letter-spacing: .08em;
       text-transform: uppercase;
@@ -1551,7 +1588,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: .5rem;
-      font-size: 12px;
+      font-size:var(--fs-ui-sm);
       color: var(--text2)
     }
 
@@ -1603,7 +1640,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--blue)
     }
 
@@ -1613,13 +1650,13 @@
     }
 
     .spell-name {
-      font-size: 13px;
+      font-size:var(--fs-ui-md);
       color: var(--text);
       flex: 1
     }
 
     .spell-school {
-      font-size: 10px;
+      font-size:var(--fs-caption);
       color: var(--text3);
       font-style: italic;
       flex-shrink: 0
@@ -1630,8 +1667,8 @@
     }
 
     .prev-spell-lv {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 700;
       color: var(--blue);
       letter-spacing: .08em;
@@ -1639,7 +1676,7 @@
     }
 
     .prev-spell-list {
-      font-size: 12px;
+      font-size:var(--fs-ui-sm);
       color: var(--text2);
       line-height: 1.5
     }
@@ -1649,7 +1686,7 @@
       padding-top: 1.5rem;
       border-top: 1px solid var(--bdr);
       text-align: center;
-      font-size: 11px;
+      font-size:var(--fs-label);
       color: var(--text3);
       font-style: italic;
       letter-spacing: .03em
@@ -1670,8 +1707,8 @@
     }
 
     .feat-cat-badge {
-      font-size: 10px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-caption);
+      font-family:var(--ff-display);
       padding: 1px 7px;
       border-radius: 3px;
       border: 1px solid;
@@ -1703,7 +1740,7 @@
     }
 
     .feat-prereq {
-      font-size: 11px;
+      font-size:var(--fs-label);
       color: var(--text3);
       font-style: italic;
       margin-bottom: 4px
@@ -1723,8 +1760,8 @@
     }
 
     .eq-block-title {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       font-weight: 600;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -1733,7 +1770,7 @@
     }
 
     .eq-item {
-      font-size: 13px;
+      font-size:var(--fs-ui-md);
       color: var(--text2);
       padding: 3px 0;
       border-bottom: 1px solid var(--bdr);
@@ -1745,8 +1782,8 @@
     }
 
     .eq-or {
-      font-family: 'Cinzel', serif;
-      font-size: 10px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       color: var(--gold);
       letter-spacing: .08em;
       padding: 4px 0;
@@ -1754,8 +1791,8 @@
     }
 
     .eq-gold {
-      font-family: 'Cinzel', serif;
-      font-size: 13px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-md);
       color: var(--gold2);
       margin-top: 6px
     }
@@ -1788,8 +1825,8 @@
       border-radius: var(--r);
       padding: 5px 10px;
       color: var(--text);
-      font-family: 'EB Garamond', serif;
-      font-size: 15px;
+      font-family:var(--ff-body);
+      font-size:var(--fs-body-sm);
       outline: none;
       transition: border-color .15s;
     }
@@ -1808,7 +1845,7 @@
       border: 1px solid var(--bdr);
       border-radius: var(--r);
       margin-bottom: 3px;
-      font-size: 13px;
+      font-size:var(--fs-ui-md);
     }
 
     .inv-row-name {
@@ -1820,7 +1857,7 @@
     }
 
     .inv-row-meta {
-      font-size: 11px;
+      font-size:var(--fs-label);
       color: var(--text3);
       flex-shrink: 0
     }
@@ -1832,7 +1869,7 @@
       border-radius: 3px;
       background: transparent;
       color: var(--text2);
-      font-size: 14px;
+      font-size:var(--fs-ui-lg);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -1853,8 +1890,8 @@
     }
 
     .inv-qty-val {
-      font-family: 'Cinzel', serif;
-      font-size: 12px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-sm);
       font-weight: 600;
       color: var(--gold2);
       min-width: 20px;
@@ -1863,8 +1900,8 @@
     }
 
     .inv-type-badge {
-      font-size: 9px;
-      font-family: 'Cinzel', serif;
+      font-size:var(--fs-caption);
+      font-family:var(--ff-display);
       padding: 1px 5px;
       border-radius: 3px;
       border: 1px solid var(--bdr2);
@@ -1888,8 +1925,8 @@
     }
 
     .currency-lbl {
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-caption);
       color: var(--text3);
       margin-bottom: 3px
     }
@@ -1900,8 +1937,8 @@
       border: none;
       border-bottom: 1px solid var(--bdr2);
       color: var(--gold2);
-      font-family: 'Cinzel', serif;
-      font-size: 14px;
+      font-family:var(--ff-display);
+      font-size:var(--fs-ui-lg);
       font-weight: 600;
       text-align: center;
       outline: none;
@@ -2114,7 +2151,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
           <!-- Valuta -->
           <div class="panel" id="panel-currency">
-            <div class="ph"><span class="pt">💰 Currency</span></div>
+            <div class="ph"><span class="pt">${luci('coins')} Currency</span></div>
             <div class="pb">
               <div class="currency-grid">
                 <div class="currency-cell">
@@ -2149,7 +2186,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           <!-- Inventario personale -->
           <div class="panel">
             <div class="ph">
-              <span class="pt">🎒 Inventario</span>
+              <span class="pt">${luci('backpack')} Inventario</span>
               <span id="inv-weight-label" class="ph-note"></span>
             </div>
             <div class="pb">
@@ -2168,7 +2205,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
               <div id="inv-search-results" class="item-list" style="max-height:200px;margin-bottom:.75rem"></div>
               <!-- Current inventory -->
               <div
-                style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem">
+                style="font-family:var(--ff-display);font-size:var(--fs-caption);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:.4rem">
                 Current Inventory</div>
               <div id="inv-list"></div>
               <!-- Add custom item -->
@@ -2195,7 +2232,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           <div class="panel">
             <div class="ph"><span class="pt">Generate Sheet</span></div>
             <div class="pb" style="text-align:center;padding:2rem 1.2rem">
-              <p style="color:var(--text2);font-size:14px;margin-bottom:1.5rem">
+              <p style="color:var(--text2);font-size:var(--fs-ui-lg);margin-bottom:1.5rem">
                 Finished all your choices? Generate your character sheet!
               </p>
               <button class="btn-primary" id="btn-next" disabled onclick="saveAndOpenSheet()"><i data-lucide="clipboard-list" class="lucide-emoji" aria-hidden="true"></i> Generate Character
@@ -2214,9 +2251,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           <div class="pb">
             <div id="preview-header"
               style="margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)">
-              <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2)" id="prev-name">—
+              <div style="font-family:var(--ff-display);font-size:var(--fs-ui-xxl);font-weight:700;color:var(--gold2)" id="prev-name">—
               </div>
-              <div style="font-size:13px;color:var(--text2);font-style:italic;margin-top:2px" id="prev-meta"></div>
+              <div style="font-size:var(--fs-ui-md);color:var(--text2);font-style:italic;margin-top:2px" id="prev-meta"></div>
             </div>
             <div id="prev-scores"
               style="display:none;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--bdr)"></div>
@@ -2757,29 +2794,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
     function _getSubclassAdapterFn(className, subclassShortName) {
       if (!className || !subclassShortName || typeof SubclassAdapters === 'undefined') return null;
+      if (typeof getSubclassAdapter === 'function') {
+        const viaRegistry = getSubclassAdapter(className, subclassShortName);
+        if (typeof viaRegistry === 'function') return viaRegistry;
+      }
       const exact = `${className}_${subclassShortName}`;
       if (typeof SubclassAdapters[exact] === 'function') return SubclassAdapters[exact];
-
-      const targetClass = _normAdapterKey(className);
-      const targetSub = _normAdapterKey(subclassShortName);
-      for (const [key, fn] of Object.entries(SubclassAdapters)) {
-        if (typeof fn !== 'function') continue;
-        const idx = key.indexOf('_');
-        if (idx < 0) continue;
-        const kClass = _normAdapterKey(key.slice(0, idx));
-        const kSub = _normAdapterKey(key.slice(idx + 1));
-        if (kClass === targetClass && kSub === targetSub) return fn;
-      }
-      for (const [key, fn] of Object.entries(SubclassAdapters)) {
-        if (typeof fn !== 'function') continue;
-        const idx = key.indexOf('_');
-        if (idx < 0) continue;
-        const kClass = _normAdapterKey(key.slice(0, idx));
-        const kSub = _normAdapterKey(key.slice(idx + 1));
-        if (kClass !== targetClass) continue;
-        if (targetSub.includes(kSub) || kSub.includes(targetSub)) return fn;
-      }
-      return null;
+      const canonical = `${_normAdapterKey(className)}_${_normAdapterKey(subclassShortName)}`;
+      return typeof SubclassAdapters[canonical] === 'function' ? SubclassAdapters[canonical] : null;
     }
 
     function deriveAllChoices() {
@@ -2811,7 +2833,17 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           });
         });
 
-        const langBlocks = Array.isArray(sp.languageProficiencies) ? sp.languageProficiencies : (sp.languageProficiencies ? [sp.languageProficiencies] : []);
+        const langBlocks = [];
+        const spLang = Array.isArray(sp.languageProficiencies) ? sp.languageProficiencies : (sp.languageProficiencies ? [sp.languageProficiencies] : []);
+        const clsLang = Array.isArray(cls.languageProficiencies) ? cls.languageProficiencies : (cls.languageProficiencies ? [cls.languageProficiencies] : []);
+        langBlocks.push(...spLang, ...clsLang);
+        (Array.isArray(cls.classFeatures) ? cls.classFeatures : [])
+          .filter(f => Number(f?.level || 0) === 1)
+          .forEach(f => {
+            const featLang = Array.isArray(f?.languageProficiencies) ? f.languageProficiencies : (f?.languageProficiencies ? [f.languageProficiencies] : []);
+            langBlocks.push(...featLang);
+          });
+
         langBlocks.forEach((lb, idx) => {
           if (!lb || typeof lb !== 'object') return;
           const choose = lb.choose || {};
@@ -2865,8 +2897,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // 3. Logica Ibrida: ClassAdapters + SubclassAdapters (classe primaria)
       const _primaryLv = getPrimaryClassLevel();
-      if (typeof ClassAdapters !== 'undefined' && typeof ClassAdapters[char.className] === 'function') {
-        ClassAdapters[char.className](cls, _primaryLv, specs);
+      if (typeof ClassAdapters !== 'undefined') {
+        const _classAdapter = typeof getClassAdapter === 'function'
+          ? getClassAdapter(char.className)
+          : ClassAdapters[char.className];
+        if (typeof _classAdapter === 'function') _classAdapter(cls, _primaryLv, specs);
       }
       if (char.subclassShortName && typeof SubclassAdapters !== 'undefined') {
         const _subAdapter = _getSubclassAdapterFn(char.className, char.subclassShortName);
@@ -2890,8 +2925,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const _ecIdx = char.extraClasses.indexOf(_ec);
         const _pfx = `mc${_ecIdx}_`;
         const _ecSpecs = [];
-        if (typeof ClassAdapters !== 'undefined' && typeof ClassAdapters[_ec.name] === 'function')
-          ClassAdapters[_ec.name](_ec.cls, _ec.level||1, _ecSpecs);
+        if (typeof ClassAdapters !== 'undefined') {
+          const _ecClassAdapter = typeof getClassAdapter === 'function'
+            ? getClassAdapter(_ec.name)
+            : ClassAdapters[_ec.name];
+          if (typeof _ecClassAdapter === 'function') _ecClassAdapter(_ec.cls, _ec.level||1, _ecSpecs);
+        }
         if (_ec.subclassShortName && typeof SubclassAdapters !== 'undefined') {
           const _ecSubAdapter = _getSubclassAdapterFn(_ec.name, _ec.subclassShortName);
           if (_ecSubAdapter) _ecSubAdapter(_ec.cls, _ec.level||1, _ecSpecs);
@@ -3014,12 +3053,23 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const merged = JSON.parse(JSON.stringify(base));
           const sel = char.choices[key];
           if (sel && base._versions) {
-            let vData = base._versions.find(v => v.name === sel);
-            // Fallback per Dragonidi (usano template)
-            if (!vData && base.name === "Dragonborn") {
-              const impl = base._versions[0]._implementations.find(i => (i.name === sel || Object.values(i._variables)[0] === sel));
-              if (impl) vData = impl;
-            }
+            const _resolveVersionData = (versions, selected) => {
+              if (!selected || !Array.isArray(versions)) return null;
+              const direct = versions.find(v => v && v.name === selected);
+              if (direct) return direct;
+              for (const version of versions) {
+                const impls = Array.isArray(version?._implementations) ? version._implementations : [];
+                const impl = impls.find(i => {
+                  if (!i || typeof i !== 'object') return false;
+                  if (i.name === selected) return true;
+                  const vars = i._variables && typeof i._variables === 'object' ? Object.values(i._variables) : [];
+                  return vars.some(v => String(v) === String(selected));
+                });
+                if (impl) return impl;
+              }
+              return null;
+            };
+            const vData = _resolveVersionData(base._versions, sel);
             if (vData) {
               if (vData.resist) merged.resist = (merged.resist || []).concat(vData.resist);
               if (vData.darkvision) merged.darkvision = vData.darkvision;
@@ -3112,7 +3162,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           h += `<div class="feat-item open">
         <div class="feat-item-hdr" onclick="tf(this.parentElement)">
           <span class="feat-item-name ft">${esc(feat ? feat.name : spec.fixed)}</span>
-          <span class="feat-cat-badge origin">Origine</span><span class="feat-arrow">▶</span>
+          <span class="feat-cat-badge origin">Origine</span><span class="feat-arrow">${luci('chevron-right')}</span>
         </div>
         <div class="feat-item-body">${feat ? rE(feat.entries) : '<i>Descrizione non disponibile.</i>'}</div>
       </div>
@@ -3131,7 +3181,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             <div class="feat-item-hdr" onclick="tf(this.parentElement)">
               <span class="feat-item-name ft">${esc(feat.name)}</span>
               <span class="feat-cat-badge ${catCls}">${esc(getFeatCatLabel(feat.category))}</span>
-              <span class="feat-arrow">▶</span>
+              <span class="feat-arrow">${luci('chevron-right')}</span>
             </div>
             <div class="feat-item-body">${rE(feat.entries)}</div>
           </div>`;
@@ -3175,7 +3225,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         return `<div class="item-row${char.choices[slotKey] === f.name ? ' on' : ''}"
       onclick="selectChoice('${sk}','${f.name.replace(/'/g, "\\'")}')">
       <span class="item-row-name">${esc(f.name)}</span>
-      ${prereq ? `<span style="font-size:10px;color:var(--text3);font-style:italic;flex-shrink:0">${esc(prereq)}</span>` : ''}
+      ${prereq ? `<span style="font-size:var(--fs-caption);color:var(--text3);font-style:italic;flex-shrink:0">${esc(prereq)}</span>` : ''}
       <span class="feat-cat-badge ${catCls}" style="flex-shrink:0">${esc(getFeatCatLabel(f.category))}</span>
       <span class="item-row-src">${esc(f.source)}</span>
     </div>`;
@@ -3229,7 +3279,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           style="padding:5px 12px;border:1px solid ${isSel ? 'var(--teal)' : 'var(--bdr)'};
             border-radius:var(--r);background:${isSel ? 'var(--tealbg)' : 'var(--bg3)'};
             color:${isSel ? 'var(--teal)' : 'var(--text2)'};cursor:pointer;
-            font-size:12px;font-family:'Cinzel',serif;font-weight:600">${esc(label)}</button>`;
+            font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(label)}</button>`;
           });
           h += `</div></div>`;
         }
@@ -3270,7 +3320,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         let ph = `<div style="margin-top:.75rem">
       <div class="feat-section-hdr" style="color:${color}">✧ ${esc(label)}</div>
       <div class="spell-count-bar" style="margin-bottom:.4rem">
-        <span style="font-size:12px;color:var(--text3)">${items.length} disponibili</span>
+        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${items.length} disponibili</span>
         <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${sel.length}/${count}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto">`;
@@ -3377,7 +3427,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 <div class="feat-item-hdr" onclick="tf(this.parentElement)">
                   <span class="feat-item-name ft">${esc(feat.name)}</span>
                   <span class="feat-cat-badge ${catCls}">${esc(getFeatCatLabel(feat.category))}</span>
-                  <span class="feat-arrow">▶</span>
+                  <span class="feat-arrow">${luci('chevron-right')}</span>
                 </div>
                 <div class="feat-item-body">${rE(feat.entries)}</div>
               </div>`;
@@ -3417,7 +3467,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         <div class="choice-block-hdr"><span>${esc(spec.label)}</span>
           <span class="choice-count">Choose ${spec.count}</span></div>`;
 
-      if (remaining > 0) h += `<div style="font-size:12px;color:var(--text3);margin-bottom:.4rem;font-style:italic">Select ${remaining} more</div>`;
+      if (remaining > 0) h += `<div style="font-size:var(--fs-ui-sm);color:var(--text3);margin-bottom:.4rem;font-style:italic">Select ${remaining} more</div>`;
 
       // FIX: Inserito 'expertise' nell'elenco per creare il contenitore dei bottoni
       if (['skill_choice', 'language_choice', 'generic_choice', 'expertise'].includes(spec.type)) {
@@ -3471,8 +3521,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         return `<div class="choice-row${on ? ' on' : ''}${takenByOther ? ' taken' : ''}"
       onclick="${onclickStr}" style="${takenByOther ? 'opacity:0.4;cursor:default' : ''}">
       <div class="choice-check${on ? ' on' : ''}">√</div>
-      <span style="flex:1;min-width:0;color:${on ? 'var(--purple)' : takenByOther ? 'var(--text3)' : 'var(--text2)'}">${esc(item)}${takenByOther ? ' <em style="font-size:10px">(already taken)</em>' : ''}</span>
-      <span style="font-size:10px;color:var(--text3);flex-shrink:0">${esc(item.split('|')[1] || '')}</span>
+      <span style="flex:1;min-width:0;color:${on ? 'var(--purple)' : takenByOther ? 'var(--text3)' : 'var(--text2)'}">${esc(item)}${takenByOther ? ' <em style="font-size:var(--fs-caption)">(already taken)</em>' : ''}</span>
+      <span style="font-size:var(--fs-caption);color:var(--text3);flex-shrink:0">${esc(item.split('|')[1] || '')}</span>
     </div>`;
       }).join('');
     }
@@ -3491,13 +3541,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       el.innerHTML = list.map(f => {
         const on = sel.includes(f.name);
         const full = sel.length >= count && !on;
-        const prereq = f.prerequisite ? `<span style="font-size:10px;color:var(--text3);font-style:italic">${clean((f.prerequisite.map ? f.prerequisite.map(p => Object.values(p).join(' ')).join(', ') : String(f.prerequisite)))
+        const prereq = f.prerequisite ? `<span style="font-size:var(--fs-caption);color:var(--text3);font-style:italic">${clean((f.prerequisite.map ? f.prerequisite.map(p => Object.values(p).join(' ')).join(', ') : String(f.prerequisite)))
           }</span>` : '';
         return `<div class="optfeat-row${on ? ' on' : ''}${full ? ' disabled' : ''}"
       ${full ? '' : `onclick="toggleChoiceItem('${sk}','${f.name.replace(/'/g, "\\'")}',${count})"`}>
       <div class="optfeat-check${on ? ' on' : ''}">${on ? luci('check') : ''}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;color:var(--text)">${esc(f.name)}</div>${prereq}
+        <div style="font-size:var(--fs-ui-md);color:var(--text)">${esc(f.name)}</div>${prereq}
       </div></div>`;
       }).join('');
     }
@@ -3517,7 +3567,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let h = `<div style="margin-top:.75rem">
     <div class="feat-section-hdr" style="color:var(--orange)">✧ ${esc(choice.label)}</div>
     <div class="spell-count-bar" style="margin-bottom:.4rem">
-      <span style="font-size:12px;color:var(--text3)">${spells.length} disponibili</span>
+      <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${spells.length} disponibili</span>
       <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${selected.length}/${choice.count}</span>
     </div><div class="spell-list" style="max-height:180px">`;
       for (const s of spells.slice(0, 120)) {
@@ -3529,10 +3579,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       <div class="spell-check${on ? ' on' : ''}">${on ? luci('check') : ''}</div>
       <div style="flex:1;min-width:0">
         <div class="spell-name">${esc(s.name)}</div>
-        <div style="font-size:11px;color:var(--text3)">${esc(school)}</div>
+        <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
       </div>
-      ${s.ritual ? `<span style="font-size:10px;color:var(--teal);flex-shrink:0">R</span>` : ''}
-      ${s.concentration ? `<span style="font-size:10px;color:var(--purple);flex-shrink:0">C</span>` : ''}
+      ${s.ritual ? `<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>` : ''}
+      ${s.concentration ? `<span style="font-size:var(--fs-caption);color:var(--purple);flex-shrink:0">C</span>` : ''}
     </div>`;
       }
       h += `</div></div>`;
@@ -3822,7 +3872,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let h = '';
 
       if (char.cls && char.cls.startingEquipment) {
-        h += `<div class="eq-block"><div class="eq-block-title">📦 ${esc(char.className)}</div>`;
+        h += `<div class="eq-block"><div class="eq-block-title">${luci('package')} ${esc(char.className)}</div>`;
         const eq = char.cls.startingEquipment;
         // Verifica se il formato è strutturato (oggetti con A/B) o testo
         const isStructured = hasChoiceNode(eq);
@@ -3836,7 +3886,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       if (char.bgObj && char.bgObj.startingEquipment) {
-        h += `<div class="eq-block"><div class="eq-block-title">🎒 ${esc(char.bgObj.name)}</div>`;
+        h += `<div class="eq-block"><div class="eq-block-title">${luci('backpack')} ${esc(char.bgObj.name)}</div>`;
         h += renderEquipChoices(char.bgObj.startingEquipment, 'bg');
         h += `</div>`;
       }
@@ -3892,12 +3942,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const ck = `${prefix}_text_choice`;
         const sel = char.equipChoices[ck] || null;
         let h = `<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
-        h += `<div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+        h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
         h += `<div style="display:flex;flex-direction:column;gap:4px">`;
         for (const ch of choices) {
           const isSel = sel === ch.key;
-          h += `<button onclick="selEquip('${ck}','${ch.key}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel ? 'var(--gold)' : 'var(--bdr)'};border-radius:var(--r);background:${isSel ? 'var(--gdim)' : 'var(--bg3)'};color:${isSel ? 'var(--gold2)' : 'var(--text2)'};cursor:pointer;font-size:13px;font-family:'EB Garamond',serif;transition:all .1s">
-        ${isSel ? `<b style="color:var(--gold)">${luci('check')} </b>` : ''}<b style="font-family:'Cinzel',serif;font-size:10px;color:${isSel ? 'var(--gold)' : 'var(--text3)'}"> ${ch.key})</b> ${esc(ch.label)}
+          h += `<button onclick="selEquip('${ck}','${ch.key}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel ? 'var(--gold)' : 'var(--bdr)'};border-radius:var(--r);background:${isSel ? 'var(--gdim)' : 'var(--bg3)'};color:${isSel ? 'var(--gold2)' : 'var(--text2)'};cursor:pointer;font-size:var(--fs-ui-md);font-family:var(--ff-body);transition:all .1s">
+        ${isSel ? `<b style="color:var(--gold)">${luci('check')} </b>` : ''}<b style="font-family:var(--ff-display);font-size:var(--fs-caption);color:${isSel ? 'var(--gold)' : 'var(--text3)'}"> ${ch.key})</b> ${esc(ch.label)}
       </button>`;
         }
         h += `</div></div>`;
@@ -3920,14 +3970,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const ck = `${prefix}_choice_0`;
           const sel = char.equipChoices[ck] || null;
           let h = `<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
-          h += `<div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+          h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
           h += `<div style="display:flex;flex-direction:column;gap:4px">`;
           for (const k of choiceKeys) {
             const items = []; flattenEquip(choiceData[k], items);
             const label = items.map(i => i.replace(/<[^>]+>/g, '')).join(', ') || k;
             const isSel = sel === k;
-            h += `<button onclick="selEquip('${ck}','${k}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel ? 'var(--gold)' : 'var(--bdr)'};border-radius:var(--r);background:${isSel ? 'var(--gdim)' : 'var(--bg3)'};color:${isSel ? 'var(--gold2)' : 'var(--text2)'};cursor:pointer;font-size:13px;font-family:'EB Garamond',serif;transition:all .1s">
-          ${isSel ? `<b style="color:var(--gold)">${luci('check')} </b>` : ''}<b style="font-family:'Cinzel',serif;font-size:10px;color:${isSel ? 'var(--gold)' : 'var(--text3)'}">${k})</b> ${esc(label)}
+            h += `<button onclick="selEquip('${ck}','${k}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel ? 'var(--gold)' : 'var(--bdr)'};border-radius:var(--r);background:${isSel ? 'var(--gdim)' : 'var(--bg3)'};color:${isSel ? 'var(--gold2)' : 'var(--text2)'};cursor:pointer;font-size:var(--fs-ui-md);font-family:var(--ff-body);transition:all .1s">
+          ${isSel ? `<b style="color:var(--gold)">${luci('check')} </b>` : ''}<b style="font-family:var(--ff-display);font-size:var(--fs-caption);color:${isSel ? 'var(--gold)' : 'var(--text3)'}">${k})</b> ${esc(label)}
         </button>`;
           }
           h += `</div></div>`;
@@ -3957,14 +4007,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             const ck = `${prefix}_choice_${choiceIdx++}`;
             const sel = char.equipChoices[ck] || null;
             h += `<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
-            h += `<div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+            h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
             h += `<div style="display:flex;flex-direction:column;gap:4px">`;
             resolvedKeys.forEach(k => {
               const items = []; flattenEquip(node[k], items);
               const label = items.map(i => i.replace(/<[^>]+>/g, '')).join(', ') || k.toUpperCase();
               const isSel = sel === k;
-              h += `<button onclick="selEquip('${ck}','${k}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel ? 'var(--gold)' : 'var(--bdr)'};border-radius:var(--r);background:${isSel ? 'var(--gdim)' : 'var(--bg3)'};color:${isSel ? 'var(--gold2)' : 'var(--text2)'};cursor:pointer;font-size:13px;font-family:'EB Garamond',serif;transition:all .1s">
-            ${isSel ? `<b style="color:var(--gold)">${luci('check')} </b>` : ''}<b style="font-family:'Cinzel',serif;font-size:10px;color:${isSel ? 'var(--gold)' : 'var(--text3)'}">${k.toUpperCase()})</b> ${esc(label)}
+              h += `<button onclick="selEquip('${ck}','${k}')" style="text-align:left;padding:7px 10px;border:1px solid ${isSel ? 'var(--gold)' : 'var(--bdr)'};border-radius:var(--r);background:${isSel ? 'var(--gdim)' : 'var(--bg3)'};color:${isSel ? 'var(--gold2)' : 'var(--text2)'};cursor:pointer;font-size:var(--fs-ui-md);font-family:var(--ff-body);transition:all .1s">
+            ${isSel ? `<b style="color:var(--gold)">${luci('check')} </b>` : ''}<b style="font-family:var(--ff-display);font-size:var(--fs-caption);color:${isSel ? 'var(--gold)' : 'var(--text3)'}">${k.toUpperCase()})</b> ${esc(label)}
           </button>`;
             });
             h += `</div></div>`;
@@ -3975,14 +4025,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             const name = (node.displayName || node.item.split('|')[0]);
             const qty = node.quantity && node.quantity > 1 ? ` ×${node.quantity}` : '';
             const valCp = node.containsValue || node.value || 0;
-            const gold = valCp ? ` <span style="color:var(--gold2)">(💰 ${cpToGp(valCp)})</span>` : '';
+            const gold = valCp ? ` <span style="color:var(--gold2)">(${luci('coins')} ${cpToGp(valCp)})</span>` : '';
             h += `<div class="eq-item"><b>${clean(name)}</b>${qty}${gold}</div>`;
           } else if (node.special) {
             h += `<div class="eq-item"><i>${clean(node.special)}</i></div>`;
           } else if (node.equipmentType) {
             h += `<div class="eq-item">${clean(node.equipmentType)}</div>`;
           } else if (node.containsValue || node.value) {
-            h += `<div class="eq-gold">💰 ${cpToGp(node.containsValue || node.value)}</div>`;
+            h += `<div class="eq-gold">${luci('coins')} ${cpToGp(node.containsValue || node.value)}</div>`;
           } else if (node.entries) {
             processNode(node.entries);
           } else {
@@ -4209,14 +4259,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const qty = node.quantity && node.quantity > 1 ? ` ×${node.quantity}` : '';
           // In 5etools 2024 usa "value" (copper pieces), non "containsValue"
           const valCp = node.containsValue || node.value || 0;
-          const gold = valCp ? ` (💰 ${cpToGp(valCp)})` : '';
+          const gold = valCp ? ` (${luci('coins')} ${cpToGp(valCp)})` : '';
           items.push(`<b>${clean(name)}</b>${qty}${gold}`);
         } else if (node.special) {
           items.push(`<i>${clean(node.special)}</i>`);
         } else if (node.equipmentType) {
           items.push(clean(node.equipmentType));
         } else if (node.containsValue || node.value) {
-          items.push(`💰 ${cpToGp(node.containsValue || node.value)}`);
+          items.push(`${luci('coins')} ${cpToGp(node.containsValue || node.value)}`);
         } else if (node.entries) {
           flattenEquip(node.entries, items);
         } else {
@@ -4370,7 +4420,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let h = '';
       for (let i = 1; i <= maxLv; i++) {
         const on = i === pLv ? ' on' : '', hasSub = i === sc && pLv !== i ? ' has-sub' : '';
-        h += `<button class="lvl-btn${on}${hasSub}" onclick="selectLevel(${i})">${i}${i === sc ? '<br><span style="font-size:7px">◆</span>' : ''}</button>`;
+        h += `<button class="lvl-btn${on}${hasSub}" onclick="selectLevel(${i})">${i}${i === sc ? '<br><span style="font-size:calc(var(--fs-ui-micro) - 1px)">◆</span>' : ''}</button>`;
       }
       document.getElementById('level-grid').innerHTML = h;
 
@@ -4383,7 +4433,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let hpHtml = `
       <div style="width:100%; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--bdr);">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <span class="pt" style="font-size:10px">Metodo Punti Ferita:</span>
+          <span class="pt" style="font-size:var(--fs-caption)">Metodo Punti Ferita:</span>
           <button class="chip ${char.hpMode === 'average' || !char.hpMode ? 'on' : ''}" onclick="setHPMode('average')">Media</button>
           <button class="chip ${char.hpMode === 'rolled' ? 'on' : ''}" onclick="setHPMode('rolled')">Manuale</button>
         </div>
@@ -4395,9 +4445,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const val = char.hpManualRolls[i] || "";
           hpHtml += `
           <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r); padding:4px; text-align:center; width:45px;">
-            <div style="font-size:9px; color:var(--text3); font-family:'Cinzel',serif;">Lv.${i}</div>
+            <div style="font-size:var(--fs-caption); color:var(--text3); font-family:var(--ff-display);">Lv.${i}</div>
             <input type="number" min="1" max="${faces}" value="${val}" oninput="updateHpRoll(${i}, this.value)" 
-              style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--bdr2); color:var(--gold2); font-family:'Cinzel',serif; font-size:14px; font-weight:bold; text-align:center; outline:none; padding:2px 0;">
+              style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--bdr2); color:var(--gold2); font-family:var(--ff-display); font-size:var(--fs-ui-lg); font-weight:bold; text-align:center; outline:none; padding:2px 0;">
           </div>`;
         }
         hpHtml += `</div>`;
@@ -4410,7 +4460,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Punti Ferita</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Bonus Comp.</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
-        ${cLbl ? `<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:14px">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>` : ''}
+        ${cLbl ? `<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>` : ''}
       `;
     }
 
@@ -4626,7 +4676,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let h = '';
       for (let n = 1; n <= maxLv; n++) {
         const on = n===(ec.level||1)?' on':'', hasSub = n===sc&&(ec.level||1)!==n?' has-sub':'';
-        h += `<button class="lvl-btn${on}${hasSub}" onclick="setExtraClassLevel(${i},${n})">${n}${n===sc?'<br><span style="font-size:7px">◆</span>':''}</button>`;
+        h += `<button class="lvl-btn${on}${hasSub}" onclick="setExtraClassLevel(${i},${n})">${n}${n===sc?'<br><span style="font-size:calc(var(--fs-ui-micro) - 1px)">◆</span>':''}</button>`;
       }
       document.getElementById('level-grid').innerHTML = h;
       const caster = ec.cls.casterProgression || CASTER_FB[ec.name] || null;
@@ -4635,7 +4685,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       document.getElementById('lvl-stats').innerHTML = `
         <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Livello</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
-        ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:14px">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}
+        ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}
       `;
     }
     function renderExtraSubclassInPanel(i) {
@@ -4744,12 +4794,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (mcSlots) {
           h += `<table class="slot-table"><thead><tr><th>MC</th>`;
           for (let i = 1; i <= mcSlots.length; i++) h += `<th>${i}°</th>`;
-          h += `</tr></thead><tbody><tr><td style="font-family:'Cinzel',serif;color:var(--gold2)">${lv}</td>`;
+          h += `</tr></thead><tbody><tr><td style="font-family:var(--ff-display);color:var(--gold2)">${lv}</td>`;
           for (const n of mcSlots) h += `<td class="${n>0?'has':'zero'}">${n>0?n:'—'}</td>`;
           h += `</tr></tbody></table>`;
         }
         if (pactRow) {
-          h += `<div style="margin-top:${mcSlots?'8px':'0'};font-size:13px;color:var(--text2)">
+          h += `<div style="margin-top:${mcSlots?'8px':'0'};font-size:var(--fs-ui-md);color:var(--text2)">
             <b style="color:var(--purple)">Patto (Warlock Lv.${wLv}):</b>
             <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
         }
@@ -4763,7 +4813,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       p.style.display = 'block';
       if (caster === 'pact') {
         const w = WLOCK[lv];
-        body.innerHTML = w ? `<span style="font-size:14px;color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recuperati con riposo breve</span>` : '<div class="phmsg">Nessuno slot</div>';
+        body.innerHTML = w ? `<span style="font-size:var(--fs-ui-lg);color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recuperati con riposo breve</span>` : '<div class="phmsg">Nessuno slot</div>';
         return;
       }
       let slots = null;
@@ -4773,7 +4823,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!slots) { body.innerHTML = '<div class="phmsg">Nessuno slot a questo livello</div>'; return; }
       let h = `<table class="slot-table"><thead><tr><th>Lv</th>`;
       for (let i = 1; i <= slots.length; i++) h += `<th>${i}°</th>`;
-      h += `</tr></thead><tbody><tr><td style="font-family:'Cinzel',serif;color:var(--gold2)">${lv}</td>`;
+      h += `</tr></thead><tbody><tr><td style="font-family:var(--ff-display);color:var(--gold2)">${lv}</td>`;
       for (const n of slots) h += `<td class="${n>0?'has':'zero'}">${n>0?n:'—'}</td>`;
       h += `</tr></tbody></table>`;
       body.innerHTML = h;
@@ -4873,7 +4923,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
               <div class="feat-item-hdr" onclick="tf(this.parentElement)">
                 <span class="feat-item-name ft">${esc(feat.name)}</span>
                 <span class="feat-cat-badge ${getFeatCatClass(feat.category)}">${esc(getFeatCatLabel(feat.category))}</span>
-                <span class="feat-arrow">▶</span>
+                <span class="feat-arrow">${luci('chevron-right')}</span>
               </div>
               <div class="feat-item-body">${rE(feat.entries)}</div>
             </div>` : ''}
@@ -4911,8 +4961,61 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     function deriveSpeciesChoices(species) {
       if (!species) return [];
+      const _mergeSpeciesSpecs = (primary, secondary) => {
+        const out = [];
+        const seen = new Set();
+        const add = (arr) => {
+          (Array.isArray(arr) ? arr : []).forEach(sp => {
+            if (!sp || typeof sp !== 'object') return;
+            const key = String(sp.key || '');
+            const sig = key || JSON.stringify([
+              sp.type || '',
+              sp.label || '',
+              sp.level || 1,
+              sp.count || 1,
+              _specUniq(sp.from || []),
+              (sp.options || []).map(o => `${o?.key || ''}:${o?.label || ''}`),
+            ]);
+            if (seen.has(sig)) return;
+            seen.add(sig);
+            out.push(sp);
+          });
+        };
+        add(primary);
+        add(secondary);
+        return out;
+      };
       const _applySpeciesTextFallbacks = (baseSpecs) => {
         const specs = Array.isArray(baseSpecs) ? [...baseSpecs] : [];
+        const _hasLanguageSpec = () => specs.some(sp => String(sp?.type || '').toLowerCase() === 'language_choice');
+        const _appendLanguageSpecsFromBlocks = () => {
+          const blocks = [];
+          const langProf = Array.isArray(species.languageProficiencies) ? species.languageProficiencies : (species.languageProficiencies ? [species.languageProficiencies] : []);
+          const langsAlt = Array.isArray(species.languages) ? species.languages : (species.languages ? [species.languages] : []);
+          blocks.push(...langProf, ...langsAlt);
+          let idx = 0;
+          blocks.forEach(lp => {
+            if (!lp || typeof lp !== 'object') return;
+            const choose = lp.choose || {};
+            const count = lp.anyStandard || lp.anyExotic || lp.any || choose.count || 0;
+            if (!count) return;
+            let from = Array.isArray(choose.from) ? choose.from.slice() : [];
+            if (!from.length) {
+              if (lp.anyExotic) from = _EXOTIC_LANGS.slice();
+              else if (lp.anyStandard) from = _STD_LANGS.slice();
+              else from = _ALL_LANGS.slice();
+            }
+            specs.push({
+              key: `species_language_fallback_${idx++}`,
+              label: 'Bonus Language',
+              type: 'language_choice',
+              from,
+              count,
+              level: 1,
+            });
+          });
+        };
+        if (!_hasLanguageSpec()) _appendLanguageSpecsFromBlocks();
         const txt = JSON.stringify(species.entries || []).toLowerCase();
         const hasSkillToolText = txt.includes('one skill or with one tool of your choice');
         const hasExisting = specs.some(sp => {
@@ -4936,28 +5039,54 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             });
           }
         }
-        return specs;
+        const hasLanguageChoiceText =
+          /(?:one|two|three|1|2|3)\s+(?:other|additional|extra\s+)?languages?\s+of\s+your\s+choice/.test(txt)
+          || /learn\s+(?:one|two|three|1|2|3)\s+language(?:s)?\s+of\s+your\s+choice/.test(txt)
+          || /choose\s+(?:one|two|three|1|2|3)\s+languages?/.test(txt)
+          || /language(?:s)?\s+of\s+your\s+choice/.test(txt);
+        if (hasLanguageChoiceText && !_hasLanguageSpec()) {
+          specs.push({
+            key: 'species_language_text_0',
+            label: 'Bonus Language',
+            type: 'language_choice',
+            from: _ALL_LANGS.slice(),
+            count: 1,
+            level: 1,
+          });
+        }
+        const speciesLangPool = _STD_LANGS.filter(l => String(l || '').toLowerCase() !== 'common');
+        const nonLanguageSpecs = specs.filter(sp => String(sp?.type || '').toLowerCase() !== 'language_choice');
+        nonLanguageSpecs.push({
+          key: 'species_language_default',
+          label: 'Species Languages',
+          type: 'language_choice',
+          from: speciesLangPool.length ? speciesLangPool : _STD_LANGS.slice(),
+          count: 2,
+          level: 1,
+        });
+        return nonLanguageSpecs;
       };
-
-      const baseName = species.name.includes('Elf') || species.name.includes('Elfo') ? 'Elf' :
-        species.name.includes('Tiefling') ? 'Tiefling' :
-          species.name.includes('Aasimar') ? 'Aasimar' :
-            species.name.includes('Dragonborn') || species.name.includes('Dragonide') ? 'Dragonborn' : species.name;
-      const adapterKey = `${baseName}_${species.source}`.replace(/\s+/g, '');
-      if (typeof SpeciesAdapters[adapterKey] === 'function') return _applySpeciesTextFallbacks(SpeciesAdapters[adapterKey](species));
-      if (typeof SpeciesAdapters !== 'undefined') {
-        const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const target = norm(baseName) + '_' + norm(species.source);
-        for (const [k, fn] of Object.entries(SpeciesAdapters)) {
-          if (typeof fn !== 'function') continue;
-          const idx = k.lastIndexOf('_');
-          if (idx < 0) continue;
-          const left = norm(k.slice(0, idx));
-          const right = norm(k.slice(idx + 1));
-          if ((left + '_' + right) === target) return _applySpeciesTextFallbacks(fn(species));
+      let adapterSpecs = null;
+      if (typeof getSpeciesAdapter === 'function') {
+        const fn = getSpeciesAdapter(species.name, species.source);
+        if (typeof fn === 'function') adapterSpecs = fn(species);
+      }
+      if (!adapterSpecs) {
+        const adapterKey = `${species.name}_${species.source}`;
+        if (typeof SpeciesAdapters !== 'undefined') {
+          if (typeof SpeciesAdapters[adapterKey] === 'function') {
+            adapterSpecs = SpeciesAdapters[adapterKey](species);
+          } else {
+            const canonical = `${_normAdapterKey(species.name)}_${_normAdapterKey(species.source)}`;
+            if (typeof SpeciesAdapters[canonical] === 'function') {
+              adapterSpecs = SpeciesAdapters[canonical](species);
+            }
+          }
         }
       }
-      return _applySpeciesTextFallbacks(genericSpeciesParser(species));
+      const genericSpecs = genericSpeciesParser(species);
+      const mergedSpecs = _mergeSpeciesSpecs(adapterSpecs || [], genericSpecs);
+      return _applySpeciesTextFallbacks(mergedSpecs);
     }
 
     // SpeciesAdapters è ora definito in adapters/registry.js e popolato da adapters/species/*.js
@@ -5032,7 +5161,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _renderAbilityChoiceBlock(spec) {
       const sel = char.choices[spec.key] || null;
       let h = `<div style="margin-bottom:1rem">
-    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">${luci('sparkles')} ${esc(spec.label)}</div>
+    <div style="font-family:var(--ff-display);font-size:var(--fs-label);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem">${luci('sparkles')} ${esc(spec.label)}</div>
     <div id="sc_${spec.key}" class="choice-ability-list"></div>
   </div>`;
       return h;
@@ -5147,17 +5276,17 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       // Toggle pattern se ce ne sono più di uno
       if (patterns.length > 1) {
         h += `<div style="margin-bottom:.75rem">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:.4rem;font-style:italic">Schema bonus:</div>
+      <div style="font-size:var(--fs-ui-sm);color:var(--text3);margin-bottom:.4rem;font-style:italic">Schema bonus:</div>
       <div style="display:flex;gap:6px">`;
         patterns.forEach((p, i) => {
           const on = i === (char.bgPatternIdx || 0);
-          h += `<button onclick="setBgPattern(${i})" style="padding:5px 12px;border:1px solid ${on ? 'var(--teal)' : 'var(--bdr)'};border-radius:var(--r);background:${on ? 'var(--tealbg)' : 'var(--bg3)'};color:${on ? 'var(--teal)' : 'var(--text2)'};font-family:'Cinzel',serif;font-size:12px;font-weight:600;cursor:pointer">${p}</button>`;
+          h += `<button onclick="setBgPattern(${i})" style="padding:5px 12px;border:1px solid ${on ? 'var(--teal)' : 'var(--bdr)'};border-radius:var(--r);background:${on ? 'var(--tealbg)' : 'var(--bg3)'};color:${on ? 'var(--teal)' : 'var(--text2)'};font-family:var(--ff-display);font-size:var(--fs-ui-sm);font-weight:600;cursor:pointer">${p}</button>`;
         });
         h += `</div></div>`;
       }
 
       const patDesc = pat.map(v => '+' + v).join(' e ');
-      h += `<div style="font-size:13px;color:var(--text2);margin-bottom:.75rem">
+      h += `<div style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.75rem">
     Assegna ${patDesc} tra: <b style="color:var(--text)">${pool.map(s => SLBL[s] || s.toUpperCase()).join(', ')}</b>
   </div>
   <div style="display:grid;grid-template-columns:repeat(${pool.length},1fr);gap:6px">`;
@@ -5168,16 +5297,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const isChosen = idx >= 0;
         h += `<div class="score-cell${isChosen ? ' focused' : ''}" style="cursor:pointer" onclick="togBgAb('${st}')">
       <div class="score-label">${SLBL[st] || st.toUpperCase()}</div>
-      <div class="score-val" style="font-size:16px;color:${isChosen ? 'var(--teal)' : 'var(--text3)'}">
+      <div class="score-val" style="font-size:var(--fs-ui-xl);color:${isChosen ? 'var(--teal)' : 'var(--text3)'}">
         ${isChosen ? '+' + bonus : '—'}
       </div>
-      ${isChosen ? `<div style="font-size:10px;color:var(--teal);margin-top:2px">${luci('check')}</div>` : ''}
+      ${isChosen ? `<div style="font-size:var(--fs-caption);color:var(--teal);margin-top:2px">${luci('check')}</div>` : ''}
     </div>`;
       }
       h += `</div>`;
       const remaining = pat.length - chosen.length;
       if (remaining > 0) {
-        h += `<div style="font-size:12px;color:var(--text3);font-style:italic;margin-top:.6rem">
+        h += `<div style="font-size:var(--fs-ui-sm);color:var(--text3);font-style:italic;margin-top:.6rem">
       Clicca ${remaining} caratteristica${remaining > 1 ? 'e' : ''} per assegnare il bonus
     </div>`;
       }
@@ -5244,7 +5373,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       ${bon ? `<div class="score-bonus">+${bon} bg</div>` : ''}
       <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:5px">
         <button class="score-btn" onclick="pbAdj('${s}',-1)" ${canDn ? '' : ' disabled'}>−</button>
-        <span style="font-family:'Cinzel',serif;font-size:10px;color:var(--text3)">${v}</span>
+        <span style="font-family:var(--ff-display);font-size:var(--fs-caption);color:var(--text3)">${v}</span>
         <button class="score-btn" onclick="pbAdj('${s}',1)" ${canUp ? '' : ' disabled'}>+</button>
       </div>
     </div>`;
@@ -5263,7 +5392,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     /* Standard Array */
     function renderStd(el) {
       const assigned = Object.values(char.arrAssign).filter(v => v !== null);
-      let h = `<p style="font-size:13px;color:var(--text2);margin-bottom:.5rem">Select a value, then press Assign on the ability score.</p>
+      let h = `<p style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.5rem">Select a value, then press Assign on the ability score.</p>
   <div class="array-pool">`;
       // conta quante volte ogni valore è già assegnato
       const useCnt = {}; for (const v of STD_ARR) useCnt[v] = (useCnt[v] || 0);
@@ -5379,9 +5508,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">
     ${STATS.map(s => {
         const v = getFinal(s); return `<div style="text-align:center;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:5px 3px">
-      <div style="font-family:'Cinzel',serif;font-size:9px;color:var(--text3)">${SLBL[s]}</div>
-      <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2);line-height:1">${v}</div>
-      <div style="font-size:11px;color:var(--text2)">${fmod(v)}</div>
+      <div style="font-family:var(--ff-display);font-size:var(--fs-caption);color:var(--text3)">${SLBL[s]}</div>
+      <div style="font-family:var(--ff-display);font-size:var(--fs-ui-xxl);font-weight:700;color:var(--gold2);line-height:1">${v}</div>
+      <div style="font-size:var(--fs-label);color:var(--text2)">${fmod(v)}</div>
     </div>`;
       }).join('')}
   </div>`;
@@ -5400,13 +5529,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const items = char.inventory;
 
       // Mostriamo i primi 15 oggetti per non intasare l'anteprima
-      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c39bd3;margin-bottom:5px">${luci('swords')} Equipment</div>
+      el.innerHTML = `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c39bd3;margin-bottom:5px">${luci('swords')} Equipment</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px">
       ${items.slice(0, 15).map(i => {
         const qty = i.qty > 1 ? ` (x${i.qty})` : '';
-        return `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(i.name)}${qty}</span>`;
+        return `<span style="font-size:var(--fs-label);background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(i.name)}${qty}</span>`;
       }).join('')}
-      ${items.length > 15 ? `<span style="font-size:11px;color:var(--text3)">+${items.length - 15} more…</span>` : ''}
+      ${items.length > 15 ? `<span style="font-size:var(--fs-label);color:var(--text3)">+${items.length - 15} more…</span>` : ''}
     </div>`;
     }
 
@@ -5423,9 +5552,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       el.style.display = 'block';
       el.innerHTML = `
-        <div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Known Languages</div>
+        <div style="font-family:var(--ff-display);font-size:var(--fs-caption);font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Known Languages</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${list.map(l => `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(l)}</span>`).join('')}
+          ${list.map(l => `<span style="font-size:var(--fs-label);background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(l)}</span>`).join('')}
         </div>`;
     }
 
@@ -5489,13 +5618,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const spellAbility = char.choices['species_spell_ability'];
         if (spellAbility) {
           const abilityLabels = { int: "Intelligence", wis: "Wisdom", cha: "Charisma" };
-          html += `<div style="font-size:12px; color:var(--gold); margin-bottom:10px; padding:0 10px;">${luci('sparkles')} Spellcasting Ability: <strong>${abilityLabels[spellAbility]}</strong></div>`;
+          html += `<div style="font-size:var(--fs-ui-sm); color:var(--gold); margin-bottom:10px; padding:0 10px;">${luci('sparkles')} Spellcasting Ability: <strong>${abilityLabels[spellAbility]}</strong></div>`;
         }
 
         // MOSTRA LINEAGGIO SCELTO (Drow, Infernal, etc.)
         const lineage = char.choices['species_version'];
         if (lineage) {
-          html += `<div style="font-size:12px; color:var(--text2); margin-bottom:10px; padding:0 10px;">${luci('sparkles')} Lineage: <strong>${esc(lineage)}</strong></div>`;
+          html += `<div style="font-size:var(--fs-ui-sm); color:var(--text2); margin-bottom:10px; padding:0 10px;">${luci('sparkles')} Lineage: <strong>${esc(lineage)}</strong></div>`;
         }
 
         if (entries.length) {
@@ -5602,8 +5731,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           if (!entries) return '';
           const detailName = found.name || modelName;
           return `<div style="margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--bdr)">
-            <div style="font-size:10px;color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
-            <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
+            <div style="font-size:var(--fs-caption);color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
+            <div style="font-size:var(--fs-ui-sm);font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
             <div style="margin-top:.2rem">${rE(entries)}</div>
           </div>`;
         };
@@ -5683,7 +5812,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return `<div class="feat-item" id="${id}">
     <div class="feat-item-hdr" onclick="tf('${id}')">
       <span class="feat-item-name${nameCls}">${esc(clean(f.name || ''))}</span>
-      <span class="feat-arrow">▶</span>
+      <span class="feat-arrow">${luci('chevron-right')}</span>
     </div>
     <div class="feat-item-body">${rE(f.entries) || '<i style="color:var(--text3)">No description available.</i>'}</div>
   </div>`;
@@ -5988,6 +6117,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _buildChoiceSpecMap() {
       const map = new Map();
       deriveAllChoices().forEach(spec => map.set(spec.key, spec));
+      if (char.speciesObj) {
+        deriveSpeciesChoices(char.speciesObj).forEach(spec => map.set(spec.key, spec));
+      }
       return map;
     }
 
@@ -6082,15 +6214,29 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         });
       };
       _addClsLangs(char.cls);
-      // d) fallback hardcoded XPHB (druidico e gergo ladri sono sempre garantiti)
-      const _CLS_LANG = { Druid:"Druidic", Rogue:"Thieves' Cant" };
-      if (char.className && _CLS_LANG[char.className]) langs.add(_CLS_LANG[char.className]);
-      if (char.className === 'Bard' && char.subclassShortName === 'Moon' && (getPrimaryClassLevel() || 1) >= 3) langs.add('Druidic');
-      // anche per extra classi
+      // d) anche per extra classi
       for (const _ec of (char.extraClasses||[])) {
         _addClsLangs(_ec.cls);
-        if (_ec.name && _CLS_LANG[_ec.name]) langs.add(_CLS_LANG[_ec.name]);
-        if (_ec.name === 'Bard' && _ec.subclassShortName === 'Moon' && (_ec.level || 1) >= 3) langs.add('Druidic');
+      }
+      const _addAdapterLanguageGrants = (grants, lv) => {
+        (Array.isArray(grants) ? grants : []).forEach(g => {
+          if (!g || g.type !== 'language') return;
+          if ((lv || 1) < Number(g.minLevel || 1)) return;
+          const vals = Array.isArray(g.values) ? g.values : [g.values];
+          vals.forEach(v => langs.add(_normalizeProfName(v)));
+        });
+      };
+      if (typeof getClassSheetProficiencies === 'function' || typeof getSubclassSheetProficiencies === 'function') {
+        const lv = getPrimaryClassLevel() || 1;
+        if (typeof getClassSheetProficiencies === 'function') _addAdapterLanguageGrants(getClassSheetProficiencies(char.className || ''), lv);
+        if (typeof getSubclassSheetProficiencies === 'function') _addAdapterLanguageGrants(getSubclassSheetProficiencies(char.className || '', char.subclassShortName || ''), lv);
+        for (const ec of (char.extraClasses || [])) {
+          if (typeof getClassSheetProficiencies === 'function') _addAdapterLanguageGrants(getClassSheetProficiencies(ec.name || ''), ec.level || 1);
+          if (typeof getSubclassSheetProficiencies === 'function') _addAdapterLanguageGrants(getSubclassSheetProficiencies(ec.name || '', ec.subclassShortName || ''), ec.level || 1);
+        }
+      }
+      if (typeof getSpeciesSheetProficiencies === 'function') {
+        _addAdapterLanguageGrants(getSpeciesSheetProficiencies(char.speciesName || '', char.speciesSource || ''), char.level || 1);
       }
 
       // 3. Cerca tutte le lingue SCELTE dall'utente (i bottoni verdi che clicchi)
@@ -6119,14 +6265,6 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const tools = new Set();
       const specMap = _buildChoiceSpecMap();
       const toolNames = new Set(_ALL_TOOLS.map(_normCompare));
-      const _ARTIFICER_SUBCLASS_FIXED_TOOLS = {
-        'Alchemist': ["Alchemist's Supplies", 'Herbalism Kit'],
-        'Armorer': ["Smith's Tools"],
-        'Artillerist': ["Woodcarver's Tools"],
-        'Battle Smith': ["Smith's Tools"],
-        'Cartographer': ["Calligrapher's Supplies", "Cartographer's Tools"],
-      };
-
       const _addClassFixedTools = (cls) => {
         const sp = cls?.startingProficiencies || {};
         const src = [];
@@ -6141,22 +6279,30 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           _fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
         });
       };
-      const _addArtificerSubclassFixedTools = (className, subclassShortName, classLevel) => {
-        if (className !== 'Artificer') return;
-        if ((classLevel || 0) < 3) return;
-        const fixed = _ARTIFICER_SUBCLASS_FIXED_TOOLS[subclassShortName];
-        if (!fixed) return;
-        fixed.forEach(v => {
-          const nv = _normalizeProfName(v);
-          if (nv) tools.add(nv);
+      _addClassFixedTools(char.cls);
+      for (const ec of (char.extraClasses || [])) _addClassFixedTools(ec.cls);
+      const _addAdapterToolGrants = (grants, lv) => {
+        (Array.isArray(grants) ? grants : []).forEach(g => {
+          if (!g || g.type !== 'tool') return;
+          if ((lv || 1) < Number(g.minLevel || 1)) return;
+          const vals = Array.isArray(g.values) ? g.values : [g.values];
+          vals.forEach(v => {
+            const nv = _normalizeProfName(v);
+            if (nv) tools.add(nv);
+          });
         });
       };
-
-      _addClassFixedTools(char.cls);
-      _addArtificerSubclassFixedTools(char.className, char.subclassShortName, getPrimaryClassLevel());
-      for (const ec of (char.extraClasses || [])) _addClassFixedTools(ec.cls);
-      for (const ec of (char.extraClasses || [])) {
-        _addArtificerSubclassFixedTools(ec.name, ec.subclassShortName, ec.level || 1);
+      if (typeof getClassSheetProficiencies === 'function' || typeof getSubclassSheetProficiencies === 'function') {
+        const lv = getPrimaryClassLevel() || 1;
+        if (typeof getClassSheetProficiencies === 'function') _addAdapterToolGrants(getClassSheetProficiencies(char.className || ''), lv);
+        if (typeof getSubclassSheetProficiencies === 'function') _addAdapterToolGrants(getSubclassSheetProficiencies(char.className || '', char.subclassShortName || ''), lv);
+        for (const ec of (char.extraClasses || [])) {
+          if (typeof getClassSheetProficiencies === 'function') _addAdapterToolGrants(getClassSheetProficiencies(ec.name || ''), ec.level || 1);
+          if (typeof getSubclassSheetProficiencies === 'function') _addAdapterToolGrants(getSubclassSheetProficiencies(ec.name || '', ec.subclassShortName || ''), ec.level || 1);
+        }
+      }
+      if (typeof getSpeciesSheetProficiencies === 'function') {
+        _addAdapterToolGrants(getSpeciesSheetProficiencies(char.speciesName || '', char.speciesSource || ''), char.level || 1);
       }
 
       _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
@@ -6495,18 +6641,18 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!availableLevels.includes(activeSpellLevel)) activeSpellLevel = availableLevels[0];
 
       // Stampa l'intestazione
-      let h = `<div style="font-size:13px;color:var(--text2);margin-bottom:.6rem">`;
+      let h = `<div style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.6rem">`;
       if (caster) {
         if (counts.cantrips > 0) h += `Cantrip: <b style="color:var(--gold2)">${char.selectedCantrips.length}/${counts.cantrips}</b> · `;
         h += `Spells: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
-        if (caster === 'pact') h += ` <span style="font-size:11px;color:var(--text3)">(Warlock: spells known)</span>`;
-        else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:11px;color:var(--text3)">(prepared)</span>`;
+        if (caster === 'pact') h += ` <span style="font-size:var(--fs-label);color:var(--text3)">(Warlock: spells known)</span>`;
+        else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:var(--fs-label);color:var(--text3)">(prepared)</span>`;
       } else {
         h += `Bonus spells: <b style="color:var(--gold2)">${autoGranted.length}</b>`;
       }
 
       const autoCount = autoGranted.length;
-      if (autoCount > 0) h += ` <span style="font-size:11px;color:var(--teal)">+ ${autoCount} auto-granted ${luci('sparkles')}</span>`;
+      if (autoCount > 0) h += ` <span style="font-size:var(--fs-label);color:var(--teal)">+ ${autoCount} auto-granted ${luci('sparkles')}</span>`;
       h += `</div>`;
 
       // Stampa i Tab dei livelli magici (solo fino al maxLv consentito)
@@ -6554,7 +6700,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const remaining = maxSel - (isCantrip ? char.selectedCantrips.length : selCount);
 
       let h = `<div class="spell-count-bar">
-        <span style="font-size:12px;color:var(--text3)">${mergedList.length} available</span>
+        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${mergedList.length} available</span>
         <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${isCantrip ? char.selectedCantrips.length : selCount}/${maxSel}</span>
       </div>`;
 
@@ -6573,11 +6719,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                    style="${isAuto ? 'cursor:default; border-color:var(--teal); background:var(--tealbg)' : ''}">
           <div class="spell-check${on ? ' on' : ''}" style="${isAuto ? 'background:var(--teal); border-color:var(--teal)' : ''}">${on ? luci('check') : ''}</div>
           <div style="flex:1;min-width:0">
-            <div class="spell-name">${esc(s.name)} ${isAuto ? `<span style="font-size:9px; color:var(--teal); margin-left:5px">${luci('sparkles')} ALWAYS PREPARED</span>` : ''}</div>
-            <div style="font-size:11px;color:var(--text3)">${esc(school)}</div>
+            <div class="spell-name">${esc(s.name)} ${isAuto ? `<span style="font-size:var(--fs-caption); color:var(--teal); margin-left:5px">${luci('sparkles')} ALWAYS PREPARED</span>` : ''}</div>
+            <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
           </div>
-          ${s.ritual ? `<span style="font-size:10px;color:var(--teal);flex-shrink:0">R</span>` : ''}
-          ${s.concentration ? `<span style="font-size:10px;color:var(--purple);flex-shrink:0">C</span>` : ''}
+          ${s.ritual ? `<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>` : ''}
+          ${s.concentration ? `<span style="font-size:var(--fs-caption);color:var(--purple);flex-shrink:0">C</span>` : ''}
         </div>`;
       }
       h += `</div>`;
@@ -6638,9 +6784,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         return f ? f.name : n.charAt(0).toUpperCase() + n.slice(1);
       }).sort();
 
-      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--blue);margin-bottom:6px">Known Spells</div>
+      el.innerHTML = `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);font-weight:600;text-transform:uppercase;color:var(--blue);margin-bottom:6px">Known Spells</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${sorted.map(n => `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(n)}</span>`).join('')}
+          ${sorted.map(n => `<span style="font-size:var(--fs-label);background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:2px 7px;color:var(--text2)">${esc(n)}</span>`).join('')}
         </div>`;
     }
 
@@ -7033,7 +7179,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         return `<div class="inv-row">
           <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
             <div class="inv-type-badge" style="color:${rc}">${esc(rarity || typeLabel || '—')}</div>
-            ${srcLabel ? `<div class="inv-type-badge" style="color:var(--text3);font-size:8px">${esc(srcLabel)}</div>` : ''}
+            ${srcLabel ? `<div class="inv-type-badge" style="color:var(--text3);font-size:var(--fs-ui-micro)">${esc(srcLabel)}</div>` : ''}
           </div>
           <div class="inv-row-name">${esc(item.name)}</div>
           <div class="inv-row-meta">${esc(meta)}</div>

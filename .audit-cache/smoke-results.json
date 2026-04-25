@@ -1,0 +1,180 @@
+{
+  "checks": [
+    {
+      "name": "class-adapter Bard",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "subclass-adapter Bard/Moon",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "class-actions Bard",
+      "ok": true,
+      "detail": "len=7"
+    },
+    {
+      "name": "subclass-actions Bard/Moon",
+      "ok": true,
+      "detail": "len=4"
+    },
+    {
+      "name": "class-adapter Artificer",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "subclass-adapter Artificer/Armorer",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "class-actions Artificer",
+      "ok": true,
+      "detail": "len=5"
+    },
+    {
+      "name": "subclass-actions Artificer/Armorer",
+      "ok": true,
+      "detail": "len=9"
+    },
+    {
+      "name": "class-adapter Fighter",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "subclass-adapter Fighter/Battle Master",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "class-actions Fighter",
+      "ok": true,
+      "detail": "len=7"
+    },
+    {
+      "name": "subclass-actions Fighter/Battle Master",
+      "ok": true,
+      "detail": "len=1"
+    },
+    {
+      "name": "class-adapter Cleric",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "subclass-adapter Cleric/War",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "class-actions Cleric",
+      "ok": true,
+      "detail": "len=5"
+    },
+    {
+      "name": "subclass-actions Cleric/War",
+      "ok": true,
+      "detail": "len=3"
+    },
+    {
+      "name": "class-adapter Warlock",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "subclass-adapter Warlock/Celestial",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "class-actions Warlock",
+      "ok": true,
+      "detail": "len=5"
+    },
+    {
+      "name": "subclass-actions Warlock/Celestial",
+      "ok": true,
+      "detail": "len=1"
+    },
+    {
+      "name": "class-adapter Ranger",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "subclass-adapter Ranger/Gloom Stalker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "class-actions Ranger",
+      "ok": true,
+      "detail": "len=7"
+    },
+    {
+      "name": "subclass-actions Ranger/Gloom Stalker",
+      "ok": true,
+      "detail": "len=1"
+    },
+    {
+      "name": "species Shifter adapter",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "species Shifter actions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "species Shifter resources",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "species Shifter choiceMeta",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "armorer conditional actions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "bard valor prof grants",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "armorer prof grants",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "canonical-lookup Sorcerer/Clockwork",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "canonical-lookup Sorcerer/Aberrant",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "canonical-lookup Wizard/Bladesinger",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0
+  }
+}

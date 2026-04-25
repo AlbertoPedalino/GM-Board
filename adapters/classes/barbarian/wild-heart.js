@@ -32,3 +32,30 @@ registerSubclassAdapter("Barbarian_Wild Heart", function (cls, lv, specs) {
     });
   }
 });
+
+registerSubclassSheetActions("Barbarian_Wild Heart", [
+  {
+    name: "Bestial Soul",
+    icon: "",
+    cat: "action",
+    uses: "Passive",
+    minLevel: 3,
+    desc: "Choose a Wild Heart aspect and gain its movement/survival benefits while raging."
+  },
+  {
+    name: "Bestial Soul (Improved)",
+    icon: "",
+    cat: "action",
+    uses: "Passive",
+    minLevel: 6,
+    desc: "Gain the level 6 Wild Heart adaptation from your selected aspect."
+  },
+  {
+    name: "Power of the Wilds",
+    icon: "",
+    cat: "bonus",
+    uses: "Rage feature",
+    minLevel: 14,
+    desc: "Unlock the level 14 Wild Heart manifestation based on your selected aspect."
+  }
+]);

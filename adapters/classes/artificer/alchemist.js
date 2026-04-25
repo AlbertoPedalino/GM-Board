@@ -25,4 +25,7 @@ registerSubclassSheetActions("Artificer_Alchemist", [
     "desc": "After a Long Rest, produce experimental elixirs with Alchemist's Supplies. You can also create additional elixirs by expending spell slots."
   }
 ]);
+registerSubclassSheetProficiencies("Artificer_Alchemist", [
+  { type: "tool", values: ["Alchemist's Supplies", "Herbalism Kit"], minLevel: 3 }
+]);
 // [SheetRuntime] END

@@ -81,4 +81,7 @@ registerClassSheetResources("Druid", [
     "max": ()=>2
   }
 ]);
+registerClassSheetProficiencies("Druid", [
+  { type: "language", values: ["Druidic"], minLevel: 1 }
+]);
 // [SheetRuntime] END

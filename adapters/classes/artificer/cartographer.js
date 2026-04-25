@@ -25,4 +25,7 @@ registerSubclassSheetActions("Artificer_Cartographer", [
     "desc": "Create magical maps that support navigation and coordination for you and bonded creatures."
   }
 ]);
+registerSubclassSheetProficiencies("Artificer_Cartographer", [
+  { type: "tool", values: ["Calligrapher's Supplies", "Cartographer's Tools"], minLevel: 3 }
+]);
 // [SheetRuntime] END
