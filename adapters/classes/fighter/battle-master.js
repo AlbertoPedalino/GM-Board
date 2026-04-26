@@ -6,14 +6,6 @@ const _BM_MANEUVERS = [
   'Sweeping Attack', 'Tactical Assessment', 'Trip Attack',
 ];
 
-const _BM_ARTISAN_TOOLS = [
-  "Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies",
-  "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools",
-  "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools",
-  "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies",
-  "Potter's Tools", "Smith's Tools", "Tinker's Tools",
-  "Weaver's Tools", "Woodcarver's Tools",
-];
 
 const _BM_STUDENT_SKILLS = [
   'Acrobatics', 'Animal Handling', 'Athletics', 'Insight',
@@ -34,7 +26,7 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
       key: 'subclass_bm_student_tool',
       label: "Student of War — Artisan's Tool",
       type: 'generic_choice',
-      from: _BM_ARTISAN_TOOLS,
+      from: window._ARTISAN_TOOLS || [],
       count: 1,
       level: 3
     });

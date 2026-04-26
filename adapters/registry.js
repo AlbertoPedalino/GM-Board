@@ -655,6 +655,32 @@ function getGlobalSpeciesAdapters() {
   return GlobalSpeciesAdapters.slice();
 }
 
+// ── Shared game constants (available to all adapters + charbuilder) ──────────
+window._ARTISAN_TOOLS = [
+  "Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies",
+  "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools",
+  "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools",
+  "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies",
+  "Potter's Tools", "Smith's Tools", "Tinker's Tools",
+  "Weaver's Tools", "Woodcarver's Tools",
+];
+window._MUSICAL_INSTRUMENTS = [
+  'Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum',
+  'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol',
+];
+window._STD_LANGS = [
+  'Common', 'Elvish', 'Dwarvish', 'Giant', 'Gnomish', 'Goblin',
+  'Halfling', 'Orc', 'Draconic', 'Infernal', 'Celestial', 'Undercommon',
+];
+window._EXOTIC_LANGS = ['Abyssal', 'Sylvan', 'Deep Speech', 'Primordial'];
+window._ALL_LANGS = [...window._STD_LANGS, ...window._EXOTIC_LANGS];
+window._ALL_TOOLS = [
+  ...window._ARTISAN_TOOLS,
+  ...window._MUSICAL_INSTRUMENTS,
+  "Thieves' Tools", 'Disguise Kit', 'Forgery Kit',
+  "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
+];
+
 // Utility: rimuove tag 5etools ({@skill Foo|XPHB} -> "Foo")
 function _cleanTagName(str) {
   if (typeof str !== "string") return str;

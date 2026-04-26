@@ -1,25 +1,3 @@
-window._ARTISAN_TOOLS = [
-  "Alchemist's Supplies",
-  "Brewer's Supplies",
-  "Calligrapher's Supplies",
-  "Carpenter's Tools",
-  "Cartographer's Tools",
-  "Cobbler's Tools",
-  "Cook's Utensils",
-  "Glassblower's Tools",
-  "Jeweler's Tools",
-  "Leatherworker's Tools",
-  "Mason's Tools",
-  "Painter's Supplies",
-  "Potter's Tools",
-  "Smith's Tools",
-  "Tinker's Tools",
-  "Weaver's Tools",
-  "Woodcarver's Tools",
-  "Herbalism Kit",
-  "Navigator's Tools",
-  "Thieves' Tools",
-];
 
 const _ARTIFICER_PLAN_POOL_LV2 = [
   'Alchemy Jug',

@@ -2886,39 +2886,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return specs;
     }
 
-    const _STD_LANGS = [
-      'Common', 'Elvish', 'Dwarvish', 'Giant', 'Gnomish', 'Goblin',
-      'Halfling', 'Orc', 'Draconic', 'Infernal', 'Celestial', 'Undercommon',
-    ];
-    const _EXOTIC_LANGS = ['Abyssal', 'Sylvan', 'Deep Speech', 'Primordial'];
-    const _ALL_LANGS = [..._STD_LANGS, ..._EXOTIC_LANGS];
-    const _ARTISAN_TOOLS = [
-      "Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies",
-      "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools",
-      "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools",
-      "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies",
-      "Potter's Tools", "Smith's Tools", "Tinker's Tools",
-      "Weaver's Tools", "Woodcarver's Tools",
-    ];
-    const _MUSICAL_INSTRUMENTS = [
-      'Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum',
-      'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol',
-    ];
-    const _ALL_TOOLS = [
-      ..._ARTISAN_TOOLS,
-      ..._MUSICAL_INSTRUMENTS,
-      "Thieves' Tools", 'Disguise Kit', 'Forgery Kit',
-      "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
-    ];
-
     // Expose globals so external adapters (core.js etc.) can read them via window.*
     window.SKILLS = SKILLS;
-    window._STD_LANGS = _STD_LANGS;
-    window._ALL_LANGS = _ALL_LANGS;
-    window._EXOTIC_LANGS = _EXOTIC_LANGS;
-    window._ARTISAN_TOOLS = _ARTISAN_TOOLS;
-    window._MUSICAL_INSTRUMENTS = _MUSICAL_INSTRUMENTS;
-    window._ALL_TOOLS = _ALL_TOOLS;
 
     function _specSan(v) {
       return String(v || '')
