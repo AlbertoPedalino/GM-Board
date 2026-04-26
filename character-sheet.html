@@ -2397,25 +2397,6 @@ function renderRightTop(){
 /* ═══════════════ ACTIONS SYSTEM ═══════════════ */
 let activeActionFilter = 'all';
 
-const CANTRIP_DB = {
-  'Fire Bolt':       {icon:'flame',      die:'1d10',dmgType:'fire',       range:'120 ft',toHit:true, notes:''},
-  'Ray of Frost':    {icon:'snowflake',  die:'1d8', dmgType:'cold',       range:'60 ft', toHit:true, notes:'Speed -10 ft to target'},
-  'Eldritch Blast':  {icon:'zap',        die:'1d10',dmgType:'force',      range:'120 ft',toHit:true, notes:''},
-  'Sacred Flame':    {icon:'sparkles',   die:'1d8', dmgType:'radiant',    range:'60 ft', toHit:false,notes:'DEX save negates — no benefit from cover'},
-  'Toll the Dead':   {icon:'skull',      die:'1d8', dmgType:'necrotic',   range:'60 ft', toHit:false,notes:'1d12 if target is already injured'},
-  'Chill Touch':     {icon:'bug',        die:'1d10',dmgType:'necrotic',   range:'Touch', toHit:true, notes:'Prevents HP regeneration'},
-  'Poison Spray':    {icon:'circle',     die:'1d12',dmgType:'poison',     range:'30 ft', toHit:false,notes:'CON save negates'},
-  'Shocking Grasp':  {icon:'zap',        die:'1d8', dmgType:'lightning',  range:'Touch', toHit:true, notes:'Advantage vs metal; target loses reaction'},
-  'Produce Flame':   {icon:'flame',      die:'1d8', dmgType:'fire',       range:'30 ft', toHit:true, notes:'Illuminates 20 ft or throw it'},
-  'Thorn Whip':      {icon:'leaf',       die:'1d6', dmgType:'piercing',   range:'30 ft', toHit:true, notes:'Pulls target 10 ft toward you'},
-  'Vicious Mockery': {icon:'masks',      die:'1d4', dmgType:'psychic',    range:'60 ft', toHit:false,notes:'WIS save — disadvantage on next attack'},
-  'Acid Splash':     {icon:'droplets',   die:'1d6', dmgType:'acid',       range:'60 ft', toHit:false,notes:'DEX save — can hit 2 adjacent targets'},
-  'Thunderclap':     {icon:'cloud-lightning',die:'1d6',dmgType:'thunder', range:'5 ft',  toHit:false,notes:'CON save — audible 100 ft away'},
-  'True Strike':     {icon:'target',     die:'1d6', dmgType:'radiant',    range:'5 ft',  toHit:true, notes:'Use action — then weapon attack as bonus action'},
-  'Booming Blade':   {icon:'zap',        die:'1d8', dmgType:'thunder',    range:'5 ft',  toHit:true, notes:'+1d8 extra if target moves'},
-  'Green-Flame Blade':{icon:'flame',     die:'1d8', dmgType:'fire',       range:'5 ft',  toHit:true, notes:'Fire splash on nearby creature'},
-  'Blade Ward':      {icon:'shield',     die:'—',   dmgType:'',           range:'Self',  toHit:false,notes:'Resistance to slashing/bludgeoning/piercing until your next turn'},
-};
 
 function cantripDice(lv){ return lv>=17?4:lv>=11?3:lv>=5?2:1; }
 
@@ -3609,18 +3590,8 @@ function expandMagicVariants(variants, baseItems){
   return expanded;
 }
 
-const normalizeItemType = (item) => {
-  let type = item.type ? item.type.split('|')[0] : null;
-  if (!type || type === 'G' || type === 'OTH') {
-    if (item.weapon) type = 'M';
-    else if (item.ammo) type = 'A';
-    else if (item.armor) type = 'MA';
-    else if (item.shield) type = 'S';
-    else type = 'OTH';
-  }
-  item.type = type;
-  return item;
-};
+const normalizeItemType = (item) =>
+  typeof adaptItemRecord === 'function' ? adaptItemRecord(item) : item;
 
 async function loadItems(){
   invLoadingState='loading';
@@ -3650,6 +3621,7 @@ async function loadItems(){
     const seen = new Set();
     allItemsDb = [...baseItems,...magicItems,...expandedVariants]
       .filter(i=>{ if(seen.has(i.name)) return false; seen.add(i.name); return true; })
+      .map(i => typeof adaptItemRecord === 'function' ? adaptItemRecord(i) : i)
       .sort((a,b)=>a.name.localeCompare(b.name));
     invLoadingState='done';
     renderItemSearch();
@@ -4750,6 +4722,22 @@ function buildResourceBlock(actionRef){
 }
 
 /* ════════════════════ WEAPON / CANTRIP CARDS WITH DICE ════════════════════ */
+function getWeaponMasteries(){
+  const out = new Set();
+  if(!C?.choices) return out;
+  for(const [key, val] of Object.entries(C.choices)){
+    if(!val) continue;
+    const lk = key.toLowerCase();
+    if(!(lk.includes('mastery') && lk.includes('weapon'))) continue;
+    const vals = Array.isArray(val) ? val : [val];
+    vals.forEach(v => {
+      const n = String(v||'').split('|')[0].replace(/\{@\w+\s*/g,'').replace(/[{}]/g,'').trim().toLowerCase();
+      if(n) out.add(n);
+    });
+  }
+  return out;
+}
+
 function buildWeaponCard(item){
   const strMod=getMod(getFinal('str')), dexMod=getMod(getFinal('dex')), pb=getPB();
   const props=item.property||[];
@@ -4773,7 +4761,10 @@ function buildWeaponCard(item){
   const icon=isRanged?luci('crosshair'):luci('swords');
   const id='ac_'+Math.random().toString(36).slice(2);
   const wName=esc(item.name);
+  const hasMastery = getWeaponMasteries().has((item.name||'').toLowerCase());
+  const masteryProp = hasMastery ? (item.mastery || '') : '';
   const tagHtml=`<span class="action-tag atk">ATK</span>`
+    +(hasMastery?`<span class="action-tag" style="border-color:var(--gold);color:var(--gold)">${luci('star')} MASTERY</span>`:'')
     +(rc?`<span class="action-tag" style="border-color:${rc};color:${rc}">${esc(rarity)}</span>`:'');
   const sub=[src, bonus>0?'Magica +'+bonus:'', propStr].filter(Boolean).join(' · ');
   return `<div class="action-card" id="${id}">
@@ -4792,6 +4783,7 @@ function buildWeaponCard(item){
       <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
       ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
       ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">${luci('sparkles')} +${bonus}</div>`:''}
+      ${masteryProp?`<div class="action-dmg-pill" style="color:var(--gold)">${luci('star')} ${esc(masteryProp)}</div>`:''}
     </div>
   </div>`;
 }
@@ -4993,7 +4985,7 @@ function _buildGenericActionRollButtons(a){
 }
 
 function buildCantripCard(name){
-  const known = CANTRIP_DB[name];
+  const known = typeof getCantripData === 'function' ? getCantripData(name) : null;
   const lv = C?.level || 1;
   const sm = getSpellMod();
   const pb = getPB();
@@ -5009,6 +5001,9 @@ function buildCantripCard(name){
   const toHit = known
     ? !!known.toHit
     : !!(full?.spellAttack?.length || JSON.stringify(entries).includes('{@atk '));
+  const hasSave = known
+    ? !!known.hasSave
+    : !!(full?.savingThrow?.length || JSON.stringify(entries).includes('{@dc '));
   const range = known?.range
     || (full?.range?.distance?.amount != null
       ? `${full.range.distance.amount} ${full.range.distance.type || ''}`.trim()
@@ -5018,16 +5013,20 @@ function buildCantripCard(name){
 
   let dmgFormula = null;
   const knownDie = _normalizeDiceFormula(known?.die || '');
-  if(known && /^\d+d\d+$/i.test(knownDie)){
-    dmgFormula = `${cantripDice(lv)}${knownDie}`;
+  const knownDieMatch = knownDie.match(/^(\d+)d(\d+)$/i);
+  if (known && knownDieMatch) {
+    dmgFormula = `${cantripDice(lv) * parseInt(knownDieMatch[1])}d${knownDieMatch[2]}`;
   } else {
     const base = _extractFirstDamageFormulaFromEntries(entries);
-    if(base) dmgFormula = _scaleCantripFormula(base, lv);
+    if (base) dmgFormula = _scaleCantripFormula(base, lv);
   }
   const dmgLabel = dmgFormula ? `${dmgFormula} ${dmgType}`.trim() : 'Damage ?';
   const icon = known?.icon || 'sparkles';
-  const hitStr = toHit ? fbonus(atkBonus) : `CD ${saveDC}`;
+  const badgeType  = toHit ? 'atk' : hasSave ? 'save' : 'util';
+  const badgeLabel = toHit ? 'ATK' : hasSave ? 'SAV' : 'UTIL';
+  const hitStr = toHit ? fbonus(atkBonus) : hasSave ? `CD ${saveDC}` : '';
   const notes = known?.notes || '';
+  const lv5note = dmgFormula ? 'x5/11/17' : '';
 
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr">
@@ -5035,17 +5034,17 @@ function buildCantripCard(name){
       <div style="flex:1;min-width:0">
         <div class="action-card-name">${esc(name)}<span class="sub">Cantrip | ${esc(dmgType || school || 'utility')} | ${esc(range)}</span></div>
       </div>
-      <div class="action-card-tags"><span class="action-tag ${toHit ? 'atk' : 'save'}">${toHit ? 'ATK' : 'SAV'}</span></div>
-      <div class="action-stat">${hitStr}</div>
+      <div class="action-card-tags"><span class="action-tag ${badgeType}">${badgeLabel}</span></div>
+      ${hitStr ? `<div class="action-stat">${hitStr}</div>` : ''}
     </div>
     <div class="action-card-bar">
       ${toHit ? `<button class="roll-btn" onclick="rollD20(${atkBonus},'Attack: ${safeName}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>` : ''}
       ${dmgFormula
         ? `<button class="roll-btn dmg" onclick="rollDamage('${_jsEsc(dmgFormula)}','Damage: ${safeName}')">${luci('flame')} ${esc(dmgLabel)}</button>`
         : ''}
-      ${!toHit ? `<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>` : ''}
+      ${hasSave ? `<div class="action-dmg-pill">${luci('dice-5')} Save DC: <b>${saveDC}</b></div>` : ''}
       <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
-      <div class="action-dmg-pill">${luci('trending-up')} x5/11/17</div>
+      ${lv5note ? `<div class="action-dmg-pill">${luci('trending-up')} ${lv5note}</div>` : ''}
       ${notes ? `<div class="action-dmg-pill" style="color:var(--text3)">${esc(notes)}</div>` : ''}
     </div>
   </div>`;

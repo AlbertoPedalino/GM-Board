@@ -138,4 +138,65 @@
   }
 
   global.getGenericSpeciesChoiceSpecs = getGenericSpeciesChoiceSpecs;
+
+  /* ── Normalizzazione record specie ───────────────────────────── */
+  function _speciesNorm(v) {
+    return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+
+  function _speciesNormalizeRecord(rawSpecies, ctx) {
+    var raw  = rawSpecies && typeof rawSpecies === "object" ? rawSpecies : {};
+    var name = String(raw.name   || "").trim();
+    var src  = String(raw.source || (ctx && ctx.defaultSource) || "").trim();
+
+    var species  = Object.assign({}, raw);
+    species.name   = name || "Unknown Species";
+    species.source = src;
+
+    // size sempre array
+    if (!Array.isArray(species.size)) {
+      species.size = species.size ? [species.size] : ["M"];
+    }
+
+    species._meta = Object.assign(
+      {},
+      raw._meta && typeof raw._meta === "object" ? raw._meta : {},
+      {
+        speciesKey: _speciesNorm(name) + "_" + _speciesNorm(src),
+        isAdapted:  true,
+      }
+    );
+
+    return species;
+  }
+
+  function _runGlobalSpeciesAdapters(species, ctx) {
+    var list = typeof global.getGlobalSpeciesAdapters === "function"
+      ? global.getGlobalSpeciesAdapters()
+      : [];
+    if (!Array.isArray(list)) return species;
+    return list.reduce(function (acc, fn) {
+      if (typeof fn !== "function") return acc;
+      try {
+        var next = fn(acc, ctx);
+        return next && typeof next === "object" ? next : acc;
+      } catch (err) {
+        console.warn("[SpeciesAdapter] global adapter error for", acc && acc.name, err);
+        return acc;
+      }
+    }, species && typeof species === "object" ? Object.assign({}, species) : species);
+  }
+
+  function adaptSpeciesRecord(rawSpecies, ctx) {
+    return _runGlobalSpeciesAdapters(_speciesNormalizeRecord(rawSpecies, ctx), ctx);
+  }
+
+  function adaptSpeciesDataset(rawSpecies, ctx) {
+    if (!Array.isArray(rawSpecies)) return [];
+    return rawSpecies.map(function (s) { return adaptSpeciesRecord(s, ctx); });
+  }
+
+  global.adaptSpeciesRecord  = adaptSpeciesRecord;
+  global.adaptSpeciesDataset = adaptSpeciesDataset;
+
 })(typeof window !== "undefined" ? window : globalThis);

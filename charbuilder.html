@@ -2326,7 +2326,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 </div>
                 <div class="currency-cell">
                   <div class="currency-lbl" style="color:var(--gold)">Gold (GP)</div>
-                  <input type="number" class="currency-inp" id="cur-gp" value="10" min="0"
+                  <input type="number" class="currency-inp" id="cur-gp" value="0" min="0"
                     oninput="updateCurrency('gp',this.value)">
                 </div>
                 <div class="currency-cell">
@@ -2480,7 +2480,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       selectedSpells: {},
       xp: 0,
       inventory: [],    // [{name, source, type, qty, weight, value, rarity, dmg1, dmgType, ac, custom}]
-      currency: { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 },
+      currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
     };
     let classCache = {}, allSpecies = [], allBgs = [], allFeats = [], allOptFeats = [], spellDb = [], allItemsDb = [];
     // classSpellIndex[className_lc] = Set<spellName_lc> — costruito da gendata-spell-source-lookup.json
@@ -2633,7 +2633,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const r = await fetch(BASE + 'races.json');
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
-        allSpecies = (d.race || d.species || []).filter(s => ALLOWED.includes(s.source)).sort((a, b) => a.name.localeCompare(b.name));
+        const rawSpecies = (d.race || d.species || []).filter(s => ALLOWED.includes(s.source));
+        allSpecies = (typeof adaptSpeciesDataset === 'function' ? adaptSpeciesDataset(rawSpecies) : rawSpecies).sort((a, b) => a.name.localeCompare(b.name));
         el.textContent = allSpecies.length + ' species';
         renderSpeciesList();
       } catch (e) { el.style.color = 'var(--red2)'; el.textContent = 'Error: ' + e.message; }
@@ -4798,9 +4799,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (f) { cls = f; d = data; break; }
       }
       if (!cls) return;
-      char.className = name; char.classSource = source; char.cls = cls; char.subclassShortName = null;
+      char.className = name; char.classSource = source;
+      char.cls = typeof adaptClassRecord === 'function' ? adaptClassRecord(cls) : cls;
+      char.subclassShortName = null;
       char.allFeatures = (d.classFeature || []).filter(f => f.className === name && (f.classSource === source || !f.classSource) && !f.isReprinted);
-      char.subclasses = (d.subclass || []).filter(s => s.className === name && (s.classSource === source || !s.classSource) && ALLOWED.includes(s.source));
+      char.subclasses = (d.subclass || []).filter(s => s.className === name && (s.classSource === source || !s.classSource) && ALLOWED.includes(s.source)).map(s => typeof adaptSubclassRecord === 'function' ? adaptSubclassRecord(s) : s);
       char.allSubFeatures = (d.subclassFeature || []).filter(f => f.className === name && (f.classSource === source || !f.classSource) && ALLOWED.includes(f.source || source));
       if (!char.classLevel) char.classLevel = char.level || 1;
       char.activeClassTab = 0;
@@ -5235,9 +5238,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       if (!cls) return;
       const ec = char.extraClasses[i];
-      ec.name=name; ec.source=source; ec.cls=cls; ec.subclassShortName=null;
+      ec.name=name; ec.source=source;
+      ec.cls = typeof adaptClassRecord === 'function' ? adaptClassRecord(cls) : cls;
+      ec.subclassShortName=null;
       ec.allFeatures = (d.classFeature||[]).filter(f=>f.className===name&&(f.classSource===source||!f.classSource)&&!f.isReprinted);
-      ec.subclasses  = (d.subclass||[]).filter(s=>s.className===name&&(s.classSource===source||!s.classSource)&&ALLOWED.includes(s.source));
+      ec.subclasses  = (d.subclass||[]).filter(s=>s.className===name&&(s.classSource===source||!s.classSource)&&ALLOWED.includes(s.source)).map(s => typeof adaptSubclassRecord === 'function' ? adaptSubclassRecord(s) : s);
       ec.allSubFeatures = (d.subclassFeature||[]).filter(f=>f.className===name&&(f.classSource===source||!f.classSource)&&ALLOWED.includes(f.source||source));
       switchMCTab(i + 1); // refresh current tab
       renderChoicesPanel();
@@ -5879,6 +5884,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       else if (char.scoreMethod === 'standard') renderStd(el);
       else renderDice(el);
       renderPreviewScores();
+      renderSpellPanel();
     }
 
     /* Point Buy */
@@ -6993,10 +6999,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           if (f) {
             char.className = state.className;
             char.classSource = state.classSource;
-            char.cls = f;
+            char.cls = typeof adaptClassRecord === 'function' ? adaptClassRecord(f) : f;
             char.subclassShortName = state.subclassShortName || null;
             char.allFeatures = (data.classFeature||[]).filter(feat => feat.className===state.className && (feat.classSource===state.classSource||!feat.classSource) && !feat.isReprinted);
-            char.subclasses = (data.subclass||[]).filter(s => s.className===state.className && (s.classSource===state.classSource||!s.classSource) && ALLOWED.includes(s.source));
+            char.subclasses = (data.subclass||[]).filter(s => s.className===state.className && (s.classSource===state.classSource||!s.classSource) && ALLOWED.includes(s.source)).map(s => typeof adaptSubclassRecord === 'function' ? adaptSubclassRecord(s) : s);
             char.allSubFeatures = (data.subclassFeature||[]).filter(feat => feat.className===state.className && (feat.classSource===state.classSource||!feat.classSource) && ALLOWED.includes(feat.source||state.classSource));
             break;
           }
@@ -7190,7 +7196,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (counts.cantrips > 0) h += `Cantrip: <b style="color:var(--gold2)">${char.selectedCantrips.length}/${counts.cantrips}</b> · `;
         h += `Spells: <b style="color:var(--gold2)">${Object.values(char.selectedSpells).flat().length}/${counts.spells}</b>`;
         if (caster === 'pact') h += ` <span style="font-size:var(--fs-label);color:var(--text3)">(Warlock: spells known)</span>`;
-        else if (['Cleric', 'Druid', 'Wizard', 'Paladin'].includes(cls)) h += ` <span style="font-size:var(--fs-label);color:var(--text3)">(prepared)</span>`;
+        else if (typeof getClassRuntimeConfig === 'function' && getClassRuntimeConfig(cls)?.spellcasting?.preparedFormula) h += ` <span style="font-size:var(--fs-label);color:var(--text3)">(prepared)</span>`;
       } else {
         h += `Bonus spells: <b style="color:var(--gold2)">${autoGranted.length}</b>`;
       }
@@ -7543,22 +7549,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     async function loadItems() {
       // Inizializza SUBITO con il fallback per mostrare gli oggetti immediatamente
-      const normalizeItemType = (item) => {
-        // Estrai il tipo prima della pipe (es. "G|XPHB" -> "G")
-        let type = item.type ? item.type.split('|')[0] : null;
-
-        if (!type || type === 'G' || type === 'OTH') {
-          // Tipo generico/altro - controlla i flag
-          if (item.weapon) type = 'M';
-          else if (item.ammo) type = 'A';
-          else if (item.armor) type = 'MA';
-          else if (item.shield) type = 'S';
-          else type = 'OTH';
-        }
-
-        item.type = type;
-        return item;
-      };
+      const normalizeItemType = (item) =>
+        typeof adaptItemRecord === 'function' ? adaptItemRecord(item) : item;
 
       // Mostra subito il fallback
       allItemsDb = STANDARD_ITEMS_FALLBACK.map(normalizeItemType).sort((a, b) => a.name.localeCompare(b.name));
@@ -7609,6 +7601,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const seen = new Set();
       allItemsDb = [...baseItems, ...magicItems, ...expandedVariants]
         .filter(i => { if (seen.has(i.name)) return false; seen.add(i.name); return true; })
+        .map(i => typeof adaptItemRecord === 'function' ? adaptItemRecord(i) : i)
         .sort((a, b) => a.name.localeCompare(b.name));
 
       renderItemSearch();

@@ -6,6 +6,7 @@
 
 const ADAPTER_MANIFEST = [
   // ── Classi ──────────────────────────────────────────────
+  'adapters/classes/core.js',
   'adapters/classes/fighter/fighter.js',
   'adapters/classes/fighter/battle-master.js',
   'adapters/classes/fighter/banneret.js',
@@ -114,6 +115,14 @@ const ADAPTER_MANIFEST = [
   'adapters/species/orc.js',
   'adapters/species/shifter.js',
   'adapters/species/warforged.js',
+
+  // ── Spell data ──────────────────────────────────────────
+  'adapters/spells/core.js',
+  'adapters/spells/cantrips.js',
+  'adapters/spells/spells.js',
+
+  // ── Item data ───────────────────────────────────────────
+  'adapters/items/core.js',
 
   // Feat adapter runtime
   'adapters/feats/core.js',

@@ -29,7 +29,9 @@
       "Bash(cat)",
       "Bash(bash /tmp/analyze_actions.sh)",
       "Bash(grep -v \"comment\\\\|//.*Tough\\\\|Magic Initiate\\\\|Blessed Warrior\")",
-      "Bash(grep -v \"//\")"
+      "Bash(grep -v \"//\")",
+      "Bash(xargs -I{} head -20 {})",
+      "Bash(awk '{print $1}')"
     ]
   }
 }

@@ -580,6 +580,81 @@ function getSubclassChoiceDetailDataProvider(className, subclassShortName) {
   return _getStoreValue(SubclassChoiceDetailDataProviders, raw, _toSubclassCanonicalKey(className, subclassShortName)) || null;
 }
 
+// ── Spell / Cantrip data stores ──────────────────────────────────
+// Chiave: nome spell (raw + canonical _normAdapterKey).
+// Valore: oggetto dati strutturato { icon, die, dmgType, range, toHit, hasSave, notes, ... }
+const CantripDataStore = {};
+const SpellDataStore   = {};
+const GlobalSpellAdapters = [];
+const GlobalClassAdapters = [];
+const GlobalSubclassAdapters = [];
+const GlobalItemAdapters = [];
+
+function registerCantripData(name, data) {
+  if (!name || !data || typeof data !== "object") return;
+  const key = _normAdapterKey(name);
+  CantripDataStore[String(name)] = data;
+  if (key) CantripDataStore[key] = data;
+}
+function getCantripData(name) {
+  const raw = String(name || "");
+  const key = _normAdapterKey(raw);
+  return _getStoreValue(CantripDataStore, raw, key) || null;
+}
+
+function registerSpellData(name, data) {
+  if (!name || !data || typeof data !== "object") return;
+  const key = _normAdapterKey(name);
+  SpellDataStore[String(name)] = data;
+  if (key) SpellDataStore[key] = data;
+}
+function getSpellData(name) {
+  const raw = String(name || "");
+  const key = _normAdapterKey(raw);
+  return _getStoreValue(SpellDataStore, raw, key) || null;
+}
+
+function registerGlobalSpellAdapter(fn) {
+  if (typeof fn !== "function") return;
+  GlobalSpellAdapters.push(fn);
+}
+function getGlobalSpellAdapters() {
+  return GlobalSpellAdapters.slice();
+}
+
+function registerGlobalClassAdapter(fn) {
+  if (typeof fn !== "function") return;
+  GlobalClassAdapters.push(fn);
+}
+function getGlobalClassAdapters() {
+  return GlobalClassAdapters.slice();
+}
+
+function registerGlobalSubclassAdapter(fn) {
+  if (typeof fn !== "function") return;
+  GlobalSubclassAdapters.push(fn);
+}
+function getGlobalSubclassAdapters() {
+  return GlobalSubclassAdapters.slice();
+}
+
+function registerGlobalItemAdapter(fn) {
+  if (typeof fn !== "function") return;
+  GlobalItemAdapters.push(fn);
+}
+function getGlobalItemAdapters() {
+  return GlobalItemAdapters.slice();
+}
+
+const GlobalSpeciesAdapters = [];
+function registerGlobalSpeciesAdapter(fn) {
+  if (typeof fn !== "function") return;
+  GlobalSpeciesAdapters.push(fn);
+}
+function getGlobalSpeciesAdapters() {
+  return GlobalSpeciesAdapters.slice();
+}
+
 // Utility: rimuove tag 5etools ({@skill Foo|XPHB} -> "Foo")
 function _cleanTagName(str) {
   if (typeof str !== "string") return str;
