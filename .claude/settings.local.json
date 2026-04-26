@@ -27,7 +27,9 @@
       "Bash(python -c \"import json; d=json.load\\(open\\('C:/Users/alber/Documents/DND/GM-Board/.audit-cache/races.json'\\)\\); humans=[r for r in d.get\\('race',[]\\) if 'Human' in r.get\\('name',''\\) and r.get\\('source',''\\)=='XPHB']; print\\(json.dumps\\(humans[:1], indent=2\\)\\)\")",
       "Bash(awk NR>=2425 && NR<=2445 *)",
       "Bash(cat)",
-      "Bash(bash /tmp/analyze_actions.sh)"
+      "Bash(bash /tmp/analyze_actions.sh)",
+      "Bash(grep -v \"comment\\\\|//.*Tough\\\\|Magic Initiate\\\\|Blessed Warrior\")",
+      "Bash(grep -v \"//\")"
     ]
   }
 }

@@ -119,6 +119,8 @@ const ADAPTER_MANIFEST = [
   'adapters/feats/core.js',
   'adapters/feats/all-feats.js',
   'adapters/feats/magic-initiate.js',
+  'adapters/feats/ability-score-improvement.js',
+  'adapters/feats/tough.js',
 
   // Shared class/subclass/species runtime config
   'adapters/classes/runtime-config.js',

@@ -569,6 +569,17 @@ function getClassChoiceLabelProvider(className) {
   return _getStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className)) || null;
 }
 
+const SubclassChoiceDetailDataProviders = {};
+function registerSubclassChoiceDetailDataProvider(className, subclassShortName, fn) {
+  if (typeof fn !== "function") return;
+  const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
+  _setStoreValue(SubclassChoiceDetailDataProviders, raw, _toSubclassCanonicalKey(className, subclassShortName), fn);
+}
+function getSubclassChoiceDetailDataProvider(className, subclassShortName) {
+  const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
+  return _getStoreValue(SubclassChoiceDetailDataProviders, raw, _toSubclassCanonicalKey(className, subclassShortName)) || null;
+}
+
 // Utility: rimuove tag 5etools ({@skill Foo|XPHB} -> "Foo")
 function _cleanTagName(str) {
   if (typeof str !== "string") return str;

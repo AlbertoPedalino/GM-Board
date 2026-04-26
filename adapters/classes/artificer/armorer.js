@@ -157,3 +157,41 @@ registerSubclassSheetFeatureFilter("Artificer_Armorer", (ctx, features) => {
   });
 });
 // [SheetRuntime] END
+
+if (typeof registerSubclassChoiceDetailDataProvider === "function") {
+  registerSubclassChoiceDetailDataProvider("Artificer", "Armorer", function (choiceKey, values, subFeatures) {
+    if (choiceKey !== "armorer_model") return null;
+    if (!Array.isArray(values) || !values.length) return null;
+    if (!Array.isArray(subFeatures) || !subFeatures.length) return null;
+
+    function canon(v) {
+      const k = String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (k === "dreadnaught" || k.includes("dreadnought")) return "dreadnought";
+      if (k.includes("guardian")) return "guardian";
+      if (k.includes("infiltrator")) return "infiltrator";
+      return "";
+    }
+
+    const target = canon(values[0]);
+    if (!target) return null;
+
+    const ordered = subFeatures.slice().sort(function (a, b) { return (a.level || 0) - (b.level || 0); });
+
+    function walk(node) {
+      if (!node) return null;
+      if (Array.isArray(node)) {
+        for (var i = 0; i < node.length; i++) { var r = walk(node[i]); if (r) return r; }
+        return null;
+      }
+      if (typeof node !== "object") return null;
+      if (node.name && canon(node.name) === target && (node.entries || node.entry)) return node;
+      var kids = [node.entries, node.entry, node.items, node.rows];
+      for (var j = 0; j < kids.length; j++) { var r2 = walk(kids[j]); if (r2) return r2; }
+      return null;
+    }
+
+    var direct = ordered.find(function (f) { return canon(f && f.name) === target && (f.entries || f.entry); });
+    if (direct) return direct;
+    return walk(ordered.map(function (f) { return f.entries; }));
+  });
+}

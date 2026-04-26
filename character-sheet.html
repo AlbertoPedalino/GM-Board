@@ -1453,7 +1453,19 @@ function bgBonus(stat){
   if(idx<0) return 0;
   return idx===0 ? 2 : 1;
 }
-function getFinal(stat){ return getBase(stat)+bgBonus(stat); }
+function getAsiFeatBonus(stat){
+  let bonus = 0;
+  if(!C?.choices) return 0;
+  for(const [k,v] of Object.entries(C.choices)){
+    if(!/^feat_asi_lv\d+_asi_picks$/.test(k)) continue;
+    const mode = C.choices[k.replace('_asi_picks','_asi_mode')] || 'double';
+    const picks = Array.isArray(v) ? v : [];
+    if(mode==='double'){ if(picks[0]===stat) bonus+=2; }
+    else bonus += picks.filter(p=>p===stat).length;
+  }
+  return bonus;
+}
+function getFinal(stat){ return getBase(stat)+bgBonus(stat)+getAsiFeatBonus(stat); }
 function getMod(v){ return Math.floor((v-10)/2); }
 function getPB(){ return C ? (PB_TABLE[C.level]||2) : 2; }
 function fmod(v){ const m=getMod(v); return(m>=0?'+':'')+m; }
@@ -1546,6 +1558,9 @@ function calcMaxHP(){
   let total = faces+conMod;
   const lv = C.level;
   if(lv>1){ const avg=Math.floor(faces/2)+1; total+=(avg+conMod)*(lv-1); }
+  const featHpBonus = (Array.isArray(C.allFeatSnapshots)?C.allFeatSnapshots:[])
+    .reduce((sum,f)=>sum+(f?.hpBonusPerLevel||0),0);
+  total += featHpBonus * lv;
   return Math.max(1, total);
 }
 

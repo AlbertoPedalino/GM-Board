@@ -2436,18 +2436,6 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     const FULL_SLOTS = [null, [2, 0, 0, 0, 0, 0, 0, 0, 0], [3, 0, 0, 0, 0, 0, 0, 0, 0], [4, 2, 0, 0, 0, 0, 0, 0, 0], [4, 3, 0, 0, 0, 0, 0, 0, 0], [4, 3, 2, 0, 0, 0, 0, 0, 0], [4, 3, 3, 0, 0, 0, 0, 0, 0], [4, 3, 3, 1, 0, 0, 0, 0, 0], [4, 3, 3, 2, 0, 0, 0, 0, 0], [4, 3, 3, 3, 1, 0, 0, 0, 0], [4, 3, 3, 3, 2, 0, 0, 0, 0], [4, 3, 3, 3, 2, 1, 0, 0, 0], [4, 3, 3, 3, 2, 1, 0, 0, 0], [4, 3, 3, 3, 2, 1, 1, 0, 0], [4, 3, 3, 3, 2, 1, 1, 0, 0], [4, 3, 3, 3, 2, 1, 1, 1, 0], [4, 3, 3, 3, 2, 1, 1, 1, 0], [4, 3, 3, 3, 2, 1, 1, 1, 1], [4, 3, 3, 3, 3, 1, 1, 1, 1], [4, 3, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 3, 2, 2, 1, 1]];
     const HALF_SLOTS = [null, null, [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 2, 0, 0, 0], [4, 2, 0, 0, 0], [4, 3, 0, 0, 0], [4, 3, 0, 0, 0], [4, 3, 2, 0, 0], [4, 3, 2, 0, 0], [4, 3, 3, 0, 0], [4, 3, 3, 0, 0], [4, 3, 3, 1, 0], [4, 3, 3, 1, 0], [4, 3, 3, 2, 0], [4, 3, 3, 2, 0], [4, 3, 3, 3, 1], [4, 3, 3, 3, 1], [4, 3, 3, 3, 2], [4, 3, 3, 3, 2]];
     const WLOCK = [null, { n: 1, l: 1 }, { n: 2, l: 1 }, { n: 2, l: 2 }, { n: 2, l: 2 }, { n: 3, l: 3 }, { n: 3, l: 3 }, { n: 3, l: 4 }, { n: 3, l: 4 }, { n: 3, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }];
-    const CASTER_FB = { Bard: 'full', Cleric: 'full', Druid: 'full', Sorcerer: 'full', Wizard: 'full', Paladin: '1/2', Ranger: '1/2', Warlock: 'pact', Artificer: 'artificer' };
-    // Multiclass prerequisites XPHB 2024: each group is AND'd; multiple groups are OR'd
-    const MC_PREREQUISITES = {
-      Barbarian:[{str:13}], Bard:[{cha:13}], Cleric:[{wis:13}], Druid:[{wis:13}],
-      Fighter:[{str:13},{dex:13}], Monk:[{dex:13,wis:13}], Paladin:[{str:13,cha:13}],
-      Ranger:[{dex:13,wis:13}], Rogue:[{dex:13}], Sorcerer:[{cha:13}],
-      Warlock:[{cha:13}], Wizard:[{int:13}], Artificer:[{int:13}],
-    };
-    const MC_CASTER_TYPE = {
-      Bard:'full',Cleric:'full',Druid:'full',Sorcerer:'full',Wizard:'full',
-      Paladin:'half',Ranger:'half',Warlock:'pact',Artificer:'artificer',
-    };
     const PB = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
     const PB_COST = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
     const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -2457,28 +2445,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     // Numero di ASI/Feat per classe (livelli in cui si ottengono)
     // Solo Expertise rimane hardcoded — non esiste struttura machine-readable nei dati
-    const EXPERTISE_CONFIG = {
-      Bard: [{ level: 2, count: 2, label: 'Expertise (Lv.2)' }, { level: 9, count: 2, label: 'Expertise (Lv.9)' }],
-      Rogue: [{ level: 1, count: 2, label: 'Expertise (Lv.1)' }, { level: 6, count: 2, label: 'Expertise (Lv.6)' }],
-    };
 
-    /* ─ Cantrip conosciuti per livello (index = lv-1) ─ */
-    const CANTRIP_KNOWN = {
-      Bard: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      Cleric: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-      Druid: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      Sorcerer: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-      Warlock: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      Wizard: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
-    };
-
-    /* ─ Spell conosciute per livello (caster "conosciuti") ─ */
-    const SPELLS_KNOWN = {
-      Bard: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 19, 20, 22, 22, 22],
-      Ranger: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11],
-      Sorcerer: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
-      Warlock: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15]
-    };
 
     const SPELL_FILES = ['spells-xphb.json', 'spells-fraif.json', 'spells-frhof.json', 'spells-efa.json'];
     const SCHOOL_LABELS = { A: 'Abjuration', C: 'Enchantment', D: 'Divination', E: 'Evocation', I: 'Illusion', N: 'Necromancy', T: 'Transmutation', V: 'Divination' };
@@ -3505,6 +3472,27 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       updateSteps();
     }
 
+    function setAsiMode(slotKey, mode) {
+      if (!char.choices) char.choices = {};
+      char.choices[`${slotKey}_asi_mode`] = mode;
+      char.choices[`${slotKey}_asi_picks`] = [];
+      const gd = document.getElementById('feat-grant-' + slotKey);
+      if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
+      renderPreview();
+    }
+
+    function toggleAsiStat(slotKey, stat, maxPicks) {
+      if (!char.choices) char.choices = {};
+      const picks = Array.isArray(char.choices[`${slotKey}_asi_picks`]) ? [...char.choices[`${slotKey}_asi_picks`]] : [];
+      const idx = picks.indexOf(stat);
+      if (idx >= 0) picks.splice(idx, 1);
+      else if (picks.length < maxPicks) picks.push(stat);
+      char.choices[`${slotKey}_asi_picks`] = picks;
+      const gd = document.getElementById('feat-grant-' + slotKey);
+      if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
+      renderPreview();
+    }
+
     function getSelectedFeats() {
       const result = {};
       for (const spec of deriveAllChoices()) {
@@ -3697,6 +3685,39 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       /* ── 2. skillProficiencies / toolProficiencies / skillToolLanguageProficiencies ── */
       h += _renderProficiencyGrants(feat, slotKey);
+
+      /* ── 3. Ability Score Improvement ── */
+      if (feat.choiceUi?.abilityScoreIncrease) {
+        const mode = char.choices[`${slotKey}_asi_mode`] || 'double';
+        const picks = Array.isArray(char.choices[`${slotKey}_asi_picks`]) ? char.choices[`${slotKey}_asi_picks`] : [];
+        const sk = slotKey.replace(/'/g, "\\'");
+        const maxPicks = mode === 'double' ? 1 : 2;
+        h += `<div style="margin-top:.75rem">
+  <div class="feat-section-hdr" style="color:var(--gold)">✧ Ability Score Increase</div>
+  <div style="display:flex;gap:6px;margin-bottom:.6rem">
+    <button type="button" onclick="setAsiMode('${sk}','double');return false;"
+      style="padding:5px 12px;border:1px solid ${mode==='double'?'var(--gold2)':'var(--bdr)'};
+      border-radius:var(--r);background:var(--bg3);
+      color:${mode==='double'?'var(--gold2)':'var(--text2)'};cursor:pointer;
+      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">+2 one stat</button>
+    <button type="button" onclick="setAsiMode('${sk}','split');return false;"
+      style="padding:5px 12px;border:1px solid ${mode==='split'?'var(--gold2)':'var(--bdr)'};
+      border-radius:var(--r);background:var(--bg3);
+      color:${mode==='split'?'var(--gold2)':'var(--text2)'};cursor:pointer;
+      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">+1/+1 two stats</button>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:5px">`;
+        for (const st of STATS) {
+          const on = picks.includes(st);
+          const full = !on && picks.length >= maxPicks;
+          const label = SLBL[st] || st.toUpperCase();
+          const bonus = on ? (mode === 'double' ? ' +2' : ' +1') : '';
+          h += `<button class="exp-btn${on ? ' on' : ''}" ${full ? 'disabled' : ''}
+    onclick="toggleAsiStat('${sk}','${st}',${maxPicks})"
+    style="margin:2px">${esc(label)}${bonus}</button>`;
+        }
+        h += `</div></div>`;
+      }
 
       return h;
     }
@@ -4859,11 +4880,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       const selFeats = Object.values(getSelectedFeats());
       for (const fName of selFeats) {
-        if (fName === 'Tough' || fName.toLowerCase().includes('robusto')) bonusPerLv += 2;
-        else {
-          const feat = allFeats.find(f => f.name === fName);
-          if (feat) bonusPerLv += checkBonus(JSON.stringify(feat.entries || '').toLowerCase());
-        }
+        const feat = allFeats.find(f => f.name === fName);
+        if (feat?.hpBonusPerLevel) bonusPerLv += feat.hpBonusPerLevel;
+        else if (feat) bonusPerLv += checkBonus(JSON.stringify(feat.entries || '').toLowerCase());
       }
       if (char.speciesObj) {
         const _spHpBonus = typeof getSpeciesSheetHpBonus === 'function'
@@ -4896,7 +4915,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       document.getElementById('level-grid').innerHTML = h;
 
-      const caster = char.cls ? (char.cls.casterProgression || CASTER_FB[char.cls.name] || null) : null;
+      const caster = char.cls ? _clsCasterProg(char.cls.name, char.cls) : null;
       const cLbl = caster === 'full' ? 'Full' : (caster === '1/2' || caster === 'half') ? '½' : caster === 'artificer' ? 'Artif.' : caster === 'pact' ? 'Patto' : '';
       const faces = char.cls?.hd?.faces || char.cls?.hd?.[0]?.faces || '?';
       const hp = calcMaxHP();
@@ -5033,14 +5052,26 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (Array.isArray(hd) && hd[0]?.faces) return hd[0].faces;
       return 8;
     }
+    function _clsCasterProg(clsName, clsObj) {
+      if (clsObj?.casterProgression) return clsObj.casterProgression;
+      if (typeof getClassRuntimeConfig === 'function') {
+        return getClassRuntimeConfig(clsName)?.spellcasting?.casterProgression || null;
+      }
+      return null;
+    }
     function getMCCasterLevel(clsName, lv, scName) {
-      const t = MC_CASTER_TYPE[clsName];
+      const t = _clsCasterProg(clsName);
       if (t === 'full') return lv;
-      if (t === 'half') return Math.floor(lv / 2);
+      if (t === 'half' || t === '1/2') return Math.floor(lv / 2);
       if (t === 'artificer') return Math.ceil(lv / 2);
       if (t === 'pact') return 0;
-      if (clsName === 'Fighter' && scName === 'EK') return Math.floor(lv / 3);
-      if (clsName === 'Rogue'   && scName === 'AT') return Math.floor(lv / 3);
+      if (typeof getSubclassRuntimeConfig === 'function') {
+        const prog = getSubclassRuntimeConfig(clsName, scName)?.spellcasting?.casterProgression;
+        if (prog === 'full') return lv;
+        if (prog === 'half') return Math.floor(lv / 2);
+        if (prog === 'artificer') return Math.ceil(lv / 2);
+        if (prog === '1/3') return Math.floor(lv / 3);
+      }
       return 0;
     }
     function getMCSlots() {
@@ -5053,7 +5084,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return cLv > 0 ? FULL_SLOTS[Math.min(cLv, 20)] : null;
     }
     function checkMCPrerequisite(clsName) {
-      const reqs = MC_PREREQUISITES[clsName];
+      const reqs = (typeof getClassRuntimeConfig === 'function' ? getClassRuntimeConfig(clsName)?.multiclassPrerequisites : null);
       if (!reqs) return true;
       const sc = { str:getFinal('str'),dex:getFinal('dex'),con:getFinal('con'),int:getFinal('int'),wis:getFinal('wis'),cha:getFinal('cha') };
       return reqs.some(grp => Object.entries(grp).every(([ab,min]) => sc[ab] >= min));
@@ -5151,7 +5182,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         h += `<button class="lvl-btn${on}${hasSub}" onclick="setExtraClassLevel(${i},${n})">${n}${n===sc?'<br><span style="font-size:calc(var(--fs-ui-micro) - 1px)">◆</span>':''}</button>`;
       }
       document.getElementById('level-grid').innerHTML = h;
-      const caster = ec.cls.casterProgression || CASTER_FB[ec.name] || null;
+      const caster = _clsCasterProg(ec.name, ec.cls);
       const cLbl = caster==='full'?'Full':(caster==='1/2'||caster==='half')?'½':caster==='artificer'?'Artif.':caster==='pact'?'Patto':'';
       const faces = ec.cls?.hd?.faces || '?';
       document.getElementById('lvl-stats').innerHTML = `
@@ -5240,10 +5271,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _warlockLevels() {
       let wLv = 0;
       const pName = char.className || '';
-      const pCaster = char.cls ? (char.cls.casterProgression || CASTER_FB[pName] || null) : null;
+      const pCaster = _clsCasterProg(pName, char.cls);
       if (pCaster === 'pact') wLv += getPrimaryClassLevel();
       for (const ec of (char.extraClasses||[])) {
-        const t = MC_CASTER_TYPE[ec.name] || (ec.cls ? (ec.cls.casterProgression || CASTER_FB[ec.name] || null) : null);
+        const t = _clsCasterProg(ec.name, ec.cls);
         if (t === 'pact') wLv += (ec.level||1);
       }
       return wLv;
@@ -5272,8 +5303,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
         if (pactRow) {
           let _pactCls = '';
-          if ((char.cls?.casterProgression || MC_CASTER_TYPE[char.className || '']) === 'pact') _pactCls = char.className || '';
-          if (!_pactCls) { for (const _ec of (char.extraClasses||[])) { if ((MC_CASTER_TYPE[_ec.name] || (_ec.cls?.casterProgression)) === 'pact') { _pactCls = _ec.name; break; } } }
+          if (_clsCasterProg(char.className || '', char.cls) === 'pact') _pactCls = char.className || '';
+          if (!_pactCls) { for (const _ec of (char.extraClasses||[])) { if (_clsCasterProg(_ec.name, _ec.cls) === 'pact') { _pactCls = _ec.name; break; } } }
           h += `<div style="margin-top:${mcSlots?'8px':'0'};font-size:var(--fs-ui-md);color:var(--text2)">
             <b style="color:var(--purple)">Patto (${esc(_pactCls)} Lv.${wLv}):</b>
             <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
@@ -5283,7 +5314,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       // Single class
-      const caster = char.cls.casterProgression || CASTER_FB[char.cls.name] || null;
+      const caster = _clsCasterProg(char.cls.name, char.cls);
       if (!caster) { p.style.display = 'none'; return; }
       p.style.display = 'block';
       if (caster === 'pact') {
@@ -5812,13 +5843,28 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return idx >= 0 ? (pat[idx] || 0) : 0;
     }
 
+    function getAsiFeatBonus(stat) {
+      let bonus = 0;
+      for (const [k, v] of Object.entries(char.choices || {})) {
+        if (!/^feat_asi_lv\d+_asi_picks$/.test(k)) continue;
+        const mode = char.choices[k.replace('_asi_picks', '_asi_mode')] || 'double';
+        const picks = Array.isArray(v) ? v : [];
+        if (mode === 'double') {
+          if (picks[0] === stat) bonus += 2;
+        } else {
+          bonus += picks.filter(p => p === stat).length;
+        }
+      }
+      return bonus;
+    }
+
     /* ════════════════════════════════════ PUNTEGGI */
     function getFinal(stat) {
       let base = 8;
       if (char.scoreMethod === 'pointbuy') base = char.pbScores[stat];
       else if (char.scoreMethod === 'standard') { const v = char.arrAssign[stat]; base = v !== null ? v : 8; }
       else { const v = char.diceAssign[stat]; base = v !== null ? v : 8; }
-      return base + bgBonus(stat);
+      return base + bgBonus(stat) + getAsiFeatBonus(stat);
     }
     function fmod(v) { const m = Math.floor((v - 10) / 2); return (m >= 0 ? '+' : '') + m; }
 
@@ -6145,72 +6191,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // Artificer selections mirrored in preview — driven by adapter registry
       {
-        const _normFeatureKey = (v) => clean(String(v || '')).toLowerCase().replace(/[^a-z0-9]/g, '');
-        const _canonArmorerModelKey = (v) => {
-          const key = _normFeatureKey(v);
-          if (!key) return '';
-          if (key === 'dreadnaught') return 'dreadnought';
-          if (key.includes('dreadnought')) return 'dreadnought';
-          if (key.includes('guardian')) return 'guardian';
-          if (key.includes('infiltrator')) return 'infiltrator';
-          return key;
-        };
         const _titleCase = (s) => String(s || '').replace(/_/g, ' ').replace(/\b[a-z]/g, c => c.toUpperCase()).trim();
-        const _looksLikeArmorerModelChoice = (key, values) => {
-          const keyHit = key === 'armorer_model' || /^auto_(primary|ec\d+)_feat_.*_opt_\d+$/i.test(key);
-          if (!keyHit) return false;
-          return (values || []).some(v => ['dreadnought', 'guardian', 'infiltrator'].includes(_canonArmorerModelKey(v)));
-        };
-        const _extractArmorerModelDetailHtml = (subFeatures, modelName) => {
-          const target = _canonArmorerModelKey(modelName);
-          if (!target || !Array.isArray(subFeatures) || !subFeatures.length) return '';
-          const ordered = [...subFeatures].sort((a, b) => (a?.level || 0) - (b?.level || 0));
-          const byName = new Map();
-          for (const f of ordered) {
-            const key = _canonArmorerModelKey(f?.name);
-            if (key && !byName.has(key)) byName.set(key, f);
-          }
-          const armorModelFeature = ordered.find(f => _normFeatureKey(f?.name) === 'armormodel');
-          function _resolveRefFeature(node) {
-            if (!node || typeof node !== 'object') return null;
-            const raw = node.subclassFeature || node.classFeature;
-            if (!raw) return null;
-            const refName = String(raw).split('|')[0].trim();
-            return byName.get(_canonArmorerModelKey(refName)) || null;
-          }
-          function _walk(node) {
-            if (!node) return null;
-            if (Array.isArray(node)) {
-              for (const item of node) {
-                const found = _walk(item);
-                if (found) return found;
-              }
-              return null;
-            }
-            if (typeof node !== 'object') return null;
-            const maybeRef = _resolveRefFeature(node);
-            if (maybeRef && _canonArmorerModelKey(maybeRef.name) === target) return maybeRef;
-            if (node.name && _canonArmorerModelKey(node.name) === target) return node;
-            const candidates = [node.entries, node.entry, node.items, node.rows];
-            for (const c of candidates) {
-              const found = _walk(c);
-              if (found) return found;
-            }
-            return null;
-          }
-          let found = byName.get(target) || null;
-          if (!found && armorModelFeature) found = _walk(armorModelFeature.entries || armorModelFeature);
-          if (!found) found = _walk(ordered.map(f => f.entries));
-          if (!found) return '';
-          const entries = found.entries || found.entry;
-          if (!entries) return '';
-          const detailName = found.name || modelName;
-          return `<div style="margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--bdr)">
-            <div style="font-size:var(--fs-caption);color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
-            <div style="font-size:var(--fs-ui-sm);font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
-            <div style="margin-top:.2rem">${rE(entries)}</div>
-          </div>`;
-        };
         const _isArtificerChoice = (baseKey, ownerClass) => {
           const fn = typeof getClassChoiceKeyFilter === 'function' ? getClassChoiceKeyFilter(ownerClass) : null;
           return typeof fn === 'function' ? !!fn(baseKey) : false;
@@ -6251,8 +6232,20 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           if (!vals.length) continue;
 
           let detailHtml = '';
-          if (ownerClass === 'Artificer' && ownerSubclass === 'Armorer' && _looksLikeArmorerModelChoice(k, vals)) {
-            detailHtml = vals.map(v => _extractArmorerModelDetailHtml(ownerSubFeatures, v)).filter(Boolean).join('');
+          const detailProvider = typeof getSubclassChoiceDetailDataProvider === 'function'
+            ? getSubclassChoiceDetailDataProvider(ownerClass, ownerSubclass)
+            : null;
+          if (detailProvider) {
+            const node = detailProvider(k, vals, ownerSubFeatures);
+            if (node) {
+              const entries = node.entries || node.entry;
+              const detailName = node.name || vals[0] || '';
+              if (entries) detailHtml = `<div style="margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--bdr)">
+                <div style="font-size:var(--fs-caption);color:var(--teal);opacity:.75;margin-bottom:.2rem">Armor Model Detail</div>
+                <div style="font-size:var(--fs-ui-sm);font-weight:700;color:var(--text)">${esc(clean(detailName))}</div>
+                <div style="margin-top:.2rem">${rE(entries)}</div>
+              </div>`;
+            }
           }
           artRows.push({ label: scope + _labelForArtificerChoice(k, ownerClass), values: vals, detailHtml });
         }
@@ -6431,6 +6424,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             entries: f.entries,
             prerequisite: f.prerequisite,
             prerequisiteText: _featPrereqLabel(f),
+            hpBonusPerLevel: f.hpBonusPerLevel || 0,
+            choiceUi: f.choiceUi || null,
           })),
         allClassFeatures: char.allFeatures,
         allSubFeatures: char.allSubFeatures,
@@ -7079,27 +7074,27 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     function calcSpellCounts() {
       const lv = char.level;
-      const caster = char.cls?.casterProgression || CASTER_FB[char.className] || null;
+      const caster = _clsCasterProg(char.className, char.cls);
       if (!caster) return null;
 
-      // Cantrip: usa cantripProgression dal class object, fallback su CANTRIP_KNOWN
       const cantrips = char.cls?.cantripProgression?.[lv - 1]
-        || (CANTRIP_KNOWN[char.className]?.[lv - 1]) || 0;
+        || (typeof getClassRuntimeConfig === 'function' ? getClassRuntimeConfig(char.className)?.spellcasting?.cantripKnown?.[lv - 1] : null) || 0;
 
-      // Spell: usa preparedSpellsProgression dal class object (disponibile per tutte le classi XPHB)
       let spells = char.cls?.preparedSpellsProgression?.[lv - 1] || 0;
 
-      // Fallback per classi senza preparedSpellsProgression (vecchio formato PHB)
       if (!spells) {
-        if (SPELLS_KNOWN[char.className]) { spells = SPELLS_KNOWN[char.className][lv - 1] || 0; }
-        else {
-          const scores = {}; STATS.forEach(s => scores[s] = getFinal(s));
-          const intMod = Math.floor((scores.int - 10) / 2);
-          const wisMod = Math.floor((scores.wis - 10) / 2);
-          const chaMod = Math.floor((scores.cha - 10) / 2);
-          if (char.className === 'Cleric' || char.className === 'Druid') spells = Math.max(1, wisMod + lv);
-          else if (char.className === 'Wizard') spells = Math.max(1, intMod + lv);
-          else if (char.className === 'Paladin') spells = Math.max(1, chaMod + Math.floor(lv / 2));
+        const _sk = typeof getClassRuntimeConfig === 'function' ? getClassRuntimeConfig(char.className)?.spellcasting?.spellsKnown : null;
+        if (_sk) {
+          spells = _sk[lv - 1] || 0;
+        } else if (typeof getClassRuntimeConfig === 'function') {
+          const formula = getClassRuntimeConfig(char.className)?.spellcasting?.preparedFormula;
+          if (formula) {
+            const abilMod = Math.floor((getFinal(formula.ability) - 10) / 2);
+            const lvPart = formula.addLevel
+              ? Math[formula.levelRound || 'floor'](lv / (formula.levelDivisor || 1))
+              : 0;
+            spells = Math.max(formula.min || 0, abilMod + lvPart);
+          }
         }
       }
       return { cantrips, spells };
@@ -7111,7 +7106,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const panel = document.getElementById('panel-spells');
       const body = document.getElementById('spell-body');
       const cls = char.className;
-      const caster = char.cls?.casterProgression || CASTER_FB[cls] || null;
+      const caster = _clsCasterProg(cls, char.cls);
 
       const hasGrantData = collectSpellGrants().length > 0;
       const hasManualSpellSel = (char.selectedCantrips?.length || 0) > 0
@@ -7129,7 +7124,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       // Compute max castable spell level (multiclass-aware)
       let maxLv = 0;
       const allExtraClasses = char.extraClasses || [];
-      const anyExtraCaster = allExtraClasses.some(ec => ec.cls?.casterProgression || CASTER_FB[ec.name]);
+      const anyExtraCaster = allExtraClasses.some(ec => _clsCasterProg(ec.name, ec.cls));
       if (caster || anyExtraCaster) {
         // Shared pool: full=full level, 1/2=floor/2, 1/3=floor/3; pact excluded
         let poolLv = 0;
@@ -7138,7 +7133,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         else if (caster === 'artificer') poolLv += Math.ceil((char.level||1) / 2);
         else if (caster === '1/3') poolLv += Math.floor((char.level||1) / 3);
         for (const ec of allExtraClasses) {
-          const ecProg = ec.cls?.casterProgression || CASTER_FB[ec.name] || null;
+          const ecProg = _clsCasterProg(ec.name, ec.cls);
           const ecLv = ec.level || 1;
           if (ecProg === 'full') poolLv += ecLv;
           else if (ecProg === '1/2' || ecProg === 'half') poolLv += Math.floor(ecLv / 2);
@@ -7160,7 +7155,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           maxLv = Math.max(maxLv, pactLv);
         }
         for (const ec of allExtraClasses) {
-          if ((ec.cls?.casterProgression || CASTER_FB[ec.name]) === 'pact') {
+          if (_clsCasterProg(ec.name, ec.cls) === 'pact') {
             const pactLv = WLOCK[ec.level||1] ? WLOCK[ec.level||1].l : 1;
             maxLv = Math.max(maxLv, pactLv);
           }
