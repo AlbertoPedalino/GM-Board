@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Halfling_XPHB", function (s) {
-  return genericSpeciesParser(s);
+  return getGenericSpeciesChoiceSpecs(s);
 });
 
 registerSpeciesSheetCommonChoiceMeta("Halfling_XPHB");

@@ -14,7 +14,20 @@
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/feats.json\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/races.json\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/backgrounds.json\")",
-      "Bash(grep -n \"DOMContentLoaded\\\\|^{$\\\\|^  char = \" charbuilder.html)"
+      "Bash(grep -n \"DOMContentLoaded\\\\|^{$\\\\|^  char = \" charbuilder.html)",
+      "Bash(npx prettier *)",
+      "Bash(awk 'NR==2434{print length\\($0\\)}' charbuilder.html)",
+      "Bash(awk 'NR==2434{print length\\($0\\), \"chars on line 2434\"}' charbuilder.html)",
+      "Bash(awk 'NR>=3156 && NR<=3450' charbuilder.html)",
+      "Bash(awk 'NR>=3390 && NR<=3450' charbuilder.html)",
+      "Bash(awk 'NR>=3240 && NR<=3330' charbuilder.html)",
+      "Bash(awk 'NR>=3156 && NR<=3460' charbuilder.html)",
+      "Bash(awk 'NR>=3490 && NR<=3520' charbuilder.html)",
+      "Bash(awk 'NR>=7395 && NR<=7420' charbuilder.html)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('C:/Users/alber/Documents/DND/GM-Board/.audit-cache/races.json'\\)\\); humans=[r for r in d.get\\('race',[]\\) if 'Human' in r.get\\('name',''\\) and r.get\\('source',''\\)=='XPHB']; print\\(json.dumps\\(humans[:1], indent=2\\)\\)\")",
+      "Bash(awk NR>=2425 && NR<=2445 *)",
+      "Bash(cat)",
+      "Bash(bash /tmp/analyze_actions.sh)"
     ]
   }
 }

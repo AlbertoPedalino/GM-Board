@@ -61,6 +61,8 @@ registerClassSheetActions("Druid", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 9,
+    "damageFormula": "1d6",
+    "damageButtonLabel": "+1d6",
     "desc": "Choose a damage type: Fire or Cold. While in Wild Shape or when you make an Unarmed Strike, you deal +1d6 of that damage type to creatures you hit once per turn."
   },
   {

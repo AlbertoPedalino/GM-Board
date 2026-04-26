@@ -70,6 +70,21 @@
     if (!cats.includes("O")) cats.unshift("O");
     out.categories = cats;
     out.category = out.category || "O";
+
+    out.choiceUi = {
+      ...(out.choiceUi && typeof out.choiceUi === "object" ? out.choiceUi : {}),
+      listLabel: "Scegli lista",
+      spellAbility: {
+        keySuffix: "spell_ability",
+        label: "Spellcasting Ability",
+        options: [
+          { value: "int", label: "Intelligence" },
+          { value: "wis", label: "Wisdom" },
+          { value: "cha", label: "Charisma" }
+        ]
+      }
+    };
+
     return out;
   }
 

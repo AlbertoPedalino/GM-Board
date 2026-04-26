@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Elf_XPHB", function (s) {
-  let specs = genericSpeciesParser(s);
+  let specs = getGenericSpeciesChoiceSpecs(s);
   if (s._versions) {
     const opts = s._versions
       .filter(function (v) { return v.name !== 'Elf' && !v.name.endsWith('; Elf'); })

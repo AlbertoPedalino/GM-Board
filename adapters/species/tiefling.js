@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Tiefling_XPHB", function (s) {
-  let specs = genericSpeciesParser(s);
+  let specs = getGenericSpeciesChoiceSpecs(s);
   specs = specs.filter(function (x) { return !x.key.startsWith('species_resist'); });
   if (s._versions) {
     const opts = s._versions.map(function (v) {

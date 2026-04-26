@@ -25,6 +25,15 @@ const SpeciesSheetChoiceMeta = {};
 const ClassSheetProficiencies = {};
 const SubclassSheetProficiencies = {};
 const SpeciesSheetProficiencies = {};
+const ClassSheetSpellModifiers = {};
+const SubclassSheetSpellModifiers = {};
+const SpeciesSheetSpellModifiers = {};
+const ClassRuntimeConfigs = {};
+const SubclassRuntimeConfigs = {};
+const SpeciesRuntimeConfigs = {};
+const SpeciesSheetHpBonus = {};
+const ClassChoiceKeyFilters = {};
+const ClassChoiceLabelProviders = {};
 
 function _normAdapterKey(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -179,29 +188,7 @@ function _sheetActionBuildAutoDamageFormula(descText) {
 }
 function _sheetActionEnrichRollMeta(action) {
   if (!action || typeof action !== "object") return action;
-  const out = { ...action };
-  const text = `${String(out.name || "")} ${String(out.desc || "")}`.toLowerCase();
-
-  const hasAttackMeta =
-    out.attackRoll !== undefined ||
-    out.attackAbility !== undefined ||
-    out.attackBonus !== undefined;
-  if (!hasAttackMeta) {
-    if (/\bspell\b|\bcantrip\b|\bmagic\b/.test(text)) out.attackRoll = "spell";
-    else if (/\branged\b/.test(text)) out.attackAbility = "dex";
-    else if (/\bmelee\b|\bunarmed\b|\bweapon attack\b/.test(text)) out.attackAbility = "str";
-  }
-
-  const hasDamageMeta =
-    out.damageFormula !== undefined ||
-    out.rollDamage !== undefined ||
-    out.damage !== undefined ||
-    out.damageRolls !== undefined;
-  if (!hasDamageMeta) {
-    const auto = _sheetActionBuildAutoDamageFormula(out.desc || "");
-    if (auto) out.damageFormula = auto;
-  }
-  return out;
+  return { ...action };
 }
 function _sheetActionsPrepare(actions) {
   return (Array.isArray(actions) ? actions : []).map(_sheetActionEnrichRollMeta);
@@ -292,6 +279,54 @@ function registerSpeciesSheetProficiencies(key, grants) {
     key,
     _toSpeciesCanonicalKeyFromRaw(key),
     Array.isArray(grants) ? grants : []
+  );
+}
+function registerClassSheetSpellModifiers(name, modifiers) {
+  _setStoreValue(
+    ClassSheetSpellModifiers,
+    name,
+    _toClassCanonicalKey(name),
+    Array.isArray(modifiers) ? modifiers.filter(fn => typeof fn === "function") : []
+  );
+}
+function registerSubclassSheetSpellModifiers(key, modifiers) {
+  _setStoreValue(
+    SubclassSheetSpellModifiers,
+    key,
+    _toSubclassCanonicalKeyFromRaw(key),
+    Array.isArray(modifiers) ? modifiers.filter(fn => typeof fn === "function") : []
+  );
+}
+function registerSpeciesSheetSpellModifiers(key, modifiers) {
+  _setStoreValue(
+    SpeciesSheetSpellModifiers,
+    key,
+    _toSpeciesCanonicalKeyFromRaw(key),
+    Array.isArray(modifiers) ? modifiers.filter(fn => typeof fn === "function") : []
+  );
+}
+function registerClassRuntimeConfig(name, config) {
+  _setStoreValue(
+    ClassRuntimeConfigs,
+    name,
+    _toClassCanonicalKey(name),
+    config && typeof config === "object" ? { ...config } : {}
+  );
+}
+function registerSubclassRuntimeConfig(key, config) {
+  _setStoreValue(
+    SubclassRuntimeConfigs,
+    key,
+    _toSubclassCanonicalKeyFromRaw(key),
+    config && typeof config === "object" ? { ...config } : {}
+  );
+}
+function registerSpeciesRuntimeConfig(key, config) {
+  _setStoreValue(
+    SpeciesRuntimeConfigs,
+    key,
+    _toSpeciesCanonicalKeyFromRaw(key),
+    config && typeof config === "object" ? { ...config } : {}
   );
 }
 
@@ -484,6 +519,54 @@ function getSubclassSheetProficiencies(className, subclassShortName) {
 function getSpeciesSheetProficiencies(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetProficiencies, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
+}
+function getClassSheetSpellModifiers(name) {
+  return _getStoreValue(ClassSheetSpellModifiers, name, _toClassCanonicalKey(name)) || [];
+}
+function getSubclassSheetSpellModifiers(className, subclassShortName) {
+  const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
+  return _getStoreValue(SubclassSheetSpellModifiers, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
+}
+function getSpeciesSheetSpellModifiers(speciesName, speciesSource) {
+  const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
+  return _getStoreValue(SpeciesSheetSpellModifiers, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
+}
+function getClassRuntimeConfig(name) {
+  return _getStoreValue(ClassRuntimeConfigs, name, _toClassCanonicalKey(name)) || {};
+}
+function getSubclassRuntimeConfig(className, subclassShortName) {
+  const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
+  return _getStoreValue(SubclassRuntimeConfigs, raw, _toSubclassCanonicalKey(className, subclassShortName)) || {};
+}
+function getSpeciesRuntimeConfig(speciesName, speciesSource) {
+  const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
+  return _getStoreValue(SpeciesRuntimeConfigs, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || {};
+}
+
+function registerSpeciesSheetHpBonus(key, bonusPerLevel) {
+  _setStoreValue(SpeciesSheetHpBonus, key, _toSpeciesCanonicalKeyFromRaw(key), Number(bonusPerLevel) || 0);
+}
+function getSpeciesSheetHpBonus(speciesName, speciesSource) {
+  const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : speciesName || "";
+  const canonical = _toSpeciesCanonicalKey(speciesName, speciesSource || "");
+  const val = _getStoreValue(SpeciesSheetHpBonus, raw, canonical);
+  return typeof val === "number" ? val : 0;
+}
+
+function registerClassChoiceKeyFilter(className, fn) {
+  if (typeof fn !== "function") return;
+  _setStoreValue(ClassChoiceKeyFilters, className, _toClassCanonicalKey(className), fn);
+}
+function getClassChoiceKeyFilter(className) {
+  return _getStoreValue(ClassChoiceKeyFilters, className, _toClassCanonicalKey(className)) || null;
+}
+
+function registerClassChoiceLabelProvider(className, fn) {
+  if (typeof fn !== "function") return;
+  _setStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className), fn);
+}
+function getClassChoiceLabelProvider(className) {
+  return _getStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className)) || null;
 }
 
 // Utility: rimuove tag 5etools ({@skill Foo|XPHB} -> "Foo")

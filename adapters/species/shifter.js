@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Shifter_EFA", function (s) {
-  const specs = genericSpeciesParser(s);
+  const specs = getGenericSpeciesChoiceSpecs(s);
 
   if (Array.isArray(s._versions) && s._versions.length) {
     const opts = s._versions.map(v => ({

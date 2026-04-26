@@ -1,6 +1,6 @@
 // Gnome XPHB: Gnomish Lineage — scelta tra 3 varianti
 registerSpeciesAdapter("Gnome_XPHB", function (s) {
-  let specs = genericSpeciesParser(s);
+  let specs = getGenericSpeciesChoiceSpecs(s);
   const lineageOpts = [
     { key: 'Forest Gnome',  label: 'Forest Gnome (Minor Illusion + Speak with Animals)' },
     { key: 'Rock Gnome',    label: 'Rock Gnome (Mending + Tinker)' },

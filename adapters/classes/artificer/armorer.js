@@ -42,6 +42,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "minLevel": 3,
     "choiceKey": "armorer_model",
     "model": "Guardian",
+    "attackAbility": "int",
+    "damageFormula": "1d8",
     "desc": "Guardian model weapon. On hit, the target has disadvantage on attack rolls against creatures other than you until the start of your next turn."
   },
   {
@@ -62,6 +64,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "minLevel": 3,
     "choiceKey": "armorer_model",
     "model": "Infiltrator",
+    "attackAbility": "int",
+    "damageFormula": "1d6",
     "desc": "Infiltrator model ranged weapon. Once on each of your turns, one hit deals extra lightning damage."
   },
   {
@@ -72,6 +76,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "minLevel": 3,
     "choiceKey": "armorer_model",
     "model": "Dreadnaught",
+    "attackAbility": "int",
+    "damageFormula": "1d10",
     "desc": "Dreadnaught model weapon. Arcane wrecking ball/sledgehammer that deals 1d10 Force damage. On hit against a creature at least one size smaller than you, you can push it 10 ft away or pull it 10 ft toward you."
   },
   {

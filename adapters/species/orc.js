@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Orc_XPHB", function (s) {
-  return genericSpeciesParser(s);
+  return getGenericSpeciesChoiceSpecs(s);
 });
 
 registerSpeciesSheetCommonChoiceMeta("Orc_XPHB");

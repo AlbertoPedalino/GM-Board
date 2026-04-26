@@ -30,6 +30,9 @@ registerClassSheetActions("Paladin", [
     "cat": "action",
     "uses": "Pool / LR",
     "resKey": "lay_on_hands",
+    "inlinePills": ({ ownerLevel }) => [
+      { icon: "heart", label: "Pool", value: `${Math.max(1, Number(ownerLevel || 1) * 5)} HP` }
+    ],
     "desc": "Touch a creature to restore HP from your pool (1 HP per point spent), or spend 5 points to remove one disease or neutralize one poison. Pool = 5 × Paladin level. Recharge: Long Rest."
   },
   {
@@ -38,6 +41,9 @@ registerClassSheetActions("Paladin", [
     "cat": "reaction",
     "uses": "Spell slot",
     "minLevel": 1,
+    "damagePromptDefault": "2d8",
+    "damagePromptLabel": "Smite ?",
+    "rollLabelPrefix": "Divine Smite",
     "desc": "Reaction when you hit with a Melee weapon. Expend a spell slot: deal 2d8 Radiant damage (+1d8 per slot level above 1st, max 6d8). Critical hit: extra 1d8. Once per turn."
   },
   {
@@ -80,6 +86,8 @@ registerClassSheetActions("Paladin", [
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 11,
+    "damageFormula": "1d8",
+    "damageButtonLabel": "+1d8 radiant",
     "desc": "Your weapon and Unarmed Strike attacks deal an extra 1d8 Radiant damage."
   }
 ]);

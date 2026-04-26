@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Khoravar_EFA", function (s) {
-  const specs = genericSpeciesParser(s);
+  const specs = getGenericSpeciesChoiceSpecs(s);
 
   // Skill Versatility: choose 1 skill or tool (replaceable on Long Rest)
   const skillsAndTools = [

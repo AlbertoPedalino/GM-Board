@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Dragonborn_XPHB", function (s) {
-  let specs = genericSpeciesParser(s);
+  let specs = getGenericSpeciesChoiceSpecs(s);
   specs = specs.filter(function (x) { return !x.key.startsWith('species_resist'); });
   if (s._versions) {
     const opts = [];
@@ -29,14 +29,20 @@ registerSpeciesSheetActions("Dragonborn_XPHB", [
     cat: 'action',
     uses: 'PB / LR',
     resKey: 'dragonborn_breath',
-    attackAbility: 'con',
     damageFormula: ({ character }) => {
       const lv = Number(character?.level || 1);
       const dice = lv >= 17 ? 4 : lv >= 11 ? 3 : lv >= 5 ? 2 : 1;
       return `${dice}d10`;
     },
+    inlinePills: () => {
+      const pb = typeof getPB === 'function' ? getPB() : 0;
+      const con = typeof getMod === 'function' && typeof getFinal === 'function'
+        ? Number(getMod(getFinal('con')) || 0)
+        : 0;
+      return [{ icon: 'shield', label: 'Save DC', value: 8 + pb + con }];
+    },
     minLevel: 1,
-    desc: 'Exhale destructive draconic energy; damage type depends on your Draconic Ancestry.',
+    desc: 'Exhale destructive draconic energy in a 15 ft. cone or 30 ft. line. Each creature makes a CON save (DC = 8 + PB + CON mod); half damage on success. Damage type depends on your Draconic Ancestry.',
   },
 ]);
 registerSpeciesSheetResources("Dragonborn_XPHB", [

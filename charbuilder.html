@@ -2943,6 +2943,15 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
     ];
 
+    // Expose globals so external adapters (core.js etc.) can read them via window.*
+    window.SKILLS = SKILLS;
+    window._STD_LANGS = _STD_LANGS;
+    window._ALL_LANGS = _ALL_LANGS;
+    window._EXOTIC_LANGS = _EXOTIC_LANGS;
+    window._ARTISAN_TOOLS = _ARTISAN_TOOLS;
+    window._MUSICAL_INSTRUMENTS = _MUSICAL_INSTRUMENTS;
+    window._ALL_TOOLS = _ALL_TOOLS;
+
     function _specSan(v) {
       return String(v || '')
         .replace(/\{@[^}]+\}/g, m => _cleanTagName(m))
@@ -3474,9 +3483,20 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function selGrantEntry(slotKey, entryIdx) {
       if (!char.choices) char.choices = {};
       for (const k of Object.keys(char.choices)) {
-        if (k.startsWith(slotKey + '_') && k !== slotKey + '_entry') delete char.choices[k];
+        if (k.startsWith(slotKey + '_') && k !== slotKey + '_entry' && k !== slotKey + '_spell_ability') delete char.choices[k];
       }
       char.choices[`${slotKey}_entry`] = entryIdx;
+      renderSpeciesChoicesPanel();
+      renderChoicesPanel();
+      renderSpellPanel();
+      renderPreviewSpells();
+      renderPreview();
+      updateSteps();
+    }
+
+    function setGrantSpellAbility(slotKey, ability) {
+      if (!char.choices) char.choices = {};
+      char.choices[`${slotKey}_spell_ability`] = String(ability);
       renderSpeciesChoicesPanel();
       renderChoicesPanel();
       renderSpellPanel();
@@ -3651,6 +3671,24 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             color:${isSel ? 'var(--teal)' : 'var(--text2)'};cursor:pointer;opacity:1;
             font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(label)}</button>`;
           });
+          h += `</div></div>`;
+        }
+        const spellAbilityCfg = feat.choiceUi?.spellAbility && typeof feat.choiceUi.spellAbility === 'object' ? feat.choiceUi.spellAbility : null;
+        if (spellAbilityCfg) {
+          const abilKey = `${slotKey}_${spellAbilityCfg.keySuffix || 'spell_ability'}`;
+          const curAbil = char.choices[abilKey] || '';
+          const sk = slotKey.replace(/'/g, "\\'");
+          h += `<div style="margin-top:.75rem">
+        <div class="feat-section-hdr" style="color:var(--purple)">✧ ${esc(featName)} — ${esc(spellAbilityCfg.label || 'Spellcasting Ability')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem">`;
+          for (const opt of (spellAbilityCfg.options || [])) {
+            const isSel = curAbil === opt.value;
+            h += `<button type="button" onclick="setGrantSpellAbility('${sk}','${opt.value}');return false;"
+          style="padding:5px 12px;border:1px solid ${isSel ? 'var(--purple)' : 'var(--bdr)'};
+            border-radius:var(--r);background:${isSel ? 'var(--purplebg)' : 'var(--bg3)'};
+            color:${isSel ? 'var(--purple)' : 'var(--text2)'};cursor:pointer;
+            font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(opt.label)}</button>`;
+          }
           h += `</div></div>`;
         }
         const grants = collectSpellGrants().filter(g => g.slotKey === slotKey);
@@ -4828,7 +4866,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
       }
       if (char.speciesObj) {
-        if (char.speciesObj.name === 'Dwarf' || char.speciesObj.name === 'Hill Dwarf') bonusPerLv = Math.max(bonusPerLv, 1);
+        const _spHpBonus = typeof getSpeciesSheetHpBonus === 'function'
+          ? getSpeciesSheetHpBonus(char.speciesObj.name, char.speciesObj.source || '')
+          : 0;
+        if (_spHpBonus) bonusPerLv = Math.max(bonusPerLv, _spHpBonus);
         else bonusPerLv += checkBonus(JSON.stringify(char.speciesObj.entries || '').toLowerCase());
       }
       if (char.subclassShortName) {
@@ -5230,8 +5271,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           h += `</tr></tbody></table>`;
         }
         if (pactRow) {
+          let _pactCls = '';
+          if ((char.cls?.casterProgression || MC_CASTER_TYPE[char.className || '']) === 'pact') _pactCls = char.className || '';
+          if (!_pactCls) { for (const _ec of (char.extraClasses||[])) { if ((MC_CASTER_TYPE[_ec.name] || (_ec.cls?.casterProgression)) === 'pact') { _pactCls = _ec.name; break; } } }
           h += `<div style="margin-top:${mcSlots?'8px':'0'};font-size:var(--fs-ui-md);color:var(--text2)">
-            <b style="color:var(--purple)">Patto (Warlock Lv.${wLv}):</b>
+            <b style="color:var(--purple)">Patto (${esc(_pactCls)} Lv.${wLv}):</b>
             <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
         }
         body.innerHTML = h;
@@ -6088,25 +6132,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const selFeats = Object.entries(char.choices || {}).filter(([k, v]) => v && typeof v === 'string' && deriveAllChoices().some(s => s.key === k && ['feat_fixed', 'feat_cat'].includes(s.type)));
       if (selFeats.length) {
         html += `<div class="feat-section-hdr ft">✧ Feats</div>`;
+        const _abilityLabels = { int: 'Intelligence', wis: 'Wisdom', cha: 'Charisma', str: 'Strength', dex: 'Dexterity', con: 'Constitution' };
         for (const [key, name] of selFeats) {
           const feat = allFeats.find(f => f.name === name);
           const spec = deriveAllChoices().find(s => s.key === key);
           const slotLabel = spec ? ` (${spec.label.split('—')[0].trim()})` : ' ';
-          html += fi({ name: name + slotLabel, entries: feat?.entries || [] }, 'ft');
+          const spellAbil = char.choices[`${key}_spell_ability`];
+          const abilNote = spellAbil ? ` · ${_abilityLabels[spellAbil] || spellAbil}` : '';
+          html += fi({ name: name + slotLabel + abilNote, entries: feat?.entries || [] }, 'ft');
         }
       }
 
-      // Artificer selections mirrored in preview (primary + multiclass)
+      // Artificer selections mirrored in preview — driven by adapter registry
       {
-        const ARTIFICER_CHOICE_LABELS = {
-          artificer_replicate_magic_item_plans: 'Replicate Magic Item Plans',
-          armorer_model: 'Armor Model',
-          alchemist_bonus_tool: 'Tools of the Trade (Alchemist)',
-          armorer_bonus_tool: 'Tools of the Trade (Armorer)',
-          artillerist_bonus_tool: 'Tools of the Trade (Artillerist)',
-          battlesmith_bonus_tool: 'Tools of the Trade (Battle Smith)',
-          cartographer_bonus_tool: 'Tools of the Trade (Cartographer)',
-        };
         const _normFeatureKey = (v) => clean(String(v || '')).toLowerCase().replace(/[^a-z0-9]/g, '');
         const _canonArmorerModelKey = (v) => {
           const key = _normFeatureKey(v);
@@ -6174,24 +6212,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           </div>`;
         };
         const _isArtificerChoice = (baseKey, ownerClass) => {
-          if (ownerClass !== 'Artificer') return false;
-          if (/^(artificer_|alchemist_|armorer_|artillerist_|battlesmith_|cartographer_)/i.test(baseKey)) return true;
-          if (/^auto_(primary|ec\d+)_feat_/i.test(baseKey)) return true;
-          return false;
+          const fn = typeof getClassChoiceKeyFilter === 'function' ? getClassChoiceKeyFilter(ownerClass) : null;
+          return typeof fn === 'function' ? !!fn(baseKey) : false;
         };
-        const _labelForArtificerChoice = (baseKey) => {
-          if (ARTIFICER_CHOICE_LABELS[baseKey]) return ARTIFICER_CHOICE_LABELS[baseKey];
-          if (/^auto_(primary|ec\d+)_feat_/i.test(baseKey)) {
-            let s = baseKey.replace(/^auto_(primary|ec\d+)_feat_/i, '');
-            s = s.replace(/_skill_\d+$/i, ' Skill Proficiency');
-            s = s.replace(/_lang_\d+$/i, ' Language');
-            s = s.replace(/_tool_\d+$/i, ' Tool Proficiency');
-            s = s.replace(/_stl_\d+_\d+$/i, ' Proficiency Choice');
-            s = s.replace(/_weaponProficiencies_\d+$/i, ' Weapon Proficiency');
-            s = s.replace(/_armorProficiencies_\d+$/i, ' Armor Proficiency');
-            s = s.replace(/_opt_\d+$/i, ' Option');
-            return _titleCase(s);
-          }
+        const _labelForArtificerChoice = (baseKey, ownerClass) => {
+          const fn = typeof getClassChoiceLabelProvider === 'function' ? getClassChoiceLabelProvider(ownerClass) : null;
+          if (typeof fn === 'function') return fn(baseKey) || _titleCase(baseKey.replace(/^.*?_/, ''));
           return _titleCase(baseKey.replace(/^.*?_/, ''));
         };
 
@@ -6228,7 +6254,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           if (ownerClass === 'Artificer' && ownerSubclass === 'Armorer' && _looksLikeArmorerModelChoice(k, vals)) {
             detailHtml = vals.map(v => _extractArmorerModelDetailHtml(ownerSubFeatures, v)).filter(Boolean).join('');
           }
-          artRows.push({ label: scope + _labelForArtificerChoice(k), values: vals, detailHtml });
+          artRows.push({ label: scope + _labelForArtificerChoice(k, ownerClass), values: vals, detailHtml });
         }
 
         if (artRows.length) {

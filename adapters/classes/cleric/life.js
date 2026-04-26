@@ -34,6 +34,26 @@ registerSubclassSheetFeatureFilter("Cleric_Life", function (ctx, features) {
   return out;
 });
 
+registerSubclassSheetSpellModifiers("Cleric_Life", [
+  function (ctx) {
+    if (!ctx || ctx.kind !== "heal") return ctx?.formula;
+    if (!ctx.usesSpellSlot) return ctx?.formula;
+    if (!ctx.hasHealContext) return ctx?.formula;
+    const castLevel = Number(ctx.castLevel || 0);
+    if (!Number.isFinite(castLevel) || castLevel < 1) return ctx?.formula;
+
+    const text = String(ctx.formula || "").replace(/\s+/g, "");
+    const m = text.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+    if (!m) return ctx?.formula;
+
+    const count = Number(m[1] || 0);
+    const faces = Number(m[2] || 0);
+    const mod = Number(m[3] || 0) + 2 + castLevel;
+    if (!Number.isFinite(count) || !Number.isFinite(faces) || count < 1 || faces < 1) return ctx?.formula;
+    return `${count}d${faces}${mod ? (mod > 0 ? "+" : "") + mod : ""}`;
+  }
+]);
+
 // [SheetRuntime] START
 registerSubclassSheetActions("Cleric_Life", [
   {
@@ -42,6 +62,9 @@ registerSubclassSheetActions("Cleric_Life", [
     "cat": "action",
     "uses": "1 Channel",
     "resKey": "channel_div",
+    "inlinePills": ({ ownerLevel }) => [
+      { icon: "heart", label: "Pool", value: `${Math.max(1, Number(ownerLevel || 1) * 5)} HP` }
+    ],
     "desc": "Within 30 ft: distribute HP equal to 5 x Cleric level among any creatures of your choice (excluding Undead and Constructs), without exceeding each creature's maximum."
   }
 ]);

@@ -1504,8 +1504,16 @@ function getSkillBonus(sk){
   const p = getSkillProficiency(sk.n);
   if(p==='exp') return m+getPB()*2;
   if(p==='prof') return m+getPB();
-  // Jack of All Trades: Bard lv2+
-  if(C?.className==='Bard' && (C?.level||1)>=2) return m+Math.floor(getPB()/2);
+  // Adapter-driven untrained check modifiers (e.g. Jack of All Trades)
+  let addHalfPb = false;
+  _sheetClassEntities().forEach(ent => {
+    const classCfg = _sheetGetClassRuntimeConfig(ent.className);
+    const subCfg = _sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName);
+    const classMin = Number(classCfg?.skillRules?.jackOfAllTradesMinLevel || 0);
+    const subMin = Number(subCfg?.skillRules?.jackOfAllTradesMinLevel || 0);
+    if ((classMin > 0 && ent.level >= classMin) || (subMin > 0 && ent.level >= subMin)) addHalfPb = true;
+  });
+  if(addHalfPb) return m+Math.floor(getPB()/2);
   return m;
 }
 
@@ -1516,29 +1524,17 @@ function _getClassLevelByName(name){
   const ec = (C?.extraClasses || []).find(x => String(x?.name || "").toLowerCase() === target);
   return ec ? (ec.level || 1) : 0;
 }
-
-function _hasBardDanceSubclass(minLevel=3){
-  const primary = C?.className === "Bard"
-    && C?.subclassShortName === "Dance"
-    && (C?.classLevel || C?.level || 1) >= minLevel;
-  const extra = (C?.extraClasses || []).some(ec =>
-    ec?.name === "Bard"
-    && ec?.subclassShortName === "Dance"
-    && (ec?.level || 1) >= minLevel
-  );
-  return !!(primary || extra);
-}
-
-function _getBardClassLevel(){
-  return _getClassLevelByName("Bard");
-}
-
-function _getBardicInspirationDieSize(bardLevel){
-  const lv = Number(bardLevel || 0);
-  if (lv >= 15) return 12;
-  if (lv >= 10) return 10;
-  if (lv >= 5) return 8;
-  return 6;
+function _sheetFindUnarmedStrikeRule(equippedArmor, equippedShield){
+  for(const ent of _sheetClassEntities()){
+    const subCfg = _sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName);
+    const rule = subCfg?.unarmedStrike;
+    if(!rule || typeof rule !== 'object') continue;
+    if(Number(ent.level || 0) < Number(rule.minLevel || 1)) continue;
+    if(rule.requiresNoArmor && !!equippedArmor) continue;
+    if(rule.requiresNoShield && !!equippedShield) continue;
+    return { rule, entity: ent };
+  }
+  return null;
 }
 
 function calcMaxHP(){
@@ -1563,13 +1559,6 @@ function calcAC(){
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
   const shieldBonus = equippedShield ? (2 + (equippedShield.bonusAc ? parseInt(equippedShield.bonusAc)||0 : 0)) : 0;
-  const hasClass = (name) => {
-    const n = String(name || '').toLowerCase();
-    if ((C?.className || '').toLowerCase() === n) return true;
-    return (C?.extraClasses || []).some(ec => (ec?.name || '').toLowerCase() === n);
-  };
-  const hasBarbarian = hasClass('Barbarian');
-  const hasMonk = hasClass('Monk');
   let ac;
   if(equippedArmor){
     const baseAC = equippedArmor.ac || 10;
@@ -1581,11 +1570,28 @@ function calcAC(){
   }
 
   // No armor: evaluate all legal formulas and use the best one.
-  // Barbarian UD allows shield; Monk UD requires no shield.
   const candidates = [10 + dex + shieldBonus];
-  if (hasBarbarian) candidates.push(10 + dex + con + shieldBonus);
-  if (hasMonk && !equippedShield) candidates.push(10 + dex + wis);
-  if (_hasBardDanceSubclass(3) && !equippedShield) candidates.push(10 + dex + cha);
+  const modByAbility = { str:getMod(getFinal('str')), dex, con, wis, int:getMod(getFinal('int')), cha };
+  const evalRules = (rules, level) => {
+    (Array.isArray(rules) ? rules : []).forEach(rule => {
+      if (!rule || typeof rule !== 'object') return;
+      const minLevel = Number(rule.minLevel || 1);
+      if (Number(level || 0) < minLevel) return;
+      if (rule.requiresNoArmor !== false && !!equippedArmor) return;
+      const allowShield = !!rule.allowShield;
+      if (!allowShield && !!equippedShield) return;
+      const base = Number(rule.base || 10);
+      const abilities = Array.isArray(rule.abilities) ? rule.abilities : [];
+      const abMod = abilities.reduce((sum, ab) => sum + Number(modByAbility[String(ab || '').toLowerCase()] || 0), 0);
+      const withShield = allowShield ? shieldBonus : 0;
+      candidates.push(base + abMod + withShield);
+    });
+  };
+  _sheetClassEntities().forEach(ent => {
+    evalRules(_sheetGetClassRuntimeConfig(ent.className)?.unarmoredDefense, ent.level);
+    evalRules(_sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName)?.unarmoredDefense, ent.level);
+  });
+  evalRules(_sheetGetSpeciesRuntimeConfig(C?.speciesName || '', C?.speciesSource || '')?.unarmoredDefense, C?.level || 1);
   ac = Math.max(...candidates);
   return ac;
 }
@@ -2279,7 +2285,11 @@ function cycleSkillAdv(name){
 
 function renderSkills(){
   const el = document.getElementById('skills-body');
-  const isJoat = C?.className==='Bard' && (C?.level||1)>=2;
+  const isJoat = _sheetClassEntities().some(ent => {
+    const classMin = Number(_sheetGetClassRuntimeConfig(ent.className)?.skillRules?.jackOfAllTradesMinLevel || 0);
+    const subMin = Number(_sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName)?.skillRules?.jackOfAllTradesMinLevel || 0);
+    return (classMin > 0 && ent.level >= classMin) || (subMin > 0 && ent.level >= subMin);
+  });
   el.innerHTML = SKILLS_LIST.map(sk => {
     const bonus = getSkillBonus(sk);
     const ptype = getSkillProficiency(sk.n);
@@ -2341,19 +2351,28 @@ function renderRightTop(){
     if(lbl&&lbl!=='—') items.push({l:`Immunity: ${lbl}`,c:'r'});
   }
   if(C.speciesSnapshot?.darkvision) items.push({l:`Darkvision ${C.speciesSnapshot.darkvision} ft`,c:'t'});
-  // Unarmored Defense badge
-  const hasClass = (name) => {
-    const n = String(name || '').toLowerCase();
-    if ((C?.className || '').toLowerCase() === n) return true;
-    return (C?.extraClasses || []).some(ec => (ec?.name || '').toLowerCase() === n);
-  };
-  const hasBardDance = _hasBardDanceSubclass(3);
+  // Unarmored Defense badge (adapter-driven)
   const hasArmor = !!(sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type));
   const hasShield = !!(sheetInventory||[]).find(i=>i.equipped&&i.type==='S');
   if(!hasArmor){
-    if(hasClass('Barbarian')) items.push({l:'Unarmored Defense (DEX+CON)',c:'g'});
-    if(hasClass('Monk') && !hasShield) items.push({l:'Unarmored Defense (DEX+WIS)',c:'g'});
-    if(hasBardDance && !hasShield) items.push({l:'Unarmored Defense (DEX+CHA)',c:'g'});
+    const labels = new Set();
+    const pushRules = (rules, level) => {
+      (Array.isArray(rules) ? rules : []).forEach(rule => {
+        if (!rule || typeof rule !== 'object') return;
+        if (Number(level || 0) < Number(rule.minLevel || 1)) return;
+        if (!rule.allowShield && hasShield) return;
+        const abilities = Array.isArray(rule.abilities) ? rule.abilities : [];
+        if (!abilities.length) return;
+        const txt = `Unarmored Defense (${abilities.map(a => String(a || '').toUpperCase()).join('+')})`;
+        labels.add(txt);
+      });
+    };
+    _sheetClassEntities().forEach(ent => {
+      pushRules(_sheetGetClassRuntimeConfig(ent.className)?.unarmoredDefense, ent.level);
+      pushRules(_sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName)?.unarmoredDefense, ent.level);
+    });
+    pushRules(_sheetGetSpeciesRuntimeConfig(C?.speciesName || '', C?.speciesSource || '')?.unarmoredDefense, C?.level || 1);
+    labels.forEach(txt => items.push({l:txt,c:'g'}));
   }
   if(!items.length){ defEl.innerHTML='<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
@@ -2386,10 +2405,7 @@ const CANTRIP_DB = {
 function cantripDice(lv){ return lv>=17?4:lv>=11?3:lv>=5?2:1; }
 
 function getSpellMod(){
-  const cls=C?.className||'';
-  if(['Wizard','Artificer'].includes(cls)) return getMod(getFinal('int'));
-  if(['Cleric','Druid','Ranger'].includes(cls)) return getMod(getFinal('wis'));
-  return getMod(getFinal('cha'));
+  return getMod(getFinal(getSpellAbility()));
 }
 function getSpellSaveDC(){ return 8+getPB()+getSpellMod(); }
 function getSpellAttackBonus(){ return getPB()+getSpellMod(); }
@@ -2529,6 +2545,122 @@ function _sheetGetSpeciesChoiceMeta(speciesName, speciesSource){
   const canonical = `${_normSheetAdapterKey(speciesName)}_${_normSheetAdapterKey(speciesSource)}`;
   const store = typeof SpeciesSheetChoiceMeta !== 'undefined' ? SpeciesSheetChoiceMeta : {};
   return _sheetGetAdapterValue(store, key) || _sheetGetAdapterValue(store, canonical) || {};
+}
+function _sheetGetClassSpellModifiers(className){
+  if (typeof getClassSheetSpellModifiers === 'function') return getClassSheetSpellModifiers(className);
+  return [];
+}
+function _sheetGetSubclassSpellModifiers(className, subclassShortName){
+  if (typeof getSubclassSheetSpellModifiers === 'function') return getSubclassSheetSpellModifiers(className, subclassShortName);
+  return [];
+}
+function _sheetGetSpeciesSpellModifiers(speciesName, speciesSource){
+  if (typeof getSpeciesSheetSpellModifiers === 'function') return getSpeciesSheetSpellModifiers(speciesName, speciesSource);
+  return [];
+}
+function _sheetGetClassRuntimeConfig(className){
+  if (typeof getClassRuntimeConfig === 'function') return getClassRuntimeConfig(className) || {};
+  return {};
+}
+function _sheetGetSubclassRuntimeConfig(className, subclassShortName){
+  if (typeof getSubclassRuntimeConfig === 'function') return getSubclassRuntimeConfig(className, subclassShortName) || {};
+  return {};
+}
+function _sheetGetSpeciesRuntimeConfig(speciesName, speciesSource){
+  if (typeof getSpeciesRuntimeConfig === 'function') return getSpeciesRuntimeConfig(speciesName, speciesSource) || {};
+  return {};
+}
+function _sheetClassEntities(){
+  const out = [];
+  const pName = String(C?.className || '');
+  if (pName) {
+    out.push({
+      className: pName,
+      subclassShortName: String(C?.subclassShortName || ''),
+      level: Number(C?.classLevel || C?.level || 1),
+      ownerToken: 'pc',
+    });
+  }
+  (C?.extraClasses || []).forEach((ec, idx) => {
+    if (!ec?.name) return;
+    out.push({
+      className: String(ec.name || ''),
+      subclassShortName: String(ec.subclassShortName || ''),
+      level: Number(ec.level || 1),
+      ownerToken: `mc${idx}`,
+    });
+  });
+  return out;
+}
+function _sheetSpellcastingProfile(className, subclassShortName, clsSnapshot){
+  const classCfg = _sheetGetClassRuntimeConfig(className);
+  const subCfg = _sheetGetSubclassRuntimeConfig(className, subclassShortName);
+  const classSp = classCfg?.spellcasting && typeof classCfg.spellcasting === 'object' ? classCfg.spellcasting : {};
+  const subSp = subCfg?.spellcasting && typeof subCfg.spellcasting === 'object' ? subCfg.spellcasting : {};
+  const merged = { ...classSp, ...subSp };
+  if (!merged.casterProgression && clsSnapshot?.casterProgression) merged.casterProgression = clsSnapshot.casterProgression;
+  return merged;
+}
+function _sheetCasterProgression(v){
+  const s = String(v || '').toLowerCase().trim();
+  if (!s) return null;
+  if (s === 'full') return 'full';
+  if (s === 'half' || s === '1/2') return 'half';
+  if (s === 'artificer') return 'artificer';
+  if (s === 'pact') return 'pact';
+  if (s === '1/3' || s === 'third') return '1/3';
+  return s;
+}
+function _sheetCasterContribution(prog, level){
+  const lv = Number(level || 0);
+  if (!Number.isFinite(lv) || lv <= 0) return 0;
+  if (prog === 'full') return lv;
+  if (prog === 'half') return Math.floor(lv / 2);
+  if (prog === 'artificer') return Math.ceil(lv / 2);
+  if (prog === '1/3') return Math.floor(lv / 3);
+  return 0;
+}
+function _sheetCollectChoiceSpellSourceMeta(){
+  const out = {};
+  const merge = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (!k || !v || typeof v !== 'object') continue;
+      out[k] = { ...v };
+    }
+  };
+  _sheetClassEntities().forEach(ent => {
+    const classCfg = _sheetGetClassRuntimeConfig(ent.className);
+    merge(classCfg?.spellcasting?.choiceSpellSources);
+    const subCfg = _sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName);
+    merge(subCfg?.spellcasting?.choiceSpellSources);
+  });
+  return out;
+}
+function _sheetFeatureDieFaces(className, featureKey, level){
+  const cfg = _sheetGetClassRuntimeConfig(className);
+  const dieCfg = cfg?.featureDice?.[featureKey];
+  if (!Array.isArray(dieCfg) || !dieCfg.length) return null;
+  const lv = Number(level || 0);
+  for (const row of dieCfg) {
+    const minLv = Number(row?.minLevel || 1);
+    if (lv >= minLv && Number.isFinite(Number(row?.faces))) return Number(row.faces);
+  }
+  return null;
+}
+function _sheetPreparedCountFromFormula(spellProfile, level){
+  const f = spellProfile?.preparedFormula;
+  if (!f || typeof f !== 'object') return null;
+  const ab = String(f.ability || '').toLowerCase();
+  if (!STATS.includes(ab)) return null;
+  const sm = getMod(getFinal(ab));
+  const divisor = Number(f.levelDivisor || 1) || 1;
+  const rawLv = Number(level || 1) / divisor;
+  const lvTerm = String(f.levelRound || 'floor') === 'ceil' ? Math.ceil(rawLv) : Math.floor(rawLv);
+  const addLv = f.addLevel ? lvTerm : 0;
+  const min = Number(f.min || 0);
+  const total = sm + addLv;
+  return Number.isFinite(min) ? Math.max(min, total) : total;
 }
 
 function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
@@ -2681,10 +2813,6 @@ function renderActionsTab(){
   const isCaster = !!(C?.clsSnapshot?.casterProgression || cantrips.length ||
     Object.values(C?.selectedSpells||{}).flat().length);
 
-  // Update Rogue sneak attack dice dynamically
-  const sa=allClassActions.find(a=>a.name==='Sneak Attack');
-  if(sa) sa.desc=`+${Math.ceil(lv/2)}d6 damage on a Finesse or ranged attack if you have advantage OR an ally is adjacent to the target (once per turn).`;
-
   // Filter standard actions: universal always shown; casterOnly only if caster
   const stdVisible = STANDARD_ACTIONS.filter(a =>
     a.universal || (a.casterOnly && isCaster)
@@ -2809,8 +2937,6 @@ function renderSpellsTab(){
   const hasCaster = C.clsSnapshot?.casterProgression;
   const hasAdapterCantrips = adapterCantrips.length > 0;
   const hasChoiceSpells = choiceSpellNames.length > 0;
-  const hasAdapterEK = !!(C?.subclassShortName==='Eldritch Knight'||C?.choices?.subclass_ek_cantrip_1);
-  const hasAdapterAT = !!(C?.subclassShortName==='Arcane Trickster'||C?.choices?.subclass_at_cantrip_1);
 
   if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips && !auto.length && !hasChoiceSpells){
     el.innerHTML='<div class="phmsg">This character is not a spellcaster.</div>'
@@ -2840,18 +2966,13 @@ function renderSpellsTab(){
   const FULL_SLOTS=[null,[2,0,0,0,0,0,0,0,0],[3,0,0,0,0,0,0,0,0],[4,2,0,0,0,0,0,0,0],[4,3,0,0,0,0,0,0,0],[4,3,2,0,0,0,0,0,0],[4,3,3,0,0,0,0,0,0],[4,3,3,1,0,0,0,0,0],[4,3,3,2,0,0,0,0,0],[4,3,3,3,1,0,0,0,0],[4,3,3,3,2,0,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,0,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,0,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,0],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
   const HALF_SLOTS=[null,null,[2,0,0,0,0],[3,0,0,0,0],[3,0,0,0,0],[4,2,0,0,0],[4,2,0,0,0],[4,3,0,0,0],[4,3,0,0,0],[4,3,2,0,0],[4,3,2,0,0],[4,3,3,0,0],[4,3,3,0,0],[4,3,3,1,0],[4,3,3,1,0],[4,3,3,2,0],[4,3,3,2,0],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]];
   const PACT_SLOTS=[null,{n:1,l:1},{n:2,l:1},{n:2,l:2},{n:2,l:2},{n:3,l:3},{n:3,l:3},{n:3,l:4},{n:3,l:4},{n:3,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5},{n:4,l:5}];
-  const MC_CASTER={'Bard':'full','Cleric':'full','Druid':'full','Sorcerer':'full','Wizard':'full','Paladin':'half','Ranger':'half','Artificer':'artificer'};
   const lv = C.level;
   const extra = C.extraClasses||[];
   const pLvSheet = C.classLevel || lv - extra.reduce((s,ec)=>s+(ec.level||1),0);
   function _sheetCasterLv(clsName,clsLv,scName){
-    const t=MC_CASTER[clsName];
-    if(t==='full') return clsLv;
-    if(t==='half') return Math.floor(clsLv/2);
-    if(t==='artificer') return Math.ceil(clsLv/2);
-    if(clsName==='Fighter'&&scName==='EK') return Math.floor(clsLv/3);
-    if(clsName==='Rogue'&&scName==='AT') return Math.floor(clsLv/3);
-    return 0; // Warlock and non-casters = 0 (pact handled separately)
+    const profile = _sheetSpellcastingProfile(clsName, scName, null);
+    const t = _sheetCasterProgression(profile?.casterProgression);
+    return _sheetCasterContribution(t, clsLv); // pact/non-caster => 0
   }
   const prog = C.clsSnapshot?.casterProgression;
   let slots = [];
@@ -2862,7 +2983,7 @@ function renderSpellsTab(){
     if(prog==='pact') warlockLv += pLvSheet;
     extra.forEach(ec=>{
       cLv += _sheetCasterLv(ec.name||'',ec.level||1,ec.subclassShortName||'');
-      if(ec.clsSnapshot?.casterProgression==='pact'||ec.name==='Warlock') warlockLv+=(ec.level||1);
+      if(ec.clsSnapshot?.casterProgression==='pact') warlockLv+=(ec.level||1);
     });
     cLv = Math.floor(cLv);
     slots = cLv>0 ? (FULL_SLOTS[Math.min(cLv,20)]||[]) : [];
@@ -3024,28 +3145,62 @@ function renderSpellsTab(){
     if(steps < 1) return base;
     return _scaleFormulaByStep(base, up.stepFormula, steps);
   }
-  function _hasLifeDomainDisciple(){
-    const norm = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const isLifeCleric = (clsName, subShort, lv) =>
-      norm(clsName) === 'cleric' && norm(subShort) === 'life' && Number(lv || 0) >= 3;
-    if(isLifeCleric(C?.className, C?.subclassShortName, C?.classLevel || C?.level)) return true;
-    for(const ec of (C?.extraClasses || [])){
-      if(isLifeCleric(ec?.name, ec?.subclassShortName, ec?.level)) return true;
+  const spellModifierFns = (() => {
+    const out = [];
+    const push = (arr, ownerClass, ownerLevel, ownerToken) => {
+      (Array.isArray(arr) ? arr : []).forEach(fn => {
+        if (typeof fn !== 'function') return;
+        out.push({
+          fn,
+          ownerClass: String(ownerClass || ''),
+          ownerLevel: Number(ownerLevel || 1),
+          ownerToken: String(ownerToken || 'pc'),
+        });
+      });
+    };
+
+    const pCls = String(C?.className || '');
+    const pLv = Number(C?.classLevel || C?.level || 1);
+    push(_sheetGetClassSpellModifiers(pCls), pCls, pLv, 'pc');
+    push(_sheetGetSubclassSpellModifiers(pCls, C?.subclassShortName || ''), pCls, pLv, 'pc');
+
+    (C?.extraClasses || []).forEach((ec, idx) => {
+      if (!ec?.name) return;
+      const ecCls = String(ec.name || '');
+      const ecLv = Number(ec.level || 1);
+      const token = `mc${idx}`;
+      push(_sheetGetClassSpellModifiers(ecCls), ecCls, ecLv, token);
+      push(_sheetGetSubclassSpellModifiers(ecCls, ec.subclassShortName || ''), ecCls, ecLv, token);
+    });
+
+    push(
+      _sheetGetSpeciesSpellModifiers(C?.speciesName || '', C?.speciesSource || ''),
+      C?.speciesName || '',
+      Number(C?.level || 1),
+      'species'
+    );
+
+    return out;
+  })();
+  function _applyAdapterSpellModifiers(baseFormula, ctx){
+    let out = _normalizeDiceFormula(baseFormula || '');
+    if(!out) return out;
+    for(const mod of spellModifierFns){
+      try {
+        const next = mod.fn({
+          ...(ctx || {}),
+          formula: out,
+          character: C,
+          ownerClass: mod.ownerClass,
+          ownerLevel: mod.ownerLevel,
+          ownerToken: mod.ownerToken,
+        });
+        if(typeof next === 'string' && next.trim()) out = _normalizeDiceFormula(next);
+      } catch (err) {
+        console.warn('[SheetSpellModifier] error', err);
+      }
     }
-    return false;
-  }
-  function _applyDiscipleOfLifeBonus(baseFormula, castLevel, hasHealContext){
-    const base = _normalizeDiceFormula(baseFormula || '');
-    if(!base) return base;
-    if(!hasHealContext) return base;
-    if(!_hasLifeDomainDisciple()) return base;
-    const castLv = Number(castLevel || 0);
-    if(!Number.isFinite(castLv) || castLv < 1) return base;
-    if(!castableSlotLevels.has(castLv)) return base;
-    const p = _parseFormula(base);
-    if(!p) return base;
-    const bonus = 2 + castLv;
-    return _fmtDiceFormula(p.count, p.faces, Number(p.mod || 0) + bonus) || base;
+    return out;
   }
 
   // Helper for a spell row with source badge and dice buttons
@@ -3077,7 +3232,7 @@ function renderSpellsTab(){
     ].filter(Boolean);
     const rawDmgFormula = _applySpellcastingModIfNeeded(_extractFirstDamageFormulaFromEntries(entries), ruleEntries, 'damage');
     const rawHealFormula = _applySpellcastingModIfNeeded(_extractFirstHealFormulaFromEntries(entries), ruleEntries, 'heal');
-    const dmgFormula = (typeof baseLevel === 'number' && typeof effCastLevel === 'number')
+    const dmgFormulaBase = (typeof baseLevel === 'number' && typeof effCastLevel === 'number')
       ? _formulaForCastLevel(rawDmgFormula, ruleEntries, baseLevel, effCastLevel, 'damage')
       : rawDmgFormula;
     const healFormulaBase = (typeof baseLevel === 'number' && typeof effCastLevel === 'number')
@@ -3087,7 +3242,29 @@ function renderSpellsTab(){
     const textBlob = JSON.stringify(ruleEntries || []).toLowerCase();
     const hasDamageContext = /\b(?:damage|takes?)\b/.test(textBlob);
     const hasHealContext = /\b(?:regain|regains|healing|hit points|restore|restores)\b/.test(textBlob);
-    const healFormula = _applyDiscipleOfLifeBonus(healFormulaBase, effCastLevel, hasHealContext);
+    const usesSpellSlot = Number.isFinite(effCastLevel) && effCastLevel >= 1 && castableSlotLevels.has(effCastLevel);
+    const dmgFormula = _applyAdapterSpellModifiers(dmgFormulaBase, {
+      kind: 'damage',
+      spellName: name,
+      spellLevel: baseLevel,
+      castLevel: effCastLevel,
+      entries: ruleEntries,
+      source: src,
+      hasDamageContext,
+      hasHealContext,
+      usesSpellSlot,
+    });
+    const healFormula = _applyAdapterSpellModifiers(healFormulaBase, {
+      kind: 'heal',
+      spellName: name,
+      spellLevel: baseLevel,
+      castLevel: effCastLevel,
+      entries: ruleEntries,
+      source: src,
+      hasDamageContext,
+      hasHealContext,
+      usesSpellSlot,
+    });
     const hasAttack = !!(full?.spellAttack?.length || /\{@atk\s+/i.test(textBlob) || /\b(?:spell attack|melee spell attack|ranged spell attack)\b/.test(textBlob));
     const castSuffix = (typeof effCastLevel === 'number' && typeof baseLevel === 'number' && effCastLevel > baseLevel)
       ? ` [${effCastLevel}°]`
@@ -3188,8 +3365,9 @@ function renderSpellsTab(){
 function getSpellAbility(){
   const speciesAbility = C?.choices?.species_spell_ability;
   const cls = C?.className||'';
-  if(['Wizard','Artificer'].includes(cls)) return 'int';
-  if(['Cleric','Druid','Ranger'].includes(cls)) return 'wis';
+  const profile = _sheetSpellcastingProfile(cls, C?.subclassShortName || '', C?.clsSnapshot || {});
+  const classAbility = String(profile?.ability || '').toLowerCase();
+  if(STATS.includes(classAbility)) return classAbility;
   if(!C?.clsSnapshot?.casterProgression && STATS.includes(speciesAbility)) return speciesAbility;
   if(STATS.includes(speciesAbility) && !cls) return speciesAbility;
   return 'cha';
@@ -3200,12 +3378,33 @@ function _inferAbilityFromSourceLabel(label, sourceType){
   if(sourceType === 'species'){
     const speciesAbility = C?.choices?.species_spell_ability;
     if(STATS.includes(speciesAbility)) return speciesAbility;
+    const spCfg = _sheetGetSpeciesRuntimeConfig(C?.speciesName || '', C?.speciesSource || '');
+    const spAb = String(spCfg?.spellcasting?.ability || '').toLowerCase();
+    if(STATS.includes(spAb)) return spAb;
   }
-  if(/\b(wizard|arcane trickster|eldritch knight|artificer)\b/.test(txt)) return 'int';
-  if(/\b(cleric|domain|druid|ranger|primal)\b/.test(txt)) return 'wis';
-  if(/\b(bard|sorcerer|warlock|paladin|oath)\b/.test(txt)) return 'cha';
-  if(sourceType === 'class' || sourceType === 'subclass') return getSpellAbility();
+  if(sourceType === 'class' || sourceType === 'subclass'){
+    for(const ent of _sheetClassEntities()){
+      const cName = String(ent.className || '').toLowerCase();
+      const sName = String(ent.subclassShortName || '').toLowerCase();
+      if ((cName && txt.includes(cName)) || (sName && txt.includes(sName))) {
+        const prof = _sheetSpellcastingProfile(ent.className, ent.subclassShortName, null);
+        const ab = String(prof?.ability || '').toLowerCase();
+        if(STATS.includes(ab)) return ab;
+      }
+    }
+    return getSpellAbility();
+  }
   return null;
+}
+function _extractChoiceGrantSlotKey(choiceKey){
+  const m = String(choiceKey || '').match(/^(.*)_(known|innate|prepared|expanded)_/i);
+  return m ? String(m[1] || '') : '';
+}
+function _getGrantSpellAbilityFromChoiceKey(choiceKey){
+  const slotKey = _extractChoiceGrantSlotKey(choiceKey);
+  if(!slotKey) return null;
+  const ab = String(C?.choices?.[`${slotKey}_spell_ability`] || '').toLowerCase();
+  return STATS.includes(ab) ? ab : null;
 }
 
 // Returns source label for a spell name — checks auto grants, choices, then class
@@ -3219,36 +3418,27 @@ function getSpellSource(spellName){
     const lbl = autoEntry.source || 'Auto';
     return {label: lbl, cls:'t', ability: _inferAbilityFromSourceLabel(lbl, autoEntry.sourceType)};
   }
-  // Choice-based grants: adapter keys
-  const CHOICE_SOURCE = {
-    'cleric_thaumaturge_cantrip':  { label:'Divine Order (Thaumaturge)', ability:'wis' },
-    'druid_magician_cantrip':      { label:'Primal Order (Magician)', ability:'wis' },
-    'subclass_ek_cantrip_1':       { label:'Eldritch Knight', ability:'int' },
-    'subclass_ek_cantrip_2':       { label:'Eldritch Knight', ability:'int' },
-    'subclass_at_cantrip_1':       { label:'Arcane Trickster', ability:'int' },
-    'subclass_at_cantrip_2':       { label:'Arcane Trickster', ability:'int' },
-    'warlock_tome_cantrip_1':      { label:'Pact of the Tome', ability:'cha' },
-    'warlock_tome_cantrip_2':      { label:'Pact of the Tome', ability:'cha' },
-    'warlock_tome_cantrip_3':      { label:'Pact of the Tome', ability:'cha' },
-    'wizard_spell_mastery_l1':     { label:'Spell Mastery (Lv.18)', ability:'int' },
-    'wizard_spell_mastery_l2':     { label:'Spell Mastery (Lv.18)', ability:'int' },
-    'wizard_signature_1':          { label:'Signature Spell (Lv.20)', ability:'int' },
-    'wizard_signature_2':          { label:'Signature Spell (Lv.20)', ability:'int' },
-  };
+  const CHOICE_SOURCE = _sheetCollectChoiceSpellSourceMeta();
   if(C?.choices){
     for(const [key,val] of Object.entries(C.choices)){
       if(!val) continue;
       const vals = Array.isArray(val)?val:[val];
       if(vals.some(v=>typeof v==='string'&&_choiceSpellName(v)===n)){
+        const grantAbility = _getGrantSpellAbilityFromChoiceKey(key);
+        const grantSlotKey = _extractChoiceGrantSlotKey(key);
+        const grantFeatName = grantSlotKey ? String(C?.choices?.[grantSlotKey] || '').trim() : '';
+        if(grantAbility && grantFeatName){
+          return {label: grantFeatName, cls:'g', ability: grantAbility};
+        }
         if(CHOICE_SOURCE[key]) return {label:CHOICE_SOURCE[key].label, cls:'p', ability:CHOICE_SOURCE[key].ability};
-        if(key.startsWith('feat_')) return {label:'Feat',cls:'g', ability:getSpellAbility()};
+        if(key.startsWith('feat_')) return {label:'Feat',cls:'g', ability:grantAbility || getSpellAbility()};
         if(key.startsWith('subclass_')) {
           const lbl = C.subclassShortName||'Subclass';
           return {label:lbl,cls:'p', ability:_inferAbilityFromSourceLabel(lbl, 'subclass')};
         }
         if(key.startsWith('species_')) {
           const lbl = C?.speciesName||'Species';
-          return {label:lbl,cls:'t', ability:_inferAbilityFromSourceLabel(lbl, 'species')};
+          return {label:lbl,cls:'t', ability:grantAbility || _inferAbilityFromSourceLabel(lbl, 'species')};
         }
       }
     }
@@ -3674,11 +3864,14 @@ function renderFeaturesTab(){
   // Determine which feat slot gave each feat (choice keys like feat_asi_lv4, bg_feat_origin, etc.)
   function getFeatSlot(featName){
     if(!C?.choices) return null;
+    const slotMeta = (C?.featSlotMeta && typeof C.featSlotMeta === 'object') ? C.featSlotMeta : {};
     for(const [key,val] of Object.entries(C.choices)){
-      if(val===featName){
-        if(key==='species_origin_feat') return 'Origin (Species)';
-        if(key.startsWith('feat_origin')) return 'Origin (BG)';
-        if(key.startsWith('bg_feat')) return 'Origin (BG)';
+      const vals = Array.isArray(val) ? val : [val];
+      if(vals.includes(featName)){
+        const metaLbl = String(slotMeta?.[key]?.label || '').trim();
+        if(metaLbl) return metaLbl;
+        if(/^species_.*feat/i.test(key)) return 'Origin (Species)';
+        if(/^feat_origin/i.test(key) || /^bg_feat/i.test(key)) return 'Origin (BG)';
         const lvMatch = key.match(/lv(\d+)/i);
         if(lvMatch) return `Feat Lv.${lvMatch[1]}`;
         return 'Feat';
@@ -4217,7 +4410,7 @@ function _resetPactSlots(){
   };
   if(isPact(C?.clsSnapshot?.casterProgression)) resetPact(pLv);
   extra.forEach(ec => {
-    if(isPact(ec.clsSnapshot?.casterProgression)||ec.name==='Warlock') resetPact(ec.level||1);
+    if(isPact(ec.clsSnapshot?.casterProgression)) resetPact(ec.level||1);
   });
   localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
 }
@@ -4632,11 +4825,20 @@ function _getActionOwnerLevel(a){
   if(ec) return Number(ec.level || 1);
   return totalLv;
 }
+function _getActionOwnerCtx(a){
+  return { character: C, action: a, ownerLevel: _getActionOwnerLevel(a) };
+}
 
 function _extractActionDamageFormula(a){
+  const ctx = _getActionOwnerCtx(a);
   const fromField = (() => {
+    if(typeof a?.healFormula === 'function'){
+      try { return a.healFormula(ctx); }
+      catch(_) { return null; }
+    }
+    if(typeof a?.healFormula === 'string') return a.healFormula;
     if(typeof a?.damageFormula === 'function'){
-      try { return a.damageFormula({ character: C, action: a, ownerLevel: _getActionOwnerLevel(a) }); }
+      try { return a.damageFormula(ctx); }
       catch(_) { return null; }
     }
     if(typeof a?.damageFormula === 'string') return a.damageFormula;
@@ -4684,6 +4886,29 @@ function _extractActionDamageFormula(a){
   }
   return null;
 }
+function _getActionDamageKind(a){
+  const kind = String(a?.damageKind || '').toLowerCase();
+  if(kind === 'heal' || kind === 'utility' || kind === 'damage') return kind;
+  if(a?.healFormula !== undefined) return 'heal';
+  const text = `${String(a?.name || '')} ${String(a?.desc || '')}`.toLowerCase();
+  if(/\bheal|healing|regain|temporary hp|temp hp\b/.test(text)) return 'heal';
+  return 'damage';
+}
+function _buildActionInlinePills(a){
+  const ctx = _getActionOwnerCtx(a);
+  let pills = a?.inlinePills;
+  if(typeof pills === 'function'){
+    try { pills = pills(ctx); } catch(_) { pills = []; }
+  }
+  if(!Array.isArray(pills) || !pills.length) return '';
+  return pills.map(p => {
+    if(!p || typeof p !== 'object') return '';
+    const icon = String(p.icon || 'info');
+    const label = p.label != null ? `${esc(String(p.label))}: ` : '';
+    const value = p.value != null ? `<b>${esc(String(p.value))}</b>` : '';
+    return `<div class="action-dmg-pill">${luci(icon)} ${label}${value}</div>`;
+  }).join('');
+}
 
 function _inferActionAttackBonus(a){
   const pb = getPB();
@@ -4705,32 +4930,49 @@ function _inferActionAttackBonus(a){
 }
 
 function _buildGenericActionRollButtons(a){
+  if(a?.noRoll) return '';
   const dmgFormula = _extractActionDamageFormula(a);
-  const text = `${String(a?.name || '')} ${String(a?.desc || '')}`.toLowerCase();
+  const dmgKind = _getActionDamageKind(a);
   const hasAttackSignal =
-    a?.cat === 'attack' ||
     a?.attackRoll !== undefined ||
     a?.attackAbility !== undefined ||
-    typeof a?.attackBonus === 'number' ||
-    /\b(?:spell attack|weapon attack|to hit|make(?:s)? .*attack|melee attack|ranged attack)\b/.test(text);
+    typeof a?.attackBonus === 'number';
   const hasDamageSignal =
+    a?.healFormula !== undefined ||
     a?.damageFormula !== undefined ||
     a?.rollDamage !== undefined ||
     a?.damage !== undefined ||
     (Array.isArray(a?.damageRolls) && a.damageRolls.length > 0) ||
-    !!dmgFormula ||
-    /\b(?:damage|takes? .*damage)\b/.test(text);
+    !!dmgFormula;
   if(!hasAttackSignal && !hasDamageSignal) return '';
 
   const atkBonus = _inferActionAttackBonus(a);
   const safeLabel = _jsEsc(a?.name || 'Action');
+  const ownerCtx = _getActionOwnerCtx(a);
   const atkBtn = hasAttackSignal
     ? `<button class="roll-btn" onclick="event.stopPropagation();rollD20(${atkBonus},'Attack: ${safeLabel}')">${luci('dice-5')} Attack ${fbonus(atkBonus)}</button>`
     : '';
+  const dmgBtnClass = dmgKind === 'heal' ? ' heal' : (dmgKind === 'utility' ? '' : ' dmg');
+  const dmgBtnIcon = dmgKind === 'heal' ? 'heart' : (dmgKind === 'utility' ? 'dice-5' : 'flame');
+  const labelPrefix = String(a?.rollLabelPrefix || (dmgKind === 'heal' ? 'Heal' : (dmgKind === 'utility' ? 'Roll' : 'Damage')));
+  const resolvedRollLabel = (() => {
+    if(typeof a?.rollLabel === 'function'){
+      try { return String(a.rollLabel({ ...ownerCtx, formula: dmgFormula || '' }) || ''); } catch(_) {}
+    }
+    if(typeof a?.rollLabel === 'string') return a.rollLabel;
+    return `${labelPrefix}: ${a?.name || 'Action'}`;
+  })();
+  const resolvedButtonLabel = (() => {
+    if(typeof a?.damageButtonLabel === 'function'){
+      try { return String(a.damageButtonLabel({ ...ownerCtx, formula: dmgFormula || '' }) || ''); } catch(_) {}
+    }
+    if(typeof a?.damageButtonLabel === 'string') return a.damageButtonLabel;
+    return dmgFormula || '?';
+  })();
   const dmgBtn = dmgFormula
-    ? `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${_jsEsc(dmgFormula)}','Damage: ${safeLabel}')">${luci('flame')} ${esc(dmgFormula)}</button>`
+    ? `<button class="roll-btn${dmgBtnClass}" onclick="event.stopPropagation();rollDamage('${_jsEsc(dmgFormula)}','${_jsEsc(resolvedRollLabel)}')">${luci(dmgBtnIcon)} ${esc(resolvedButtonLabel)}</button>`
     : (hasDamageSignal
-      ? `<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamagePrompt('Damage: ${safeLabel}','1d6')">${luci('flame')} Damage ?</button>`
+      ? `<button class="roll-btn${dmgBtnClass}" onclick="event.stopPropagation();rollDamagePrompt('${_jsEsc(resolvedRollLabel)}','${_jsEsc(String(a?.damagePromptDefault || (dmgKind === 'heal' ? '1d8' : '1d6')))}')">${luci(dmgBtnIcon)} ${esc(String(a?.damagePromptLabel || `${labelPrefix} ?`))}</button>`
       : '');
   return atkBtn + dmgBtn;
 }
@@ -4799,90 +5041,11 @@ function buildClassActionCard(a){
   const tagCls={action:'util',bonus:'bonus',reaction:'react',react:'react',attack:'atk'};
   const id='ac_'+Math.random().toString(36).slice(2);
 
-  // Build roll buttons for specific actions
-  let rollRow='';
-  {
-    const pLv  = C?.classLevel || C?.level || 1;
-    const totLv= C?.level || 1;
-    const wisMod= getMod(getFinal('wis'));
-    const chaMod= getMod(getFinal('cha'));
-    const dexMod= getMod(getFinal('dex'));
-    const pb   = getPB();
-    const sign = v => v>=0?`+${v}`:String(v);
-
-    if(a.name==="Second Wind"){
-      rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('1d10${sign(pLv)}','Second Wind')">${luci('heart')} Heal 1d10${sign(pLv)}</button>`;
-
-    } else if(a.name==="Sneak Attack"){
-      const sd=Math.ceil(totLv/2);
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${sd}d6','Sneak Attack')">${luci('sword')} ${sd}d6 extra</button>`;
-
-    } else if(a.name==="Divine Smite"){
-      // max slot level by paladin level → max smite dice
-      const maxSlot=pLv>=13?5:pLv>=9?4:pLv>=5?3:pLv>=3?2:1;
-      const smiteDice=Math.min(maxSlot+1,6);
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${smiteDice}d8','Divine Smite')">${luci('sparkles')} ${smiteDice}d8 radiant</button>`;
-
-    } else if(a.name==="Divine Spark"){
-      // base: 2d8+WIS (1 channel use)
-      const f=`2d8${sign(wisMod)}`;
-      rollRow=`<button class="roll-btn heal" onclick="event.stopPropagation();rollDamage('${f}','Divine Spark')">${luci('sun')} 2d8${sign(wisMod)}</button>`;
-
-    } else if(a.name==="Blessed Strikes"){
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d8','Blessed Strikes')">${luci('sparkles')} +1d8 divine</button>`;
-
-    } else if(a.name==="Bardic Inspiration"){
-      const die=pLv>=15?12:pLv>=10?10:pLv>=5?8:6;
-      rollRow=`<button class="roll-btn" onclick="event.stopPropagation();rollDamage('1d${die}','Bardic Inspiration')">${luci('music')} 1d${die}</button>`;
-
-    } else if(a.name==="Martial Arts"){
-      const die=pLv>=17?12:pLv>=11?10:pLv>=5?8:6;
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d${die}','Martial Arts')">${luci('hand')} 1d${die}</button>`;
-
-    } else if(a.name==="Flurry of Blows"){
-      const die=pLv>=17?12:pLv>=11?10:pLv>=5?8:6;
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('2d${die}','Flurry of Blows')">${luci('hand')} 2d${die}</button>`;
-
-    } else if(a.name==="Deflect Attacks"){
-      const f=`1d10${sign(dexMod+pLv)}`;
-      rollRow=`<button class="roll-btn" onclick="event.stopPropagation();rollDamage('${f}','Deflect Attacks')">${luci('shield')} ${f} reduce</button>`;
-
-    } else if(a.name==="Brutal Strike"){
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d10','Brutal Strike')">${luci('axe')} +1d10</button>`;
-
-    } else if(a.name==="Tactical Mind"){
-      rollRow=`<button class="roll-btn" onclick="event.stopPropagation();rollDamage('1d10','Tactical Mind')">${luci('dice-5')} +1d10</button>`;
-
-    } else if(a.name==="Hunter's Mark"){
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d6','Hunters Mark')">${luci('crosshair')} +1d6</button>`;
-
-    } else if(a.name==="Radiant Strikes"){
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d8','Radiant Strikes')">${luci('sparkles')} +1d8 radiant</button>`;
-
-    } else if(a.name==="Channel: Radiance of the Dawn"){
-      const f=`2d10${sign(pLv)}`;
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${f}','Radiance of the Dawn')">${luci('sun')} ${f} radiant</button>`;
-
-    } else if(a.name==="Channel: Preserve Life"){
-      rollRow=`<div class="action-dmg-pill">${luci('heart')} Pool: <b>${5*pLv} HP</b></div>`;
-
-    } else if(a.name==="Lay on Hands"){
-      rollRow=`<div class="action-dmg-pill">${luci('heart')} Pool: <b>${5*pLv} HP</b></div>`;
-
-    } else if(a.name==="Elemental Fury"){
-      rollRow=`<button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('1d6','Elemental Fury')">${luci('flame')} +1d6</button>`;
-
-    } else if(a.name==="Dark One's Blessing"){
-      const tmp=totLv+chaMod;
-      rollRow=`<div class="action-dmg-pill">${luci('skull')} Temp HP: <b>${Math.max(1,tmp)}</b></div>`;
-    }
-  }
-
-  // Build resource block inline
+  // Build resource + adapter-driven roll controls
   const resInline = buildResourceBlockInline(a);
-
-  const genericRollRow = rollRow ? '' : _buildGenericActionRollButtons(a);
-  const barHtml = (resInline || rollRow || genericRollRow) ? (resInline + rollRow + genericRollRow) : '';
+  const inlinePills = _buildActionInlinePills(a);
+  const genericRollRow = _buildGenericActionRollButtons(a);
+  const barHtml = (resInline || inlinePills || genericRollRow) ? (resInline + inlinePills + genericRollRow) : '';
 
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
@@ -4907,10 +5070,35 @@ function buildUnarmedCard(opt){
   const inv = sheetInventory || C.inventory || [];
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
-  const bardDanceActive = _hasBardDanceSubclass(3) && !equippedArmor && !equippedShield;
-  const bardLv = _getBardClassLevel();
-  const bardDie = _getBardicInspirationDieSize(bardLv);
-  const atkAbility = bardDanceActive ? dexMod : strMod;
+  const rt = _sheetFindUnarmedStrikeRule(equippedArmor, equippedShield);
+  const rtRule = rt?.rule || null;
+  let atkAbility = strMod;
+  if (rtRule?.attackAbility) {
+    const ab = String(rtRule.attackAbility || '').toLowerCase();
+    atkAbility = getMod(getFinal(ab));
+  }
+
+  let specialDmgFormula = '';
+  let specialDmgLabel = '';
+  let specialBadge = '';
+  if (rtRule?.damage && typeof rtRule.damage === 'object') {
+    const dmgCfg = rtRule.damage;
+    if (dmgCfg.kind === 'featureDie') {
+      const clsName = String(dmgCfg.className || rt?.entity?.className || '');
+      const clsLv = _getClassLevelByName(clsName);
+      const faces = _sheetFeatureDieFaces(clsName, String(dmgCfg.feature || ''), clsLv);
+      const modAb = String(dmgCfg.ability || 'str').toLowerCase();
+      const mod = getMod(getFinal(modAb));
+      if (Number.isFinite(faces) && faces > 0) {
+        specialDmgFormula = `1d${faces}${mod>=0?'+':''}${mod}`;
+        specialDmgLabel = String(dmgCfg.label || 'Unarmed Damage');
+      }
+    } else if (typeof dmgCfg.formula === 'string') {
+      specialDmgFormula = String(dmgCfg.formula || '').trim();
+      specialDmgLabel = String(dmgCfg.label || 'Unarmed Damage');
+    }
+    if (rtRule.badge) specialBadge = String(rtRule.badge || '');
+  }
   const id='ac_'+Math.random().toString(36).slice(2);
   const isGrSh=opt.name==='Grapple'||opt.name==='Shove';
   const dc=8+pb+strMod;
@@ -4920,15 +5108,14 @@ function buildUnarmedCard(opt){
   let barContent='';
   if(opt.cat==='attack'){
     const normalDmg = Math.max(1,1+strMod);
-    const bardDmgFormula = `1d${bardDie}${dexMod>=0?'+':''}${dexMod}`;
     barContent=`
       <button class="roll-btn" onclick="rollD20(${atkAbility+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(atkAbility+pb)}</button>
-      ${bardDanceActive
-        ? `<button class="roll-btn dmg" onclick="rollDamage('${bardDmgFormula}','Bardic Damage (Unarmed)')">${luci('sword')} 1d${bardDie}${dexMod>=0?'+':''}${dexMod} bludg.</button>`
+      ${specialDmgFormula
+        ? `<button class="roll-btn dmg" onclick="rollDamage('${_jsEsc(specialDmgFormula)}','${_jsEsc(specialDmgLabel)}')">${luci('sword')} ${specialDmgFormula} bludg.</button>`
         : `<button class="roll-btn dmg" onclick="showDiceToast('Damage',[], ${normalDmg},${normalDmg},'1 + STR')">${luci('sword')} ${normalDmg} bludg.</button>`
       }
       <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>
-      ${bardDanceActive ? `<div class="action-dmg-pill">${luci('music')} Bardic Damage</div>` : ''}`;
+      ${specialBadge ? `<div class="action-dmg-pill">${luci('music')} ${esc(specialBadge)}</div>` : ''}`;
   } else if(isGrSh){
     barContent=`
       <div class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></div>
@@ -5109,29 +5296,15 @@ function closeSpellPicker(){
 // Returns {max, current} for cantrips (lv=0) or total spells (lv>0). null max = no limit.
 function _getSpellLimit(isCantrip){
   const cls = C?.className||'';
-  const lv  = C?.level||1;
-  const sm  = getMod(getFinal(getSpellAbility()));
+  const lv  = C?.classLevel||C?.level||1;
+  const profile = _sheetSpellcastingProfile(cls, C?.subclassShortName || '', C?.clsSnapshot || {});
   if(isCantrip){
-    const T={
-      Wizard:   [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5],
-      Cleric:   [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5],
-      Druid:    [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
-      Bard:     [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
-      Sorcerer: [4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6],
-      Warlock:  [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4],
-    };
-    return { max: T[cls]?.[lv-1]??null, current: (C.selectedCantrips||[]).length };
+    return { max: profile?.cantripKnown?.[lv-1]??null, current: (C.selectedCantrips||[]).length };
   }
-  const KNOWN={
-    Bard:    [4,5,6,7,8,9,10,11,12,14,15,15,16,18,19,19,20,22,22,22],
-    Sorcerer:[2,3,4,5,6,7,8,9,10,11,12,12,13,13,14,14,15,15,15,15],
-    Warlock: [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15],
-    Ranger:  [0,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11],
-  };
   const total = Object.values(C.selectedSpells||{}).flat().length;
-  if(KNOWN[cls]) return { max: KNOWN[cls][lv-1]??null, current: total };
-  if(['Wizard','Cleric','Druid'].includes(cls)) return { max: Math.max(1, sm+lv), current: total };
-  if(cls==='Paladin') return { max: Math.max(1, sm+Math.floor(lv/2)), current: total };
+  if(Array.isArray(profile?.spellsKnown)) return { max: profile.spellsKnown[lv-1]??null, current: total };
+  const prepared = _sheetPreparedCountFromFormula(profile, lv);
+  if(prepared != null) return { max: prepared, current: total };
   return { max: null, current: total };
 }
 

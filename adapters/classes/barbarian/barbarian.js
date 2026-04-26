@@ -82,6 +82,8 @@ registerClassSheetActions("Barbarian", [
     "cat": "attack",
     "uses": "While Raging",
     "minLevel": 9,
+    "damageFormula": "1d10",
+    "damageButtonLabel": "+1d10",
     "desc": "When you use Reckless Attack and have advantage, forgo the advantage on one attack to deal +1d10 damage and trigger a Brutal Strike effect: Forceful Blow (push 15 ft or knock Prone) or Hamstring Blow (target's Speed halved until start of your next turn)."
   },
   {

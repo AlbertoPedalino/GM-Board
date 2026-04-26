@@ -7,6 +7,8 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "cat": "attack",
     "uses": "Psychic",
     "minLevel": 3,
+    "attackAbility": "dex",
+    "damageFormula": "1d6",
     "desc": "Materialize psychic blades (finesse, throwable): 1d6 psychic damage + DEX. Materialize a second blade as bonus action. Blades disappear after the attack."
   }
 ]);

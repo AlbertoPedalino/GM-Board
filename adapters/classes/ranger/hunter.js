@@ -39,6 +39,7 @@ registerSubclassSheetActions("Ranger_Hunter", [
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 3,
+    "noRoll": true,
     "desc": "Choose: Colossus Slayer (+1d8 vs wounded creatures, 1/turn), Giant Killer (reaction to attack giants that hit you), Horde Breaker (extra attack on creature adjacent to your target)."
   }
 ]);

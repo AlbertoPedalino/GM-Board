@@ -14,6 +14,11 @@ registerSubclassSheetActions("Cleric_Light", [
     "cat": "action",
     "uses": "1 Channel",
     "resKey": "channel_div",
+    "damageFormula": ({ ownerLevel }) => {
+      const lv = Number(ownerLevel || 1);
+      return `2d10${lv >= 0 ? "+" : ""}${lv}`;
+    },
+    "damageButtonLabel": ({ formula }) => String(formula || ""),
     "desc": "Every Undead within 30 ft must succeed on a CON save or take 2d10+level radiant damage (half on success). Creatures that cannot see the light have disadvantage."
   }
 ]);

@@ -1,6 +1,6 @@
 // Goliath XPHB: Giant Ancestry — scelta del tipo di gigante (determina resistenza e abilità)
 registerSpeciesAdapter("Goliath_XPHB", function (s) {
-  let specs = genericSpeciesParser(s);
+  let specs = getGenericSpeciesChoiceSpecs(s);
   const ancestryOpts = [
     { key: "Cloud's Jaunt",    label: "Cloud Giant — Teleport (Intelligence)" },
     { key: "Fire's Burn",      label: "Fire Giant — Bonus Fire Damage (Strength)" },

@@ -98,6 +98,7 @@ const ADAPTER_MANIFEST = [
   'adapters/classes/barbarian/zealot.js',
 
   // ── Specie ──────────────────────────────────────────────
+  'adapters/species/core.js',
   'adapters/species/elf.js',
   'adapters/species/tiefling.js',
   'adapters/species/aasimar.js',
@@ -118,6 +119,9 @@ const ADAPTER_MANIFEST = [
   'adapters/feats/core.js',
   'adapters/feats/all-feats.js',
   'adapters/feats/magic-initiate.js',
+
+  // Shared class/subclass/species runtime config
+  'adapters/classes/runtime-config.js',
 
   // Post-load defaults
   'adapters/classes/common-choice-meta.js',

@@ -69,6 +69,15 @@ registerClassSheetActions("Cleric", [
     "uses": "1+ Channel",
     "resKey": "channel_div",
     "minLevel": 2,
+    "healFormula": ({ character }) => {
+      const wis = typeof getMod === "function" && typeof getFinal === "function"
+        ? Number(getMod(getFinal("wis")) || 0)
+        : 0;
+      return `2d8${wis >= 0 ? "+" : ""}${wis}`;
+    },
+    "damageKind": "heal",
+    "damageButtonLabel": ({ formula }) => String(formula || ""),
+    "rollLabelPrefix": "Divine Spark",
     "desc": "Channel Divinity option. Choose a creature within 30 ft: it either regains HP or takes Radiant or Necrotic damage (your choice) equal to 2d8 + your WIS modifier. For each additional Channel Divinity use spent (beyond the first), add 1d8. The maximum additional uses scales with level: +1 at lv.2, +2 at lv.5, +3 at lv.8, +4 at lv.11, +5 at lv.14, +6 at lv.17."
   },
   {
@@ -86,6 +95,8 @@ registerClassSheetActions("Cleric", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 7,
+    "damageFormula": "1d8",
+    "damageButtonLabel": "+1d8 divine",
     "desc": "Gain one of two benefits: Divine Strike (add 1d8 of your domain's damage type once per turn) or Potent Spellcasting (add WIS mod to Cleric cantrip damage)."
   }
 ]);
@@ -95,7 +106,7 @@ registerClassSheetResources("Cleric", [
     "name": "Channel Divinity",
     "icon": "sun",
     "recharge": "SR",
-    "max": (lv)=>lv>=18?3:lv>=6?2:1
+    "max": (lv)=>lv>=18?4:lv>=6?3:2
   },
   {
     "key": "divine_intervention",

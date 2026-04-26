@@ -1,5 +1,5 @@
 registerSpeciesAdapter("Changeling_EFA", function (s) {
-  return genericSpeciesParser(s);
+  return getGenericSpeciesChoiceSpecs(s);
 });
 
 registerSpeciesSheetCommonChoiceMeta("Changeling_EFA");

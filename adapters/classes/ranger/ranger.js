@@ -79,6 +79,8 @@ registerClassSheetActions("Ranger", [
     "icon": "",
     "cat": "bonus",
     "uses": "WIS mod free / LR",
+    "damageFormula": "1d6",
+    "damageButtonLabel": "+1d6",
     "desc": "Bonus Action (Concentration): mark a creature you can see within 90 ft. +1d6 damage on every hit against it. Advantage on PER/Survival checks to find it. Can move the mark (Bonus Action) if the marked creature dies. At lv.17: no longer requires Concentration."
   },
   {
