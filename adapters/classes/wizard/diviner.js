@@ -9,7 +9,15 @@ registerSubclassSheetActions("Wizard_Diviner", [
     "uses": "2–3 / LR",
     "resKey": "portent",
     "minLevel": 2,
-    "desc": "After a Long Rest: roll 2d20 (3d20 at lv.14), keep the results. Before any creature makes an attack roll, ability check, or saving throw, you can replace the result with one of your Portent dice (expending it). You can do this before or after the roll, but before the DM says whether it succeeds or fails. Recharge: Long Rest."
+    "desc": "After a Long Rest: roll 2d20 (3d20 at lv.14), keep the results. Before any creature makes an attack roll, ability check, or saving throw, you can replace the result with one of your Portent dice (expend it). Declare before or after the roll, but before the DM reveals success or failure. Recharge: Long Rest."
+  },
+  {
+    "name": "Expert Divination",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 6,
+    "desc": "When you cast a Divination spell of 2nd level or higher using a spell slot, you regain one expended spell slot of a lower level than the slot you used (max 5th level)."
   },
   {
     "name": "The Third Eye",
@@ -18,7 +26,7 @@ registerSubclassSheetActions("Wizard_Diviner", [
     "uses": "1 / SR",
     "resKey": "third_eye",
     "minLevel": 10,
-    "desc": "Action: gain one of these benefits until your next Short or Long Rest: (1) Darkvision 60 ft; (2) Ethereal Sight — see into the Ethereal Plane within 60 ft; (3) Greater Comprehension — read any language; (4) See Invisibility — see invisible creatures within 10 ft. Recharge: Short Rest."
+    "desc": "Action: gain one benefit until your next Short or Long Rest — (1) Darkvision 60 ft; (2) Ethereal Sight (see into Ethereal Plane within 60 ft); (3) Greater Comprehension (read any language); (4) See Invisibility (see invisible creatures within 10 ft). Recharge: Short Rest."
   }
 ]);
 registerSubclassSheetResources("Wizard_Diviner", [

@@ -37,9 +37,9 @@ registerClassSheetActions("Sorcerer", [
     "icon": "",
     "cat": "bonus",
     "uses": "2 / LR",
-    "resKey": "sorc_pts",
+    "resKey": "innate_sorcery",
     "minLevel": 1,
-    "desc": "Bonus Action: unleash magical energy for 1 minute. During this time your spell save DC increases by 1, and you have Advantage on the attack rolls of Sorcerer spells you cast. Uses: 2 per Long Rest."
+    "desc": "Bonus Action: unleash magical energy for 1 minute. During this time your spell save DC increases by 1, and you have Advantage on the attack rolls of Sorcerer spells you cast. Uses: 2 per Long Rest. Recharge: Long Rest."
   },
   {
     "name": "Font of Magic",
@@ -70,13 +70,29 @@ registerClassSheetActions("Sorcerer", [
   {
     "name": "Sorcery Incarnate",
     "icon": "",
+    "cat": "bonus",
+    "uses": "2 SP",
+    "resKey": "sorc_pts",
+    "minLevel": 7,
+    "desc": "While Innate Sorcery is active, you can apply two different Metamagic options to the same spell. If you have no uses of Innate Sorcery remaining, you can spend 2 Sorcery Points to activate it again."
+  },
+  {
+    "name": "Arcane Apotheosis",
+    "icon": "",
     "cat": "action",
-    "uses": "Innate Sorcery",
+    "uses": "Passive",
     "minLevel": 20,
-    "desc": "While your Innate Sorcery feature is active: if you have no uses of Metamagic, you can use two Metamagic options simultaneously on a spell; additionally, each Metamagic option can be applied twice."
+    "desc": "While Innate Sorcery is active, you can use one Metamagic option on each spell you cast without spending Sorcery Points."
   }
 ]);
 registerClassSheetResources("Sorcerer", [
+  {
+    "key": "innate_sorcery",
+    "name": "Innate Sorcery",
+    "icon": "sparkles",
+    "recharge": "LR",
+    "max": () => 2
+  },
   {
     "key": "sorc_pts",
     "name": "Sorcery Points",

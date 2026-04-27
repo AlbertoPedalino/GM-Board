@@ -140,7 +140,7 @@ registerClassSheetActions("Rogue", [
     "icon": "",
     "cat": "attack",
     "uses": "Sneak Attack dice",
-    "minLevel": 11,
+    "minLevel": 14,
     "desc": "Additional Cunning Strike options: Daze (2 dice, CON save or Incapacitated until end of your next turn), Knock Out (6 dice, CON save or Unconscious for 1 min — ends if target takes damage or is shaken), Obscure (3 dice, DEX save or Blinded until end of your next turn)."
   },
   {
@@ -156,16 +156,8 @@ registerClassSheetActions("Rogue", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "minLevel": 11,
+    "minLevel": 7,
     "desc": "When you make an ability check using a skill you are proficient in, treat a d20 roll of 9 or lower as a 10."
-  },
-  {
-    "name": "Blindsense",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 14,
-    "desc": "If you are able to hear, you are aware of the location of any hidden or invisible creature within 10 ft of you."
   },
   {
     "name": "Slippery Mind",

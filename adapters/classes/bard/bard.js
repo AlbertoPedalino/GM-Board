@@ -25,6 +25,7 @@ registerClassAdapter("Bard", function (cls, lv, specs) {
   }
 });
 
+// [SheetRuntime] START
 registerClassSheetActions("Bard", [
   { name: "Bardic Inspiration", icon: "", cat: "bonus",  uses: "CHA mod / SR", resKey: "bardic_insp",
     damageFormula: ({ ownerLevel }) => {
@@ -102,3 +103,4 @@ registerClassSheetChoiceMeta("Bard", {
       .trim();
   },
 });
+// [SheetRuntime] END

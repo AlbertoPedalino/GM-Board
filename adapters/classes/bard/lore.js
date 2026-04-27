@@ -24,6 +24,7 @@ registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
   }
 });
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Bard_Lore", [
   { name: "Bonus Proficiencies", icon: "", cat: "action",   uses: "Passive",           minLevel: 3,
     desc: "Gain proficiency in three skills of your choice. Select them in the builder." },
@@ -34,3 +35,4 @@ registerSubclassSheetActions("Bard_Lore", [
   { name: "Peerless Skill",     icon: "", cat: "reaction", uses: "With Bardic Insp.", minLevel: 14,
     desc: "When you make an ability check and fail, you can expend one use of Bardic Inspiration, roll the die, and add the result to the check, potentially turning it into a success. Declare after seeing the roll but before the DM reveals the outcome." },
 ]);
+// [SheetRuntime] END
