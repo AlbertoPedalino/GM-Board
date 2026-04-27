@@ -13,7 +13,8 @@ const _INVOCATIONS = [
 ];
 
 // Progressione slot: [livello_acquisizione, ...]
-const _INV_LEVELS = [1, 3, 5, 6, 7, 8, 9, 10, 12, 14, 15, 18, 20];
+// XPHB 2024: 10 total invocations, gained at: lv1(+1), lv2(+2), lv5(+2), lv7(+1), lv9(+1), lv12(+1), lv15(+1), lv18(+1)
+const _INV_LEVELS = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
 
 registerClassAdapter("Warlock", function (cls, lv, specs) {
   _INV_LEVELS.forEach(function (threshold, i) {
@@ -65,7 +66,7 @@ registerClassSheetActions("Warlock", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "desc": "Your spell slots recharge on a Short Rest (not Long Rest). All your slots are the same level (lv.1–5, scales with Warlock level). You learn a limited number of spells from the Warlock list."
+    "desc": "Your spell slots recharge on a Short Rest or Long Rest. All your slots are the same level (lv.1–5, scales with Warlock level). You learn a limited number of spells from the Warlock list."
   },
   {
     "name": "Magical Cunning",
@@ -76,12 +77,13 @@ registerClassSheetActions("Warlock", [
     "desc": "Perform esoteric rite for 1 minute. At end, regain expended Pact Magic slots up to half your maximum (round up). Once used, unavailable until Long Rest."
   },
   {
-    "name": "Pact Boon",
+    "name": "Contact Patron",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
-    "minLevel": 3,
-    "desc": "Choose your Pact Boon: Pact of the Chain (Find Familiar, special familiar forms), Pact of the Blade (summon magical melee weapon, add CHA to attacks), or Pact of the Tome (Book of Shadows with 3 cantrips from any list + 2 rituals)."
+    "uses": "1 / LR",
+    "resKey": "contact_patron",
+    "minLevel": 9,
+    "desc": "You always have Contact Other Plane prepared. When you cast it, you automatically succeed on the saving throw and contact your patron (not a random planar entity). Recharge: Long Rest."
   },
   {
     "name": "Mystic Arcanum",
@@ -97,7 +99,7 @@ registerClassSheetActions("Warlock", [
     "cat": "action",
     "uses": "1 / LR",
     "minLevel": 20,
-    "desc": "Once per Long Rest, you can spend 1 minute communing with your patron to regain all your Pact Magic spell slots."
+    "desc": "Magical Cunning is upgraded: when you use its 1-minute ritual, you regain ALL expended Pact Magic slots (instead of half). Once per Long Rest."
   }
 ]);
 // [SheetRuntime] END
@@ -110,6 +112,14 @@ registerClassSheetResources("Warlock", [
     "actionName": "Magical Cunning",
     "recharge": "LR",
     "minLevel": 2,
+    "max": function() { return 1; }
+  },
+  {
+    "key": "contact_patron",
+    "name": "Contact Patron",
+    "icon": "eye",
+    "recharge": "LR",
+    "minLevel": 9,
     "max": function() { return 1; }
   }
 ]);

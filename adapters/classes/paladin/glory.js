@@ -3,20 +3,21 @@ registerSubclassAdapter("Paladin_Glory", function (cls, lv, specs) {});
 // [SheetRuntime] START
 registerSubclassSheetActions("Paladin_Glory", [
   {
-    "name": "Channel: Gift of the Brave",
+    "name": "Channel: Peerless Athlete",
     "icon": "",
     "cat": "action",
     "uses": "1 Channel",
     "resKey": "paladin_channel_div",
-    "desc": "Action: inspire up to 6 creatures of your choice within 30 ft. For 10 minutes: each gains your Proficiency Bonus to Athletics and Acrobatics checks, and Speed increases by 10 ft."
+    "desc": "Action: for 10 minutes, you gain Proficiency Bonus to Athletics and Acrobatics checks, your carrying capacity and the weight you can push, drag, or lift doubles, and your jump distance triples."
   },
   {
-    "name": "Inspiring Smite",
+    "name": "Channel: Inspiring Smite",
     "icon": "",
     "cat": "bonus",
-    "uses": "After Divine Smite",
-    "minLevel": 7,
-    "desc": "Immediately after dealing Divine Smite damage, use a Bonus Action to distribute temporary HP equal to 2d8 + CHA modifier among yourself and any creatures within 30 ft (at least 1 HP per recipient)."
+    "uses": "1 Channel",
+    "resKey": "paladin_channel_div",
+    "minLevel": 3,
+    "desc": "Immediately after dealing Divine Smite damage, use a Bonus Action (costs 1 Channel Divinity) to distribute Temporary HP equal to 2d8 + CHA modifier among yourself and any creatures within 30 ft (at least 1 HP per recipient)."
   },
   {
     "name": "Aura of Alacrity",
@@ -24,7 +25,7 @@ registerSubclassSheetActions("Paladin_Glory", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 7,
-    "desc": "Your Speed increases by 10 ft. While conscious, friendly creatures who start their turn within your aura also gain +10 ft Speed for that turn. Range: 10 ft (30 ft at lv.18)."
+    "desc": "Your Speed increases by your CHA modifier (min +1 ft). While conscious, friendly creatures who start their turn within your aura also gain the same Speed bonus for that turn. Range: 10 ft (30 ft at lv.18)."
   },
   {
     "name": "Glorious Defense",

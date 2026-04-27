@@ -38,6 +38,14 @@ registerSubclassSheetActions("Barbarian_Wild Heart", [
     desc: "Choose a permanent trait (can change after each Long Rest) — Owl: Darkvision 60 ft (or +60 ft if already have it); Panther: Climb Speed = walking Speed; Salmon: Swim Speed = walking Speed."
   },
   {
+    name: "Nature Speaker",
+    icon: "",
+    cat: "action",
+    uses: "Ritual / LR",
+    minLevel: 10,
+    desc: "You can cast Commune with Nature as a Ritual. You always have this spell prepared; it doesn't count against the number of spells you can prepare."
+  },
+  {
     name: "Power of the Wilds",
     icon: "",
     cat: "bonus",

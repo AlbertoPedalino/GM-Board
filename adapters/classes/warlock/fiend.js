@@ -7,6 +7,7 @@ registerSubclassSheetActions("Warlock_Fiend", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
+    "minLevel": 3,
     "inlinePills": ({ ownerLevel, character }) => {
       const lv = Number(ownerLevel || 1);
       const cha = typeof getMod === "function" && typeof getFinal === "function"

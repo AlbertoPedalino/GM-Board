@@ -19,17 +19,8 @@ registerSubclassSheetActions("Druid_Land", [
     "cat": "action",
     "uses": "1 / LR",
     "resKey": "natural_recovery",
-    "minLevel": 2,
-    "desc": "After a short rest: regain spell slots with total levels <= half Druid level (min 1)."
-  },
-  {
-    "name": "Land's Aid",
-    "icon": "",
-    "cat": "bonus",
-    "uses": "Wild Shape charge",
-    "resKey": "wild_shape",
     "minLevel": 6,
-    "desc": "Bonus Action: spend one Wild Shape use. Choose a point within 60 ft. One creature of your choice within 10 ft must succeed on a CON save (spell save DC) or take 2d6 Necrotic damage (half on success). A second creature of your choice within 10 ft regains 2d6 HP."
+    "desc": "After a Short Rest: regain spell slots whose combined levels are no greater than half your Druid level (rounded up). Recharge: Long Rest."
   },
   {
     "name": "Nature's Ward",

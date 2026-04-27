@@ -46,6 +46,8 @@ registerClassSheetActions("Bard", [
     desc: "As an Action, begin a performance that lasts until the end of your next turn. Friendly creatures within 30 ft who can hear you gain Advantage on saving throws against being Charmed or Frightened." },
   { name: "Magical Secrets",    icon: "", cat: "action", uses: "Passive", minLevel: 10,
     desc: "Learn 2 spells from any class's spell list (of a level you can cast). They count as Bard spells. Gain 2 more at lv.18." },
+  { name: "Superior Inspiration", icon: "", cat: "action", uses: "Passive", minLevel: 18,
+    desc: "When you roll Initiative and have fewer than 2 uses of Bardic Inspiration remaining, you regain uses until you have 2." },
   { name: "Words of Creation",  icon: "", cat: "action", uses: "Passive", minLevel: 20,
     desc: "You learn Power Word Heal and Power Word Kill. Both are always prepared and count as Bard spells. You can cast each once per turn." },
 ]);

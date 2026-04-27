@@ -19,10 +19,11 @@ registerClassSheetActions("Paladin", [
   {
     "name": "Divine Sense",
     "icon": "",
-    "cat": "action",
-    "uses": "CHA+1 / LR",
-    "resKey": "divine_sense",
-    "desc": "Action: for 10 minutes, detect the presence of any Aberration, Celestial, Fiend, Fiendish objects, Undead, or consecrated/desecrated ground within 60 ft. Uses = 1 + CHA modifier per Long Rest."
+    "cat": "bonus",
+    "uses": "1 Channel",
+    "resKey": "paladin_channel_div",
+    "minLevel": 3,
+    "desc": "Channel Divinity option. Bonus Action: for 10 minutes, you know the location of any Aberration, Celestial, Fiend, or Undead within 60 ft, and any place consecrated or desecrated by a deity."
   },
   {
     "name": "Lay on Hands",
@@ -33,7 +34,7 @@ registerClassSheetActions("Paladin", [
     "inlinePills": ({ ownerLevel }) => [
       { icon: "heart", label: "Pool", value: `${Math.max(1, Number(ownerLevel || 1) * 5)} HP` }
     ],
-    "desc": "Touch a creature to restore HP from your pool (1 HP per point spent), or spend 5 points to remove one disease or neutralize one poison. Pool = 5 × Paladin level. Recharge: Long Rest."
+    "desc": "Touch a creature to restore HP from your pool (1 HP per point spent), or spend 5 points to remove the Poisoned condition. Pool = 5 × Paladin level. Recharge: Long Rest."
   },
   {
     "name": "Divine Smite",
@@ -50,18 +51,18 @@ registerClassSheetActions("Paladin", [
     "name": "Channel Divinity",
     "icon": "",
     "cat": "action",
-    "uses": "1-2 / SR",
+    "uses": "2-3 / SR",
     "resKey": "paladin_channel_div",
     "minLevel": 3,
-    "desc": "Subclass-specific option (see your Oath). Uses: 1 (lv.3–10), 2 (lv.11+). Recharge: Short Rest."
+    "desc": "Subclass-specific option (see your Oath). Uses: 2 (lv.3–10), 3 (lv.11+). Recharge: Short Rest."
   },
   {
     "name": "Aura of Protection",
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "minLevel": 7,
-    "desc": "While conscious: you and friendly creatures within 10 ft gain +CHA modifier to saving throws (min +1). Range increases to 30 ft at lv.18."
+    "minLevel": 6,
+    "desc": "While conscious: you and friendly creatures within 10 ft gain +CHA modifier to saving throws (min +1)."
   },
   {
     "name": "Aura of Courage",
@@ -69,7 +70,33 @@ registerClassSheetActions("Paladin", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 10,
-    "desc": "While conscious: friendly creatures within your aura can't have the Frightened condition."
+    "desc": "While conscious: you and friendly creatures within your aura are immune to the Frightened condition."
+  },
+  {
+    "name": "Abjure Foes",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "paladin_channel_div",
+    "minLevel": 9,
+    "desc": "Channel Divinity option. Magic action: up to CHA modifier creatures (min 1) within 60 ft must succeed on a WIS save (spell save DC) or have the Frightened condition for 1 minute or until they take damage."
+  },
+  {
+    "name": "Restoring Touch",
+    "icon": "",
+    "cat": "action",
+    "uses": "Pool / LR",
+    "resKey": "lay_on_hands",
+    "minLevel": 14,
+    "desc": "When you use Lay on Hands on a creature, you can also remove one of the following conditions: Blinded, Charmed, Deafened, Frightened, Paralyzed, or Stunned. Each condition removed costs 5 HP from your Lay on Hands pool."
+  },
+  {
+    "name": "Aura Expansion",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 18,
+    "desc": "Your Aura of Protection and Aura of Courage now extend to 30 ft."
   },
   {
     "name": "Radiant Strikes",
@@ -92,18 +119,11 @@ registerClassSheetResources("Paladin", [
     "pool": true
   },
   {
-    "key": "divine_sense",
-    "name": "Divine Sense",
-    "icon": "cross",
-    "recharge": "LR",
-    "max": ()=>Math.max(1,getMod(getFinal('cha')))+1
-  },
-  {
     "key": "paladin_channel_div",
     "name": "Channel Divinity",
     "icon": "sparkles",
     "recharge": "SR",
-    "max": (lv)=>lv>=11?2:1
+    "max": (lv)=>lv>=11?3:lv>=3?2:0
   }
 ]);
 // [SheetRuntime] END

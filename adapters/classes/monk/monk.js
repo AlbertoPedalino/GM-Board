@@ -25,14 +25,6 @@ registerClassSheetActions("Monk", [
     desc: 'While not wearing armor and not using a Shield: your AC equals 10 + DEX modifier + WIS modifier.'
   },
   {
-    name: 'Unarmored Movement',
-    icon: '',
-    cat: 'action',
-    uses: 'Passive',
-    minLevel: 2,
-    desc: 'Speed increases by 10 ft while not wearing armor or using a Shield (+15 at lv.6, +20 at lv.10, +25 at lv.14, +30 at lv.18). At lv.9: can move along vertical surfaces and across liquids on your turn without falling.'
-  },
-  {
     name: 'Martial Arts',
     icon: '',
     cat: 'attack',
@@ -42,13 +34,30 @@ registerClassSheetActions("Monk", [
       const die = lv >= 17 ? 12 : lv >= 11 ? 10 : lv >= 5 ? 8 : 6;
       return `1d${die}`;
     },
-    desc: 'With Simple weapons, Monk weapons, or Unarmed Strikes: use DEX instead of STR for attack and damage. Unarmed Strike die: d6 (lv.1-4), d8 (lv.5-10), d10 (lv.11-16), d12 (lv.17-20). After the Attack action: make one Unarmed Strike as a Bonus Action (free, no Discipline Point cost).'
+    desc: 'With Simple weapons, Monk weapons, or Unarmed Strikes: use DEX instead of STR for attack and damage. Unarmed Strike die: d6 (lv.1-4), d8 (lv.5-10), d10 (lv.11-16), d12 (lv.17-20). After the Attack action: make one Unarmed Strike as a Bonus Action (free, no Focus Point cost).'
+  },
+  {
+    name: 'Unarmored Movement',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 2,
+    desc: 'Speed increases by 10 ft while not wearing armor or using a Shield (+15 at lv.6, +20 at lv.10, +25 at lv.14, +30 at lv.18).'
+  },
+  {
+    name: 'Uncanny Metabolism',
+    icon: '',
+    cat: 'action',
+    uses: '1 / LR',
+    resKey: 'uncanny_metabolism',
+    minLevel: 2,
+    desc: 'Once per Long Rest, when you roll Initiative, you regain all expended Focus Points and regain HP equal to your Monk level + your Martial Arts die.'
   },
   {
     name: 'Flurry of Blows',
     icon: '',
     cat: 'bonus',
-    uses: '1 Discipline Point',
+    uses: '1 Focus Point',
     resKey: 'ki',
     minLevel: 2,
     damageFormula: ({ ownerLevel }) => {
@@ -56,31 +65,31 @@ registerClassSheetActions("Monk", [
       const die = lv >= 17 ? 12 : lv >= 11 ? 10 : lv >= 5 ? 8 : 6;
       return `2d${die}`;
     },
-    desc: 'After the Attack action, spend 1 Discipline Point to make 2 Unarmed Strikes as a Bonus Action.'
+    desc: 'After the Attack action, spend 1 Focus Point to make 2 Unarmed Strikes as a Bonus Action. At lv.10 (Heightened Focus): make 3 Unarmed Strikes instead.'
   },
   {
     name: 'Patient Defense',
     icon: '',
     cat: 'bonus',
-    uses: '1 Discipline Point',
+    uses: 'Free / 1 Focus Point',
     resKey: 'ki',
     minLevel: 2,
-    desc: 'Spend 1 Discipline Point (Bonus Action) to take the Dodge action.'
+    desc: 'Free (Bonus Action): take the Disengage action. Alternatively, spend 1 Focus Point (Bonus Action) to take both the Disengage and Dodge actions. At lv.10: the Focus Point version also grants Temporary HP equal to two Martial Arts die rolls.'
   },
   {
     name: 'Step of the Wind',
     icon: '',
     cat: 'bonus',
-    uses: '1 Discipline Point',
+    uses: 'Free / 1 Focus Point',
     resKey: 'ki',
     minLevel: 2,
-    desc: 'Spend 1 Discipline Point (Bonus Action) to take the Dash or Disengage action. Your jump distance doubles for the turn.'
+    desc: 'Free (Bonus Action): take the Dash action. Alternatively, spend 1 Focus Point (Bonus Action) to take both the Disengage and Dash actions. Jump distance doubles for the turn. At lv.10: the Focus Point version lets you move one willing ally within 5 ft up to your Speed (no Opportunity Attacks).'
   },
   {
     name: 'Deflect Attacks',
     icon: '',
     cat: 'reaction',
-    uses: 'Free / 1 DP redirect',
+    uses: 'Free / 1 FP redirect',
     resKey: 'ki',
     minLevel: 3,
     damageFormula: ({ ownerLevel }) => {
@@ -94,7 +103,7 @@ registerClassSheetActions("Monk", [
     damageKind: 'utility',
     damageButtonLabel: ({ formula }) => `${String(formula || '')} reduce`,
     rollLabelPrefix: 'Deflect Attacks',
-    desc: 'Reaction when you take damage from an attack. Reduce the damage by 1d10 + DEX modifier + Monk level. If reduced to 0: you can spend 1 Discipline Point to redirect the attack as a ranged attack (20/60 ft range, damage = Martial Arts die + DEX).'
+    desc: 'Reaction when you take B/P/S damage (lv.3) or any damage type (lv.13 Deflect Energy). Reduce the damage by 1d10 + DEX modifier + Monk level. If reduced to 0: spend 1 Focus Point to redirect as a ranged attack (20/60 ft, Martial Arts die + DEX).'
   },
   {
     name: 'Slow Fall',
@@ -102,24 +111,32 @@ registerClassSheetActions("Monk", [
     cat: 'reaction',
     uses: 'Passive',
     minLevel: 4,
-    desc: 'Reaction when falling: reduce falling damage by an amount equal to your Monk level x 5.'
+    desc: 'Reaction when falling: reduce falling damage by an amount equal to your Monk level × 5.'
+  },
+  {
+    name: 'Extra Attack',
+    icon: '',
+    cat: 'attack',
+    uses: 'Passive',
+    minLevel: 5,
+    desc: 'You can attack twice, instead of once, whenever you take the Attack action on your turn.'
   },
   {
     name: 'Stunning Strike',
     icon: '',
     cat: 'attack',
-    uses: '1 Discipline Point',
+    uses: '1 Focus Point',
     resKey: 'ki',
     minLevel: 5,
-    desc: 'When you hit a creature with a weapon or Unarmed Strike, spend 1 Discipline Point to force a CON save (DC = 8+PB+WIS). Failure: the target has the Stunned condition until the start of your next turn.'
+    desc: 'When you hit a creature with a weapon or Unarmed Strike, spend 1 Focus Point to force a CON save (DC = 8+PB+WIS). Failure: the target has the Stunned condition until the start of your next turn.'
   },
   {
-    name: 'Ki-Empowered Strikes',
+    name: 'Empowered Strikes',
     icon: '',
     cat: 'attack',
     uses: 'Passive',
     minLevel: 6,
-    desc: 'Your Unarmed Strikes count as magical for the purpose of overcoming Resistance and Immunity to nonmagical attacks.'
+    desc: 'Your Unarmed Strikes deal your choice of Force damage or their normal Bludgeoning damage.'
   },
   {
     name: 'Evasion',
@@ -130,46 +147,88 @@ registerClassSheetActions("Monk", [
     desc: "When you are subjected to an effect that allows a DEX save for half damage: take no damage on success, half on failure. Doesn't work if you have the Incapacitated condition."
   },
   {
-    name: 'Stillness of Mind',
-    icon: '',
-    cat: 'action',
-    uses: 'Action',
-    minLevel: 8,
-    desc: 'Action: end one effect on yourself causing the Charmed or Frightened condition.'
-  },
-  {
     name: 'Acrobatic Movement',
     icon: '',
     cat: 'action',
     uses: 'Passive',
     minLevel: 9,
-    desc: 'You gain Climb Speed and Swim Speed equal to your Speed. Difficult terrain costs no extra movement.'
+    desc: 'You can move along vertical surfaces and across liquids on your turn without falling during the move.'
   },
   {
-    name: 'Heightened Discipline',
+    name: 'Heightened Focus',
     icon: '',
     cat: 'action',
     uses: 'Passive',
     minLevel: 10,
-    desc: 'Your Flurry of Blows, Patient Defense, and Step of the Wind each gain a bonus effect when you spend the Discipline Point: Flurry can Stun, Patient Defense can knock Prone, Step of the Wind can Push.'
+    desc: 'Your three Focus Point techniques are enhanced: Flurry of Blows adds a 3rd strike; Patient Defense (Focus Point version) also grants Temp HP equal to two Martial Arts dice; Step of the Wind (Focus Point version) also lets you move one willing ally within 5 ft up to your Speed without Opportunity Attacks.'
   },
   {
-    name: 'Perfect Self',
+    name: 'Self-Restoration',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 10,
+    desc: 'At the end of each of your turns, you can end one of the following conditions on yourself: Charmed, Frightened, or Poisoned.'
+  },
+  {
+    name: 'Deflect Energy',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 13,
+    desc: 'Deflect Attacks now works against all damage types (not just Bludgeoning, Piercing, and Slashing).'
+  },
+  {
+    name: 'Disciplined Survivor',
+    icon: '',
+    cat: 'action',
+    uses: '1 Focus Point',
+    resKey: 'ki',
+    minLevel: 14,
+    desc: 'You gain proficiency in all saving throws. When you fail a saving throw, you can spend 1 Focus Point to reroll it with a bonus equal to your WIS modifier and use the new result.'
+  },
+  {
+    name: 'Perfect Focus',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 15,
+    desc: "When you roll Initiative and don't use Uncanny Metabolism, if you have 3 or fewer Focus Points remaining, you regain Focus Points until you have 4."
+  },
+  {
+    name: 'Superior Defense',
+    icon: '',
+    cat: 'action',
+    uses: '3 Focus Points',
+    resKey: 'ki',
+    minLevel: 18,
+    desc: 'Spend 3 Focus Points at the start of your turn: gain Resistance to all damage except Force for 1 minute.'
+  },
+  {
+    name: 'Body and Mind',
     icon: '',
     cat: 'action',
     uses: 'Passive',
     minLevel: 20,
-    desc: 'When you roll Initiative and have 0 Discipline Points, you regain 4 Discipline Points.'
+    desc: 'Your Dexterity and Wisdom scores each increase by 4, to a maximum of 25.'
   }
 ]);
 registerClassSheetResources("Monk", [
   {
     key: 'ki',
-    name: 'Discipline Points',
+    name: 'Focus Points',
     icon: 'orbit',
     recharge: 'SR',
-    max: (lv)=>lv,
+    max: (lv) => lv,
     pool: true
+  },
+  {
+    key: 'uncanny_metabolism',
+    name: 'Uncanny Metabolism',
+    icon: 'zap',
+    recharge: 'LR',
+    minLevel: 2,
+    max: () => 1
   }
 ]);
 // [SheetRuntime] END

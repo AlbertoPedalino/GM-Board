@@ -6,10 +6,10 @@ registerSubclassSheetActions("Monk_Shadow", [
     "name": "Shadow Arts",
     "icon": "",
     "cat": "action",
-    "uses": "Discipline Points",
+    "uses": "1 Focus Point",
     "resKey": "ki",
     "minLevel": 3,
-    "desc": "Spend Discipline Points to cast (no material components): Darkness (2 DP), Darkvision (2 DP), Pass Without Trace (2 DP), Silence (2 DP). You can also cast Minor Illusion as a cantrip for free."
+    "desc": "Spend 1 Focus Point to cast Darkness (no material components, WIS is spellcasting ability). You also know the Minor Illusion cantrip, castable at will."
   },
   {
     "name": "Shadow Step",
@@ -20,21 +20,21 @@ registerSubclassSheetActions("Monk_Shadow", [
     "desc": "Bonus Action while in dim light or darkness: teleport up to 60 ft to an unoccupied space you can see that is also in dim light or darkness. Gain Advantage on the first melee attack you make before the end of your turn."
   },
   {
-    "name": "Cloak of Shadows",
+    "name": "Improved Shadow Step",
     "icon": "",
-    "cat": "action",
-    "uses": "1 Discipline Point",
+    "cat": "bonus",
+    "uses": "1 Focus Point",
     "resKey": "ki",
     "minLevel": 11,
-    "desc": "Action while in dim light or darkness: spend 1 Discipline Point to become Invisible. Ends at the start of your next turn, or when you attack or cast a spell."
+    "desc": "Enhanced Shadow Step: spend 1 Focus Point when you use Shadow Step to remove the lighting restriction — you can teleport from any lighting condition. You also gain Advantage on the next melee attack before the end of your turn and can make one Unarmed Strike as part of the same Bonus Action."
   },
   {
-    "name": "Opportunist",
+    "name": "Cloak of Shadows",
     "icon": "",
-    "cat": "reaction",
-    "uses": "At will",
+    "cat": "bonus",
+    "uses": "At will (in darkness)",
     "minLevel": 17,
-    "desc": "Reaction when a creature within 5 ft is hit by an attack made by a creature other than you: make one melee attack against that creature."
+    "desc": "Bonus Action while in dim light or darkness: become Invisible. Ends when you attack, cast a spell, or enter bright light."
   }
 ]);
 // [SheetRuntime] END

@@ -37,21 +37,21 @@ registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Cleric_Knowledge", [
   {
-    "name": "Channel: Knowledge of the Ages",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 Channel",
-    "resKey": "channel_div",
-    "desc": "Choose a skill or tool: for 10 minutes gain proficiency (or double proficiency if already proficient)."
-  },
-  {
     "name": "Channel: Read Thoughts",
     "icon": "",
     "cat": "action",
     "uses": "1 Channel",
     "resKey": "channel_div",
-    "minLevel": 6,
     "desc": "Choose a creature within 60 ft. For 1 minute, read its surface thoughts (it is unaware). You can also use your action to end the effect early and cast Suggestion on the target (no slot); it has Disadvantage on the saving throw."
+  },
+  {
+    "name": "Channel: Knowledge of the Ages",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "channel_div",
+    "minLevel": 6,
+    "desc": "Choose a skill or tool: until you finish a Long Rest, you gain proficiency with it (or Expertise if already proficient)."
   },
   {
     "name": "Channel: Visions of the Past",

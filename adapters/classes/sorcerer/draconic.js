@@ -45,12 +45,22 @@ registerSubclassSheetActions("Sorcerer_Draconic", [
     "desc": "Bonus Action: sprout draconic wings, gaining a Fly Speed equal to your walking speed. Retract them as a Bonus Action."
   },
   {
-    "name": "Draconic Presence",
+    "name": "Dragon Companion",
     "icon": "",
     "cat": "action",
-    "uses": "1 / LR",
+    "uses": "CHA mod / LR",
+    "resKey": "draconic_companion",
     "minLevel": 18,
-    "desc": "Action: emanate draconic awe in 60 ft. Each creature must succeed on a WIS save (spell save DC) or be frightened/charmed for 1 minute."
+    "desc": "You can cast Summon Dragon without expending a spell slot. The summoned dragon uses your spell save DC and spell attack bonus. Uses per Long Rest = CHA modifier (min 1)."
+  }
+]);
+registerSubclassSheetResources("Sorcerer_Draconic", [
+  {
+    "key": "draconic_companion",
+    "name": "Dragon Companion",
+    "icon": "dragon",
+    "recharge": "LR",
+    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 1)
   }
 ]);
 // [SheetRuntime] END

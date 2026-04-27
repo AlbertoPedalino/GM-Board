@@ -22,18 +22,18 @@ registerSubclassSheetActions("Monk_Elements", [
   {
     "name": "Elemental Burst",
     "icon": "",
-    "cat": "action",
-    "uses": "2 Focus Points",
+    "cat": "attack",
+    "uses": "1 Focus Point",
     "resKey": "ki",
     "minLevel": 6,
     "damageFormula": ({ ownerLevel }) => {
       const lv = Number(ownerLevel || 1);
       const die = lv >= 17 ? 12 : lv >= 11 ? 10 : lv >= 5 ? 8 : 6;
-      return `3d${die}`;
+      return `2d${die}`;
     },
     "damageButtonLabel": ({ formula }) => `${formula} elemental`,
     "damageKind": "damage",
-    "desc": "Magic Action: spend 2 Focus Points. Choose Acid/Cold/Fire/Lightning/Thunder. 20-ft Sphere centered on a point within 120 ft: DEX save (spell save DC), fail = 3 × Martial Arts die damage, success = half."
+    "desc": "Replace one attack in your Attack action: spend 1 Focus Point. Choose Acid/Cold/Fire/Lightning/Thunder. 20-ft cone or 30-ft line (5 ft wide) originating from you: DEX save (spell save DC), fail = 2 × Martial Arts die damage, success = half."
   },
   {
     "name": "Stride of the Elements",

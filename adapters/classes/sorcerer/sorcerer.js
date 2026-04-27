@@ -63,9 +63,10 @@ registerClassSheetActions("Sorcerer", [
     "name": "Sorcerous Restoration",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "1 / LR",
+    "resKey": "sorc_restoration",
     "minLevel": 5,
-    "desc": "Regain expended Sorcery Points when you finish a Short Rest. Number restored = half your Sorcerer level (rounded down)."
+    "desc": "When you finish a Short Rest, you can regain expended Sorcery Points equal to half your Sorcerer level (rounded down). You can use this feature once per Long Rest."
   },
   {
     "name": "Sorcery Incarnate",
@@ -86,6 +87,13 @@ registerClassSheetActions("Sorcerer", [
   }
 ]);
 registerClassSheetResources("Sorcerer", [
+  {
+    "key": "sorc_restoration",
+    "name": "Sorcerous Restoration",
+    "icon": "refresh-cw",
+    "recharge": "LR",
+    "max": () => 1
+  },
   {
     "key": "innate_sorcery",
     "name": "Innate Sorcery",

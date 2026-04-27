@@ -15,7 +15,16 @@ registerSubclassSheetActions("Cleric_Light", [
     "uses": "WIS mod / LR",
     "resKey": "warding_flare",
     "minLevel": 3,
-    "desc": "Reaction when you (or lv.6+ an ally within 30 ft) are attacked: impose Disadvantage on that attack roll. Uses = your WIS modifier per Long Rest."
+    "desc": "Reaction when you are attacked: impose Disadvantage on that attack roll. Uses = your WIS modifier per Long Rest."
+  },
+  {
+    "name": "Improved Warding Flare",
+    "icon": "",
+    "cat": "reaction",
+    "uses": "WIS mod / LR",
+    "resKey": "warding_flare",
+    "minLevel": 6,
+    "desc": "Your Warding Flare now also protects allies: you can use it as a Reaction when a creature within 30 ft that you can see is attacked."
   },
   {
     "name": "Channel: Radiance of the Dawn",

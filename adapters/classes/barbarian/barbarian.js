@@ -42,7 +42,7 @@ registerClassSheetActions("Barbarian", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "desc": "While not wearing armor and not using a Shield: your AC equals 10 + DEX modifier + CON modifier."
+    "desc": "While not wearing armor: your AC equals 10 + DEX modifier + CON modifier. You can use a Shield and still gain this benefit."
   },
   {
     "name": "Rage",
@@ -65,7 +65,7 @@ registerClassSheetActions("Barbarian", [
     "cat": "reaction",
     "uses": "Passive",
     "minLevel": 2,
-    "desc": "You have advantage on DEX saving throws against effects you can see. You can't be surprised while you are conscious."
+    "desc": "You have Advantage on Dexterity saving throws unless you have the Incapacitated condition."
   },
   {
     "name": "Extra Attack",
@@ -89,7 +89,7 @@ registerClassSheetActions("Barbarian", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 7,
-    "desc": "Advantage on Initiative rolls. If you are surprised at the start of combat, you can act normally on your first turn as long as you enter your Rage before doing anything else."
+    "desc": "You have Advantage on Initiative rolls."
   },
   {
     "name": "Instinctive Pounce",
@@ -110,12 +110,32 @@ registerClassSheetActions("Barbarian", [
     "desc": "When you use Reckless Attack and have advantage, forgo the advantage on one attack to deal +1d10 damage and trigger a Brutal Strike effect: Forceful Blow (push 15 ft or knock Prone) or Hamstring Blow (target's Speed halved until start of your next turn)."
   },
   {
+    "name": "Improved Brutal Strike",
+    "icon": "",
+    "cat": "attack",
+    "uses": "While Raging",
+    "minLevel": 13,
+    "damageFormula": "1d10",
+    "damageButtonLabel": "+1d10",
+    "desc": "Brutal Strike gains two new effects: Staggering Blow (target has Disadvantage on the next attack roll it makes before the start of your next turn) and Sundering Blow (another creature within 5 ft of the target takes 1d10 Force damage, no attack roll). Still forgo Reckless Attack advantage on one attack."
+  },
+  {
+    "name": "Brutal Strike (lv17 upgrade)",
+    "icon": "",
+    "cat": "attack",
+    "uses": "While Raging",
+    "minLevel": 17,
+    "damageFormula": "2d10",
+    "damageButtonLabel": "+2d10",
+    "desc": "Brutal Strike extra damage increases to 2d10 (from 1d10). You can also apply TWO Brutal Strike effects to the same attack instead of one."
+  },
+  {
     "name": "Relentless Rage",
     "icon": "",
     "cat": "reaction",
     "uses": "DC 10+ CON",
     "minLevel": 11,
-    "desc": "When you are reduced to 0 HP while Raging and don't die outright, you can make a DC 10 CON save to drop to 1 HP instead. Each time you use this feature the DC increases by 5, resetting on a Long Rest."
+    "desc": "When you are reduced to 0 HP while Raging and don't die outright, you can make a DC 10 CON save. On a success, your HP instead changes to a number equal to twice your Barbarian level. Each time you use this feature the DC increases by 5, resetting on a Long Rest."
   },
   {
     "name": "Persistent Rage",
@@ -123,7 +143,7 @@ registerClassSheetActions("Barbarian", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 15,
-    "desc": "Your Rage only ends early if you fall unconscious or choose to end it. No longer ends from not attacking or taking damage."
+    "desc": "When you roll Initiative, you can regain all expended uses of Rage (usable once per Long Rest). Your Rage lasts 10 minutes and ends early only if you have the Unconscious condition, don Heavy Armor, or choose to end it."
   },
   {
     "name": "Indomitable Might",
@@ -139,7 +159,7 @@ registerClassSheetActions("Barbarian", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 20,
-    "desc": "Your STR score increases by 4 and your CON score increases by 4. Your maximums for those scores increase by 4 as well."
+    "desc": "Your STR score increases by 4 and your CON score increases by 4, to a maximum of 25."
   }
 ]);
 registerClassSheetResources("Barbarian", [

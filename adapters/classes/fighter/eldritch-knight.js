@@ -22,20 +22,12 @@ registerSubclassAdapter("Fighter_Eldritch Knight", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Fighter_Eldritch Knight", [
   {
-    "name": "Weapon Bond",
-    "icon": "",
-    "cat": "bonus",
-    "uses": "Bonus Action",
-    "minLevel": 3,
-    "desc": "Bonus Action: summon a bonded weapon to your hand from within 60 ft (even if it is in another creature's possession). You can bond to up to two weapons by performing a 1-hour ritual. You cannot be disarmed of bonded weapons."
-  },
-  {
     "name": "War Magic",
     "icon": "",
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 7,
-    "desc": "Passive: when you take the Attack action, you can replace one attack with casting a Wizard cantrip that has a casting time of 1 action."
+    "desc": "Passive: when you use your action to cast a Wizard cantrip, you can make one weapon attack as a Bonus Action."
   },
   {
     "name": "Eldritch Strike",
@@ -59,7 +51,7 @@ registerSubclassSheetActions("Fighter_Eldritch Knight", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 18,
-    "desc": "Passive: when you use Action Surge, you can cast one Wizard spell with a casting time of 1 action or 1 Bonus Action, instead of taking the additional action."
+    "desc": "Passive: when you take the Attack action, you can replace ONE attack with casting any Wizard spell you know that has a casting time of 1 action (not limited to cantrips, unlike War Magic)."
   }
 ]);
 // [SheetRuntime] END

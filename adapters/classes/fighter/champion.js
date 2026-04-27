@@ -1,12 +1,12 @@
 registerSubclassAdapter("Fighter_Champion", function (cls, lv, specs) {
-  if (lv >= 10) {
+  if (lv >= 7) {
     specs.push({
       key: 'subclass_champion_extra_fs',
       label: 'Extra Fighting Style (Champion)',
       type: 'feat_cat',
       categories: ['FS'],
       count: 1,
-      level: 10
+      level: 7
     });
   }
 });
@@ -26,8 +26,8 @@ registerSubclassSheetActions("Fighter_Champion", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "minLevel": 7,
-    "desc": "At the start of each of your turns in combat, you can regain one expended use of Second Wind."
+    "minLevel": 10,
+    "desc": "When you finish a Short Rest, you regain one expended use of Second Wind."
   },
   {
     "name": "Survivor",

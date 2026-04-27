@@ -8,7 +8,7 @@ registerSubclassSheetActions("Warlock_Archfey", [
     "cat": "bonus",
     "uses": "1 / SR",
     "resKey": "fey_step",
-    "minLevel": 1,
+    "minLevel": 3,
     "desc": "Bonus Action: teleport to an unoccupied space you can see within 30 ft. Recharge: Short Rest."
   },
   {

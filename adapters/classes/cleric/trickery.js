@@ -22,7 +22,23 @@ registerSubclassSheetActions("Cleric_Trickery", [
     "cat": "action",
     "uses": "1 Channel / Conc.",
     "resKey": "channel_div",
-    "desc": "Create an illusory duplicate of yourself within 30 ft. As a Bonus Action move it up to 30 ft. You can cast spells as if occupying its space. Lv.17: up to 4 duplicates simultaneously."
+    "desc": "Create an illusory duplicate of yourself within 30 ft. As a Bonus Action move it up to 30 ft. You can cast spells as if occupying its space."
+  },
+  {
+    "name": "Trickster's Transposition",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "Passive",
+    "minLevel": 6,
+    "desc": "While Invoke Duplicity is active: when you move a duplicate, you can swap places with it (teleport to its space). Once per turn."
+  },
+  {
+    "name": "Improved Duplicity",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 17,
+    "desc": "When you use Invoke Duplicity, you can create up to four duplicates simultaneously instead of one."
   }
 ]);
 // [SheetRuntime] END

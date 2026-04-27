@@ -24,7 +24,7 @@ registerSubclassSheetActions("Rogue_Thief", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 9,
-    "desc": "Passive: you can apply your Sneak Attack damage even if no ally is adjacent to your target, as long as you took the Hide action this turn before the attack and are hidden from the target."
+    "desc": "Passive: you have Advantage on DEX (Stealth) checks if you have moved no more than half your Speed on the current turn."
   },
   {
     "name": "Use Magic Device",

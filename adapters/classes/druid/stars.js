@@ -15,10 +15,10 @@ registerSubclassSheetActions("Druid_Stars", [
     "name": "Cosmic Omen",
     "icon": "",
     "cat": "reaction",
-    "uses": "1 / SR",
+    "uses": "PB / LR",
     "resKey": "stars_cosmic_omen",
     "minLevel": 6,
-    "desc": "After each Long Rest, roll 1d6. Odd = Weal, Even = Woe. Once per Short Rest, use Reaction when a visible creature rolls a d20: Weal → add 1d6 to the roll; Woe → subtract 1d6 from the roll."
+    "desc": "After each Long Rest, roll 1d6. Even = Weal, Odd = Woe. Uses = Proficiency Bonus per Long Rest. Use Reaction when a visible creature rolls a d20: Weal → add 1d6 to the roll; Woe → subtract 1d6 from the roll."
   },
   {
     "name": "Twinkling Constellations",
@@ -42,8 +42,8 @@ registerSubclassSheetResources("Druid_Stars", [
     "key": "stars_cosmic_omen",
     "name": "Cosmic Omen",
     "icon": "star",
-    "recharge": "SR",
-    "max": () => 1
+    "recharge": "LR",
+    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
   }
 ]);
 // [SheetRuntime] END

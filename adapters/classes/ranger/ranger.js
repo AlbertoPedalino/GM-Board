@@ -1,6 +1,5 @@
 registerClassAdapter("Ranger", function (cls, lv, specs) {
   if (lv >= 1) {
-    // Weapon Mastery: scegli 2 armi con cui sei competente
     const weapons = typeof allItemsDb !== 'undefined'
       ? allItemsDb
           .filter(function (i) { return (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'); })
@@ -24,7 +23,6 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
     });
   }
   if (lv >= 2) {
-    // Deft Explorer: expertise in 1 skill
     specs.push({
       key: 'ranger_expertise_1',
       label: 'Expertise 1 (Ranger)',
@@ -72,17 +70,17 @@ registerClassSheetActions("Ranger", [
     "icon": "",
     "cat": "bonus",
     "uses": "Passive",
-    "desc": "You always have Hunter's Mark prepared (doesn't count against spells known). You can cast it without expending a spell slot a number of times equal to your WIS modifier (min 1) per Long Rest."
+    "desc": "You always have Hunter's Mark prepared (doesn't count against spells known). You can cast it without expending a spell slot: 2 free casts per LR at lv.1, scaling to 3 (lv.5), 4 (lv.9), 5 (lv.13), 6 (lv.17)."
   },
   {
     "name": "Hunter's Mark",
     "icon": "",
     "cat": "bonus",
-    "uses": "WIS mod free / LR",
+    "uses": "2 free / LR",
     "resKey": "hunters_mark_free",
     "damageFormula": "1d6",
     "damageButtonLabel": "+1d6",
-    "desc": "Bonus Action (Concentration): mark a creature you can see within 90 ft. +1d6 damage on every hit against it. Advantage on PER/Survival checks to find it. Can move the mark (Bonus Action) if the marked creature dies. At lv.17: no longer requires Concentration."
+    "desc": "Bonus Action (Concentration): mark a creature you can see within 90 ft. +1d6 damage on every hit against it. Advantage on PER/Survival checks to find it. Move the mark (Bonus Action) when the marked creature dies. At lv.17: no longer requires Concentration."
   },
   {
     "name": "Deft Explorer",
@@ -90,7 +88,7 @@ registerClassSheetActions("Ranger", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 2,
-    "desc": "Expertise in one skill. Learn one language. At lv.6: learn a second language and gain a +10 ft Speed increase in one terrain type. At lv.10: Tireless—Exhaustion not granted from traveling; reduce Exhaustion after short rest."
+    "desc": "Expertise in one skill. Learn two languages."
   },
   {
     "name": "Roving",
@@ -109,12 +107,38 @@ registerClassSheetActions("Ranger", [
     "desc": "Attack twice when you take the Attack action."
   },
   {
-    "name": "Evasion",
+    "name": "Tireless",
     "icon": "",
-    "cat": "reaction",
+    "cat": "action",
+    "uses": "WIS mod / LR",
+    "resKey": "ranger_tireless",
+    "minLevel": 10,
+    "desc": "Magic action: gain 1d8 + WIS modifier Temporary HP. When you finish a Short Rest, your Exhaustion level is reduced by 1. Uses per Long Rest = WIS modifier."
+  },
+  {
+    "name": "Relentless Hunter",
+    "icon": "",
+    "cat": "action",
     "uses": "Passive",
-    "minLevel": 7,
-    "desc": "DEX save: take no damage on success, half on failure. Doesn't work if you have the Incapacitated condition."
+    "minLevel": 13,
+    "desc": "Taking damage can't break your Concentration on Hunter's Mark."
+  },
+  {
+    "name": "Nature's Veil",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "WIS mod / LR",
+    "resKey": "natures_veil",
+    "minLevel": 14,
+    "desc": "Bonus Action: become Invisible until the end of your next turn. Uses per Long Rest = WIS modifier."
+  },
+  {
+    "name": "Precise Hunter",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 17,
+    "desc": "You have Advantage on attack rolls against the creature currently marked by your Hunter's Mark."
   },
   {
     "name": "Feral Senses",
@@ -122,7 +146,15 @@ registerClassSheetActions("Ranger", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 18,
-    "desc": "No Disadvantage on attack rolls against creatures you can't see. You can hear invisible creatures in combat."
+    "desc": "You gain Blindsight 30 ft."
+  },
+  {
+    "name": "Foe Slayer",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 20,
+    "desc": "The extra damage die from Hunter's Mark increases to 1d10 (instead of 1d6)."
   }
 ]);
 registerClassSheetResources("Ranger", [
@@ -131,7 +163,23 @@ registerClassSheetResources("Ranger", [
     "name": "Hunter's Mark (free)",
     "icon": "crosshair",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1)
+    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
+  },
+  {
+    "key": "ranger_tireless",
+    "name": "Tireless",
+    "icon": "heart",
+    "recharge": "LR",
+    "minLevel": 10,
+    "max": () => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('wis'))) : 1
+  },
+  {
+    "key": "natures_veil",
+    "name": "Nature's Veil",
+    "icon": "eye-off",
+    "recharge": "LR",
+    "minLevel": 14,
+    "max": () => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('wis'))) : 1
   }
 ]);
 // [SheetRuntime] END

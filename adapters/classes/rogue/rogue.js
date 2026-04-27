@@ -136,6 +136,14 @@ registerClassSheetActions("Rogue", [
     "desc": "When you deal Sneak Attack damage, forgo one or more Sneak Attack dice to apply an option: Disarm (1 die, DEX save or drops item), Poison (1 die, CON save or Poisoned 1 min), Trip (1 die, DEX save or Prone), Withdraw (1 die, movement doesn't provoke OA this turn)."
   },
   {
+    "name": "Improved Cunning Strike",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Sneak Attack dice",
+    "minLevel": 11,
+    "desc": "You can use up to two Cunning Strike options when you deal Sneak Attack damage, instead of only one."
+  },
+  {
     "name": "Devious Strikes",
     "icon": "",
     "cat": "attack",

@@ -7,16 +7,17 @@ registerSubclassSheetActions("Warlock_Great Old One", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
+    "minLevel": 3,
     "desc": "Telepathically communicate with any creature within 30 ft that knows at least one language, even if it doesn't speak yours."
   },
   {
-    "name": "Entropic Ward",
+    "name": "Clairvoyant Combatant",
     "icon": "",
-    "cat": "reaction",
-    "uses": "1 / LR",
-    "resKey": "goo_entropic_ward",
+    "cat": "action",
+    "uses": "1 / SR",
+    "resKey": "goo_clairvoyant",
     "minLevel": 6,
-    "desc": "Reaction when a creature makes an attack roll against you: impose Disadvantage on that roll. If the attack misses, gain Advantage on your next attack roll against that creature before the end of your next turn. Recharge: Long Rest."
+    "desc": "When you establish telepathic contact with a creature using Awakened Mind, you can force it to make a WIS saving throw (spell save DC). On a failure, the creature has Disadvantage on attack rolls against you until the telepathic contact ends. Recharge: Short Rest."
   },
   {
     "name": "Thought Shield",
@@ -37,10 +38,10 @@ registerSubclassSheetActions("Warlock_Great Old One", [
 ]);
 registerSubclassSheetResources("Warlock_Great Old One", [
   {
-    "key": "goo_entropic_ward",
-    "name": "Entropic Ward",
+    "key": "goo_clairvoyant",
+    "name": "Clairvoyant Combatant",
     "icon": "eye",
-    "recharge": "LR",
+    "recharge": "SR",
     "max": () => 1
   }
 ]);

@@ -37,12 +37,12 @@ registerSubclassSheetActions("Sorcerer_Wild Magic", [
     "desc": "When you roll on the Wild Magic Surge table, roll twice and choose either result."
   },
   {
-    "name": "Spell Bombardment",
+    "name": "Tamed Surge",
     "icon": "",
     "cat": "action",
     "uses": "Passive",
     "minLevel": 18,
-    "desc": "Once per turn: when you roll damage for a spell and roll the highest possible number on any one die, roll that die again and add the result to the damage."
+    "desc": "Whenever you roll on the Wild Magic Surge table, you can roll twice and use either result."
   }
 ]);
 registerSubclassSheetResources("Sorcerer_Wild Magic", [

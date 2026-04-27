@@ -13,19 +13,19 @@ registerSubclassSheetActions("Monk_Open Hand", [
   {
     "name": "Wholeness of Body",
     "icon": "",
-    "cat": "bonus",
+    "cat": "action",
     "uses": "1 / LR",
     "resKey": "open_hand_wholeness",
     "minLevel": 6,
-    "desc": "Bonus Action: regain HP equal to 3 × your Monk level. Recharge: Long Rest."
+    "desc": "Action: regain HP equal to 3 × your Monk level. Recharge: Long Rest."
   },
   {
-    "name": "Tranquility",
+    "name": "Fleet Step",
     "icon": "",
-    "cat": "action",
-    "uses": "Passive",
+    "cat": "bonus",
+    "uses": "With Step of the Wind",
     "minLevel": 11,
-    "desc": "At the end of each Long Rest, gain the effect of a Sanctuary spell (save DC = 8 + PB + WIS) that lasts until your next Long Rest or until you deal damage or force a saving throw."
+    "desc": "When you use Step of the Wind, you can also use Flurry of Blows as part of the same Bonus Action (spending 1 Focus Point for the Flurry as normal)."
   },
   {
     "name": "Quivering Palm",

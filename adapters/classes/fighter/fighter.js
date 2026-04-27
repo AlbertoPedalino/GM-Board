@@ -49,7 +49,7 @@ registerClassSheetActions("Fighter", [
     damageKind: 'heal',
     damageButtonLabel: ({ formula }) => `Heal ${String(formula || '')}`,
     rollLabelPrefix: 'Heal',
-    desc: 'Bonus Action: regain 1d10 + Fighter level HP. Uses: 1 (lv.1-2), 2 (lv.3-14), 3 (lv.15+). Recharge: Short or Long Rest.'
+    desc: 'Bonus Action: regain 1d10 + Fighter level HP. Uses: 2 (lv.1), 3 (lv.4), 4 (lv.10). Recharge: Short or Long Rest.'
   },
   {
     name: 'Action Surge',
@@ -81,12 +81,12 @@ registerClassSheetActions("Fighter", [
     desc: 'Attack twice when you take the Attack action (lv.5). Three times at lv.11. Four times at lv.20.'
   },
   {
-    name: 'Master of Armaments',
+    name: 'Tactical Master',
     icon: '',
-    cat: 'action',
+    cat: 'attack',
     uses: 'Passive',
     minLevel: 9,
-    desc: 'Passive: whenever you finish a Long Rest, you can replace one of your Weapon Mastery choices with another eligible weapon.'
+    desc: 'Passive: when you attack with a weapon whose Mastery property you can use, you can replace that Mastery property with Push, Sap, or Slow for that attack only.'
   },
   {
     name: 'Studied Attacks',
@@ -94,7 +94,7 @@ registerClassSheetActions("Fighter", [
     cat: 'attack',
     uses: 'Passive',
     minLevel: 13,
-    desc: 'Passive: when you miss with an attack roll using a weapon, you gain Advantage on your next attack roll against the same target before the end of your current turn.'
+    desc: 'Passive: when you miss with an attack roll using a weapon, you gain Advantage on your next attack roll against the same target before the end of your next turn.'
   },
   {
     name: 'Indomitable',
@@ -103,15 +103,15 @@ registerClassSheetActions("Fighter", [
     uses: '1-3 / LR',
     resKey: 'indomitable',
     minLevel: 9,
-    desc: 'When you fail a saving throw, you can reroll it and must use the new result. Uses: 1 (lv.9-12), 2 (lv.13-16), 3 (lv.17+). Recharge: Long Rest.'
+    desc: 'When you fail a saving throw, you can reroll it, adding your Fighter level to the result, and must use the new result. Uses: 1 (lv.9-12), 2 (lv.13-16), 3 (lv.17+). Recharge: Long Rest.'
   },
   {
     name: 'Tactical Shift',
     icon: '',
     cat: 'bonus',
-    uses: 'While Action Surge',
-    minLevel: 17,
-    desc: "When you use Action Surge, you can move up to half your Speed without provoking Opportunity Attacks."
+    uses: 'On Second Wind',
+    minLevel: 5,
+    desc: "When you use Second Wind, you can move up to half your Speed without provoking Opportunity Attacks."
   }
 ]);
 registerClassSheetResources("Fighter", [
@@ -120,7 +120,7 @@ registerClassSheetResources("Fighter", [
     name: 'Second Wind',
     icon: 'wind',
     recharge: 'SR',
-    max: (lv)=>lv>=15?3:lv>=3?2:1
+    max: (lv)=>lv>=10?4:lv>=4?3:2
   },
   {
     key: 'action_surge',

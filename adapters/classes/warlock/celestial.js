@@ -8,7 +8,7 @@ registerSubclassSheetActions("Warlock_Celestial", [
     "cat": "bonus",
     "uses": "Pool / LR",
     "resKey": "celestial_heal_light",
-    "minLevel": 1,
+    "minLevel": 3,
     "desc": "Bonus Action: expend 1–5 dice from your Healing Light pool to restore HP to a creature within 60 ft (1d6 per die). Max dice per use: 1 + CHA mod. Pool = Warlock level + CHA mod (min 1) dice. Recharge: Long Rest."
   },
   {
