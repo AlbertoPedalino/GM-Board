@@ -2865,11 +2865,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             <div class="ds-group">${[1,2,3].map(v=>`<div class="ds-box s${c.deathSaves.s>=v?' on':''}" onclick="setDS(${c.id},'s',${v})"></div>`).join('')}</div>
             <div class="pmlab">F</div>
             <div class="ds-group">${[1,2,3].map(v=>`<div class="ds-box f${c.deathSaves.f>=v?' on':''}" onclick="setDS(${c.id},'f',${v})"></div>`).join('')}</div>
-          </div>` : ''}
+          </div>` : `
           <button class="hbtn d" onclick="modHP(${c.id},-10)">-10</button>
           <button class="hbtn d" onclick="modHP(${c.id},-5)">-5</button>
           <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
-          <button class="hbtn h" onclick="modHP(${c.id},10)">+10</button>
+          <button class="hbtn h" onclick="modHP(${c.id},10)">+10</button>`}
           <button class="cbtn" style="border-color: var(--red); color: var(--red2); margin-left: 8px; width: 28px; height: 28px;" onclick="removeCombatant(${c.id})">${luci('x')}</button>
         </div>
       </div>`;
