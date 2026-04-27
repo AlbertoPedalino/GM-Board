@@ -1,34 +1,12 @@
-const _WILD_HEART_ANIMALS = ['Bear', 'Eagle', 'Elk', 'Tiger', 'Wolf'];
-
 registerSubclassAdapter("Barbarian_Wild Heart", function (cls, lv, specs) {
-  if (lv >= 3) {
-    specs.push({
-      key: 'subclass_wild_heart_aspect_1',
-      label: 'Bestial Soul (Wild Heart)',
-      type: 'generic_choice',
-      from: _WILD_HEART_ANIMALS,
-      count: 1,
-      level: 3
-    });
-  }
   if (lv >= 6) {
     specs.push({
-      key: 'subclass_wild_heart_aspect_2',
-      label: 'Bestial Soul Lv6 (Wild Heart)',
+      key: 'subclass_wild_heart_aspect',
+      label: 'Aspect of the Wilds (Wild Heart lv.6)',
       type: 'generic_choice',
-      from: _WILD_HEART_ANIMALS,
+      from: ['Owl', 'Panther', 'Salmon'],
       count: 1,
       level: 6
-    });
-  }
-  if (lv >= 14) {
-    specs.push({
-      key: 'subclass_wild_heart_aspect_3',
-      label: 'Power of the Wilds (Wild Heart)',
-      type: 'generic_choice',
-      from: _WILD_HEART_ANIMALS,
-      count: 1,
-      level: 14
     });
   }
 });
@@ -36,28 +14,36 @@ registerSubclassAdapter("Barbarian_Wild Heart", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Barbarian_Wild Heart", [
   {
-    name: "Bestial Soul",
+    name: "Animal Speaker",
     icon: "",
     cat: "action",
-    uses: "Passive",
+    uses: "Ritual",
     minLevel: 3,
-    desc: "While Raging, gain movement/combat traits based on your animal aspect — Bear: Resistance to all damage types; Eagle: Fly Speed = walking speed, Disengage as Bonus Action; Elk: Speed +15 ft, STR save on hit or target falls Prone; Tiger: jump distance doubles, +1d6 Slashing once per turn; Wolf: Advantage on attacks against creature with ally within 5 ft."
+    desc: "You can cast Beast Sense and Speak with Animals, but only as Rituals (no spell slot required, 10 minutes each)."
   },
   {
-    name: "Bestial Soul (lv.6)",
+    name: "Rage of the Wilds",
+    icon: "",
+    cat: "bonus",
+    uses: "Choose per Rage",
+    minLevel: 3,
+    desc: "When you activate your Rage, choose one — Bear: Resistance to all damage except Force, Necrotic, Psychic, and Radiant; Eagle: take Disengage + Dash as part of the Rage Bonus Action; while Raging, can Bonus Action to take both Disengage and Dash; Wolf: your allies have Advantage on attack rolls against any enemy within 5 ft of you."
+  },
+  {
+    name: "Aspect of the Wilds",
     icon: "",
     cat: "action",
-    uses: "Passive",
+    uses: "Passive (change on LR)",
     minLevel: 6,
-    desc: "Improved aspect — Bear: can grapple creatures of any size; Eagle: allies within 30 ft have Advantage on PER checks; Elk: movement through occupied spaces, creatures you move through make STR save or fall Prone; Tiger: Pounce — if you move 20+ ft toward creature and hit, it makes STR save or falls Prone; Wolf: when you knock a creature Prone, it also becomes Grappled."
+    desc: "Choose a permanent trait (can change after each Long Rest) — Owl: Darkvision 60 ft (or +60 ft if already have it); Panther: Climb Speed = walking Speed; Salmon: Swim Speed = walking Speed."
   },
   {
     name: "Power of the Wilds",
     icon: "",
     cat: "bonus",
-    uses: "While Raging",
+    uses: "Choose per Rage",
     minLevel: 14,
-    desc: "Apex manifestation — Bear: 10-ft aura grants allies Resistance to all damage types; Eagle: Reaction to impose Disadvantage on an attack made against you; Elk: creatures you move through are hurled 10 ft away (STR save negates); Tiger: critical hit range is 18–20; Wolf: when ally hits a creature, you can use Reaction to make one melee attack against that creature."
+    desc: "When you activate your Rage, also choose one — Falcon: Fly Speed = walking Speed (while not wearing armor); Lion: enemies within 5 ft have Disadvantage on attack rolls against targets other than you or another Barbarian with this option; Ram: when you hit a Large or smaller creature with a melee attack, you can knock it Prone."
   }
 ]);
 // [SheetRuntime] END

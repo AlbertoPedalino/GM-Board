@@ -19,6 +19,7 @@ registerSubclassAdapter("Bard_Moon", function (cls, lv, specs) {
   }
 });
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Bard_Moon", [
   { name: "Moon's Inspiration", icon: "", cat: "bonus",    uses: "With Bardic Insp.", minLevel: 3,
     desc: "Includes Inspired Eclipse (teleport and brief invisibility when granting Bardic Inspiration) and Lunar Vitality (boost healing by expending a Bardic Inspiration die once per turn)." },
@@ -31,9 +32,10 @@ registerSubclassSheetActions("Bard_Moon", [
 ]);
 
 registerSubclassSheetResources("Bard_Moon", [
-  { key: "moon_blessing", name: "Blessing of Moonlight", icon: "moon", recharge: "LR", actionName: "Blessing of Moonlight", max: () => 1 },
+  { key: "moon_blessing", name: "Blessing of Moonlight", icon: "moon", recharge: "LR", actionName: "Blessing of Moonlight", max: (lv) => lv >= 6 ? 1 : 0 },
 ]);
 
 registerSubclassSheetProficiencies("Bard_Moon", [
   { type: "language", values: ["Druidic"], minLevel: 3 },
 ]);
+// [SheetRuntime] END

@@ -33,10 +33,10 @@ registerSubclassSheetActions("Cleric_Light", [
   {
     "name": "Corona of Light",
     "icon": "",
-    "cat": "action",
-    "uses": "Action",
+    "cat": "bonus",
+    "uses": "Toggle",
     "minLevel": 17,
-    "desc": "You shed Bright Light in a 60-foot radius and Dim Light for an additional 30 feet until the end of your next turn. During this time, any Undead or Ooze that starts its turn in the Bright Light must succeed on a CON save (DC = spell save DC) or be Blinded until the end of its turn."
+    "desc": "Bonus Action: emanate an aura of sunlight for 1 minute or until you use this feature again. You emit Bright Light in a 60-ft radius and Dim Light for an additional 30 ft. Hostile creatures in the Bright Light have Disadvantage on saving throws against your spells that deal Fire or Radiant damage."
   }
 ]);
 registerSubclassSheetResources("Cleric_Light", [

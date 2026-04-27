@@ -1,5 +1,6 @@
 registerSubclassAdapter("Bard_Valor", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Bard_Valor", [
   { name: "Combat Inspiration", icon: "", cat: "reaction", uses: "With Bardic Insp.", minLevel: 3,
     desc: "Allies with your Bardic Inspiration can add the die to a weapon damage roll after hitting, or to AC as a Reaction against one attack (declare before knowing outcome)." },
@@ -15,3 +16,4 @@ registerSubclassSheetProficiencies("Bard_Valor", [
   { type: "armor", values: ["Medium", "Shield"], minLevel: 3 },
   { type: "weapon", values: ["Martial"], minLevel: 3 },
 ]);
+// [SheetRuntime] END

@@ -1,5 +1,6 @@
 registerSubclassAdapter("Ranger_Winter Walker", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Ranger_Winter Walker", [
   {
     name: "Winter's Aspect",
@@ -10,3 +11,4 @@ registerSubclassSheetActions("Ranger_Winter Walker", [
     desc: "Gain frost-themed movement and control features from your winter path."
   }
 ]);
+// [SheetRuntime] END

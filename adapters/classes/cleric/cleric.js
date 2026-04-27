@@ -93,10 +93,15 @@ registerClassSheetActions("Cleric", [
     "cat": "action",
     "uses": "On Turn Undead",
     "minLevel": 5,
-    "damageFormula": ({ ownerLevel }) => `2d6+${Number(ownerLevel||1)}`,
+    "damageFormula": () => {
+      const wis = typeof getMod === 'function' && typeof getFinal === 'function'
+        ? Number(getMod(getFinal('wis')) || 1)
+        : 1;
+      return `${Math.max(1, wis)}d8`;
+    },
     "damageButtonLabel": ({ formula }) => `${formula} radiant`,
     "damageKind": "damage",
-    "desc": "When you use Turn Undead, each Undead that fails its WIS save takes Radiant damage equal to 2d6 + your Cleric level (in addition to being turned or destroyed)."
+    "desc": "When you use Turn Undead, each Undead that fails its WIS save also takes Radiant damage equal to a number of d8s equal to your WIS modifier (minimum 1d8). This damage doesn't end the turn effect."
   },
   {
     "name": "Divine Intervention",

@@ -1,5 +1,6 @@
 registerSubclassAdapter("Bard_Dance", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Bard_Dance", [
   { name: "Dazzling Footwork",    icon: "", cat: "action",   uses: "Passive",            minLevel: 3,
     desc: "While you aren't wearing armor or wielding a Shield, you gain Dance Virtuoso, Unarmored Defense, Agile Strikes, and Bardic Damage." },
@@ -18,3 +19,4 @@ registerSubclassSheetActions("Bard_Dance", [
   { name: "Leading Evasion",     icon: "", cat: "reaction", uses: "Passive",            minLevel: 14,
     desc: "When an effect allows a DEX save for half damage: on success you take no damage, on failure half. If creatures within 5 ft make the same DEX save, you can share this benefit with them. Doesn't work while Incapacitated." },
 ]);
+// [SheetRuntime] END

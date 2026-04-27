@@ -1,5 +1,6 @@
 registerSubclassAdapter("Bard_Glamour", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Bard_Glamour", [
   { name: "Beguiling Magic",       icon: "", cat: "bonus",   uses: "When casting Illusion/Enchantment", minLevel: 3,
     desc: "When you cast an Illusion or Enchantment spell with a spell slot, you can target a creature within 60 ft. It must succeed on a WIS save or be Charmed/Frightened (your choice) for 1 minute. It can repeat the save at the end of its turns." },
@@ -12,6 +13,7 @@ registerSubclassSheetActions("Bard_Glamour", [
 ]);
 
 registerSubclassSheetResources("Bard_Glamour", [
-  { key: "glamour_majesty",     name: "Mantle of Majesty",   icon: "crown",  recharge: "LR", actionName: "Mantle of Majesty",   max: () => 1 },
-  { key: "glamour_unbreakable", name: "Unbreakable Majesty", icon: "shield", recharge: "LR", actionName: "Unbreakable Majesty", max: () => 1 },
+  { key: "glamour_majesty",     name: "Mantle of Majesty",   icon: "crown",  recharge: "LR", actionName: "Mantle of Majesty",   max: (lv) => lv >= 6  ? 1 : 0 },
+  { key: "glamour_unbreakable", name: "Unbreakable Majesty", icon: "shield", recharge: "LR", actionName: "Unbreakable Majesty", max: (lv) => lv >= 14 ? 1 : 0 },
 ]);
+// [SheetRuntime] END

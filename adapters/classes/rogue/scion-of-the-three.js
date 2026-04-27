@@ -1,5 +1,6 @@
 registerSubclassAdapter("Rogue_Scion of the Three", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Rogue_Scion of the Three", [
   {
     "name": "Scion Feature",
@@ -10,3 +11,4 @@ registerSubclassSheetActions("Rogue_Scion of the Three", [
     "desc": "Gain the FRHoF Scion of the Three subclass feature set at your current level."
   }
 ]);
+// [SheetRuntime] END
