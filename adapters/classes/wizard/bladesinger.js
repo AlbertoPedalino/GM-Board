@@ -8,7 +8,7 @@ registerSubclassSheetActions("Wizard_Bladesinger", [
     "cat": "bonus",
     "uses": "PB / LR",
     "resKey": "bladesong",
-    "minLevel": 2,
+    "minLevel": 3,
     "desc": "Bonus Action: activate Bladesong for 1 minute. While active: +INT modifier to AC, +10 ft walking speed, Advantage on DEX (Acrobatics) checks, +INT modifier to Concentration saves. Ends early if you don armour/shield, are Incapacitated, or use both hands for a weapon attack. Recharge: Long Rest."
   },
   {

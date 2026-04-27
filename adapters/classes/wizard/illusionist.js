@@ -7,16 +7,16 @@ registerSubclassSheetActions("Wizard_Illusionist", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "minLevel": 2,
+    "minLevel": 3,
     "desc": "Passive: you can create auditory or visual components of illusions independently (no need for both). You add your Proficiency Bonus to the spell save DC of Illusion spells you cast."
   },
   {
-    "name": "Malleable Illusions",
+    "name": "Phantasmal Creatures",
     "icon": "",
     "cat": "action",
-    "uses": "Action (while concentrating)",
+    "uses": "Passive",
     "minLevel": 6,
-    "desc": "While concentrating on an Illusion spell, use an Action to change the nature of the illusion — alter its appearance, sounds, movement, or any other quality, within the spell's original parameters."
+    "desc": "When you cast an Illusion spell of level 1 or higher, you can make illusions more believable: creatures examining your illusion must beat your spell save DC with an Investigation check to disbelieve it. In addition, your Illusion spells that deal damage deal one extra die of damage."
   },
   {
     "name": "Illusory Self",

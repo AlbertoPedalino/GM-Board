@@ -7,7 +7,7 @@ registerSubclassSheetActions("Wizard_Evoker", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "minLevel": 2,
+    "minLevel": 3,
     "desc": "When a creature succeeds on a saving throw against one of your cantrips, it takes half damage (but suffers no other effects from the cantrip)."
   },
   {

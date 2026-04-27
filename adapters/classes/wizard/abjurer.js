@@ -7,7 +7,7 @@ registerSubclassSheetActions("Wizard_Abjurer", [
     "icon": "",
     "cat": "action",
     "uses": "Ward HP",
-    "minLevel": 2,
+    "minLevel": 3,
     "desc": "An Arcane Ward surrounds you whenever you cast an Abjuration spell. Ward HP = 2 × Wizard level + INT modifier. When you take damage, the ward absorbs it first. Restore ward HP equal to 2 × spell level each time you cast an Abjuration spell of level 1+. Resets fully on Long Rest."
   },
   {
@@ -21,10 +21,10 @@ registerSubclassSheetActions("Wizard_Abjurer", [
   {
     "name": "Spell Breaker",
     "icon": "",
-    "cat": "reaction",
-    "uses": "Reaction + Spell Slot",
+    "cat": "action",
+    "uses": "Passive",
     "minLevel": 10,
-    "desc": "When you or a creature you can see within 60 ft succeeds on a saving throw against a spell, use your Reaction and expend a spell slot to end the spell that forced the save if its level ≤ the slot expended. Also, you add your Proficiency Bonus to Dispel Magic checks."
+    "desc": "Passive: when you use Dispel Magic or Counterspell, add your Proficiency Bonus to the ability check (if one is required)."
   },
   {
     "name": "Spell Resistance",

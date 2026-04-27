@@ -82,9 +82,9 @@ registerClassSheetActions("Wizard", [
     "name": "Spell Mastery",
     "icon": "",
     "cat": "action",
-    "uses": "1 / LR",
+    "uses": "At will",
     "minLevel": 18,
-    "desc": "Choose 1 spell of 1st level and 1 of 2nd level from your spellbook: cast each at their lowest level without expending a spell slot, once per Long Rest each."
+    "desc": "Choose 1 spell of 1st level and 1 of 2nd level from your spellbook: you can cast each at their lowest level without expending a spell slot, at will."
   },
   {
     "name": "Signature Spells",

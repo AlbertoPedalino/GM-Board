@@ -8,7 +8,7 @@ registerSubclassSheetActions("Wizard_Diviner", [
     "cat": "action",
     "uses": "2–3 / LR",
     "resKey": "portent",
-    "minLevel": 2,
+    "minLevel": 3,
     "desc": "After a Long Rest: roll 2d20 (3d20 at lv.14), keep the results. Before any creature makes an attack roll, ability check, or saving throw, you can replace the result with one of your Portent dice (expend it). Declare before or after the roll, but before the DM reveals success or failure. Recharge: Long Rest."
   },
   {

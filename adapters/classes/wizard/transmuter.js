@@ -3,14 +3,6 @@ registerSubclassAdapter("Wizard_Transmuter", function (cls, lv, specs) {});
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Transmuter", [
   {
-    "name": "Minor Alchemy",
-    "icon": "",
-    "cat": "action",
-    "uses": "Action (at will)",
-    "minLevel": 2,
-    "desc": "Action: touch one non-magical object made of wood, stone, iron, copper, or silver and transform it into a different one of those materials. Object must be Tiny or Small. The transformation lasts 1 hour, or until you use this feature again."
-  },
-  {
     "name": "Transmuter's Stone",
     "icon": "",
     "cat": "action",

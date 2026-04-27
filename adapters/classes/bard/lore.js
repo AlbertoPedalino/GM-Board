@@ -19,8 +19,8 @@ registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
     });
   }
   if (lv >= 6) {
-    specs.push({ key: 'subclass_lore_magical_discovery_1', label: 'Magical Discoveries 1 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 6 });
-    specs.push({ key: 'subclass_lore_magical_discovery_2', label: 'Magical Discoveries 2 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 6 });
+    specs.push({ key: 'subclass_lore_magical_discovery_1', label: 'Magical Discoveries 1 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
+    specs.push({ key: 'subclass_lore_magical_discovery_2', label: 'Magical Discoveries 2 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
   }
 });
 
@@ -29,10 +29,10 @@ registerSubclassSheetActions("Bard_Lore", [
   { name: "Bonus Proficiencies", icon: "", cat: "action",   uses: "Passive",           minLevel: 3,
     desc: "Gain proficiency in three skills of your choice. Select them in the builder." },
   { name: "Cutting Words",      icon: "", cat: "reaction", uses: "With Bardic Insp.", minLevel: 3,
-    desc: "When a creature you can see within 60 ft makes an attack roll, ability check, or damage roll, use your Reaction and expend one Bardic Inspiration: roll the die and subtract the result from the roll. Declare after seeing the roll but before knowing the outcome." },
+    desc: "When a creature you can see within 60 ft makes an attack roll or ability check, use your Reaction and expend one Bardic Inspiration: roll the die and subtract the result from the roll. Declare after seeing the roll but before knowing the outcome." },
   { name: "Magical Discoveries",icon: "", cat: "action",   uses: "Passive",           minLevel: 6,
-    desc: "Choose 2 spells from any class's spell list (of a level you can cast): they are added to your Bard spell list and treated as Bard spells. Select them in the character builder." },
-  { name: "Peerless Skill",     icon: "", cat: "reaction", uses: "With Bardic Insp.", minLevel: 14,
+    desc: "Choose 2 spells from the Cleric, Druid, or Wizard spell list (of a level you can cast): they are added to your Bard spell list and treated as Bard spells. Select them in the character builder." },
+  { name: "Peerless Skill",     icon: "", cat: "action",   uses: "With Bardic Insp.", minLevel: 14,
     desc: "When you make an ability check and fail, you can expend one use of Bardic Inspiration, roll the die, and add the result to the check, potentially turning it into a success. Declare after seeing the roll but before the DM reveals the outcome." },
 ]);
 // [SheetRuntime] END
