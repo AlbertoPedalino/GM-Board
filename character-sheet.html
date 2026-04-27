@@ -1566,13 +1566,19 @@ function calcMaxHP(){
   return Math.max(1, total);
 }
 
+function _resolvedInventory(){
+  const raw = sheetInventory || C?.inventory || [];
+  if(typeof _resolveInvItem !== 'function') return raw;
+  return raw.map(i => (i.type || i.custom) ? i : _resolveInvItem(i));
+}
+
 function calcAC(){
   if(!C) return 10;
   const dex = getMod(getFinal('dex'));
   const con = getMod(getFinal('con'));
   const wis = getMod(getFinal('wis'));
   const cha = getMod(getFinal('cha'));
-  const inv = sheetInventory || C.inventory || [];
+  const inv = _resolvedInventory();
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
   const shieldBonus = equippedShield ? (2 + (equippedShield.bonusAc ? parseInt(equippedShield.bonusAc)||0 : 0)) : 0;
@@ -2369,8 +2375,9 @@ function renderRightTop(){
   }
   if(C.speciesSnapshot?.darkvision) items.push({l:`Darkvision ${C.speciesSnapshot.darkvision} ft`,c:'t'});
   // Unarmored Defense badge (adapter-driven)
-  const hasArmor = !!(sheetInventory||[]).find(i=>i.equipped&&['LA','MA','HA'].includes(i.type));
-  const hasShield = !!(sheetInventory||[]).find(i=>i.equipped&&i.type==='S');
+  const _defInv = _resolvedInventory();
+  const hasArmor = !!_defInv.find(i=>i.equipped&&['LA','MA','HA'].includes(i.type));
+  const hasShield = !!_defInv.find(i=>i.equipped&&i.type==='S');
   if(!hasArmor){
     const labels = new Set();
     const pushRules = (rules, level) => {
@@ -2866,23 +2873,8 @@ function renderActionsTab(){
 
   // ── ACTIONS ──
   if(show('action')){
-    if(f==='all'){
-      const _arrow = _stdActionsOpen ? '▾' : '▸';
-      html+=`<div class="action-section-hdr collapsible" onclick="toggleStdActions()">${luci('target')} Actions <span>${_arrow}</span></div>`;
-      if(_stdActionsOpen){
-        html+=`<div class="action-section-body">`;
-        for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
-        for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
-        html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
-        html+=buildUnarmedCard(UNARMED_OPTIONS[2]);
-        html+=`</div>`;
-      }
-    } else {
-      for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
-      for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
-      html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
-      html+=buildUnarmedCard(UNARMED_OPTIONS[2]);
-    }
+    if(f==='all') html+=`<div class="action-section-hdr">${luci('target')} Actions</div>`;
+    for(const a of allClassActions.filter(a=>a.cat==='action'&&a.uses!=='Passive')) html+=buildClassActionCard(a);
   }
 
   // ── BONUS ACTIONS ──
@@ -2908,23 +2900,11 @@ function renderActionsTab(){
       for(const a of reactStd.filter(a=>a.name==='Spell (Reaction)')) html+=buildStdActionCard(a);
   }
 
-  // ── PASSIVE FEATURES ──
-  const passives = allClassActions.filter(a=>a.cat==='passive');
-  if(passives.length && (f==='all'||f==='passive')){
-    html+=`<div class="action-section-hdr">${luci('star')} Passive Features</div>`;
-    for(const a of passives) html+=buildClassActionCard(a);
-  }
-
   wrap.innerHTML=html;
   if(wrap2) wrap2.innerHTML='';
   refreshIcons();
 }
 
-let _stdActionsOpen = false;
-function toggleStdActions(){
-  _stdActionsOpen = !_stdActionsOpen;
-  renderActionsTab();
-}
 
 function filterActions(type, btn){
   document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('on'));
@@ -3035,7 +3015,7 @@ function renderSpellsTab(){
   }
   const prog = C.clsSnapshot?.casterProgression;
   let slots = [];
-  let warlockLv = 0; // total Warlock levels across all classes
+  let warlockLv = prog === 'pact' ? pLvSheet : 0; // pure Warlock gets pLvSheet directly
   if(extra.length){
     // Combined non-Warlock caster levels
     let cLv = _sheetCasterLv(C.className||'', pLvSheet, C.subclassShortName||'');
@@ -3392,7 +3372,12 @@ function renderSpellsTab(){
     leveledByBase[base].push(name);
   });
 
+  // Pact caster: if no regular slots exist, collapse all spells to pact slot level
+  const _pactSlotLv = warlockLv > 0 ? ((PACT_SLOTS[Math.min(warlockLv,20)]||{l:0}).l) : 0;
+  const _onlyPactSlots = _pactSlotLv > 0 && slots.length === 0;
+
   for(let slv=1;slv<=9;slv++){
+    if(_onlyPactSlots && slv < _pactSlotLv) continue;
     const exactAtLv = [...new Set(leveledByBase[slv] || [])];
     const canCastAtLv = castableSlotLevels.has(slv);
     const combined = canCastAtLv
@@ -3700,6 +3685,7 @@ async function loadItems(){
     renderItemSearch();
     if(typeof renderActionsTab === 'function') renderActionsTab();
     if(typeof renderInventoryList === 'function') renderInventoryList();
+    if(typeof renderRightTop === 'function') renderRightTop();
   } catch(e){
     invLoadingState='idle';
     console.warn('Items DB failed to load:',e);
@@ -3755,11 +3741,16 @@ function addItemToInventory(jsonStr){
   const existing = sheetInventory.find(i=>i.name===item.name&&i.source===item.source);
   if(existing){ existing.qty=(existing.qty||1)+1; }
   else{
+    const db = allItemsDb.find(i=>i.name===item.name&&i.source===item.source)
+             || allItemsDb.find(i=>i.name===item.name)
+             || {};
     sheetInventory.push({
       name:item.name, source:item.source||'',
       qty:1, equipped:false, custom:false,
-      bonusWeapon:item.bonusWeapon||null,
-      bonusAc:item.bonusAc||null,
+      type: item.type || db.type || null,
+      ac:   item.ac   ?? db.ac   ?? null,
+      bonusWeapon:item.bonusWeapon||db.bonusWeapon||null,
+      bonusAc:item.bonusAc||db.bonusAc||null,
     });
   }
   persistInventory();
@@ -3793,11 +3784,14 @@ function toggleSpellDesc(id){
 function toggleEquip(idx){
   if(!sheetInventory[idx]) return;
   const item = sheetInventory[idx];
-  const t = item.type||'';
+  // Backfill type from DB if missing (legacy stored items)
+  const resolvedTypes = _resolvedInventory().map(r => r.type || '');
+  const t = resolvedTypes[idx] || item.type || '';
+  if(!item.type && t) item.type = t;
   if(['LA','MA','HA'].includes(t))
-    sheetInventory.forEach((i,n)=>{ if(n!==idx&&['LA','MA','HA'].includes(i.type)) i.equipped=false; });
+    sheetInventory.forEach((i,n)=>{ if(n!==idx&&['LA','MA','HA'].includes(resolvedTypes[n]||i.type||'')) i.equipped=false; });
   if(t==='S')
-    sheetInventory.forEach((i,n)=>{ if(n!==idx&&i.type==='S') i.equipped=false; });
+    sheetInventory.forEach((i,n)=>{ if(n!==idx&&(resolvedTypes[n]||i.type||'')==='S') i.equipped=false; });
   item.equipped = !item.equipped;
   persistInventory();
   renderInventoryList();
@@ -5188,7 +5182,7 @@ function buildClassActionCard(a){
 
 function buildUnarmedCard(opt){
   const strMod=getMod(getFinal('str')), dexMod=getMod(getFinal('dex')), pb=getPB();
-  const inv = sheetInventory || C.inventory || [];
+  const inv = _resolvedInventory();
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
   const rt = _sheetFindUnarmedStrikeRule(equippedArmor, equippedShield);
@@ -5242,6 +5236,20 @@ function buildUnarmedCard(opt){
       <div class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></div>
       <div class="action-dmg-pill">${luci('ruler')} 5 ft (reach)</div>`;
   }
+  const grShExtra = opt.name === 'Unarmed Strike' ? `
+    <div style="margin-top:.6rem;border-top:1px solid var(--bdr2);padding-top:.5rem;display:flex;flex-direction:column;gap:.35rem">
+      <div style="font-size:var(--fs-label);color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">Replace an attack with:</div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+        <span style="font-weight:600;font-size:var(--fs-body)">${luci('users-round')} Grapple</span>
+        <span class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></span>
+        <span style="font-size:var(--fs-label);color:var(--text3)">${esc(UNARMED_OPTIONS[1].desc)}</span>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+        <span style="font-weight:600;font-size:var(--fs-body)">${luci('arrow-right')} Shove</span>
+        <span class="action-dmg-pill">STR or DEX save · DC <b>${dc}</b></span>
+        <span style="font-size:var(--fs-label);color:var(--text3)">${esc(UNARMED_OPTIONS[2].desc)}</span>
+      </div>
+    </div>` : '';
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
       <span class="action-card-icon">${luci(opt.icon)}</span>
@@ -5252,6 +5260,7 @@ function buildUnarmedCard(opt){
     ${barContent?`<div class="action-card-bar">${barContent}</div>`:''}
     <div class="action-card-body">
       <div class="action-desc">${esc(opt.desc)}</div>
+      ${grShExtra}
     </div>
   </div>`;
 }

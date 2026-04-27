@@ -64,8 +64,16 @@ registerClassSheetActions("Warlock", [
     "name": "Pact Magic",
     "icon": "",
     "cat": "action",
-    "uses": "Short Rest recharge",
+    "uses": "Passive",
     "desc": "Your spell slots recharge on a Short Rest (not Long Rest). All your slots are the same level (lv.1–5, scales with Warlock level). You learn a limited number of spells from the Warlock list."
+  },
+  {
+    "name": "Magical Cunning",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "minLevel": 2,
+    "desc": "Perform esoteric rite for 1 minute. At end, regain expended Pact Magic slots up to half your maximum (round up). Once used, unavailable until Long Rest."
   },
   {
     "name": "Pact Boon",
@@ -93,3 +101,15 @@ registerClassSheetActions("Warlock", [
   }
 ]);
 // [SheetRuntime] END
+
+registerClassSheetResources("Warlock", [
+  {
+    "key": "magical_cunning",
+    "name": "Magical Cunning",
+    "icon": "sparkles",
+    "actionName": "Magical Cunning",
+    "recharge": "LR",
+    "minLevel": 2,
+    "max": function() { return 1; }
+  }
+]);

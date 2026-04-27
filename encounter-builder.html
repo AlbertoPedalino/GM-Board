@@ -2268,10 +2268,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           // Se c'è un nome personalizzato da mostrare (es. traduzioni o abbreviazioni), usalo
           let displayText = parts[2] ? parts[2] : spellName;
 
-          // Formattazione url perfetta per 5etools (spazi = %20, apostrofi = %27)
-          let hashName = spellName.toLowerCase().trim().replace(/ /g, '%20').replace(/'/g, '%27');
-
-          return `<a href="https://5e.tools/spells.html#${hashName}_${source}" class="spell-link">${displayText}</a>`;
+          let spellSlug = spellName.toLowerCase().replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          return `<a href="https://5e.tools/spells/${spellSlug}-${source}.html" class="spell-link" target="_blank" rel="noopener">${displayText}</a>`;
         })
         .replace(/\{@dc ([^}]+)\}/g, 'CD $1')
         .replace(/\{@h\}/g, '<i>Colpisce:</i> ')
