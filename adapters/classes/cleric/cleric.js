@@ -45,6 +45,13 @@ registerClassAdapter("Cleric", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerClassSheetActions("Cleric", [
   {
+    "name": "Divine Order",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "desc": "Choose at lv.1 — Protector: proficiency with Martial weapons and Heavy armor; or Thaumaturge: learn one extra Cleric cantrip and gain one additional use of Divine Spark per rest."
+  },
+  {
     "name": "Channel Divinity",
     "icon": "",
     "cat": "action",
@@ -109,6 +116,15 @@ registerClassSheetActions("Cleric", [
     "damageFormula": "1d8",
     "damageButtonLabel": "+1d8 divine",
     "desc": "Gain one of two benefits: Divine Strike (add 1d8 of your domain's damage type once per turn) or Potent Spellcasting (add WIS mod to Cleric cantrip damage)."
+  },
+  {
+    "name": "Greater Divine Intervention",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "resKey": "divine_intervention",
+    "minLevel": 20,
+    "desc": "Your Divine Intervention automatically succeeds. Additionally, you can cast any Cleric spell of 5th level or lower without expending a spell slot (using this feature). Recharge: Long Rest."
   }
 ]);
 registerClassSheetResources("Cleric", [

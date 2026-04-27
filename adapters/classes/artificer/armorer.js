@@ -44,17 +44,20 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "model": "Guardian",
     "attackAbility": "int",
     "damageFormula": "1d8",
-    "desc": "Guardian model weapon. On hit, the target has disadvantage on attack rolls against creatures other than you until the start of your next turn."
+    "damageButtonLabel": ({ formula }) => `${formula} thunder`,
+    "damageKind": "damage",
+    "desc": "Guardian model melee weapon (INT to attack/damage). On hit, the target has Disadvantage on attack rolls against creatures other than you until the start of your next turn."
   },
   {
     "name": "Defensive Field",
     "icon": "",
     "cat": "bonus",
     "uses": "PB / LR",
+    "resKey": "defensive_field",
     "minLevel": 3,
     "choiceKey": "armorer_model",
     "model": "Guardian",
-    "desc": "Guardian model. Gain temporary hit points as a Bonus Action; you can use this feature a number of times equal to your Proficiency Bonus per Long Rest."
+    "desc": "Guardian model. Bonus Action: gain THP equal to your Artificer level. Uses: Proficiency Bonus per Long Rest. Recharge: Long Rest."
   },
   {
     "name": "Lightning Launcher",
@@ -66,7 +69,9 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "model": "Infiltrator",
     "attackAbility": "int",
     "damageFormula": "1d6",
-    "desc": "Infiltrator model ranged weapon. Once on each of your turns, one hit deals extra lightning damage."
+    "damageButtonLabel": ({ formula }) => `${formula} lightning`,
+    "damageKind": "damage",
+    "desc": "Infiltrator model ranged weapon (range 90/300, INT to attack/damage). Once per turn, one creature hit by it also takes an extra 1d6 Lightning damage."
   },
   {
     "name": "Force Demolisher",
@@ -78,7 +83,9 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "model": "Dreadnaught",
     "attackAbility": "int",
     "damageFormula": "1d10",
-    "desc": "Dreadnaught model weapon. Arcane wrecking ball/sledgehammer that deals 1d10 Force damage. On hit against a creature at least one size smaller than you, you can push it 10 ft away or pull it 10 ft toward you."
+    "damageButtonLabel": ({ formula }) => `${formula} force`,
+    "damageKind": "damage",
+    "desc": "Dreadnaught model melee weapon (INT to attack/damage, 1d10 Force). On hit: push the target up to 10 ft away or pull it 10 ft toward you."
   },
   {
     "name": "Giant Stature",
@@ -92,43 +99,66 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "desc": "Bonus Action. Enlarge your armor for 1 minute: reach +5 ft, and if you are smaller than Large you become Large (space permitting). Uses equal to INT modifier (minimum 1), regained on Long Rest."
   },
   {
+    "name": "Extra Attack",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 5,
+    "desc": "Passive: you can attack twice whenever you take the Attack action on your turn."
+  },
+  {
+    "name": "Armor Modifications",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 9,
+    "desc": "Passive: your Arcane Armor can hold four infusions at once (instead of the normal two), and the required attunement slot does not count against your normal limit for this armor."
+  },
+  {
     "name": "Perfected Armor (Guardian)",
     "icon": "",
     "cat": "reaction",
-    "uses": "At will",
+    "uses": "Reaction",
     "minLevel": 15,
     "choiceKey": "armorer_model",
     "model": "Guardian",
-    "desc": "Guardian perfected armor feature."
+    "desc": "Deflect Attack: when a creature you can see targets a creature other than you that is within 5 ft of your armor, use your Reaction to impose Disadvantage on the attack roll."
   },
   {
     "name": "Perfected Armor (Infiltrator)",
     "icon": "",
     "cat": "reaction",
-    "uses": "At will",
+    "uses": "Passive",
     "minLevel": 15,
     "choiceKey": "armorer_model",
     "model": "Infiltrator",
-    "desc": "Infiltrator perfected armor feature."
+    "desc": "Passive: once per turn, when you hit a creature with your Lightning Launcher, that creature has Disadvantage on attack rolls against creatures other than you until the start of your next turn, and the creature takes an extra 1d6 Lightning damage."
   },
   {
     "name": "Perfected Armor (Dreadnought)",
     "icon": "",
     "cat": "reaction",
-    "uses": "At will",
+    "uses": "Passive",
     "minLevel": 15,
     "choiceKey": "armorer_model",
     "model": "Dreadnaught",
-    "desc": "Dreadnought perfected armor feature."
+    "desc": "Passive: when you hit with your Force Demolisher, you can push the target up to 30 ft away in a direction of your choice (no size restriction), or pull it 30 ft toward you."
   }
 ]);
 registerSubclassSheetResources("Artificer_Armorer", [
+  {
+    "key": "defensive_field",
+    "name": "Defensive Field",
+    "icon": "shield",
+    "recharge": "LR",
+    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
+  },
   {
     "key": "armorer_giant_stature",
     "name": "Giant Stature",
     "icon": "maximize",
     "recharge": "LR",
-    "max": ()=>Math.max(1,getMod(getFinal('int')))
+    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
   }
 ]);
 registerSubclassSheetProficiencies("Artificer_Armorer", [

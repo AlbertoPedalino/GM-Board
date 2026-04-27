@@ -4,12 +4,10 @@ const _BANNERET_LANGUAGES = [
   'Abyssal', 'Sylvan', 'Deep Speech',
 ];
 
-// Royal Envoy: se già competenti in Persuasione, si sceglie 1 tra queste
 const _BANNERET_ENVOY_SKILLS = ['Animal Handling', 'Insight', 'Intimidation', 'Performance'];
 
 registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
   if (lv >= 3) {
-    // Royal Envoy: competenza (o expertise) in Persuasione + 1 lingua
     specs.push({
       key: 'subclass_banneret_envoy_skill',
       label: 'Royal Envoy — Skill Bonus',
@@ -29,21 +27,39 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
   }
 });
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Fighter_Banneret", [
   {
-    name: "Royal Envoy",
-    icon: "",
-    cat: "action",
-    uses: "Passive",
-    minLevel: 3,
-    desc: "Gain Persuasion mastery benefits and an extra language; if already trained, choose a related social skill."
+    "name": "Royal Envoy",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "Passive: gain proficiency in Persuasion (or expertise if already proficient), an extra language, and proficiency in one of Animal Handling, Insight, Intimidation, or Performance."
   },
   {
-    name: "Inspiring Surge",
-    icon: "",
-    cat: "bonus",
-    uses: "Action Surge rider",
-    minLevel: 10,
-    desc: "When using Action Surge, one ally can attack using their Reaction."
+    "name": "Rallying Cry",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "On Second Wind",
+    "minLevel": 3,
+    "desc": "When you use Second Wind, choose up to three creatures you can see within 60 ft. Each of those creatures regains HP equal to your Fighter level. This is in addition to the HP you regain."
+  },
+  {
+    "name": "Inspiring Surge",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "On Action Surge",
+    "minLevel": 10,
+    "desc": "When you use Action Surge, choose one ally within 60 ft who can see or hear you. That creature can use its Reaction to make one melee or ranged weapon attack."
+  },
+  {
+    "name": "Bulwark",
+    "icon": "",
+    "cat": "reaction",
+    "uses": "On Indomitable",
+    "minLevel": 14,
+    "desc": "When you use Indomitable to reroll a saving throw, you can choose one ally within 60 ft who failed the same save. That ally also rerolls their saving throw and must use the new roll."
   }
 ]);
+// [SheetRuntime] END

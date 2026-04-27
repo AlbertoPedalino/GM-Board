@@ -41,7 +41,7 @@ registerClassSheetActions("Bard", [
     desc: "Choose two skill proficiencies: double your Proficiency Bonus for those skills (lv.2). Choose two more at lv.9." },
   { name: "Font of Inspiration",icon: "", cat: "action", uses: "Passive", minLevel: 5,
     desc: "Your Bardic Inspiration recharges on a Short Rest as well as a Long Rest." },
-  { name: "Countercharm",       icon: "", cat: "action", uses: "Passive", minLevel: 7,
+  { name: "Countercharm",       icon: "", cat: "action", uses: "Action", minLevel: 7,
     desc: "As an Action, begin a performance that lasts until the end of your next turn. Friendly creatures within 30 ft who can hear you gain Advantage on saving throws against being Charmed or Frightened." },
   { name: "Magical Secrets",    icon: "", cat: "action", uses: "Passive", minLevel: 10,
     desc: "Learn 2 spells from any class's spell list (of a level you can cast). They count as Bard spells. Gain 2 more at lv.18." },

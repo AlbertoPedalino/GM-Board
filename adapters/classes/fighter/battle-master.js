@@ -59,9 +59,26 @@ registerSubclassSheetActions("Fighter_Battle Master", [
     "name": "Combat Maneuvers",
     "icon": "",
     "cat": "attack",
-    "uses": "Superiority Dice d8",
+    "uses": "Superiority Dice",
     "resKey": "superiority_dice",
-    "desc": "Spend a Superiority Die (d8 to d10 to d12) to add effects to attacks: Disarm, Push, Distract, Command, Taunt, Riposte, Feint, Precision Attack, etc. Recharge: short or long rest."
+    "minLevel": 3,
+    "desc": "Spend Superiority Dice (d8 at lv.3, d10 at lv.7, d12 at lv.15) to enhance attacks. Maneuvers chosen at character creation from the full list. Save DC = 8 + PB + STR or DEX (highest). Recharge: Short or Long Rest."
+  },
+  {
+    "name": "Know Your Enemy",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 7,
+    "desc": "Passive: if you spend at least 1 minute observing or interacting with a creature outside combat, the DM tells you how that creature compares to you in two of the following: STR, DEX, CON, AC, current HP, total class levels, Fighter levels."
+  },
+  {
+    "name": "Relentless",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 15,
+    "desc": "Passive: if you have no Superiority Dice remaining at the start of your turn, you regain 1 Superiority Die."
   }
 ]);
 registerSubclassSheetResources("Fighter_Battle Master", [

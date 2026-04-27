@@ -18,6 +18,21 @@ registerClassAdapter("Monk", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerClassSheetActions("Monk", [
   {
+    name: 'Unarmored Defense',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    desc: 'While not wearing armor and not using a Shield: your AC equals 10 + DEX modifier + WIS modifier.'
+  },
+  {
+    name: 'Unarmored Movement',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 2,
+    desc: 'Speed increases by 10 ft while not wearing armor or using a Shield (+15 at lv.6, +20 at lv.10, +25 at lv.14, +30 at lv.18). At lv.9: can move along vertical surfaces and across liquids on your turn without falling.'
+  },
+  {
     name: 'Martial Arts',
     icon: '',
     cat: 'attack',
@@ -118,9 +133,9 @@ registerClassSheetActions("Monk", [
     name: 'Stillness of Mind',
     icon: '',
     cat: 'action',
-    uses: 'Passive',
+    uses: 'Action',
     minLevel: 8,
-    desc: 'You can use your Action to end one effect on yourself causing the Charmed or Frightened condition.'
+    desc: 'Action: end one effect on yourself causing the Charmed or Frightened condition.'
   },
   {
     name: 'Acrobatic Movement',
@@ -136,7 +151,15 @@ registerClassSheetActions("Monk", [
     cat: 'action',
     uses: 'Passive',
     minLevel: 10,
-    desc: 'Your Flurry of Blows, Patient Defense, and Step of the Wind each gain a bonus effect when you spend the Discipline Point (chosen at level 10): Flurry stuns, Patient Defense knocks prone, Step of the Wind pushes.'
+    desc: 'Your Flurry of Blows, Patient Defense, and Step of the Wind each gain a bonus effect when you spend the Discipline Point: Flurry can Stun, Patient Defense can knock Prone, Step of the Wind can Push.'
+  },
+  {
+    name: 'Perfect Self',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 20,
+    desc: 'When you roll Initiative and have 0 Discipline Points, you regain 4 Discipline Points.'
   }
 ]);
 registerClassSheetResources("Monk", [

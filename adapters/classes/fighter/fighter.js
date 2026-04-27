@@ -81,6 +81,22 @@ registerClassSheetActions("Fighter", [
     desc: 'Attack twice when you take the Attack action (lv.5). Three times at lv.11. Four times at lv.20.'
   },
   {
+    name: 'Master of Armaments',
+    icon: '',
+    cat: 'action',
+    uses: 'Passive',
+    minLevel: 9,
+    desc: 'Passive: whenever you finish a Long Rest, you can replace one of your Weapon Mastery choices with another eligible weapon.'
+  },
+  {
+    name: 'Studied Attacks',
+    icon: '',
+    cat: 'attack',
+    uses: 'Passive',
+    minLevel: 13,
+    desc: 'Passive: when you miss with an attack roll using a weapon, you gain Advantage on your next attack roll against the same target before the end of your current turn.'
+  },
+  {
     name: 'Indomitable',
     icon: '',
     cat: 'reaction',

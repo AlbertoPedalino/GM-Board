@@ -209,11 +209,12 @@ registerClassAdapter("Artificer", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerClassSheetActions("Artificer", [
   {
-    "name": "Tinker's Magic",
+    "name": "Magical Tinkering",
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "desc": "You can magically tinker with tools and objects, and you use Intelligence for your Artificer magic."
+    "minLevel": 1,
+    "desc": "Passive: using Tinker's Tools, you can imbue a Tiny nonmagical object with one minor magical property (light, recorded message, odor/vision, or faint magical aura). Up to a number of objects equal to your INT modifier can be active at once."
   },
   {
     "name": "Replicate Magic Item",
@@ -244,9 +245,9 @@ registerClassSheetActions("Artificer", [
     "name": "Soul of Artifice",
     "icon": "",
     "cat": "reaction",
-    "uses": "Passive",
+    "uses": "Passive + Reaction",
     "minLevel": 20,
-    "desc": "Your attuned magic items reinforce your defenses and help you cling to life in dire moments."
+    "desc": "Passive: you gain +1 bonus to all saving throws per magic item you are currently attuned to (max +6). Reaction: when you are reduced to 0 HP, you can end one of your attunements — you drop to 1 HP instead."
   }
 ]);
 registerClassSheetResources("Artificer", [

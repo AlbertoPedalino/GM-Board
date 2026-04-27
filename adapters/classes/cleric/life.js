@@ -57,6 +57,14 @@ registerSubclassSheetSpellModifiers("Cleric_Life", [
 // [SheetRuntime] START
 registerSubclassSheetActions("Cleric_Life", [
   {
+    "name": "Disciple of Life",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "When you cast a spell with a spell slot that restores HP to a creature, that creature regains additional HP equal to 2 + the spell slot's level."
+  },
+  {
     "name": "Channel: Preserve Life",
     "icon": "",
     "cat": "action",
@@ -66,6 +74,22 @@ registerSubclassSheetActions("Cleric_Life", [
       { icon: "heart", label: "Pool", value: `${Math.max(1, Number(ownerLevel || 1) * 5)} HP` }
     ],
     "desc": "Within 30 ft: distribute HP equal to 5 x Cleric level among any creatures of your choice (excluding Undead and Constructs), without exceeding each creature's maximum."
+  },
+  {
+    "name": "Blessed Healer",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 6,
+    "desc": "When you cast a healing spell on another creature (not yourself): you regain HP equal to 2 + the spell slot level used."
+  },
+  {
+    "name": "Supreme Healing",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 17,
+    "desc": "When you would normally roll dice to restore HP with a spell, use the highest possible number for each die instead of rolling."
   }
 ]);
 // [SheetRuntime] END

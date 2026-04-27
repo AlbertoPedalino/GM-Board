@@ -67,7 +67,7 @@ registerClassSheetActions("Wizard", [
     "name": "Spellbook",
     "icon": "",
     "cat": "action",
-    "uses": "Always",
+    "uses": "Passive",
     "desc": "Contains your known Wizard spells. Cast prepared rituals without using a slot (+10 min). Copy new spells: costs 50 gp and 2 hours per spell level. Gain 2 free spells at each Wizard level."
   },
   {

@@ -112,12 +112,36 @@ registerClassSheetActions("Rogue", [
     "desc": "Bonus Action each turn: take the Dash, Disengage, or Hide action."
   },
   {
+    "name": "Steady Aim",
+    "icon": "",
+    "cat": "bonus",
+    "uses": "Unlimited",
+    "minLevel": 3,
+    "desc": "Bonus Action: give yourself Advantage on your next attack roll this turn. You must not have moved during this turn, and your speed becomes 0 until the end of the turn."
+  },
+  {
+    "name": "Uncanny Dodge",
+    "icon": "",
+    "cat": "reaction",
+    "uses": "Reaction",
+    "minLevel": 5,
+    "desc": "When an attacker you can see hits you with an attack roll, use your Reaction to halve the attack's damage against you."
+  },
+  {
     "name": "Cunning Strike",
     "icon": "",
     "cat": "attack",
     "uses": "Sneak Attack die",
     "minLevel": 5,
-    "desc": "When you deal Sneak Attack damage, you can forgo one Sneak Attack die to apply one Cunning Strike option: Disarm (DEX save or drops one item), Poison (CON save or Poisoned 1 min), Trip (DEX save or Prone), or Withdraw (your movement doesn't provoke OA this turn)."
+    "desc": "When you deal Sneak Attack damage, forgo one or more Sneak Attack dice to apply an option: Disarm (1 die, DEX save or drops item), Poison (1 die, CON save or Poisoned 1 min), Trip (1 die, DEX save or Prone), Withdraw (1 die, movement doesn't provoke OA this turn)."
+  },
+  {
+    "name": "Devious Strikes",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Sneak Attack dice",
+    "minLevel": 11,
+    "desc": "Additional Cunning Strike options: Daze (2 dice, CON save or Incapacitated until end of your next turn), Knock Out (6 dice, CON save or Unconscious for 1 min — ends if target takes damage or is shaken), Obscure (3 dice, DEX save or Blinded until end of your next turn)."
   },
   {
     "name": "Evasion",
@@ -152,12 +176,30 @@ registerClassSheetActions("Rogue", [
     "desc": "Proficiency in WIS and CHA saving throws."
   },
   {
+    "name": "Elusive",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 18,
+    "desc": "No attack roll has Advantage against you while you are not Incapacitated."
+  },
+  {
     "name": "Stroke of Luck",
     "icon": "",
     "cat": "action",
     "uses": "1 / LR",
+    "resKey": "stroke_of_luck",
     "minLevel": 20,
-    "desc": "Once per Long Rest: turn a failed ability check into a success, or turn a miss into a hit."
+    "desc": "Once per Long Rest: turn a failed ability check into a success, or turn a miss into a hit. Recharge: Long Rest."
+  }
+]);
+registerClassSheetResources("Rogue", [
+  {
+    "key": "stroke_of_luck",
+    "name": "Stroke of Luck",
+    "icon": "star",
+    "recharge": "LR",
+    "max": () => 1
   }
 ]);
 registerClassSheetProficiencies("Rogue", [

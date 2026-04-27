@@ -1,5 +1,6 @@
 registerSubclassAdapter("Barbarian_Zealot", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Barbarian_Zealot", [
   { name: "Divine Fury",       icon: "", cat: "attack",  uses: "Passive",  minLevel: 3, noRoll: true,
     inlinePills: ({ ownerLevel }) => [{ icon: 'flame', label: 'Bonus Damage', value: `1d6+${Math.floor(Number(ownerLevel||1)/2)}` }],
@@ -11,3 +12,4 @@ registerSubclassSheetActions("Barbarian_Zealot", [
   { name: "Rage Beyond Death", icon: "", cat: "action",  uses: "Passive",  minLevel: 14,
     desc: "While Raging, you can't be reduced below 1 HP. If you would die, you remain at 1 HP until your Rage ends, at which point you die if still at 0 HP." },
 ]);
+// [SheetRuntime] END

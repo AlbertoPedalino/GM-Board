@@ -1,5 +1,6 @@
 registerSubclassAdapter("Barbarian_World Tree", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Barbarian_World Tree", [
   { name: "Vitality of the Tree", icon: "", cat: "action",   uses: "Passive",      minLevel: 3,
     desc: "When you Rage, and at the start of each of your turns while Raging, you gain temporary HP equal to your Proficiency Bonus." },
@@ -10,3 +11,4 @@ registerSubclassSheetActions("Barbarian_World Tree", [
   { name: "Mighty Impel",         icon: "", cat: "bonus",    uses: "While Raging", minLevel: 14,
     desc: "When you hit a Large or smaller creature with an attack while Raging, use a Bonus Action to move it up to 30 ft horizontally toward or away from you (STR save negates, DC = 8 + PB + STR mod)." },
 ]);
+// [SheetRuntime] END

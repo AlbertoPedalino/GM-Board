@@ -79,6 +79,7 @@ registerClassSheetActions("Ranger", [
     "icon": "",
     "cat": "bonus",
     "uses": "WIS mod free / LR",
+    "resKey": "hunters_mark_free",
     "damageFormula": "1d6",
     "damageButtonLabel": "+1d6",
     "desc": "Bonus Action (Concentration): mark a creature you can see within 90 ft. +1d6 damage on every hit against it. Advantage on PER/Survival checks to find it. Can move the mark (Bonus Action) if the marked creature dies. At lv.17: no longer requires Concentration."
@@ -122,6 +123,15 @@ registerClassSheetActions("Ranger", [
     "uses": "Passive",
     "minLevel": 18,
     "desc": "No Disadvantage on attack rolls against creatures you can't see. You can hear invisible creatures in combat."
+  }
+]);
+registerClassSheetResources("Ranger", [
+  {
+    "key": "hunters_mark_free",
+    "name": "Hunter's Mark (free)",
+    "icon": "crosshair",
+    "recharge": "LR",
+    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1)
   }
 ]);
 // [SheetRuntime] END

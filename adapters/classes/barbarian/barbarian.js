@@ -38,6 +38,13 @@ registerClassAdapter("Barbarian", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerClassSheetActions("Barbarian", [
   {
+    "name": "Unarmored Defense",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "desc": "While not wearing armor and not using a Shield: your AC equals 10 + DEX modifier + CON modifier."
+  },
+  {
     "name": "Rage",
     "icon": "",
     "cat": "bonus",
@@ -61,6 +68,14 @@ registerClassSheetActions("Barbarian", [
     "desc": "You have advantage on DEX saving throws against effects you can see. You can't be surprised while you are conscious."
   },
   {
+    "name": "Extra Attack",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 5,
+    "desc": "You can attack twice, instead of once, whenever you take the Attack action on your turn."
+  },
+  {
     "name": "Fast Movement",
     "icon": "",
     "cat": "action",
@@ -75,6 +90,14 @@ registerClassSheetActions("Barbarian", [
     "uses": "Passive",
     "minLevel": 7,
     "desc": "Advantage on Initiative rolls. If you are surprised at the start of combat, you can act normally on your first turn as long as you enter your Rage before doing anything else."
+  },
+  {
+    "name": "Instinctive Pounce",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 7,
+    "desc": "When you enter your Rage using a Bonus Action, you can move up to half your Speed as part of that same Bonus Action."
   },
   {
     "name": "Brutal Strike",
@@ -109,6 +132,14 @@ registerClassSheetActions("Barbarian", [
     "uses": "Passive",
     "minLevel": 18,
     "desc": "If your total for a STR check is lower than your STR score, use your STR score in its place."
+  },
+  {
+    "name": "Primal Champion",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 20,
+    "desc": "Your STR score increases by 4 and your CON score increases by 4. Your maximums for those scores increase by 4 as well."
   }
 ]);
 registerClassSheetResources("Barbarian", [

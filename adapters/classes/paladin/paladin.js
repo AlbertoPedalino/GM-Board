@@ -47,15 +47,6 @@ registerClassSheetActions("Paladin", [
     "desc": "Reaction when you hit with a Melee weapon. Expend a spell slot: deal 2d8 Radiant damage (+1d8 per slot level above 1st, max 6d8). Critical hit: extra 1d8. Once per turn."
   },
   {
-    "name": "Sacred Weapon",
-    "icon": "",
-    "cat": "bonus",
-    "uses": "CHA mod+1 / LR",
-    "resKey": "paladin_channel_div",
-    "minLevel": 3,
-    "desc": "Bonus Action: imbue a weapon with holy power for 1 minute. The weapon is magical, emits bright light (20 ft) and dim light (20 ft more), and you add your CHA modifier to attack rolls. Ends if you're Incapacitated."
-  },
-  {
     "name": "Channel Divinity",
     "icon": "",
     "cat": "action",

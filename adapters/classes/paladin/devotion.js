@@ -1,5 +1,6 @@
 registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Paladin_Devotion", [
   {
     "name": "Channel: Sacred Weapon",
@@ -7,6 +8,36 @@ registerSubclassSheetActions("Paladin_Devotion", [
     "cat": "bonus",
     "uses": "1 Channel",
     "resKey": "paladin_channel_div",
-    "desc": "Bonus action: infuse your held weapon for 1 minute. Add CHA mod to attack rolls (min +1). The weapon sheds bright light in a 20-ft radius."
+    "desc": "Bonus Action: for 1 minute, imbue your held weapon with divine energy. Add CHA modifier (min +1) to attack rolls. The weapon sheds bright light in a 20-ft radius and dim light 20 ft beyond. Ends if you're Incapacitated or sheathe/drop it."
+  },
+  {
+    "name": "Aura of Devotion",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 7,
+    "desc": "While conscious, you and friendly creatures within your aura are immune to the Charmed condition. Range: 10 ft (30 ft at lv.18)."
+  },
+  {
+    "name": "Holy Nimbus",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 / LR",
+    "resKey": "devotion_holy_nimbus",
+    "minLevel": 20,
+    "damageFormula": "10",
+    "damageButtonLabel": "10 radiant",
+    "damageKind": "damage",
+    "desc": "Action: emit an aura of sunlight for 1 minute (30-ft radius bright light + 30 ft dim). Enemies starting their turn in the aura take 10 Radiant damage. Advantage on saving throws against spells cast by Fiends and Undead. Recharge: Long Rest."
   }
 ]);
+registerSubclassSheetResources("Paladin_Devotion", [
+  {
+    "key": "devotion_holy_nimbus",
+    "name": "Holy Nimbus",
+    "icon": "sun",
+    "recharge": "LR",
+    "max": () => 1
+  }
+]);
+// [SheetRuntime] END

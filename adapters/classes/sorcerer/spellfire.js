@@ -1,5 +1,6 @@
 registerSubclassAdapter("Sorcerer_Spellfire", function (cls, lv, specs) {});
 
+// [SheetRuntime] START
 registerSubclassSheetActions("Sorcerer_Spellfire", [
   {
     "name": "Spellfire Surge",
@@ -10,3 +11,4 @@ registerSubclassSheetActions("Sorcerer_Spellfire", [
     "desc": "Channel raw spellfire through your subclass feature progression."
   }
 ]);
+// [SheetRuntime] END

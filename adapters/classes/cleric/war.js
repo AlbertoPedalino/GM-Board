@@ -34,6 +34,14 @@ registerSubclassSheetActions("Cleric_War", [
     "resKey": "channel_div",
     "minLevel": 6,
     "desc": "Reaction when an ally within 30 ft makes an attack roll: expend one Channel Divinity use to add +10 to that roll. Can turn a miss into a hit."
+  },
+  {
+    "name": "Avatar of Battle",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 17,
+    "desc": "You gain Resistance to Bludgeoning, Piercing, and Slashing damage from nonmagical weapons."
   }
 ]);
 registerSubclassSheetResources("Cleric_War", [

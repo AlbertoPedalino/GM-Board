@@ -39,6 +39,13 @@ registerClassAdapter("Druid", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerClassSheetActions("Druid", [
   {
+    "name": "Primal Order",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "desc": "Choose at lv.1 — Magician: learn one extra Druid cantrip; or Warden: proficiency with Martial weapons and training with Medium armor (if not already proficient)."
+  },
+  {
     "name": "Wild Shape",
     "icon": "",
     "cat": "bonus",
