@@ -2860,6 +2860,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           <div class="hp-nums"><input type="number" value="${c.hpCurrent}" onchange="setHP(${c.id},this.value)"><span class="hp-max">/${c.hpMax}</span></div>
         </div>
         <div class="crow-ctrl">
+          ${(!mon && c.hpCurrent === 0 && c.deathSaves) ? `<div class="death-saves">
+            <div class="pmlab">S</div>
+            <div class="ds-group">${[1,2,3].map(v=>`<div class="ds-box s${c.deathSaves.s>=v?' on':''}" onclick="setDS(${c.id},'s',${v})"></div>`).join('')}</div>
+            <div class="pmlab">F</div>
+            <div class="ds-group">${[1,2,3].map(v=>`<div class="ds-box f${c.deathSaves.f>=v?' on':''}" onclick="setDS(${c.id},'f',${v})"></div>`).join('')}</div>
+          </div>` : ''}
           <button class="hbtn d" onclick="modHP(${c.id},-10)">-10</button>
           <button class="hbtn d" onclick="modHP(${c.id},-5)">-5</button>
           <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
