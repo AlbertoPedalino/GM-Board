@@ -3468,7 +3468,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       char.choices[`${slotKey}_asi_picks`] = [];
       const gd = document.getElementById('feat-grant-' + slotKey);
       if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
-      renderPreview();
+      renderPreview(); renderScoreUI();
     }
 
     function toggleAsiStat(slotKey, stat, maxPicks) {
@@ -3480,7 +3480,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       char.choices[`${slotKey}_asi_picks`] = picks;
       const gd = document.getElementById('feat-grant-' + slotKey);
       if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
-      renderPreview();
+      renderPreview(); renderScoreUI();
     }
 
     function getSelectedFeats() {
@@ -5840,7 +5840,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function getAsiFeatBonus(stat) {
       let bonus = 0;
       for (const [k, v] of Object.entries(char.choices || {})) {
-        if (!/^feat_asi_lv\d+_asi_picks$/.test(k)) continue;
+        if (!k.endsWith('_asi_picks')) continue;
         const mode = char.choices[k.replace('_asi_picks', '_asi_mode')] || 'double';
         const picks = Array.isArray(v) ? v : [];
         if (mode === 'double') {
@@ -5885,7 +5885,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     <div class="pb-track"><div class="pb-fill${left < 0 ? ' over' : ''}" style="width:${pct}%"></div></div>
   </div><div class="score-grid">`;
       for (const s of STATS) {
-        const v = char.pbScores[s], bon = bgBonus(s), fin = v + bon;
+        const v = char.pbScores[s], bon = bgBonus(s), featBon = getAsiFeatBonus(s), fin = v + bon + featBon;
         const canUp = v < 15 && (27 - spent - (PB_COST[v + 1] - (PB_COST[v] || 0))) >= 0;
         const canDn = v > 8;
         h += `<div class="score-cell">
@@ -5893,6 +5893,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       <div class="score-val">${fin}</div>
       <div class="score-mod">${fmod(fin)}</div>
       ${bon ? `<div class="score-bonus">+${bon} bg</div>` : ''}
+      ${featBon ? `<div class="score-bonus" style="color:var(--purple)">+${featBon} feat</div>` : ''}
       <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:5px">
         <button class="score-btn" onclick="pbAdj('${s}',-1)" ${canDn ? '' : ' disabled'}>−</button>
         <span style="font-family:var(--ff-display);font-size:var(--fs-caption);color:var(--text3)">${v}</span>
@@ -5929,13 +5930,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       });
       h += `</div><div class="score-grid">`;
       for (const s of STATS) {
-        const v = char.arrAssign[s], bon = bgBonus(s), fin = (v !== null ? v : 8) + bon;
+        const v = char.arrAssign[s], bon = bgBonus(s), featBon = getAsiFeatBonus(s), fin = (v !== null ? v : 8) + bon + featBon;
         const canAssign = char.selPoolVal !== null && v === null;
         h += `<div class="score-cell${canAssign ? ' focused' : ''}">
       <div class="score-label">${SLBL[s]}</div>
       <div class="score-val" style="${v === null ? 'opacity:.3' : ''}">${v !== null ? fin : '—'}</div>
       ${v !== null ? `<div class="score-mod">${fmod(fin)}</div>` : ''}
       ${bon && v !== null ? `<div class="score-bonus">+${bon} bg</div>` : ''}
+      ${featBon && v !== null ? `<div class="score-bonus" style="color:var(--purple)">+${featBon} feat</div>` : ''}
       <div style="display:flex;gap:4px;justify-content:center;margin-top:4px">
         ${canAssign ? `<button class="assign-btn" onclick="assArr('${s}')">Assign</button>` : ''}
         ${v !== null ? `<button class="unassign-btn" onclick="unArr('${s}')">${luci('x')}</button>` : ''}
@@ -5963,13 +5965,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         h += `</div><button class="btn-roll" onclick="rollStats()">${luci('dice-5')} Reroll all</button>
     <div class="score-grid">`;
         for (const s of STATS) {
-          const v = char.diceAssign[s], bon = bgBonus(s), fin = (v !== null ? v : 8) + bon;
+          const v = char.diceAssign[s], bon = bgBonus(s), featBon = getAsiFeatBonus(s), fin = (v !== null ? v : 8) + bon + featBon;
           const canAssign = char.selDiceIdx !== null && v === null;
           h += `<div class="score-cell${canAssign ? ' focused' : ''}">
         <div class="score-label">${SLBL[s]}</div>
         <div class="score-val" style="${v === null ? 'opacity:.3' : ''}">${v !== null ? fin : '—'}</div>
         ${v !== null ? `<div class="score-mod">${fmod(fin)}</div>` : ''}
         ${bon && v !== null ? `<div class="score-bonus">+${bon} bg</div>` : ''}
+        ${featBon && v !== null ? `<div class="score-bonus" style="color:var(--purple)">+${featBon} feat</div>` : ''}
         <div style="display:flex;gap:4px;justify-content:center;margin-top:4px">
           ${canAssign ? `<button class="assign-btn" onclick="assDice('${s}')">Assign</button>` : ''}
           ${v !== null ? `<button class="unassign-btn" onclick="unDice('${s}')">${luci('x')}</button>` : ''}

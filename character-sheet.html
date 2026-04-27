@@ -326,14 +326,14 @@
         justify-content: center;
         text-align: center;
       }
-      .scores-row { gap:.45rem; padding:.45rem .6rem; }
-      .scores-left { gap:.45rem; grid-template-columns:repeat(4,minmax(0,1fr)); flex: 1 1 100%; }
+      .scores-row { display:block; padding:.45rem .6rem; }
+      .scores-left { display:grid; width:100%; gap:.4rem; grid-template-columns:repeat(4,1fr); margin-bottom:.45rem; }
       .score-box { padding:.35rem .2rem; }
+      .hp-block { width:100%; min-width:0; max-width:none; box-sizing:border-box; }
       .main-grid { grid-template-columns:1fr; padding:.45rem .6rem; gap:.45rem; min-height:0; }
       .right-top-row { gap:.35rem; flex-wrap:wrap; }
       .circle-stat { width:58px;height:58px; }
       .defenses-block, .conditions-block { min-width:0; flex:1 1 120px; padding:.38rem .55rem; }
-      .hp-block { min-width:0; flex:1 1 100%; max-width:100%; }
       .hp-btn { width:32px; height:32px; }
       .hp-amount-input { width:44px; height:32px; font-size:var(--fs-body); }
       .tab-content { padding:.55rem; }
