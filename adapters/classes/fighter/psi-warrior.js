@@ -14,10 +14,10 @@ registerSubclassSheetActions("Fighter_Psi Warrior", [
       const die = lv >= 17 ? 'd12' : lv >= 11 ? 'd10' : lv >= 5 ? 'd8' : 'd6';
       return `1${die}`;
     },
-    "damageButtonLabel": ({ formula }) => `+${formula} psychic`,
+    "damageButtonLabel": ({ formula }) => `+${formula} force`,
     "damageKind": "damage",
     "rollLabelPrefix": "Psionic Strike",
-    "desc": "Once per turn, after hitting with a weapon attack, expend one Psionic Energy Die and add its roll to the damage as Psychic damage. Die size: d6 (lv.3), d8 (lv.5), d10 (lv.11), d12 (lv.17). Recharge: Long Rest (or 1 die on Short Rest if you roll 20 on the die)."
+    "desc": "Once per turn, after hitting with a weapon attack, expend one Psionic Energy Die and add its roll to the damage as Force damage. Die size: d6 (lv.3), d8 (lv.5), d10 (lv.11), d12 (lv.17). Recharge: Long Rest (or 1 die on Short Rest if you roll 20 on the die)."
   },
   {
     "name": "Telekinetic Movement",
@@ -48,11 +48,11 @@ registerSubclassSheetActions("Fighter_Psi Warrior", [
   {
     "name": "Guarded Mind",
     "icon": "",
-    "cat": "reaction",
+    "cat": "action",
     "uses": "1 Psi Die",
     "resKey": "psi_dice",
     "minLevel": 10,
-    "desc": "Passive: you have Resistance to Psychic damage. Reaction: when you are forced to make an INT, WIS, or CHA saving throw, expend one Psionic Energy Die and add the result to the save."
+    "desc": "Passive: you have Resistance to Psychic damage. If you start your turn Charmed or Frightened, expend one Psionic Energy Die to end every effect on you causing those conditions."
   },
   {
     "name": "Bulwark of Force",

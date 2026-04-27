@@ -19,7 +19,7 @@ registerSubclassSheetActions("Ranger_Beast Master", [
     "cat": "bonus",
     "uses": "Commands / turn",
     "minLevel": 3,
-    "desc": "Bonus Action: command your Primal Companion to take the Attack, Dash, Disengage, Dodge, or Help action. It acts on your initiative and uses your Proficiency Bonus. If it dies: spend 8 hours to bond a new companion."
+    "desc": "Bonus Action: command your Primal Companion to take the Dash, Disengage, Dodge, or Help action. To command it to Attack, sacrifice one of your own attacks from your Attack action (not a Bonus Action). It acts on your initiative and uses your Proficiency Bonus. If it dies: expend a spell slot of 1st level or higher within 1 hour to revive it at 1 HP."
   },
   {
     "name": "Exceptional Training",

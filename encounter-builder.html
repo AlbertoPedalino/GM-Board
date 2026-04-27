@@ -2059,12 +2059,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     <div id="library-view" style="display:none">
       <div class="panel">
         <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
-          <span class="pt">Saved Encounters</span>
-          <button class="btn-sec danger" onclick="clearAllEncounters()" style="font-size:11px;padding:4px 10px">🗑 Clear all</button>
+          <span class="pt">Library</span>
+          <button class="btn-sec danger" onclick="clearAllLibrary()" style="font-size:11px;padding:4px 10px"><i data-lucide="trash-2" class="lucide-emoji" aria-hidden="true"></i> Clear all</button>
         </div>
         <div class="pb">
           <div id="lib-list">
-            <div class="lib-empty">No encounters saved.<br>Build an encounter and press <em>Save</em>.</div>
+            <div class="lib-empty">No encounters saved.</div>
           </div>
         </div>
       </div>
@@ -2154,6 +2154,75 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     let allM = [], filtM = [], encounter = [], combatants = [], currentTurn = 0, round = 1;
     let fullMonsterDb = [];
+    const SAVED_FIGHTS_KEY = '5e_saved_fights';
+    let currentFightId = null, _currentEncounterId = null;
+
+    function _fightSnapshot() {
+      return {
+        combatants: combatants.map(c => ({
+          id: c.id, name: c.name, initiative: c.initiative, initMod: c.initMod || 0,
+          hpCurrent: c.hpCurrent, hpMax: c.hpMax, ac: c.ac, type: c.type,
+          deathSaves: c.deathSaves, isDead: c.isDead,
+          label: c.label, shape: c.shape, shapeClr: c.shapeClr,
+          monsterRef: c.monsterData ? { name: c.monsterData.name, source: c.monsterData.source } : null
+        })),
+        currentTurn, round
+      };
+    }
+
+    function _restoreFight(data) {
+      const db = fullMonsterDb.length > 0 ? fullMonsterDb : allM;
+      combatants = data.combatants.map(c => ({
+        ...c,
+        monsterData: c.monsterRef ? (db.find(m => m.name === c.monsterRef.name && m.source === c.monsterRef.source) || null) : null
+      }));
+      currentTurn = data.currentTurn || 0;
+      round = data.round || 1;
+    }
+
+    function getSavedFights() {
+      try { return JSON.parse(localStorage.getItem(SAVED_FIGHTS_KEY) || '[]'); } catch { return []; }
+    }
+
+    function saveCombatState() {
+      if (!currentFightId || !combatants.length) return;
+      const fights = getSavedFights();
+      const idx = fights.findIndex(f => f.id === currentFightId);
+      const entry = {
+        id: currentFightId,
+        name: fights[idx]?.name || _autoFightName(),
+        savedAt: Date.now(),
+        encounterId: _currentEncounterId,
+        fight: _fightSnapshot()
+      };
+      if (idx >= 0) fights[idx] = entry;
+      else fights.unshift(entry);
+      localStorage.setItem(SAVED_FIGHTS_KEY, JSON.stringify(fights));
+    }
+
+    function _autoFightName() {
+      const names = [...new Set(combatants.map(c => c.name))].slice(0, 3).join(', ');
+      return names || 'Fight';
+    }
+
+    function resumeFight(id) {
+      const saved = getSavedFights().find(f => f.id === id);
+      if (!saved) return;
+      try { _restoreFight(saved.fight); } catch { return; }
+      currentFightId = id;
+      document.getElementById('tab-c').disabled = false;
+      setView('combat'); renderCombat();
+    }
+
+    async function deleteFight(id) {
+      if (!await uiConfirm('Delete this saved fight?')) return;
+      const list = getSavedFights().filter(f => f.id !== id);
+      localStorage.setItem(SAVED_FIGHTS_KEY, JSON.stringify(list));
+      if (currentFightId === id) currentFightId = null;
+      renderFights();
+    }
+
+    function renderFights() { renderLibrary(); }
     let pid = 0, pg = 0;
     const PS = 50;
     let sources = {}, activeSrcs = new Set(), selMon = null;
@@ -2671,13 +2740,15 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     /* ── Combat ── */
-    function avvia(skipSave = false) {
+    function avvia(skipSave = false, encounterId = null) {
       if (!skipSave) saveEncounter();
-      buildCombat();
+      buildCombat(encounterId);
       document.getElementById('tab-c').disabled = false;
       setView('combat'); renderCombat();
     }
-    function buildCombat() {
+    function buildCombat(encounterId = null) {
+      currentFightId = Date.now();
+      _currentEncounterId = encounterId;
       combatants = []; let cid = 0;
       monsterLabelMap = {}; shapeCtr = 0;  // reset etichette a ogni nuovo incontro
       encounter.forEach(e => {
@@ -2828,8 +2899,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
               </div>
             </div>
             <div class="qcomp-field">
-              <label>Initiative</label>
-              <input type="number" id="qManualInit" placeholder="0"/>
+              <label>Init Mod</label>
+              <input type="number" id="qManualInit" placeholder="+0"/>
             </div>
             <button class="btn-avvia" onclick="addQuickManual()" style="margin-top:4px;font-size:13px;padding:9px">✚ Add</button>
           </div>
@@ -2886,6 +2957,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // Forza il caricamento iniziale dei dati anche se la tendina è chiusa
       setTimeout(applyQuickF, 100);
+
+      saveCombatState();
+      renderFights();
     }
     // LOGICA PER L'AGGIUNTA
     // Filtra i mostri dentro la sezione Incontro
@@ -2990,11 +3064,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       const currentActor = combatants[currentTurn];
       const hp = parseInt(document.getElementById('qManualHp').value) || 10;
+      const initMod = parseInt(document.getElementById('qManualInit').value) || 0;
 
       const lbl2 = assignLabel(name);
       combatants.push({
         id: Date.now(), name,
-        initiative: parseInt(document.getElementById('qManualInit').value) || 0,
+        initiative: d20() + initMod, initMod,
         hpCurrent: hp, hpMax: hp,
         ac: parseInt(document.getElementById('qManualAc').value) || 10,
         type: 'monster', deathSaves: { s: 0, f: 0 }, isDead: false, monsterData: null,
@@ -3312,17 +3387,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     async function deleteEncounter(id) {
-      if (!await uiConfirm('Delete this encounter from the library?')) return;
-      const list = getSavedEncounters().filter(e => e.id !== id);
-      localStorage.setItem(LIB_KEY, JSON.stringify(list));
-      renderLibrary();
-    }
-
-    async function clearAllEncounters() {
-      const list = getSavedEncounters();
-      if (!list.length) return;
-      if (!await uiConfirm(`Delete all ${list.length} saved encounters?`)) return;
-      localStorage.removeItem(LIB_KEY);
+      if (!await uiConfirm('Delete this entry from the library?')) return;
+      localStorage.setItem(LIB_KEY, JSON.stringify(getSavedEncounters().filter(e => e.id !== id)));
+      // also remove linked fight if any
+      const linkedFight = getSavedFights().find(f => f.encounterId === id);
+      if (linkedFight) localStorage.setItem(SAVED_FIGHTS_KEY, JSON.stringify(getSavedFights().filter(f => f.encounterId !== id)));
       renderLibrary();
     }
 
@@ -3342,43 +3411,93 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       // party.level = saved.partyLevel;
 
       renderEnc();
-      avvia(true);
+      avvia(true, saved.id);
     }
 
+    function renderFights() { renderLibrary(); }
+
     function renderLibrary() {
-      const list = getSavedEncounters();
       const el = document.getElementById('lib-list');
       if (!el) return;
 
-      if (!list.length) {
-        el.innerHTML = '<div class="lib-empty">No encounters saved.<br>Build an encounter and press <em>Save</em>.</div>';
+      const encounters = getSavedEncounters();
+      const fights = getSavedFights();
+
+      // Merge: fights enrich matching encounters by name; standalone entries kept separately
+      const encMap = new Map(encounters.map(e => [e.id, e]));
+      const fightMap = new Map(fights.map(f => [f.id, f]));
+
+      // Build unified list sorted by most recent activity
+      const items = [];
+      encounters.forEach(e => {
+        const linkedFight = fights.find(f => f.encounterId === e.id);
+        items.push({ type: 'enc', enc: e, fight: linkedFight || null, sortKey: linkedFight ? Math.max(e.createdAt, linkedFight.savedAt) : e.createdAt });
+      });
+      fights.filter(f => !f.encounterId).forEach(f => {
+        items.push({ type: 'fight', enc: null, fight: f, sortKey: f.savedAt });
+      });
+      items.sort((a, b) => b.sortKey - a.sortKey);
+
+      if (!items.length) {
+        el.innerHTML = '<div class="lib-empty">No encounters saved.</div>';
         return;
       }
 
-      el.innerHTML = '<div class="lib-grid">' + list.map(e => {
-        const dateStr = new Date(e.createdAt).toLocaleString('en-US', {
-          day: '2-digit', month: '2-digit', year: '2-digit',
-          hour: '2-digit', minute: '2-digit'
-        });
-        const monsStr = e.encounter.map(m => `${esc(m.name)}${m.qty > 1 ? ' ×' + m.qty : ''}`).join(', ');
-        const totalMons = e.encounter.reduce((s, m) => s + m.qty, 0);
+      el.innerHTML = '<div class="lib-grid">' + items.map(item => {
+        const { enc, fight } = item;
+        const dateKey = fight ? fight.savedAt : enc.createdAt;
+        const dateStr = new Date(dateKey).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+        const name = enc ? enc.name : fight.name;
+
+        let topMeta = '';
+        if (enc) {
+          const totalMons = enc.encounter.reduce((s, m) => s + m.qty, 0);
+          topMeta = `<span class="dbadge ${enc.diffClass}" style="font-size:11px">${esc(enc.diffLabel)}</span>
+            <span class="lib-card-xp">${fmt(enc.totalXp)} XP</span>
+            <span class="lib-card-meta">${totalMons} monsters · Lv ${enc.partyLevel} · ${enc.partyCount} PC</span>`;
+        }
+        if (fight) {
+          const alive = fight.fight.combatants.filter(c => !c.isDead).length;
+          const dead  = fight.fight.combatants.filter(c => c.isDead).length;
+          topMeta += `<span class="lib-card-meta" style="color:var(--gold)">Round ${fight.fight.round} · ${alive} alive${dead ? ' · ' + dead + ' dead' : ''}</span>`;
+        }
+
+        const monsStr = enc
+          ? enc.encounter.map(m => `${esc(m.name)}${m.qty > 1 ? ' ×' + m.qty : ''}`).join(', ')
+          : fight.fight.combatants.map(c => `${esc(c.name)} ${c.hpCurrent}/${c.hpMax}HP`).join(', ');
+
+        const launchBtn  = enc  ? `<button class="btn-avvia" onclick="launchEncounter(${enc.id})" style="flex:1;padding:8px;font-size:13px">${luci('swords')} Launch</button>` : '';
+        const resumeBtn  = fight ? `<button class="btn-avvia" onclick="resumeFight(${fight.id})" style="flex:1;padding:8px;font-size:13px">${luci('play')} Resume</button>` : '';
+        const deleteBtn  = enc
+          ? `<button class="btn-sec danger" onclick="deleteEncounter(${enc.id})" style="font-size:12px">${luci('trash-2')}</button>`
+          : `<button class="btn-sec danger" onclick="deleteFight(${fight.id})" style="font-size:12px">${luci('trash-2')}</button>`;
+
         return `
         <div class="lib-card">
           <div class="lib-card-top">
-            <div class="lib-card-name">${esc(e.name)}</div>
-            <span class="dbadge ${e.diffClass}" style="font-size:11px">${esc(e.diffLabel)}</span>
-            <span class="lib-card-xp">${fmt(e.totalXp)} XP</span>
-            <span class="lib-card-meta">${totalMons} monsters · Lv ${e.partyLevel} · ${e.partyCount} PC</span>
+            <div class="lib-card-name">${esc(name)}</div>
+            ${topMeta}
           </div>
-          <div class="lib-card-monsters">${monsStr}</div>
+          <div class="lib-card-monsters" style="font-size:12px">${monsStr}</div>
           <div class="lib-card-actions">
-            <button class="btn-avvia" onclick="launchEncounter(${e.id})" style="flex:1;padding:8px;font-size:13px">${luci('swords')} Launch</button>
-            <button class="btn-sec danger" onclick="deleteEncounter(${e.id})" style="font-size:12px">🗑</button>
+            ${resumeBtn}${launchBtn}
+            ${deleteBtn}
             <span class="lib-card-date">${dateStr}</span>
           </div>
         </div>`;
       }).join('') + '</div>';
       refreshIcons();
+    }
+
+    async function clearAllLibrary() {
+      const enc = getSavedEncounters().length;
+      const fig = getSavedFights().length;
+      if (!enc && !fig) return;
+      if (!await uiConfirm(`Delete all ${enc + fig} entries?`)) return;
+      localStorage.removeItem(LIB_KEY);
+      localStorage.removeItem(SAVED_FIGHTS_KEY);
+      currentFightId = null;
+      renderLibrary();
     }
 
   </script>

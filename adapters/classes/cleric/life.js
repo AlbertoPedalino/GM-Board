@@ -89,7 +89,7 @@ registerSubclassSheetActions("Cleric_Life", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 17,
-    "desc": "When you would normally roll dice to restore HP with a spell, use the highest possible number for each die instead of rolling."
+    "desc": "When you roll dice to restore HP with a spell, treat any die that rolls lower than 2 as rolling a 2."
   }
 ]);
 // [SheetRuntime] END

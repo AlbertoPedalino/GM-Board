@@ -20,11 +20,11 @@ registerSubclassSheetActions("Cleric_War", [
   {
     "name": "Channel: Guided Strike",
     "icon": "",
-    "cat": "reaction",
+    "cat": "action",
     "uses": "1 Channel",
     "resKey": "channel_div",
     "minLevel": 3,
-    "desc": "Reaction when you or an ally within 30 ft misses an attack: expend one Channel Divinity use to add +10 to the roll, potentially turning a miss into a hit."
+    "desc": "When you make an attack roll, expend one Channel Divinity use to add +10 to that roll."
   },
   {
     "name": "Channel: War God's Blessing",
@@ -33,7 +33,7 @@ registerSubclassSheetActions("Cleric_War", [
     "uses": "1 Channel",
     "resKey": "channel_div",
     "minLevel": 6,
-    "desc": "Reaction when an ally within 30 ft makes an attack roll: expend one Channel Divinity use to add +10 to that roll. Can turn a miss into a hit."
+    "desc": "Reaction when an ally within 30 ft makes an attack roll: expend one Channel Divinity use to add your WIS modifier to that roll."
   },
   {
     "name": "Avatar of Battle",

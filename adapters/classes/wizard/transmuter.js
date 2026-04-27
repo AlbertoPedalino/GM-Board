@@ -3,6 +3,14 @@ registerSubclassAdapter("Wizard_Transmuter", function (cls, lv, specs) {});
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Transmuter", [
   {
+    "name": "Transmuter's Tools",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "You gain proficiency with Alchemist's Supplies. When you cast a Transmutation spell using a spell slot, you can use Alchemist's Supplies as your spellcasting focus."
+  },
+  {
     "name": "Transmuter's Stone",
     "icon": "",
     "cat": "action",

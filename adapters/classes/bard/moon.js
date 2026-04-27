@@ -22,13 +22,13 @@ registerSubclassAdapter("Bard_Moon", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Bard_Moon", [
   { name: "Moon's Inspiration", icon: "", cat: "bonus",    uses: "With Bardic Insp.", minLevel: 3,
-    desc: "Includes Inspired Eclipse (teleport and brief invisibility when granting Bardic Inspiration) and Lunar Vitality (boost healing by expending a Bardic Inspiration die once per turn)." },
+    desc: "Inspired Eclipse: when you take a Bonus Action to give a creature Bardic Inspiration, you can also become Invisible and teleport up to 30 ft to an unoccupied space you can see. Invisible until start of your next turn (ends early after attack roll, dealing damage, or casting a spell). Lunar Vitality: once per turn when you restore HP to a creature with a spell, you can expend a Bardic Inspiration die and add the die's result to the HP restored; the creature's Speed also increases by 10 ft until end of its next turn." },
   { name: "Primal Lore",        icon: "", cat: "action",   uses: "Passive",           minLevel: 3,
-    desc: "You learn Druidic, gain one Druid cantrip (counts as Bard spell), and gain proficiency in one skill from the Primal Lore list." },
+    desc: "You learn Druidic, gain one Druid cantrip (counts as Bard spell; swappable on level-up), and gain proficiency in one of: Animal Handling, Insight, Medicine, Nature, Perception, or Survival." },
   { name: "Blessing of Moonlight", icon: "", cat: "action", uses: "1 / LR", resKey: "moon_blessing", minLevel: 6,
-    desc: "You always have Moonbeam prepared. Once per Long Rest when you cast Moonbeam, you can modify it to grant extra healing to an additional creature on failed saves." },
-  { name: "Eventide's Splendor", icon: "", cat: "reaction", uses: "Passive", minLevel: 14,
-    desc: "Improves Moon's Inspiration: Inspired Eclipse can also affect the inspired ally, and Lunar Vitality can use 1d6 instead of expending a Bardic Inspiration die." },
+    desc: "Moonbeam is always prepared. Once per Long Rest when you cast Moonbeam, you can modify it: you shed Dim Light in a 5-ft radius while the spell is active, and whenever a creature fails its saving throw against this Moonbeam, another creature of your choice within 60 ft regains 2d4 HP." },
+  { name: "Eventide's Splendor", icon: "", cat: "action", uses: "Passive", minLevel: 14,
+    desc: "Shadow of the New Moon: when you use Inspired Eclipse, the creature who received Bardic Inspiration can also become Invisible and immediately use a Reaction to teleport up to 30 ft to an unoccupied space it can see (Invisible until start of its next turn). Vibrance of the Full Moon: when you use Lunar Vitality, you can roll 1d6 and use that result instead of expending a Bardic Inspiration die." },
 ]);
 
 registerSubclassSheetResources("Bard_Moon", [

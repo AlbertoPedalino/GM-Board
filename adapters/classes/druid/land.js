@@ -20,7 +20,7 @@ registerSubclassSheetActions("Druid_Land", [
     "uses": "1 / LR",
     "resKey": "natural_recovery",
     "minLevel": 6,
-    "desc": "After a Short Rest: regain spell slots whose combined levels are no greater than half your Druid level (rounded up). Recharge: Long Rest."
+    "desc": "After a Short Rest: regain spell slots whose combined levels are no greater than half your Druid level (rounded up). No single slot can be 6th level or higher. Recharge: Long Rest."
   },
   {
     "name": "Nature's Ward",
@@ -28,7 +28,7 @@ registerSubclassSheetActions("Druid_Land", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 10,
-    "desc": "Immune to Poison damage and the Poisoned condition. Immune to disease. Elementals and Fey can't charm or frighten you."
+    "desc": "Immune to poison and disease (Poisoned condition and diseases). Elementals and Fey can't charm or frighten you."
   },
   {
     "name": "Nature's Sanctuary",
@@ -36,7 +36,7 @@ registerSubclassSheetActions("Druid_Land", [
     "cat": "reaction",
     "uses": "Passive",
     "minLevel": 14,
-    "desc": "When a Fey, Plant creature, or Elemental attacks you: it must succeed on a WIS save (spell save DC) or choose a different target. On a successful save, it is immune to this effect for 24 hours."
+    "desc": "When a beast or plant creature attacks you: it must succeed on a WIS save (spell save DC) or choose a different target. On a successful save, it is immune to this effect for 24 hours."
   }
 ]);
 registerSubclassSheetResources("Druid_Land", [

@@ -11,8 +11,8 @@ registerSubclassSheetActions("Barbarian_Zealot", [
     desc: "When you fail a saving throw while Raging, use your Reaction to reroll it and use the new result. Usable once per Rage." },
   { name: "Zealous Presence",    icon: "", cat: "bonus",    uses: "1 / LR",      resKey: "zealous_presence", minLevel: 10,
     desc: "Bonus Action: unleash a battle cry infused with divine energy. Up to 10 creatures of your choice within 60 ft that can hear you gain Advantage on attack rolls and saving throws until the start of your next turn. Recharge: Long Rest." },
-  { name: "Rage of the Gods",    icon: "", cat: "action",   uses: "Passive",     minLevel: 14,
-    desc: "While Raging, you can't be reduced below 1 HP. If you would die from damage, you instead drop to 1 HP and your Rage continues. When your Rage ends, if you are at 0 HP, you die." },
+  { name: "Rage of the Gods",    icon: "", cat: "reaction", uses: "While Raging", minLevel: 14,
+    desc: "While Raging: gain Fly Speed equal to your Speed (hover); gain Resistance to Necrotic, Psychic, and Radiant damage. Reaction — when a creature within 30 ft of you drops to 0 HP, spend one use of Rage to cause that creature to drop to a number of HP equal to your Barbarian level instead." },
 ]);
 registerSubclassSheetResources("Barbarian_Zealot", [
   {

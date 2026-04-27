@@ -14,7 +14,7 @@ registerSubclassSheetActions("Bard_Dance", [
     desc: "You can use DEX for Unarmed Strike attack rolls. Your Unarmed Strike damage can be a roll of your Bardic Inspiration die + DEX mod (instead of normal damage)." },
   { name: "Inspiring Movement",  icon: "", cat: "reaction", uses: "With Bardic Insp.",  minLevel: 6,
     desc: "When an enemy ends its turn within 5 ft of you: expend one Bardic Inspiration and use your Reaction to move up to half Speed; then one ally within 30 ft can use their Reaction to move up to half Speed. This movement doesn't provoke Opportunity Attacks." },
-  { name: "Tandem Footwork",     icon: "", cat: "reaction", uses: "With Bardic Insp.",  minLevel: 6,
+  { name: "Tandem Footwork",     icon: "", cat: "bonus",    uses: "With Bardic Insp.",  minLevel: 6,
     desc: "When you roll Initiative, you can expend one Bardic Inspiration: roll the die and you plus each ally within 30 ft who can see/hear you gains that bonus to Initiative." },
   { name: "Leading Evasion",     icon: "", cat: "reaction", uses: "Passive",            minLevel: 14,
     desc: "When an effect allows a DEX save for half damage: on success you take no damage, on failure half. If creatures within 5 ft make the same DEX save, you can share this benefit with them. Doesn't work while Incapacitated." },

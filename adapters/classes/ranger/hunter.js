@@ -19,6 +19,16 @@ registerSubclassAdapter("Ranger_Hunter", function (cls, lv, specs) {
       level: 7
     });
   }
+  if (lv >= 11) {
+    specs.push({
+      key: 'subclass_hunter_superior_prey',
+      label: "Superior Hunter's Prey",
+      type: 'generic_choice',
+      from: ['Volley', 'Whirlwind Attack'],
+      count: 1,
+      level: 11
+    });
+  }
   if (lv >= 15) {
     specs.push({
       key: 'subclass_hunter_superior',
@@ -51,7 +61,7 @@ registerSubclassSheetActions("Ranger_Hunter", [
     "desc": "Choose: Escape the Horde (Opportunity Attacks against you have Disadvantage), Multiattack Defense (+4 AC against subsequent attacks from a creature that hit you this turn), or Steel Will (Advantage on saves against being Frightened)."
   },
   {
-    "name": "Multiattack",
+    "name": "Superior Hunter's Prey",
     "icon": "",
     "cat": "action",
     "uses": "Action",

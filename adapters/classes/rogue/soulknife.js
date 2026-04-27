@@ -12,7 +12,7 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "damageButtonLabel": ({ formula }) => `${formula} psychic`,
     "damageKind": "damage",
     "rollLabelPrefix": "Psychic Blades",
-    "desc": "Manifest spectral blades as part of an Attack action: one melee/thrown weapon (1d6 psychic, Finesse, range 60 ft, disappears after throw). As a Bonus Action on the same turn, manifest a second blade for an off-hand attack (no ability modifier to damage unless negative). No material components."
+    "desc": "Manifest spectral blades as part of an Attack action: one melee/thrown weapon (1d6 psychic, Finesse, range 60 ft, disappears after throw). As a Bonus Action on the same turn, manifest a second blade for an off-hand attack dealing 1d4 psychic (no ability modifier to damage unless negative). No material components."
   },
   {
     "name": "Psi-Bolstered Knack",
@@ -48,7 +48,7 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "uses": "1 Psionic Die",
     "resKey": "psionic_dice",
     "minLevel": 9,
-    "desc": "Bonus Action: manifest your Psychic Blades and expend one Psionic Energy Die. Roll the die and teleport up to (result × 5) feet to an unoccupied space you can see. The blade then disappears."
+    "desc": "Bonus Action: manifest your Psychic Blades and expend one Psionic Energy Die. Roll the die and teleport up to (result × 10) feet to an unoccupied space you can see. The blade then disappears."
   },
   {
     "name": "Psychic Veil",
@@ -66,7 +66,7 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "uses": "3 Psionic Dice",
     "resKey": "psionic_dice",
     "minLevel": 17,
-    "desc": "When you deal Sneak Attack damage with your Psychic Blades, you can expend 3 Psionic Energy Dice to stun the target. It must make a WIS save (DC = 8 + PB + DEX). On failure: the target is Stunned until the end of your next turn."
+    "desc": "When you deal Sneak Attack damage with your Psychic Blades, you can expend 3 Psionic Energy Dice to stun the target. It must make a WIS save (DC = 8 + PB + DEX). On failure: the target is Stunned for 1 minute. It repeats the save at the end of each of its turns, ending the effect on a success."
   }
 ]);
 registerSubclassSheetResources("Rogue_Soulknife", [

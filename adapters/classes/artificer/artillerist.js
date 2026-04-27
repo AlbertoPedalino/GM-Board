@@ -31,19 +31,19 @@ registerSubclassSheetActions("Artificer_Artillerist", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 5,
-    "desc": "Passive: after a Long Rest, use Woodcarver's Tools to carve sigils into a wand, staff, or rod — it becomes your Arcane Firearm. While holding it as a spellcasting focus, once per turn when you cast an Artificer spell through it, roll 1d8 and add it to one damage or healing roll of that spell."
+    "desc": "Passive: after a Long Rest, use Woodcarver's Tools to carve sigils into a wand, staff, or rod — it becomes your Arcane Firearm. While holding it as a spellcasting focus, once per turn when you cast an Artificer spell through it, roll 1d8 and add it to one damage roll of that spell."
   },
   {
     "name": "Detonate Cannon",
     "icon": "",
-    "cat": "action",
-    "uses": "1 per Cannon",
+    "cat": "reaction",
+    "uses": "On Cannon Hit",
     "minLevel": 9,
-    "damageFormula": "3d8",
+    "damageFormula": "3d10",
     "damageButtonLabel": ({ formula }) => `${formula} force`,
     "damageKind": "damage",
     "rollLabelPrefix": "Detonate",
-    "desc": "Action: while within 60 ft of your Eldritch Cannon, command it to detonate. Each creature within 20 ft must succeed on a STR save (DC = spell save DC) or take 3d8 Force damage (half on success). The cannon is then destroyed."
+    "desc": "Reaction when your Eldritch Cannon takes damage (while within 60 ft): command it to detonate. Each creature within 20 ft must succeed on a DEX save (DC = spell save DC) or take 3d10 Force damage (half on success). The cannon is then destroyed."
   },
   {
     "name": "Fortified Position",
@@ -51,7 +51,7 @@ registerSubclassSheetActions("Artificer_Artillerist", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 15,
-    "desc": "Passive: you always have Half Cover while within 10 ft of one of your Eldritch Cannons. You can now have two Eldritch Cannons active simultaneously — creating a second one still costs an action and a use (or spell slot)."
+    "desc": "Double Firepower: create both cannons with the same Magic action (expend two uses/spell slots), activate both with the same Bonus Action. Can't create a third. Shimmering Field Projection: you and allies have Half Cover within 10 ft of your Eldritch Cannon."
   }
 ]);
 registerSubclassSheetResources("Artificer_Artillerist", [

@@ -22,7 +22,7 @@ registerSubclassSheetActions("Artificer_Battle Smith", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "desc": "Passive: you gain proficiency with martial weapons. When you attack with a magic weapon, you can use your INT modifier instead of STR or DEX for the attack and damage rolls."
+    "desc": "Passive: you gain proficiency with martial weapons. When you attack with a magic weapon, you can use your INT modifier instead of STR or DEX for the attack and damage rolls. You can use a weapon with which you have proficiency as a spellcasting focus for your Artificer spells."
   },
   {
     "name": "Steel Defender",
@@ -30,7 +30,7 @@ registerSubclassSheetActions("Artificer_Battle Smith", [
     "cat": "bonus",
     "uses": "Bonus Action (command)",
     "minLevel": 3,
-    "desc": "Your Steel Defender (AC = 15 + PB, HP = 2 + INT mod + 5 × Artificer level) acts on your initiative. Bonus Action: command it to Dash, Disengage, Help, or make an attack. It can use its Deflect Attack reaction (uses your reaction) to impose Disadvantage on an attack against a creature within 5 ft of it. Revive with smith's tools (10 min) after death; recreate after Long Rest."
+    "desc": "Your Steel Defender acts on your initiative. It takes the Dodge action unless you spend a Bonus Action to command it to take another action. If you are Incapacitated, it acts on its own. Revival: if it died within the last hour, take a Magic action and expend a spell slot to touch it — it revives after 1 minute with full HP. Recreate after Long Rest (requires Smith's Tools)."
   },
   {
     "name": "Arcane Jolt",
@@ -51,7 +51,7 @@ registerSubclassSheetActions("Artificer_Battle Smith", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 15,
-    "desc": "Passive: your Arcane Jolt damage/healing increases to 4d6. Your Steel Defender gains +2 AC. When it uses Deflect Attack, the attacker takes Force damage equal to 1d4 + your INT modifier."
+    "desc": "Improved Jolt: Arcane Jolt damage/healing increases to 4d6. Improved Deflection: when your Steel Defender uses Deflect Attack, the attacker takes Force damage equal to 1d4 + your INT modifier."
   }
 ]);
 registerSubclassSheetResources("Artificer_Battle Smith", [

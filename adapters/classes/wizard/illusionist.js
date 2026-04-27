@@ -14,9 +14,10 @@ registerSubclassSheetActions("Wizard_Illusionist", [
     "name": "Phantasmal Creatures",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "2 / LR",
+    "resKey": "phantasmal_creatures",
     "minLevel": 6,
-    "desc": "When you cast an Illusion spell of level 1 or higher, you can make illusions more believable: creatures examining your illusion must beat your spell save DC with an Investigation check to disbelieve it. In addition, your Illusion spells that deal damage deal one extra die of damage."
+    "desc": "Summon Beast and Summon Fey are always prepared for you. Once per Long Rest each, you can cast one of them as an Illusion (spectral appearance) without a spell slot — the summoned creature has half its normal Hit Points when cast this way."
   },
   {
     "name": "Illusory Self",
@@ -37,6 +38,13 @@ registerSubclassSheetActions("Wizard_Illusionist", [
   }
 ]);
 registerSubclassSheetResources("Wizard_Illusionist", [
+  {
+    "key": "phantasmal_creatures",
+    "name": "Phantasmal Creatures",
+    "icon": "ghost",
+    "recharge": "LR",
+    "max": () => 2
+  },
   {
     "key": "illusory_self",
     "name": "Illusory Self",

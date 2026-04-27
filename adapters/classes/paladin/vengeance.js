@@ -29,11 +29,11 @@ registerSubclassSheetActions("Paladin_Vengeance", [
   {
     "name": "Avenging Angel",
     "icon": "",
-    "cat": "bonus",
+    "cat": "action",
     "uses": "1 / LR",
     "resKey": "vengeance_avenging_angel",
     "minLevel": 20,
-    "desc": "Bonus Action: transform for 1 hour. Sprout wings (Fly Speed = 60 ft). Emit a 30-ft aura: enemies entering or starting their turn in the aura must succeed on a WIS save (spell save DC) or be Frightened for 1 minute (repeat save at end of each turn). Recharge: Long Rest."
+    "desc": "Action: transform for 1 hour. Sprout wings (Fly Speed = 60 ft). Emit a 30-ft aura: enemies entering or starting their turn in the aura must succeed on a WIS save (spell save DC) or be Frightened for 1 minute (repeat save at end of each turn). Recharge: Long Rest."
   }
 ]);
 registerSubclassSheetResources("Paladin_Vengeance", [

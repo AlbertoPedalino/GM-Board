@@ -16,7 +16,7 @@ registerSubclassSheetActions("Monk_Mercy", [
     },
     "damageButtonLabel": ({ formula }) => `+${formula} necrotic`,
     "damageKind": "damage",
-    "desc": "Once per turn when you hit with an Unarmed Strike, spend 1 Discipline Point to deal extra Necrotic damage equal to one Martial Arts die + WIS modifier."
+    "desc": "Once per turn when you hit with an Unarmed Strike, spend 1 Discipline Point to deal extra Necrotic damage equal to one Martial Arts die."
   },
   {
     "name": "Hand of Healing",
@@ -33,7 +33,7 @@ registerSubclassSheetActions("Monk_Mercy", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 6,
-    "desc": "Hand of Harm can also inflict Blinded, Deafened, or Poisoned (1 turn). Hand of Healing can also end one of: Blinded, Deafened, Paralyzed, Poisoned, or Stunned."
+    "desc": "Hand of Harm can also inflict Poisoned (until end of your next turn). Hand of Healing can also end one of: Blinded, Deafened, Paralyzed, Poisoned, or Stunned."
   },
   {
     "name": "Flurry of Healing and Harm",
@@ -51,7 +51,7 @@ registerSubclassSheetActions("Monk_Mercy", [
     "uses": "1 / LR",
     "resKey": "mercy_ultimate",
     "minLevel": 17,
-    "desc": "Action: spend 5 Discipline Points and touch a creature that has died within the past 24 hours. It returns to life with HP equal to 4d10 + WIS modifier, and all conditions afflicting it when it died end. Recharge: Long Rest."
+    "desc": "Action: spend 5 Discipline Points and touch a creature that has died within the past 24 hours. It returns to life with HP equal to 3d10 + WIS modifier, and all conditions afflicting it when it died end. Recharge: Long Rest."
   }
 ]);
 registerSubclassSheetResources("Monk_Mercy", [

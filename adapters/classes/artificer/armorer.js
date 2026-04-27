@@ -32,10 +32,10 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "action",
     "uses": "At will",
     "minLevel": 3,
-    "desc": "Turn worn armor into Arcane Armor and customize it. You can change armor model on a Short or Long Rest while using Smith's Tools."
+    "desc": "Magic action (Smith's Tools in hand): turn worn armor into Arcane Armor. Benefits: no Strength requirement, don/doff as Utilize action (can't be removed against will), use as spellcasting focus. Change armor model on Short or Long Rest (Smith's Tools required)."
   },
   {
-    "name": "Thunder Gauntlets",
+    "name": "Thunder Pulse",
     "icon": "",
     "cat": "attack",
     "uses": "At will",
@@ -46,18 +46,17 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "damageFormula": "1d8",
     "damageButtonLabel": ({ formula }) => `${formula} thunder`,
     "damageKind": "damage",
-    "desc": "Guardian model melee weapon (INT to attack/damage). On hit, the target has Disadvantage on attack rolls against creatures other than you until the start of your next turn."
+    "desc": "Guardian model Simple Melee weapon (INT to attack/damage). On a hit, the target has Disadvantage on attack rolls against targets other than you until the start of your next turn."
   },
   {
     "name": "Defensive Field",
     "icon": "",
     "cat": "bonus",
-    "uses": "PB / LR",
-    "resKey": "defensive_field",
+    "uses": "At will (while Bloodied)",
     "minLevel": 3,
     "choiceKey": "armorer_model",
     "model": "Guardian",
-    "desc": "Guardian model. Bonus Action: gain THP equal to your Artificer level. Uses: Proficiency Bonus per Long Rest. Recharge: Long Rest."
+    "desc": "Guardian model. While Bloodied (at or below half HP), take a Bonus Action to gain Temporary HP equal to your Artificer level. Lost if you doff the armor."
   },
   {
     "name": "Lightning Launcher",
@@ -71,7 +70,27 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "damageFormula": "1d6",
     "damageButtonLabel": ({ formula }) => `${formula} lightning`,
     "damageKind": "damage",
-    "desc": "Infiltrator model ranged weapon (range 90/300, INT to attack/damage). Once per turn, one creature hit by it also takes an extra 1d6 Lightning damage."
+    "desc": "Infiltrator model Simple Ranged weapon (range 90/300, INT to attack/damage). Once per turn, one creature you hit also takes an extra 1d6 Lightning damage."
+  },
+  {
+    "name": "Powered Steps",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "choiceKey": "armorer_model",
+    "model": "Infiltrator",
+    "desc": "Infiltrator model passive: your Speed increases by 5 ft."
+  },
+  {
+    "name": "Dampening Field",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "choiceKey": "armorer_model",
+    "model": "Infiltrator",
+    "desc": "Infiltrator model passive: Advantage on DEX (Stealth) checks. If the armor imposes Disadvantage on such checks, they cancel each other."
   },
   {
     "name": "Force Demolisher",
@@ -85,7 +104,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "damageFormula": "1d10",
     "damageButtonLabel": ({ formula }) => `${formula} force`,
     "damageKind": "damage",
-    "desc": "Dreadnaught model melee weapon (INT to attack/damage, 1d10 Force). On hit: push the target up to 10 ft away or pull it 10 ft toward you."
+    "desc": "Dreadnaught model Simple Melee weapon with Reach (INT to attack/damage). On a hit, if the target is at least one size smaller than you: push it up to 10 ft away or pull it up to 10 ft toward you."
   },
   {
     "name": "Giant Stature",
@@ -96,7 +115,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "minLevel": 3,
     "choiceKey": "armorer_model",
     "model": "Dreadnaught",
-    "desc": "Bonus Action. Enlarge your armor for 1 minute: reach +5 ft, and if you are smaller than Large you become Large (space permitting). Uses equal to INT modifier (minimum 1), regained on Long Rest."
+    "desc": "Dreadnaught model. Bonus Action: enlarge armor for 1 minute — reach +5 ft, and if smaller than Large you become Large (if space permits). Uses: INT modifier (min 1) per Long Rest."
   },
   {
     "name": "Extra Attack",
@@ -107,56 +126,66 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "desc": "Passive: you can attack twice whenever you take the Attack action on your turn."
   },
   {
-    "name": "Armor Modifications",
+    "name": "Improved Armorer",
     "icon": "",
     "cat": "action",
     "uses": "Passive",
     "minLevel": 9,
-    "desc": "Passive: your Arcane Armor can hold four infusions at once (instead of the normal two), and the required attunement slot does not count against your normal limit for this armor."
+    "desc": "Armor Replication: learn one additional Replicate Magic Item plan (must be Armor category); can also create one additional item from it. Improved Arsenal: gain +1 bonus to attack and damage rolls made with the special weapon of your Arcane Armor model."
   },
   {
     "name": "Perfected Armor (Guardian)",
     "icon": "",
     "cat": "reaction",
-    "uses": "Reaction",
+    "uses": "INT mod / LR",
+    "resKey": "perfected_guardian",
     "minLevel": 15,
     "choiceKey": "armorer_model",
     "model": "Guardian",
-    "desc": "Deflect Attack: when a creature you can see targets a creature other than you that is within 5 ft of your armor, use your Reaction to impose Disadvantage on the attack roll."
+    "desc": "Thunder Pulse damage increases to 1d10. Reaction when a Huge or smaller creature ends its turn within 30 ft: force STR save (spell save DC). On fail, pull creature up to 25 ft toward you; if within 5 ft, make a melee weapon attack as part of the Reaction. Uses: INT modifier (min 1) per Long Rest."
   },
   {
     "name": "Perfected Armor (Infiltrator)",
     "icon": "",
-    "cat": "reaction",
-    "uses": "Passive",
+    "cat": "bonus",
+    "uses": "INT mod / LR",
+    "resKey": "perfected_infiltrator",
     "minLevel": 15,
     "choiceKey": "armorer_model",
     "model": "Infiltrator",
-    "desc": "Passive: once per turn, when you hit a creature with your Lightning Launcher, that creature has Disadvantage on attack rolls against creatures other than you until the start of your next turn, and the creature takes an extra 1d6 Lightning damage."
+    "desc": "Lightning Launcher damage increases to 2d6. Creatures that take Lightning damage from it glimmer until your next turn: shed Dim Light 5 ft, have Disadvantage on attacks against you. Bonus Action: gain Fly Speed = 2× your Speed until end of turn. Uses: INT modifier (min 1) per Long Rest."
   },
   {
-    "name": "Perfected Armor (Dreadnought)",
+    "name": "Perfected Armor (Dreadnaught)",
     "icon": "",
-    "cat": "reaction",
-    "uses": "Passive",
+    "cat": "bonus",
+    "uses": "INT mod / LR",
+    "resKey": "armorer_giant_stature",
     "minLevel": 15,
     "choiceKey": "armorer_model",
     "model": "Dreadnaught",
-    "desc": "Passive: when you hit with your Force Demolisher, you can push the target up to 30 ft away in a direction of your choice (no size restriction), or pull it 30 ft toward you."
+    "desc": "Force Demolisher damage increases to 2d6. During Giant Stature: reach +10 ft (instead of +5), size can increase to Large or Huge (your choice), and you have Advantage on STR checks and STR saving throws for the duration."
   }
 ]);
 registerSubclassSheetResources("Artificer_Armorer", [
   {
-    "key": "defensive_field",
-    "name": "Defensive Field",
-    "icon": "shield",
-    "recharge": "LR",
-    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
-  },
-  {
     "key": "armorer_giant_stature",
     "name": "Giant Stature",
     "icon": "maximize",
+    "recharge": "LR",
+    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+  },
+  {
+    "key": "perfected_guardian",
+    "name": "Perfected Guardian Pull",
+    "icon": "magnet",
+    "recharge": "LR",
+    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+  },
+  {
+    "key": "perfected_infiltrator",
+    "name": "Infiltrator Fly",
+    "icon": "feather",
     "recharge": "LR",
     "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
   }

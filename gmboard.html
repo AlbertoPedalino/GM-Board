@@ -344,10 +344,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     <div>
       <div class="section-label">Encounter Tier</div>
       <div class="btn-group" id="hex-tier-group">
-        <button class="sel-btn tier-btn t1 no-select" onclick="selHexTier(this,1)">🔴 Tier 1<span class="sub-lbl">Levels 1–4</span></button>
-        <button class="sel-btn tier-btn t2 no-select" onclick="selHexTier(this,2)">🟠 Tier 2<span class="sub-lbl">Levels 5–10</span></button>
-        <button class="sel-btn tier-btn t3 no-select" onclick="selHexTier(this,3)">🟡 Tier 3<span class="sub-lbl">Levels 11–16</span></button>
-        <button class="sel-btn tier-btn t4 no-select" onclick="selHexTier(this,4)">🟣 Tier 4<span class="sub-lbl">Levels 17–20</span></button>
+        <button class="sel-btn tier-btn t1 no-select" onclick="selHexTier(this,1)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> Tier 1<span class="sub-lbl">Levels 1–4</span></button>
+        <button class="sel-btn tier-btn t2 no-select" onclick="selHexTier(this,2)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> Tier 2<span class="sub-lbl">Levels 5–10</span></button>
+        <button class="sel-btn tier-btn t3 no-select" onclick="selHexTier(this,3)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> Tier 3<span class="sub-lbl">Levels 11–16</span></button>
+        <button class="sel-btn tier-btn t4 no-select" onclick="selHexTier(this,4)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> Tier 4<span class="sub-lbl">Levels 17–20</span></button>
       </div>
     </div>
   </div>
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       </div>
       <div class="time-btns">
         <button class="action-btn no-select" id="procedi-btn" onclick="procedi()"><i data-lucide="hexagon" class="lucide-emoji" aria-hidden="true"></i> Proceed</button>
-        <button class="action-btn sec no-select" onclick="soloAvanza()">⏱ Advance Only</button>
+        <button class="action-btn sec no-select" id="avanza-btn" onclick="soloAvanza()"><i data-lucide="timer" class="lucide-emoji" aria-hidden="true"></i> Advance Only</button>
         <div style="display:flex;gap:5px;">
           <button class="action-btn sec no-select" onclick="advTimeManual(1)" title="Advance 1 hour">+1h</button>
           <button class="action-btn sec no-select" onclick="advTimeManual(4)" title="Advance 4 hours">+4h</button>
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     <div class="init-row">
       <label>TIME</label>
       <input type="text" class="text-input" id="cur-time" value="00:00" placeholder="HH:MM" style="width:64px">
-      <button class="small-btn no-select" onclick="setTimeOnly()">⏱ Set Time</button>
+      <button class="small-btn no-select" onclick="setTimeOnly()"><i data-lucide="clock" class="lucide-emoji" aria-hidden="true"></i> Set Time</button>
     </div>
     <div class="init-row">
       <label>START</label>
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       <input type="text" class="text-input" id="s-year"  value="1000" placeholder="YYYY" style="width:60px">
       <span style="color:var(--text-dim)">·</span>
       <input type="text" class="text-input" id="s-time"  value="00:00" placeholder="HH:MM" style="width:64px">
-      <button class="small-btn no-select" onclick="setStart()">↩ Set</button>
+      <button class="small-btn no-select" onclick="setStart()"><i data-lucide="check" class="lucide-emoji" aria-hidden="true"></i> Set</button>
     </div>
   </div>
 
@@ -421,10 +421,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       <div>
         <div class="section-label">Tier Encounter</div>
         <div class="btn-group" id="d-tier-group">
-          <button class="sel-btn tier-btn t1 no-select" onclick="selDTier(this,1)">🔴 T1<span class="sub-lbl">Lv 1–4</span></button>
-          <button class="sel-btn tier-btn t2 no-select" onclick="selDTier(this,2)">🟠 T2<span class="sub-lbl">Lv 5–10</span></button>
-          <button class="sel-btn tier-btn t3 no-select" onclick="selDTier(this,3)">🟡 T3<span class="sub-lbl">Lv 11–16</span></button>
-          <button class="sel-btn tier-btn t4 no-select" onclick="selDTier(this,4)">🟣 T4<span class="sub-lbl">Lv 17–20</span></button>
+          <button class="sel-btn tier-btn t1 no-select" onclick="selDTier(this,1)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T1<span class="sub-lbl">Lv 1–4</span></button>
+          <button class="sel-btn tier-btn t2 no-select" onclick="selDTier(this,2)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T2<span class="sub-lbl">Lv 5–10</span></button>
+          <button class="sel-btn tier-btn t3 no-select" onclick="selDTier(this,3)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T3<span class="sub-lbl">Lv 11–16</span></button>
+          <button class="sel-btn tier-btn t4 no-select" onclick="selDTier(this,4)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T4<span class="sub-lbl">Lv 17–20</span></button>
         </div>
       </div>
     </div>
@@ -455,10 +455,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       <div>
         <div class="section-label">Tier Encounter</div>
         <div class="btn-group" id="q-tier-group">
-          <button class="sel-btn tier-btn t1 no-select" onclick="selQTier(this,1)">🔴 T1<span class="sub-lbl">Lv 1–4</span></button>
-          <button class="sel-btn tier-btn t2 no-select" onclick="selQTier(this,2)">🟠 T2<span class="sub-lbl">Lv 5–10</span></button>
-          <button class="sel-btn tier-btn t3 no-select" onclick="selQTier(this,3)">🟡 T3<span class="sub-lbl">Lv 11–16</span></button>
-          <button class="sel-btn tier-btn t4 no-select" onclick="selQTier(this,4)">🟣 T4<span class="sub-lbl">Lv 17–20</span></button>
+          <button class="sel-btn tier-btn t1 no-select" onclick="selQTier(this,1)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T1<span class="sub-lbl">Lv 1–4</span></button>
+          <button class="sel-btn tier-btn t2 no-select" onclick="selQTier(this,2)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T2<span class="sub-lbl">Lv 5–10</span></button>
+          <button class="sel-btn tier-btn t3 no-select" onclick="selQTier(this,3)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T3<span class="sub-lbl">Lv 11–16</span></button>
+          <button class="sel-btn tier-btn t4 no-select" onclick="selQTier(this,4)"><i data-lucide="circle" class="lucide-emoji" aria-hidden="true"></i> T4<span class="sub-lbl">Lv 17–20</span></button>
         </div>
       </div>
       <button class="action-btn no-select" onclick="generateQuests()"><i data-lucide="scroll-text" class="lucide-emoji" aria-hidden="true"></i> Generate Quests</button>
@@ -476,8 +476,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
       <div style="font-size:.88rem;color:var(--text-dim);">Edit values directly. Saved in localStorage.</div>
       <div style="display:flex;gap:7px;">
-        <button class="small-btn no-select" onclick="saveTables()">💾 Save</button>
-        <button class="small-btn no-select" onclick="resetTables()">↺ Reset</button>
+        <button class="small-btn no-select" onclick="saveTables()"><i data-lucide="save" class="lucide-emoji" aria-hidden="true"></i> Save</button>
+        <button class="small-btn no-select" onclick="resetTables()"><i data-lucide="rotate-ccw" class="lucide-emoji" aria-hidden="true"></i> Reset</button>
       </div>
     </div>
   </div>
@@ -618,10 +618,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         <table class="ref-table">
           <thead><tr><th>Tier</th><th>PC Levels</th><th>Die</th></tr></thead>
           <tbody>
-            <tr><td>🔴 Tier 1</td><td>1–4</td><td>2d20</td></tr>
-            <tr><td>🟠 Tier 2</td><td>5–10</td><td>2d20</td></tr>
-            <tr><td>🟡 Tier 3</td><td>11–16</td><td>2d20</td></tr>
-            <tr><td>🟣 Tier 4</td><td>17–20</td><td>2d20</td></tr>
+            <tr><td><i data-lucide="circle" class="lucide-emoji" style="color:#e06060" aria-hidden="true"></i> Tier 1</td><td>1–4</td><td>2d20</td></tr>
+            <tr><td><i data-lucide="circle" class="lucide-emoji" style="color:#e09050" aria-hidden="true"></i> Tier 2</td><td>5–10</td><td>2d20</td></tr>
+            <tr><td><i data-lucide="circle" class="lucide-emoji" style="color:#e0d050" aria-hidden="true"></i> Tier 3</td><td>11–16</td><td>2d20</td></tr>
+            <tr><td><i data-lucide="circle" class="lucide-emoji" style="color:#80d0d0" aria-hidden="true"></i> Tier 4</td><td>17–20</td><td>2d20</td></tr>
           </tbody>
         </table>
       </div>
@@ -837,7 +837,7 @@ async function resetTables(){
   for(let i=0;i<4;i++){T.enc[i]=cp(DEF_ENC[i]);T.trap[i]=cp(DEF_TRAP[i]);}
   ['gm_wea','gm_ev','gm_lo','gm_co','gm_env'].forEach(k=>localStorage.removeItem(k));
   for(let i=0;i<4;i++){localStorage.removeItem('gm_enc'+i);localStorage.removeItem('gm_trap'+i);}
-  buildEditor();showToast('↺ Restored');
+  buildEditor();showToast(luci('rotate-ccw')+' Restored');
 }
 function showToast(m=luci('check')){const t=document.getElementById('toast');if(!t)return;t.innerHTML=m;t.style.display='block';refreshIcons();setTimeout(()=>t.style.display='none',2000);}
 function uiConfirm(message){
@@ -1014,6 +1014,7 @@ function selSeason(btn, s){
   btn.classList.add('active');
   S.season = s;
   updMeteoDisplay();
+  saveState();
 }
 
 function updMeteoDisplay(){
@@ -1123,7 +1124,9 @@ function selDTier(btn,t){document.querySelectorAll('#d-tier-group .sel-btn').for
 function advTimeManual(hours){
   advTime(hours);
   S.hoursSinceWeather += hours;
-  updMeteoDisplay();
+  const weatherTxt = checkWeatherRoll(null);
+  if(weatherTxt) showToast(luci('cloud') + ' Weather updated');
+  saveState();
 }
 function setTimeOnly(){
   const tv=document.getElementById('cur-time').value.trim().split(':');
@@ -1153,7 +1156,7 @@ function addStep(con,icon,label,html,delay=0){
   con.appendChild(s);return s.querySelector('.step-main');
 }
 function diffCls(d){return d==='High'?'diff-high':d==='Moderate'?'diff-mod':'diff-low';}
-function diffIcon(d){return d==='High'?'🔴':d==='Moderate'?'🟠':'🟢';}
+function diffIcon(d){return d==='High'?'<i data-lucide="circle" class="lucide-emoji" style="color:#e06060" aria-hidden="true"></i>':d==='Moderate'?'<i data-lucide="circle" class="lucide-emoji" style="color:#e09050" aria-hidden="true"></i>':'<i data-lucide="circle" class="lucide-emoji" style="color:#7ab870" aria-hidden="true"></i>';}
 
 // ══════════════ ENCOUNTER RESULT ══════════════
 async function resolveEncounter(con, tier, label='Encounter Table'){
@@ -1172,8 +1175,8 @@ async function resolveEncounter(con, tier, label='Encounter Table'){
 
 // ══════════════ SOLO AVANZA ══════════════
 function soloAvanza(){
-  if(!S.season){flashBtn('procedi-btn','⚠ Select season');return;}
-  if(!S.terrain){flashBtn('procedi-btn','⚠ Select terrain');return;}
+  if(!S.season){flashBtn('avanza-btn','⚠ Select season');return;}
+  if(!S.terrain){flashBtn('avanza-btn','⚠ Select terrain');return;}
   
   let travelHours = getEffectiveHours();
 
@@ -1239,7 +1242,8 @@ async function procedi(){
   let logTxt=`${fDT()} · ${S.terrain} (${travelHours}h) · ${S.meteo} ${S.intensita} · d6=${d6v}${weatherLogTxt}`;
 
   if(!trig){
-    addStep(rs,'🌿','Result','<span style="color:var(--text-dim);font-style:italic">Hex crossed with no events.</span>',70);
+    addStep(rs,luci('leaf'),'Result','<span style="color:var(--text-dim);font-style:italic">Hex crossed with no events.</span>',70);
+    refreshIcons();
     S.log.unshift(logTxt+' → No event');renderLog();saveState();S.rolling=false;btn.disabled=false;return;
   }
 
@@ -1247,7 +1251,7 @@ async function procedi(){
 
   // Event Table
   const ids=uid();
-  const s2=addStep(rs,'🗺️','Event Table (2d20)',dHTMLEvent('a'+ids,'b'+ids,'c'+ids),0);
+  const s2=addStep(rs,luci('map'),'Event Table (2d20)',dHTMLEvent('a'+ids,'b'+ids,'c'+ids),0);
   const evRes=await rollEventDice('a'+ids,'b'+ids,'c'+ids);
   const ev=getEvent(evRes.sum);
 
@@ -1266,7 +1270,7 @@ async function procedi(){
   }
   else if(ev.type==='loot'){
     const ids2=uid();
-    const s3=addStep(rs,'💰','Loot Table (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+    const s3=addStep(rs,luci('coins'),'Loot Table (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
     const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
     const lo=getLoot(r2.sum);
     if(lo.tipo!=='Nothing found'){
@@ -1275,7 +1279,7 @@ async function procedi(){
       s3.insertAdjacentHTML('beforeend',`<div style="margin-top:4px"><strong>${lo.tipo}</strong> <span class="${rc}">· ${lo.rarita}</span> <span class="det">· ${lo.qualita} · ${lo.valore} ${lo.extra}</span></div>`);
       await sleep(300);
       const ids3=uid();
-      const s4=addStep(rs,'🔒','DC to find (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
+      const s4=addStep(rs,luci('lock'),'DC to find (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
       const r3=await rollD8D12('a'+ids3,'b'+ids3,'c'+ids3);
       s4.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r3.sum}</span>${svaHtml}</div>`);
       logTxt+=` · Loot:${lo.tipo} · DC=${r3.sum}${svaLog}`;
@@ -1286,14 +1290,14 @@ async function procedi(){
   }
   else if(ev.type==='camp_nemico'){
     const ids2=uid();
-    const s3=addStep(rs,'👁️','DC to Spot (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+    const s3=addStep(rs,luci('eye'),'DC to Spot (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
     const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
     s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r2.sum}</span> to spot the camp${svaHtml}</div>`);
     await sleep(300);
     await resolveEncounter(rs, S.hexTier, 'Camp Difficulty');
     await sleep(300);
     const ids3=uid();
-    const s4=addStep(rs,'💰','Camp Loot (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
+    const s4=addStep(rs,luci('coins'),'Camp Loot (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
     const r3=await rollD8D12('a'+ids3,'b'+ids3,'c'+ids3);
     const lo=getLoot(r3.sum);
     if(lo.tipo!=='Nothing found'){
@@ -1302,7 +1306,7 @@ async function procedi(){
       s4.insertAdjacentHTML('beforeend',`<div style="margin-top:4px"><strong>${lo.tipo}</strong> <span class="${rc}">· ${lo.rarita}</span> <span class="det">· ${lo.qualita} · ${lo.valore} ${lo.extra}</span></div>`);
       await sleep(300);
       const ids4=uid();
-      const s5=addStep(rs,'🔒','DC to find loot (1d8+1d12)',dHTML('a'+ids4,'b'+ids4,'c'+ids4),0);
+      const s5=addStep(rs,luci('lock'),'DC to find loot (1d8+1d12)',dHTML('a'+ids4,'b'+ids4,'c'+ids4),0);
       const r4=await rollD8D12('a'+ids4,'b'+ids4,'c'+ids4);
       s5.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r4.sum}</span>${svaHtml}</div>`);
       logTxt+=` · DC=${r2.sum} · Loot:${lo.tipo} · DC=${r4.sum}${svaLog}`;
@@ -1314,14 +1318,14 @@ async function procedi(){
   else if(ev.type==='other'||ev.type==='nothing'){
     const ids2=uid();
     if(ev.name==='Env. Damage/Trap'){
-      const s3=addStep(rs,'🔒','DC to detect (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+      const s3=addStep(rs,luci('lock'),'DC to detect (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
       const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
       s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r2.sum}</span> to spot the trap${svaHtml}</div>`);
       await sleep(300);
       if(!S.hexTier){ showToast('⚠ Select tier for the Trap Table'); }
       else {
         const ids3=uid();
-        const s4=addStep(rs,'💥','Trap Table (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
+        const s4=addStep(rs,luci('flame'),'Trap Table (1d8+1d12)',dHTML('a'+ids3,'b'+ids3,'c'+ids3),0);
         const r3=await rollD8D12('a'+ids3,'b'+ids3,'c'+ids3);
         const trap=getTrap(S.hexTier,r3.sum);
         const tCls=trap.tipo==='Deadly'?'diff-high':'diff-mod';
@@ -1335,7 +1339,7 @@ async function procedi(){
         logTxt+=` · DC=${r2.sum} · Trap:${trap.tipo} DC${trap.dc} ${trap.danno}`;
       }
     } else {
-      const s3=addStep(rs,'🔒','DC (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
+      const s3=addStep(rs,luci('lock'),'DC (1d8+1d12)',dHTML('a'+ids2,'b'+ids2,'c'+ids2),0);
       const r2=await rollD8D12('a'+ids2,'b'+ids2,'c'+ids2);
       s3.insertAdjacentHTML('beforeend',`<div style="margin-top:3px">DC <span class="cd-val">${r2.sum}</span> to detect / interact${svaHtml}</div>`);
       logTxt+=` · DC=${r2.sum}${svaLog}`;

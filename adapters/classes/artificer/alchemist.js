@@ -22,7 +22,7 @@ registerSubclassSheetActions("Artificer_Alchemist", [
     "cat": "action",
     "uses": "After Long Rest",
     "minLevel": 3,
-    "desc": "After a Long Rest, create a number of experimental elixirs (1 at lv.3, +1 at lv.6/lv.15) using Alchemist's Supplies. Each elixir has a random or chosen effect: Healing (2d4+INT HP), Swiftness (+10 ft speed 1 hr), Resilience (resistance to one damage type 10 min), Boldness (Frightened immunity + Frightened ends), Flight (fly speed 10 ft 10 min), Transformation (Alter Self 10 min). You can also create extra elixirs by expending spell slots (1 per slot level)."
+    "desc": "After a Long Rest (using Alchemist's Supplies), create elixirs: 2 at lv.3, 3 at lv.5, 4 at lv.9, 5 at lv.15. Each has a random (or chosen, if you expend a spell slot via Magic action) effect. Drinking (Bonus Action, administer within 5 ft): 1-Healing (2d8+INT HP; 3d8 at lv.9; 4d8 at lv.15), 2-Swiftness (+10ft Speed 1h; 15ft at lv.9; 20ft at lv.15), 3-Resilience (+1 AC 10 min; 1h at lv.9; 8h at lv.15), 4-Boldness (+1d4 to attack rolls and saves 1 min; 10 min at lv.9; 1h at lv.15), 5-Flight (10ft Fly Speed 10 min; 20ft at lv.9; 30ft at lv.15), 6-Choose (pick any other effect). Elixirs vanish at next Long Rest."
   },
   {
     "name": "Alchemical Savant",
@@ -30,7 +30,7 @@ registerSubclassSheetActions("Artificer_Alchemist", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 5,
-    "desc": "Passive: when you cast an Artificer spell using Alchemist's Supplies as the spellcasting focus, add your INT modifier (min +1) to one damage or healing roll of the spell. The roll must deal acid, fire, necrotic, or poison damage — or restore hit points."
+    "desc": "Passive: when you cast an Artificer spell using Alchemist's Supplies as the spellcasting focus, add your INT modifier (min +1) to one roll that deals Acid, Fire, or Poison damage — or restores Hit Points."
   },
   {
     "name": "Restorative Reagents",
@@ -39,16 +39,16 @@ registerSubclassSheetActions("Artificer_Alchemist", [
     "uses": "INT mod / LR",
     "resKey": "restorative_reagents",
     "minLevel": 9,
-    "desc": "You gain Advantage on saving throws against being Poisoned and Resistance to Poison damage. Additionally, you can cast Lesser Restoration without expending a spell slot (using Alchemist's Supplies as material components). You can do so a number of times equal to your INT modifier (min 1). Recharge: Long Rest."
+    "desc": "Cast Lesser Restoration without expending a spell slot, using Alchemist's Supplies as the spellcasting focus. Uses: INT modifier (min 1). Recharge: Long Rest."
   },
   {
     "name": "Chemical Mastery",
     "icon": "",
     "cat": "action",
-    "uses": "1 each / LR",
+    "uses": "Passive + 1/LR",
     "resKey": "chemical_mastery",
     "minLevel": 15,
-    "desc": "Passive: you gain Immunity to Poison damage and the Poisoned condition, and Immunity to disease. Once per Long Rest each (no spell slot, no components): cast Greater Restoration or Heal using INT as the spellcasting ability. Recharge: Long Rest."
+    "desc": "Alchemical Eruption: when you cast an Artificer spell that deals Acid, Fire, or Poison damage to a target, also deal 2d8 Force damage to that target (once per turn). Chemical Resistance: Resistance to Acid and Poison damage; Immunity to the Poisoned condition. Conjured Cauldron: cast Tasha's Bubbling Cauldron without a spell slot, without preparing it, and without Material components (uses Alchemist's Supplies as focus). 1/LR."
   }
 ]);
 registerSubclassSheetResources("Artificer_Alchemist", [
@@ -61,10 +61,10 @@ registerSubclassSheetResources("Artificer_Alchemist", [
   },
   {
     "key": "chemical_mastery",
-    "name": "Chemical Mastery",
+    "name": "Conjured Cauldron",
     "icon": "sparkles",
     "recharge": "LR",
-    "max": () => 2
+    "max": () => 1
   }
 ]);
 registerSubclassSheetProficiencies("Artificer_Alchemist", [

@@ -1,16 +1,10 @@
-const _BANNERET_LANGUAGES = [
-  'Common', 'Elvish', 'Dwarvish', 'Giant', 'Gnomish', 'Goblin',
-  'Halfling', 'Orc', 'Draconic', 'Infernal', 'Celestial', 'Undercommon',
-  'Abyssal', 'Sylvan', 'Deep Speech',
-];
-
-const _BANNERET_ENVOY_SKILLS = ['Animal Handling', 'Insight', 'Intimidation', 'Performance'];
+const _BANNERET_ENVOY_SKILLS = ['Insight', 'Intimidation', 'Persuasion', 'Performance'];
 
 registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
       key: 'subclass_banneret_envoy_skill',
-      label: 'Royal Envoy — Skill Bonus',
+      label: 'Knightly Envoy — Well Spoken (Skill)',
       type: 'skill_choice',
       from: _BANNERET_ENVOY_SKILLS,
       count: 1,
@@ -18,9 +12,8 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
     });
     specs.push({
       key: 'subclass_banneret_language',
-      label: 'Royal Envoy — Language',
+      label: 'Knightly Envoy — Polyglot (Language)',
       type: 'language_choice',
-      from: _BANNERET_LANGUAGES,
       count: 1,
       level: 3
     });
@@ -30,36 +23,52 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Fighter_Banneret", [
   {
-    "name": "Royal Envoy",
+    "name": "Knightly Envoy",
     "icon": "",
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "desc": "Passive: gain proficiency in Persuasion (or expertise if already proficient), an extra language, and proficiency in one of Animal Handling, Insight, Intimidation, or Performance."
+    "desc": "Comprehension: cast Comprehend Languages as a Ritual (CHA spellcasting). Polyglot: know one language; after a Long Rest, can swap for any language heard/seen/read in the past 24h. Well Spoken: proficiency in one of Insight, Intimidation, Persuasion, or Performance."
   },
   {
-    "name": "Rallying Cry",
+    "name": "Group Recovery",
     "icon": "",
-    "cat": "bonus",
-    "uses": "On Second Wind",
+    "cat": "action",
+    "uses": "On Second Wind / SR",
     "minLevel": 3,
-    "desc": "When you use Second Wind, choose up to three creatures you can see within 60 ft. Each of those creatures regains HP equal to your Fighter level. This is in addition to the HP you regain."
+    "desc": "When you use Second Wind, choose up to CHA modifier (min 1) allies within 30 ft. Each chosen ally regains 1d4 + your Fighter level HP. Recharge: Short or Long Rest."
   },
   {
-    "name": "Inspiring Surge",
+    "name": "Team Tactics",
     "icon": "",
-    "cat": "bonus",
+    "cat": "action",
+    "uses": "On Group Recovery",
+    "minLevel": 7,
+    "desc": "When you use Group Recovery, each chosen ally has Advantage on D20 Tests until the start of your next turn."
+  },
+  {
+    "name": "Rallying Surge",
+    "icon": "",
+    "cat": "action",
     "uses": "On Action Surge",
     "minLevel": 10,
-    "desc": "When you use Action Surge, choose one ally within 60 ft who can see or hear you. That creature can use its Reaction to make one melee or ranged weapon attack."
+    "desc": "When you use Action Surge, choose up to CHA modifier (min 1) allies within 30 ft. Each can immediately use a Reaction to either: Attack (one weapon or Unarmed Strike), or Move (half Speed, no Opportunity Attacks)."
   },
   {
-    "name": "Bulwark",
+    "name": "Shared Resilience",
     "icon": "",
     "cat": "reaction",
-    "uses": "On Indomitable",
-    "minLevel": 14,
-    "desc": "When you use Indomitable to reroll a saving throw, you can choose one ally within 60 ft who failed the same save. That ally also rerolls their saving throw and must use the new roll."
+    "uses": "1 Indomitable",
+    "minLevel": 15,
+    "desc": "Reaction when an ally within 60 ft fails a saving throw: expend one use of Indomitable. The ally rerolls with a bonus equal to your Fighter level and must use the new roll."
+  },
+  {
+    "name": "Inspiring Commander",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 18,
+    "desc": "Bolstered Rally: Group Recovery and Rallying Surge areas expand to 60 ft Emanation. Unshakable Bravery: you have Immunity to the Charmed and Frightened conditions."
   }
 ]);
 // [SheetRuntime] END

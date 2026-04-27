@@ -17,7 +17,7 @@ registerSubclassSheetActions("Paladin_Glory", [
     "uses": "1 Channel",
     "resKey": "paladin_channel_div",
     "minLevel": 3,
-    "desc": "Immediately after dealing Divine Smite damage, use a Bonus Action (costs 1 Channel Divinity) to distribute Temporary HP equal to 2d8 + CHA modifier among yourself and any creatures within 30 ft (at least 1 HP per recipient)."
+    "desc": "Immediately after dealing Divine Smite damage, use a Bonus Action (costs 1 Channel Divinity) to distribute Temporary HP equal to 2d8 + your Paladin level among yourself and any creatures within 30 ft (at least 1 HP per recipient)."
   },
   {
     "name": "Aura of Alacrity",

@@ -2,8 +2,7 @@ const _BM_MANEUVERS = [
   'Ambush', 'Bait and Switch', "Commander's Strike", 'Commanding Presence',
   'Disarming Attack', 'Distracting Strike', 'Evasive Footwork', 'Feinting Attack',
   'Goading Attack', 'Lunging Attack', 'Maneuvering Attack', 'Menacing Attack',
-  'Parry', 'Precision Attack', 'Pushing Attack', 'Rally', 'Riposte',
-  'Sweeping Attack', 'Tactical Assessment', 'Trip Attack',
+  'Parry', 'Precision Attack', 'Pushing Attack', 'Rally',
 ];
 
 
@@ -62,15 +61,16 @@ registerSubclassSheetActions("Fighter_Battle Master", [
     "uses": "Superiority Dice",
     "resKey": "superiority_dice",
     "minLevel": 3,
-    "desc": "Spend Superiority Dice (d8 at lv.3, d10 at lv.7, d12 at lv.15) to enhance attacks. Maneuvers chosen at character creation from the full list. Save DC = 8 + PB + STR or DEX (highest). Recharge: Short or Long Rest."
+    "desc": "Spend Superiority Dice (d8 at lv.3, d10 at lv.7, d12 at lv.18) to enhance attacks. Maneuvers chosen at character creation from the full list. Save DC = 8 + PB + STR or DEX (highest). Recharge: Short or Long Rest."
   },
   {
     "name": "Know Your Enemy",
     "icon": "",
-    "cat": "action",
-    "uses": "Passive",
+    "cat": "bonus",
+    "uses": "1 / LR",
+    "resKey": "know_your_enemy",
     "minLevel": 7,
-    "desc": "Passive: if you spend at least 1 minute observing or interacting with a creature outside combat, the DM tells you how that creature compares to you in two of the following: STR, DEX, CON, AC, current HP, total class levels, Fighter levels."
+    "desc": "Bonus Action: choose a creature within 30 ft you can see. Learn its Immunities, Resistances, and Vulnerabilities. Recharge: Long Rest (or expend one Superiority Die to restore the use, no action required)."
   },
   {
     "name": "Relentless",
@@ -78,7 +78,15 @@ registerSubclassSheetActions("Fighter_Battle Master", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 15,
-    "desc": "Passive: if you have no Superiority Dice remaining at the start of your turn, you regain 1 Superiority Die."
+    "desc": "Passive: when you roll Initiative and have no Superiority Dice remaining, you regain 1 Superiority Die."
+  },
+  {
+    "name": "Ultimate Combat Superiority",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 18,
+    "desc": "Your Superiority Die becomes a d12."
   }
 ]);
 registerSubclassSheetResources("Fighter_Battle Master", [
@@ -89,7 +97,15 @@ registerSubclassSheetResources("Fighter_Battle Master", [
     "icon": "swords",
     "recharge": "SR",
     "max": (lv)=>lv>=15?6:lv>=7?5:4,
+    "die": (lv)=>lv>=18?"d12":lv>=7?"d10":"d8",
     "pool": true
+  },
+  {
+    "key": "know_your_enemy",
+    "name": "Know Your Enemy",
+    "icon": "eye",
+    "recharge": "LR",
+    "max": () => 1
   }
 ]);
 // [SheetRuntime] END

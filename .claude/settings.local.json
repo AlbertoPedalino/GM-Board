@@ -35,7 +35,22 @@
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json\")",
       "Bash(curl -sk \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-monk.json\")",
-      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-barbarian.json\")"
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-barbarian.json\")",
+      "WebFetch(domain:5e.tools)",
+      "Bash(curl -s -I \"https://5e.tools/spells/detect-magic-xphb.html\")",
+      "Bash(curl -s \"https://api.github.com/repos/5etools-mirror-3/5etools-src/contents/data/class\")",
+      "Bash(curl -s \"https://api.github.com/repos/5etools-mirror-3/5etools-src/contents/data\")",
+      "Bash(curl -s \"https://api.github.com/repos/5etools-mirror-3/5etools-src/contents/data/subclass\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-fighter.json\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/optionalfeatures.json\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-wizard.json\")",
+      "PowerShell($j = \\(Invoke-WebRequest \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-fighter.json\"\\).Content | ConvertFrom-Json; $j.subclassFeature | Where-Object { $_.subclassSource -eq \"FRHoF\" } | ConvertTo-Json -Depth 10)",
+      "PowerShell($wc = New-Object System.Net.WebClient; $content = $wc.DownloadString\\(\"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-fighter.json\"\\); $j = $content | ConvertFrom-Json; $j.subclassFeature | Where-Object { $_.subclassSource -eq \"FRHoF\" } | ConvertTo-Json -Depth 10)",
+      "PowerShell($wc = New-Object System.Net.WebClient; $content = $wc.DownloadString\\(\"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/sources.json\"\\); $j = $content | ConvertFrom-Json; $j.book | Where-Object { $_.id -match \"\\(?i\\)efa|fraif|frhof|eberron|artificer\" } | Select-Object id,name | Format-Table -AutoSize)",
+      "PowerShell($wc = New-Object System.Net.WebClient; $idx = $wc.DownloadString\\(\"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/index.json\"\\); Write-Output $idx)",
+      "PowerShell($wc = New-Object System.Net.WebClient; $content = $wc.DownloadString\\(\"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-artificer.json\"\\); $j = $content | ConvertFrom-Json; $j.subclass | Select-Object name,source,shortName | Format-Table -AutoSize)",
+      "PowerShell($wc = New-Object System.Net.WebClient; $content = $wc.DownloadString\\(\"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-artificer.json\"\\); $j = $content | ConvertFrom-Json; $j.subclassFeature | Where-Object { $_.source -eq \"EFA\" } | ForEach-Object { Write-Output \"=== $\\($_.name\\) lv$\\($_.level\\) ===\"; $_.entries | ConvertTo-Json -Depth 8 })",
+      "PowerShell($wc = New-Object System.Net.WebClient; $content = $wc.DownloadString\\(\"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/class/class-fighter.json\"\\); $j = $content | ConvertFrom-Json; \\($j.subclass | Where-Object { $_.source -eq \"FRHoF\" }\\).name; Write-Output \"---\"; $j.subclassFeature | Where-Object { $_.subclassSource -eq \"FRHoF\" -and $_.name -ne \"Banneret\" -and $_.name -ne \"Knightly Envoy\" -and $_.name -ne \"Group Recovery\" -and $_.name -ne \"Team Tactics\" -and $_.name -ne \"Rallying Surge\" -and $_.name -ne \"Shared Resilience\" -and $_.name -ne \"Inspiring Commander\" } | Select-Object name,level | Format-Table)"
     ]
   }
 }

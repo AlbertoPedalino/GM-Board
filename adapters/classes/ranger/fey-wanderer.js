@@ -28,7 +28,7 @@ registerSubclassSheetActions("Ranger_Fey Wanderer", [
     "uses": "1 / LR",
     "resKey": "fey_beguiling_twist",
     "minLevel": 7,
-    "desc": "Reaction when a creature within 120 ft that you can see succeeds on a saving throw against Charmed or Frightened: redirect that effect to another creature within 30 ft of the first (WIS save, spell save DC, Charmed or Frightened for 1 minute). Recharge: Long Rest."
+    "desc": "You have Advantage on saving throws against the Charmed and Frightened conditions. Also, as a Reaction when a creature within 120 ft that you can see succeeds on a save against Charmed or Frightened: redirect that effect to another creature within 30 ft of the first (WIS save, spell save DC, Charmed or Frightened for 1 minute). Recharge: Long Rest."
   },
   {
     "name": "Fey Reinforcements",

@@ -8,7 +8,7 @@ registerSubclassSheetActions("Paladin_Ancients", [
     "cat": "action",
     "uses": "1 Channel",
     "resKey": "paladin_channel_div",
-    "desc": "Action: conjure spectral vines. Each creature you choose within 10 ft must succeed on a STR or DEX save (their choice, spell save DC) or be Restrained until the end of your next turn."
+    "desc": "Action: conjure spectral vines. Each creature you choose within 10 ft must succeed on a STR or DEX save (their choice, spell save DC) or be Restrained. While Restrained, it repeats the save at the end of each of its turns, ending the effect on a success."
   },
   {
     "name": "Aura of Warding",

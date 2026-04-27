@@ -24,7 +24,7 @@ registerSubclassSheetActions("Paladin_Devotion", [
     "cat": "reaction",
     "uses": "Passive",
     "minLevel": 15,
-    "desc": "When you hit a creature with Divine Smite, you can also shield one creature of your choice within 30 ft: it gains a number of Temporary HP equal to your CHA modifier (min 1) for 1 minute."
+    "desc": "When you hit a creature with Divine Smite, you and allies within 10 ft gain Temporary HP equal to the number of damage dice used for that Divine Smite."
   },
   {
     "name": "Holy Nimbus",
