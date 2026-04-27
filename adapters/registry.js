@@ -395,7 +395,13 @@ function registerClassSheetCommonChoiceMeta(name, extraMeta) {
       );
     },
     getLabel: function (choiceKey) {
-      return _defaultChoiceLabel(choiceKey, /^(start_|feat_|class_|subclass_|auto_(primary|ec\d+)_feat_)/);
+      const k = String(choiceKey || "");
+      if (/^start_skills_lv\d+_\d+$/.test(k)) return "Class Skills";
+      const fKnown = k.match(/^feat_.*_known_lv(\d+)_\d+$/);
+      if (fKnown) return fKnown[1] === "0" ? "Cantrip (Origin Feat)" : `Spell Lv.${fKnown[1]} (Origin Feat)`;
+      const fInnate = k.match(/^feat_.*_innate_.*_lv(\d+)_\d+$/);
+      if (fInnate) return fInnate[1] === "0" ? "Innate Cantrip (Origin Feat)" : `Innate Spell Lv.${fInnate[1]} (Origin Feat)`;
+      return _defaultChoiceLabel(k, /^(start_|feat_|class_|subclass_|auto_(primary|ec\d+)_feat_)/);
     },
     normalizeChoiceValue: _defaultChoiceNormalize,
     ...(extraMeta && typeof extraMeta === "object" ? extraMeta : {}),
@@ -438,6 +444,15 @@ function registerSpeciesSheetCommonChoiceMeta(key, extraMeta) {
       };
       const k = String(choiceKey || "");
       if (labels[k]) return labels[k];
+      if (/^species_skill_\d+$/.test(k)) return "Skill";
+      const sKnown = k.match(/^species_.*_known_lv(\d+)_\d+$/);
+      if (sKnown) return sKnown[1] === "0" ? "Cantrip (Origin Feat)" : `Spell Lv.${sKnown[1]} (Origin Feat)`;
+      const sInnate = k.match(/^species_.*_innate_.*_lv(\d+)_\d+$/);
+      if (sInnate) return sInnate[1] === "0" ? "Innate Cantrip (Origin Feat)" : `Innate Spell Lv.${sInnate[1]} (Origin Feat)`;
+      const sKnownDirect = k.match(/^species_known_lv(\d+)_\d+$/);
+      if (sKnownDirect) return sKnownDirect[1] === "0" ? "Cantrip (Species)" : `Spell Lv.${sKnownDirect[1]} (Species)`;
+      const sInnateDirect = k.match(/^species_innate_.*_lv(\d+)_\d+$/);
+      if (sInnateDirect) return sInnateDirect[1] === "0" ? "Innate Cantrip (Species)" : `Innate Spell Lv.${sInnateDirect[1]} (Species)`;
       return _defaultChoiceLabel(k, /^species_/);
     },
     normalizeChoiceValue: _defaultChoiceNormalize,

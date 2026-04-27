@@ -876,6 +876,8 @@
       padding-bottom:4px;margin:.9rem 0 .45rem;
     }
     .action-section-hdr:first-child { margin-top:0 }
+    .action-section-hdr.collapsible { cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center }
+    .action-section-body.collapsed { display:none }
     .action-card {
       background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
       margin-bottom:4px;overflow:hidden;
@@ -2759,7 +2761,7 @@ function renderActionsTab(){
   const f=activeActionFilter;
   const cls=C?.className||'';
   const lv=C?.level||1;
-  const inv=sheetInventory||[];
+  const inv=(sheetInventory||[]).map(_resolveInvItem);
   const equippedWeapons=inv.filter(i=>i.equipped&&['M','R'].includes(i.type));
   const cantripSet = new Set(C?.selectedCantrips||[]);
   const _choiceSpellName = (v) => String(v || '').split('|')[0].trim();
@@ -2820,24 +2822,40 @@ function renderActionsTab(){
   // ── ATTACCHI ──
   if(show('attack')){
     if(f==='all') html+=`<div class="action-section-hdr">${luci('swords')} Attacks</div>`;
-    if(!equippedWeapons.length && !cantrips.length){
+    const attackCantrips = cantrips.filter(cn => {
+      const full = sheetSpellDb?.find(s => s.name === cn);
+      return full?.spellAttack?.length || full?.savingThrow?.length;
+    });
+    if(!equippedWeapons.length && !attackCantrips.length){
       html+=`<div style="font-size:var(--fs-body);color:var(--text3);font-style:italic;padding:.3rem 0">
         ${luci('lightbulb')} Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
       </div>`;
     }
     for(const w of equippedWeapons) html+=buildWeaponCard(w);
-    for(const cn of cantrips) html+=buildCantripCard(cn);
+    for(const cn of attackCantrips) html+=buildCantripCard(cn);
     html+=buildUnarmedCard(UNARMED_OPTIONS[0]);
     for(const a of allClassActions.filter(a=>a.cat==='attack')) html+=buildClassActionCard(a);
   }
 
   // ── ACTIONS ──
   if(show('action')){
-    if(f==='all') html+=`<div class="action-section-hdr">${luci('target')} Actions</div>`;
-    for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
-    for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
-    html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
-    html+=buildUnarmedCard(UNARMED_OPTIONS[2]);
+    if(f==='all'){
+      const _arrow = _stdActionsOpen ? '▾' : '▸';
+      html+=`<div class="action-section-hdr collapsible" onclick="toggleStdActions()">${luci('target')} Actions <span>${_arrow}</span></div>`;
+      if(_stdActionsOpen){
+        html+=`<div class="action-section-body">`;
+        for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
+        for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
+        html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
+        html+=buildUnarmedCard(UNARMED_OPTIONS[2]);
+        html+=`</div>`;
+      }
+    } else {
+      for(const a of allClassActions.filter(a=>a.cat==='action')) html+=buildClassActionCard(a);
+      for(const a of stdVisible.filter(a=>a.cat==='action')) html+=buildStdActionCard(a);
+      html+=buildUnarmedCard(UNARMED_OPTIONS[1]);
+      html+=buildUnarmedCard(UNARMED_OPTIONS[2]);
+    }
   }
 
   // ── BONUS ACTIONS ──
@@ -2858,9 +2876,22 @@ function renderActionsTab(){
     for(const a of stdVisible.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildStdActionCard(a);
   }
 
+  // ── PASSIVE FEATURES ──
+  const passives = allClassActions.filter(a=>a.cat==='passive');
+  if(passives.length && (f==='all'||f==='passive')){
+    html+=`<div class="action-section-hdr">${luci('star')} Passive Features</div>`;
+    for(const a of passives) html+=buildClassActionCard(a);
+  }
+
   wrap.innerHTML=html;
   if(wrap2) wrap2.innerHTML='';
   refreshIcons();
+}
+
+let _stdActionsOpen = false;
+function toggleStdActions(){
+  _stdActionsOpen = !_stdActionsOpen;
+  renderActionsTab();
 }
 
 function filterActions(type, btn){
@@ -3285,9 +3316,14 @@ function renderSpellsTab(){
     const castBadge = (typeof effCastLevel === 'number' && typeof baseLevel === 'number' && effCastLevel > baseLevel)
       ? `<span class="spell-badge" style="border:1px solid var(--blue);color:var(--blue);background:var(--bg3)">${effCastLevel}° slot</span>`
       : '';
+    const _spellSrc = (snap?.source || full?.source || '').toLowerCase();
+    const _spellSlug = name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const _spellUrl = _spellSrc ? `https://5e.tools/spells/${_spellSlug}-${_spellSrc}.html` : null;
     return `<div>
       <div class="spell-entry" onclick="toggleSpellDesc('${spellId}')">
-        <span>${esc(name)}</span>
+        ${_spellUrl
+          ? `<a href="${_spellUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${esc(name)}</a>`
+          : `<span>${esc(name)}</span>`}
         ${src?`<span class="spell-badge" style="background:var(--pbg);border-color:var(--purple);color:var(--purple);border:1px solid;border-radius:3px;padding:1px 5px;font-size:var(--fs-xs);flex-shrink:0">${esc(src.label)}</span>`:''}
         ${extra}${castBadge}
         ${atkBtn}${dmgBtn}${healBtn}
@@ -3502,6 +3538,7 @@ const ITEM_RARITY_COLOR = {
 const SOURCE_LABELS = {
   XPHB:'XPHB',XDMG:'XDMG',FRAiF:'FRAiF',FRHoF:'FRHoF',EFA:'EFA',DMG:'DMG',PHB:'PHB',XGE:'XGE',TCE:'TCE',
 };
+const WEAPON_PROP_LABELS = {F:'Finesse',L:'Light',H:'Heavy',T:'Thrown','2H':'Two-Handed',V:'Versatile',A:'Ammo.',REACH:'Reach'};
 const ITEM_TYPE_GROUP = i => {
   if(['M','R'].includes(i.type)) return 'weapon';
   if(['LA','MA','HA','S'].includes(i.type)) return 'armor';
@@ -3619,12 +3656,18 @@ async function loadItems(){
     const allBaseNormalized = (d1.baseitem||[]).map(normalizeItemType);
     const expandedVariants = expandMagicVariants(variants, allBaseNormalized);
     const seen = new Set();
-    allItemsDb = [...baseItems,...magicItems,...expandedVariants]
+    // Sort XPHB/XDMG before PHB so dedup keeps the newer edition
+    const _SRC_PREF = { XPHB:0, XDMG:1 };
+    const _allCombined = [...baseItems,...magicItems,...expandedVariants]
+      .sort((a,b)=>(_SRC_PREF[a.source]??99)-(_SRC_PREF[b.source]??99));
+    allItemsDb = _allCombined
       .filter(i=>{ if(seen.has(i.name)) return false; seen.add(i.name); return true; })
       .map(i => typeof adaptItemRecord === 'function' ? adaptItemRecord(i) : i)
       .sort((a,b)=>a.name.localeCompare(b.name));
     invLoadingState='done';
     renderItemSearch();
+    if(typeof renderActionsTab === 'function') renderActionsTab();
+    if(typeof renderInventoryList === 'function') renderInventoryList();
   } catch(e){
     invLoadingState='idle';
     console.warn('Items DB failed to load:',e);
@@ -3660,10 +3703,8 @@ function renderItemSearch(){
     const ac = item.ac ? ` · CA ${item.ac}` : '';
     const srcLabel = SOURCE_LABELS[item.source]||item.source||'';
     const payload = encodeURIComponent(JSON.stringify({
-      name:item.name,source:item.source,type:item.type,rarity:item.rarity,
-      weight:item.weight,value:item.value,dmg1:item.dmg1,dmgType:item.dmgType,
-      ac:item.ac,bonusWeapon:item.bonusWeapon,bonusAc:item.bonusAc,property:item.property||[],
-      entries:item.entries||[],
+      name:item.name, source:item.source,
+      bonusWeapon:item.bonusWeapon||null, bonusAc:item.bonusAc||null,
     })).replace(/'/g,'%27');
     return `<div class="inv-search-row" onclick="addItemToInventory(decodeURIComponent('${payload}'))">
       <div class="inv-search-name">${esc(item.name)}</div>
@@ -3683,13 +3724,10 @@ function addItemToInventory(jsonStr){
   if(existing){ existing.qty=(existing.qty||1)+1; }
   else{
     sheetInventory.push({
-      name:item.name, source:item.source||'', type:item.type||'OTH',
-      rarity:item.rarity||'none', qty:1,
-      weight:item.weight||0, value:item.value||0,
-      dmg1:item.dmg1||null, dmgType:item.dmgType||null,
-      ac:item.ac||null, bonusWeapon:item.bonusWeapon||null,
-      bonusAc:item.bonusAc||null, property:item.property||[],
-      entries:item.entries||[], equipped:false, custom:false,
+      name:item.name, source:item.source||'',
+      qty:1, equipped:false, custom:false,
+      bonusWeapon:item.bonusWeapon||null,
+      bonusAc:item.bonusAc||null,
     });
   }
   persistInventory();
@@ -3769,27 +3807,45 @@ function renderCurrency(){
     </div>`).join('');
 }
 
+function _resolveInvItem(stored) {
+  if (stored.custom) return stored;
+  const db = allItemsDb.length
+    ? (allItemsDb.find(i => i.name === stored.name && i.source === stored.source)
+       || allItemsDb.find(i => i.name === stored.name))
+    : null;
+  if (!db) return stored;
+  return {
+    ...db,
+    qty: stored.qty ?? 1,
+    equipped: stored.equipped ?? false,
+    bonusWeapon: stored.bonusWeapon || db.bonusWeapon || null,
+    bonusAc: stored.bonusAc || db.bonusAc || null,
+    custom: false,
+  };
+}
+
 function renderInventoryList(){
   const el = document.getElementById('inv-list');
   const countEl = document.getElementById('inv-count');
   const statsEl = document.getElementById('inv-stats-row');
   if(!el) return;
-  const totalItems = sheetInventory.reduce((s,i)=>s+(i.qty||1),0);
-  const totalWeight = sheetInventory.reduce((s,i)=>s+(i.weight||0)*(i.qty||1),0).toFixed(1);
-  const totalGP = sheetInventory.reduce((s,i)=>s+((i.value||0)/100)*(i.qty||1),0).toFixed(1);
+  const resolved = sheetInventory.map((stored, idx) => ({ item: _resolveInvItem(stored), idx }));
+  const totalItems = resolved.reduce((s,{item})=>s+(item.qty||1),0);
+  const totalWeight = resolved.reduce((s,{item})=>s+(item.weight||0)*(item.qty||1),0).toFixed(1);
+  const totalGP = resolved.reduce((s,{item})=>s+((item.value||0)/100)*(item.qty||1),0).toFixed(1);
   if(countEl) countEl.textContent=totalItems;
   if(statsEl) statsEl.innerHTML=`
     <div class="inv-stat-pill">Weight: <b>${totalWeight} lb</b></div>
     <div class="inv-stat-pill">Capacity: <b>${getFinal('str')*15} lb</b></div>
     <div class="inv-stat-pill">Value: <b>${totalGP} GP</b></div>`;
-  if(!sheetInventory.length){ el.innerHTML='<div class="phmsg">Inventory empty.</div>'; return; }
+  if(!resolved.length){ el.innerHTML='<div class="phmsg">Inventory empty.</div>'; return; }
   const groupDefs = [
     {g:'weapon',label:`${luci('swords')} Weapons`},{g:'armor',label:`${luci('shield')} Armor`},
     {g:'magic',label:`${luci('sparkles')} Magic`},{g:'gear',label:`${luci('backpack')} Gear`},
   ];
   let h='';
   for(const {g,label} of groupDefs){
-    const inGroup = sheetInventory.map((item,idx)=>({item,idx})).filter(({item})=>ITEM_TYPE_GROUP(item)===g);
+    const inGroup = resolved.filter(({item})=>ITEM_TYPE_GROUP(item)===g);
     if(!inGroup.length) continue;
     h+=`<div class="inv-section-hdr">${label}</div>`;
     for(const {item,idx} of inGroup){
@@ -3809,18 +3865,23 @@ function renderInventoryList(){
       if(item.bonusAc) acParts.push(item.bonusAc+' magic');
       const dmgStr = dmgParts.join(' ') || '';
       const acStr  = acParts.join(' ') || '';
-      const PROP_MAP={F:'Finesse',L:'Light',H:'Heavy',T:'Thrown','2H':'Two-Handed',V:'Versatile',A:'Ammo.',REACH:'Reach'};
-      const propStr = (item.property||[]).map(p=>PROP_MAP[p]||p).filter(Boolean).join(', ');
+      const propStr = (item.property||[]).map(p=>WEAPON_PROP_LABELS[p]||p).filter(Boolean).join(', ');
       const meta = [item.weight?item.weight+'lb':null, dmgStr||null, acStr||null, propStr||null].filter(Boolean).join(' · ');
       const entryText = item.entries ? clean(rE(item.entries)).slice(0,200) : '';
       const iid = 'inv_'+idx;
+      const _itemUrl = (item.source && !item.custom)
+        ? `https://5e.tools/items.html#${item.name.toLowerCase()}_${(item.source||'').toLowerCase()}`
+        : null;
+      const _itemNameHtml = _itemUrl
+        ? `<a href="${_itemUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${esc(item.name)}</a>`
+        : esc(item.name);
       h+=`<div class="inv-row${item.equipped?' equipped':''}">
         <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;min-width:52px">
           <div class="inv-badge" style="color:${rc};border-color:${rc}">${esc(rarity||typeLabel)}</div>
           ${magicBonus>0?`<div class="inv-badge" style="color:var(--gold);border-color:var(--gold);font-weight:700">${luci('sparkles')} +${magicBonus}</div>`:''}
         </div>
         <div style="flex:1;min-width:0;cursor:pointer" onclick="document.getElementById('${iid}').classList.toggle('open')">
-          <div class="inv-row-name">${esc(item.name)}${item.custom?' <span style="font-size:var(--fs-xs);color:var(--text3)">[custom]</span>':''}</div>
+          <div class="inv-row-name">${_itemNameHtml}${item.custom?' <span style="font-size:var(--fs-xs);color:var(--text3)">[custom]</span>':''}</div>
           ${meta?`<div style="font-size:var(--fs-label);color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
         ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?`${luci('check')} Equip.`:'Equip'}</button>`:''}
@@ -4747,8 +4808,7 @@ function buildWeaponCard(item){
   if(isRanged){       atkMod=dexMod+pb+bonus; dmgMod=dexMod+bonus; }
   else if(isFinesse){ const b=Math.max(strMod,dexMod); atkMod=b+pb+bonus; dmgMod=b+bonus; }
   else{               atkMod=strMod+pb+bonus; dmgMod=strMod+bonus; }
-  const PROP_LBL={F:'Finesse',L:'Leggero',H:'Pesante',T:'Lancio','2H':'Due Mani',V:'Versatile',A:'Munizioni',REACH:'Portata'};
-  const propStr=props.map(p=>PROP_LBL[p]||p).filter(Boolean).join(', ');
+  const propStr=props.map(p=>WEAPON_PROP_LABELS[p]||p).filter(Boolean).join(', ');
   const range=isRanged?(item.range||'varia'):'5 ft'+(props.includes('T')?' / lancio':'');
   const dmgDie=item.dmg1||'1d4', dmgType=item.dmgType||'';
   const dmgSign=dmgMod>=0?'+':'';
@@ -4762,9 +4822,11 @@ function buildWeaponCard(item){
   const id='ac_'+Math.random().toString(36).slice(2);
   const wName=esc(item.name);
   const hasMastery = getWeaponMasteries().has((item.name||'').toLowerCase());
-  const masteryProp = hasMastery ? (item.mastery || '') : '';
+  const _dbItem = hasMastery && !item.mastery && Array.isArray(allItemsDb)
+    ? allItemsDb.find(i => i.name === item.name) : null;
+  const masteryProp = hasMastery ? (item.mastery || _dbItem?.mastery || '') : '';
   const tagHtml=`<span class="action-tag atk">ATK</span>`
-    +(hasMastery?`<span class="action-tag" style="border-color:var(--gold);color:var(--gold)">${luci('star')} MASTERY</span>`:'')
+    +(hasMastery?`<span class="action-tag" style="border-color:var(--gold);color:var(--gold)">${luci('star')} ${masteryProp ? esc(masteryProp) : 'MASTERY'}</span>`:'')
     +(rc?`<span class="action-tag" style="border-color:${rc};color:${rc}">${esc(rarity)}</span>`:'');
   const sub=[src, bonus>0?'Magica +'+bonus:'', propStr].filter(Boolean).join(' · ');
   return `<div class="action-card" id="${id}">
@@ -5050,10 +5112,22 @@ function buildCantripCard(name){
   </div>`;
 }
 
+function _stripSheetTags(text){
+  return String(text||'')
+    .replace(/\{@\w+[^}]*\|([^|{}]+)\}/g,'$1')
+    .replace(/\{@\w+\s+([^}]+)\}/g,'$1')
+    .replace(/\{@\w+\}/g,'');
+}
+
 function buildClassActionCard(a){
   const catLabel={action:'ACTION',bonus:'BONUS',reaction:'REACT.',react:'REACT.',attack:'ATK'};
   const tagCls={action:'util',bonus:'bonus',reaction:'react',react:'react',attack:'atk'};
   const id='ac_'+Math.random().toString(36).slice(2);
+
+  const _ctx = C || {};
+  const _name = typeof a.name === 'function' ? a.name(_ctx) : a.name;
+  const _uses = typeof a.uses === 'function' ? a.uses(_ctx) : a.uses;
+  const _desc = typeof a.desc === 'function' ? a.desc(_ctx) : (a.desc || '');
 
   // Build resource + adapter-driven roll controls
   const resInline = buildResourceBlockInline(a);
@@ -5065,7 +5139,7 @@ function buildClassActionCard(a){
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
       <span class="action-card-icon">${a.icon?luci(a.icon):''}</span>
       <div style="flex:1;min-width:0">
-        <div class="action-card-name">${esc(a.name)}${a.uses?`<span class="sub">${esc(a.uses)}</span>`:''}</div>
+        <div class="action-card-name">${esc(_name)}${_uses?`<span class="sub">${esc(_uses)}</span>`:''}</div>
       </div>
       <div class="action-card-tags">
         <span class="action-tag ${tagCls[a.cat]||'util'}">${catLabel[a.cat]||'ACTION'}</span>
@@ -5074,7 +5148,7 @@ function buildClassActionCard(a){
     </div>
     ${barHtml ? `<div class="action-card-bar">${barHtml}</div>` : ''}
     <div class="action-card-body">
-      <div class="action-desc">${esc(a.desc)}</div>
+      <div class="action-desc">${esc(_stripSheetTags(_desc))}</div>
     </div>
   </div>`;
 }
@@ -5394,6 +5468,7 @@ function toggleSheetSpell(name, level){
   _buildPickerTabs();
   _renderPickerList();
   renderSpellsTab();
+  renderActionsTab();
 }
 
 /* ═══════ TORNA AL BUILDER ═══════ */

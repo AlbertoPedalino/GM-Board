@@ -31,7 +31,9 @@
       "Bash(grep -v \"comment\\\\|//.*Tough\\\\|Magic Initiate\\\\|Blessed Warrior\")",
       "Bash(grep -v \"//\")",
       "Bash(xargs -I{} head -20 {})",
-      "Bash(awk '{print $1}')"
+      "Bash(awk '{print $1}')",
+      "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json\")",
+      "Bash(curl -sk \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json\")"
     ]
   }
 }

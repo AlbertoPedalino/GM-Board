@@ -1,48 +1,47 @@
 /**
  * adapters/items/core.js
  *
- * Pipeline di normalizzazione per item raw 5etools (weapons, armor, gear).
- * Pattern identico a adapters/feats/core.js, spells/core.js, classes/core.js.
+ * Normalization pipeline for raw 5etools items (weapons, armor, gear).
+ * Same pattern as adapters/feats/core.js, spells/core.js, classes/core.js.
  *
- * Assorbe la logica di normalizeItemType (duplicata in sheet e builder).
+ * Absorbs normalizeItemType logic duplicated in sheet and builder.
  *
- * Espone globalmente:
- *   adaptItemRecord(rawItem, ctx)      — normalizza singolo item
- *   adaptItemsDataset(rawItems, ctx)   — map su array
+ * Exposes globally:
+ *   adaptItemRecord(rawItem, ctx)    — normalize single item
+ *   adaptItemsDataset(rawItems, ctx) — map over array
  *
- * Global adapters:
- *   registerGlobalItemAdapter(fn)  — già in registry.js
- *   getGlobalItemAdapters()        — già in registry.js
+ * Global adapters (registered in registry.js):
+ *   registerGlobalItemAdapter(fn)
+ *   getGlobalItemAdapters()
  */
 
 (function (global) {
   "use strict";
 
-  /* ── Costanti tipo ────────────────────────────────────────────── */
-  const WEAPON_TYPES  = new Set(["M", "R"]);
-  const ARMOR_TYPES   = new Set(["LA", "MA", "HA"]);
-  const AMMO_TYPES    = new Set(["A", "AF", "AT"]);
+  /* ── Type constants ───────────────────────────────────────────── */
+  const WEAPON_TYPES = new Set(["M", "R"]);
+  const ARMOR_TYPES  = new Set(["LA", "MA", "HA"]);
+  const AMMO_TYPES   = new Set(["A", "AF", "AT"]);
 
-  /* ── Helpers interni ──────────────────────────────────────────── */
+  /* ── Internal helpers ─────────────────────────────────────────── */
   function _norm(v) {
     return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
-  // Assorbe logica normalizeItemType da sheet e builder:
-  // strip pipe suffix ("G|XPHB" → "G"), inferisce da flag se tipo generico
+  // Strip pipe suffix ("G|XPHB" → "G"), infer type from boolean flags
   function _resolveType(raw) {
     var type = raw.type ? String(raw.type).split("|")[0] : null;
     if (!type || type === "G" || type === "OTH") {
-      if (raw.weapon) type = "M";
+      if (raw.weapon)      type = "M";
       else if (raw.ammo)   type = "A";
       else if (raw.armor)  type = "MA";
       else if (raw.shield) type = "S";
-      else type = "OTH";
+      else                 type = "OTH";
     }
     return type;
   }
 
-  /* ── Normalizzazione record ───────────────────────────────────── */
+  /* ── Record normalization ─────────────────────────────────────── */
   function _itemNormalizeRecord(rawItem, ctx) {
     var raw  = rawItem && typeof rawItem === "object" ? rawItem : {};
     var name = String(raw.name   || "").trim();
@@ -54,13 +53,22 @@
     item.source = src;
     item.type   = type;
 
-    // property sempre array
+    // property: always array, strip pipe suffix ("H|XPHB" → "H")
     if (!Array.isArray(item.property)) {
       item.property = item.property ? [item.property] : [];
     }
+    item.property = item.property.map(function(p) { return String(p).split("|")[0]; });
 
-    // dmgType lowercase
+    // dmgType: lowercase
     if (item.dmgType) item.dmgType = String(item.dmgType).toLowerCase();
+
+    // mastery: ["Cleave|XPHB"] → "Cleave"
+    if (raw.mastery) {
+      var m = Array.isArray(raw.mastery) ? raw.mastery[0] : raw.mastery;
+      item.mastery = String(m || "").split("|")[0].trim();
+    } else {
+      item.mastery = null;
+    }
 
     item._meta = Object.assign(
       {},
@@ -82,7 +90,7 @@
     return item;
   }
 
-  /* ── Pipeline global adapters ─────────────────────────────────── */
+  /* ── Global adapter pipeline ──────────────────────────────────── */
   function _runGlobalAdapters(item, ctx) {
     var list = typeof global.getGlobalItemAdapters === "function"
       ? global.getGlobalItemAdapters()
@@ -100,7 +108,7 @@
     }, item && typeof item === "object" ? Object.assign({}, item) : item);
   }
 
-  /* ── API pubblica ─────────────────────────────────────────────── */
+  /* ── Public API ───────────────────────────────────────────────── */
   function adaptItemRecord(rawItem, ctx) {
     return _runGlobalAdapters(_itemNormalizeRecord(rawItem, ctx), ctx);
   }

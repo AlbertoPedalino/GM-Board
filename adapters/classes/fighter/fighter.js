@@ -73,13 +73,6 @@ registerClassSheetActions("Fighter", [
     desc: 'When you fail an ability check, you can expend a use of Second Wind (as a Reaction) to add 1d10 to the check result, possibly changing the outcome.'
   },
   {
-    name: 'Fighting Style',
-    icon: '',
-    cat: 'action',
-    uses: 'Passive',
-    desc: 'Archery (+2 ranged attack rolls), Defense (+1 AC), Dueling (+2 damage 1H), Great Weapon (reroll 1-2 damage), Protection (impose Disadvantage on attacker vs ally within 5 ft), Two-Weapon Fighting (add ability modifier to off-hand damage), Blind Fighting (10-ft blindsight), Interception (Reaction: reduce damage to ally by 1d10+PB).'
-  },
-  {
     name: 'Extra Attack',
     icon: '',
     cat: 'attack',
