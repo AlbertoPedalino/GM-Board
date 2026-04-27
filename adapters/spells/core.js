@@ -164,7 +164,52 @@
     return rawSpells.map(function (s) { return adaptSpellRecord(s, ctx); });
   }
 
+  /* ── Reaction spell detection ────────────────────────────────── */
+
+  /**
+   * Returns all spells the character has that have casting time "reaction".
+   * @param {object} character  - C object (selectedCantrips, selectedSpells, autoGrantedSpells, spellSnapshots)
+   * @param {Array}  spellDb    - loaded 5etools spell array (sheetSpellDb)
+   * @param {Array}  [extra]    - additional spell names (e.g. feat cantrips from choices)
+   * @returns {{ name:string, source:string, condition:string, entries:Array }[]}
+   */
+  function getReactionSpells(character, spellDb, extra) {
+    if (!character) return [];
+    var snapshots = Array.isArray(character.spellSnapshots) ? character.spellSnapshots : [];
+    var db = Array.isArray(spellDb) ? spellDb : [];
+    var seen = {};
+    var result = [];
+
+    var names = [].concat(
+      Array.isArray(character.selectedCantrips) ? character.selectedCantrips : [],
+      Object.values(character.selectedSpells || {}).reduce(function(a, b){ return a.concat(Array.isArray(b) ? b : []); }, []),
+      (Array.isArray(character.autoGrantedSpells) ? character.autoGrantedSpells : []).map(function(s){ return typeof s === 'string' ? s : (s && s.name) || ''; }),
+      Array.isArray(extra) ? extra : []
+    );
+
+    for (var i = 0; i < names.length; i++) {
+      var sName = String(names[i] || '').trim();
+      if (!sName || seen[sName]) continue;
+      seen[sName] = true;
+
+      var full = db.find(function(s){ return s.name === sName; }) || null;
+      var snap = snapshots.find(function(s){ return s.name === sName; }) || null;
+      var time0 = (full && full.time && full.time[0]) || (snap && snap.time && snap.time[0]) || null;
+      if (!time0 || String(time0.unit || '').toLowerCase() !== 'reaction') continue;
+
+      result.push({
+        name:      sName,
+        source:    String((full && full.source) || (snap && snap.source) || ''),
+        condition: String(time0.condition || ''),
+        entries:   (full && full.entries) || (snap && snap.entries) || [],
+      });
+    }
+
+    return result;
+  }
+
   global.adaptSpellRecord    = adaptSpellRecord;
   global.adaptSpellsDataset  = adaptSpellsDataset;
+  global.getReactionSpells   = getReactionSpells;
 
 })(typeof window !== "undefined" ? window : globalThis);

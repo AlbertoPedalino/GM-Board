@@ -2754,6 +2754,30 @@ function getSheetSpeciesActions(speciesName, speciesSource, charLevel){
   return _sheetGetSpeciesActions(speciesName, speciesSource)
     .filter(a => !a?.minLevel || lv >= Number(a.minLevel));
 }
+function _buildReactionSpellCards(cantrips) {
+  const raw = typeof getReactionSpells === 'function'
+    ? getReactionSpells(C, sheetSpellDb, cantrips)
+    : [];
+  return raw.map(r => {
+    const src = r.source.toLowerCase();
+    const slug = r.name.toLowerCase().replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const url = src ? `https://5e.tools/spells/${slug}-${src}.html` : null;
+    const condition = r.condition ? _stripSheetTags(r.condition) : '';
+    const entries = Array.isArray(r.entries) ? r.entries : [r.entries];
+    const descText = entries
+      .map(e => typeof e === 'string' ? _stripSheetTags(e) : (e && typeof e === 'object' ? _stripSheetTags(Array.isArray(e.entries) ? e.entries.filter(x=>typeof x==='string').join(' ') : (e.text||'')) : ''))
+      .filter(Boolean).join(' ');
+    return {
+      name: r.name,
+      nameHtml: url ? `<a href="${url}" target="_blank" style="color:inherit;text-decoration:underline dotted">${esc(r.name)}</a>` : null,
+      icon: 'sparkles',
+      cat: 'reaction',
+      uses: condition ? `Reaction — ${condition}` : 'Reaction',
+      desc: descText,
+    };
+  });
+}
+
 function renderActionsTab(){
   const wrap=document.getElementById('attacks-table-wrap');
   if(!wrap) return;
@@ -2808,8 +2832,11 @@ function renderActionsTab(){
     .map(a=>({ ...a, _cls: C?.speciesName || 'Species' }));
   const allClassActions=[...classActions,...subActions,...extraActions,...speciesActions];
 
-  const isCaster = !!(C?.clsSnapshot?.casterProgression || cantrips.length ||
-    Object.values(C?.selectedSpells||{}).flat().length);
+  const isCaster = !!(
+    C?.clsSnapshot?.casterProgression ||
+    (C?.selectedCantrips?.length || 0) > 0 ||
+    Object.values(C?.selectedSpells||{}).flat().length
+  );
 
   // Filter standard actions: universal always shown; casterOnly only if caster
   const stdVisible = STANDARD_ACTIONS.filter(a =>
@@ -2873,7 +2900,12 @@ function renderActionsTab(){
   if(show('reaction')){
     if(f==='all') html+=`<div class="action-section-hdr">${luci('rotate-ccw')} Reactions</div>`;
     for(const a of allClassActions.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildClassActionCard(a);
-    for(const a of stdVisible.filter(a=>a.cat==='reaction'||a.cat==='react')) html+=buildStdActionCard(a);
+    const reactSpells = _buildReactionSpellCards(cantrips);
+    for(const a of reactSpells) html+=buildClassActionCard(a);
+    const reactStd = stdVisible.filter(a=>a.cat==='reaction'||a.cat==='react');
+    for(const a of reactStd.filter(a=>a.name!=='Spell (Reaction)')) html+=buildStdActionCard(a);
+    if(isCaster && !reactSpells.length)
+      for(const a of reactStd.filter(a=>a.name==='Spell (Reaction)')) html+=buildStdActionCard(a);
   }
 
   // ── PASSIVE FEATURES ──
@@ -5128,6 +5160,7 @@ function buildClassActionCard(a){
   const _name = typeof a.name === 'function' ? a.name(_ctx) : a.name;
   const _uses = typeof a.uses === 'function' ? a.uses(_ctx) : a.uses;
   const _desc = typeof a.desc === 'function' ? a.desc(_ctx) : (a.desc || '');
+  const _nameHtml = a.nameHtml || null;
 
   // Build resource + adapter-driven roll controls
   const resInline = buildResourceBlockInline(a);
@@ -5139,7 +5172,7 @@ function buildClassActionCard(a){
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
       <span class="action-card-icon">${a.icon?luci(a.icon):''}</span>
       <div style="flex:1;min-width:0">
-        <div class="action-card-name">${esc(_name)}${_uses?`<span class="sub">${esc(_uses)}</span>`:''}</div>
+        <div class="action-card-name">${_nameHtml||esc(_name)}${_uses?`<span class="sub">${esc(_uses)}</span>`:''}</div>
       </div>
       <div class="action-card-tags">
         <span class="action-tag ${tagCls[a.cat]||'util'}">${catLabel[a.cat]||'ACTION'}</span>
