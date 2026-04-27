@@ -319,6 +319,7 @@
       .main-col-right { grid-column:1 / -1; }
     }
     @media(max-width:600px){
+      html, body { overflow-x:clip; max-width:100%; }
       .topbar { padding: .5rem .6rem; position: static; box-shadow: none; }
       .char-identity { flex: 1 1 100%; order: 2; }
       .rest-btn, .back-btn {
@@ -326,11 +327,12 @@
         justify-content: center;
         text-align: center;
       }
-      .scores-row { display:block; padding:.45rem .6rem; }
-      .scores-left { display:grid; width:100%; gap:.4rem; grid-template-columns:repeat(4,1fr); margin-bottom:.45rem; }
+      .scores-row { display:flex; flex-direction:column; padding:.45rem .6rem; gap:.45rem; }
+      .scores-left { flex:none; width:100%; gap:.4rem; grid-template-columns:repeat(4,1fr); }
       .score-box { padding:.35rem .2rem; }
-      .hp-block { width:100%; min-width:0; max-width:none; box-sizing:border-box; }
-      .main-grid { grid-template-columns:1fr; padding:.45rem .6rem; gap:.45rem; min-height:0; }
+      .hp-block { flex:none; width:100%; min-width:0; max-width:none; }
+      .main-grid { grid-template-columns:minmax(0,1fr); padding:.45rem .6rem; gap:.45rem; min-height:0; }
+      .main-col-left, .main-col-right { min-width:0; }
       .right-top-row { gap:.35rem; flex-wrap:wrap; }
       .circle-stat { width:58px;height:58px; }
       .defenses-block, .conditions-block { min-width:0; flex:1 1 120px; padding:.38rem .55rem; }
