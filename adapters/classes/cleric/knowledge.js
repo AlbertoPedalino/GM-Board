@@ -43,6 +43,24 @@ registerSubclassSheetActions("Cleric_Knowledge", [
     "uses": "1 Channel",
     "resKey": "channel_div",
     "desc": "Choose a skill or tool: for 10 minutes gain proficiency (or double proficiency if already proficient)."
+  },
+  {
+    "name": "Channel: Read Thoughts",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "channel_div",
+    "minLevel": 6,
+    "desc": "Choose a creature within 60 ft. For 1 minute, read its surface thoughts (it is unaware). You can also use your action to end the effect early and cast Suggestion on the target (no slot); it has Disadvantage on the saving throw."
+  },
+  {
+    "name": "Channel: Visions of the Past",
+    "icon": "",
+    "cat": "action",
+    "uses": "1 Channel",
+    "resKey": "channel_div",
+    "minLevel": 17,
+    "desc": "Hold an object or stand in a location to receive visions of events from its recent past (up to WIS score × Cleric level days ago). Concentration for up to 1 minute."
   }
 ]);
 // [SheetRuntime] END

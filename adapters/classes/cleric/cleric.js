@@ -81,6 +81,17 @@ registerClassSheetActions("Cleric", [
     "desc": "Channel Divinity option. Choose a creature within 30 ft: it either regains HP or takes Radiant or Necrotic damage (your choice) equal to 2d8 + your WIS modifier. For each additional Channel Divinity use spent (beyond the first), add 1d8. The maximum additional uses scales with level: +1 at lv.2, +2 at lv.5, +3 at lv.8, +4 at lv.11, +5 at lv.14, +6 at lv.17."
   },
   {
+    "name": "Sear Undead",
+    "icon": "",
+    "cat": "action",
+    "uses": "On Turn Undead",
+    "minLevel": 5,
+    "damageFormula": ({ ownerLevel }) => `2d6+${Number(ownerLevel||1)}`,
+    "damageButtonLabel": ({ formula }) => `${formula} radiant`,
+    "damageKind": "damage",
+    "desc": "When you use Turn Undead, each Undead that fails its WIS save takes Radiant damage equal to 2d6 + your Cleric level (in addition to being turned or destroyed)."
+  },
+  {
     "name": "Divine Intervention",
     "icon": "",
     "cat": "action",
