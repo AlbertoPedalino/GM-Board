@@ -1155,15 +1155,16 @@
     }
 
     .hbtn {
-      padding: 3px 7px;
+      padding: 3px 10px;
       border: 1px solid var(--bdr);
       border-radius: 4px;
       background: transparent;
-      font-size: 12px;
+      font-size: 14px;
       cursor: pointer;
       font-family: 'EB Garamond', Georgia, serif;
       transition: all .1s;
-      white-space: nowrap
+      white-space: nowrap;
+      line-height: 1
     }
 
     .hbtn.d {
@@ -1183,6 +1184,20 @@
     .hbtn.h:hover {
       border-color: var(--green)
     }
+
+    .hp-delta-inp {
+      width: 42px;
+      text-align: center;
+      background: var(--bg3);
+      border: 1px solid var(--bdr);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 2px 4px;
+      -moz-appearance: textfield
+    }
+    .hp-delta-inp::-webkit-inner-spin-button,
+    .hp-delta-inp::-webkit-outer-spin-button { -webkit-appearance: none }
 
     /* ── STAT BLOCK MODAL ── */
     .overlay {
@@ -2805,6 +2820,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       renderCombat();
     }
 
+    function modHPDelta(id, sign) {
+      const v = parseInt(document.getElementById('hdelta-' + id)?.value) || 1;
+      modHP(id, sign * v);
+    }
     function modHP(id, delta) {
       const c = combatants.find(x => x.id === id); if (!c) return;
       c.hpCurrent = Math.max(0, Math.min(c.hpMax, c.hpCurrent + delta));
@@ -2930,10 +2949,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             <div class="pmlab">F</div>
             <div class="ds-group">${[1,2,3].map(v=>`<div class="ds-box f${c.deathSaves.f>=v?' on':''}" onclick="setDS(${c.id},'f',${v})"></div>`).join('')}</div>
           </div>` : `
-          <button class="hbtn d" onclick="modHP(${c.id},-10)">-10</button>
-          <button class="hbtn d" onclick="modHP(${c.id},-5)">-5</button>
-          <button class="hbtn h" onclick="modHP(${c.id},5)">+5</button>
-          <button class="hbtn h" onclick="modHP(${c.id},10)">+10</button>`}
+          <button class="hbtn h" onclick="modHPDelta(${c.id},1)">+</button>
+          <input type="number" class="hp-delta-inp" id="hdelta-${c.id}" value="5" min="1">
+          <button class="hbtn d" onclick="modHPDelta(${c.id},-1)">−</button>`}
           <button class="cbtn" style="border-color: var(--red); color: var(--red2); margin-left: 8px; width: 28px; height: 28px;" onclick="removeCombatant(${c.id})">${luci('x')}</button>
         </div>
       </div>`;
