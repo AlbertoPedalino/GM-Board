@@ -5,6 +5,9 @@
  */
 
 const ADAPTER_MANIFEST = [
+  // ── Costanti condivise ───────────────────────────────────
+  'adapters/spell-slots.js',
+
   // ── Classi ──────────────────────────────────────────────
   'adapters/classes/core.js',
   'adapters/classes/fighter/fighter.js',

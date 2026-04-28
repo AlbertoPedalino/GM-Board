@@ -57,6 +57,7 @@ registerClassSheetActions("Barbarian", [
     "icon": "",
     "cat": "attack",
     "uses": "Unlimited",
+    "minLevel": 2,
     "desc": "When you make your first attack on your turn, gain advantage on all weapon attack rolls using STR this turn. Enemies gain advantage on attack rolls against you until the start of your next turn."
   },
   {

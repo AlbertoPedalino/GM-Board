@@ -59,7 +59,11 @@
       "PowerShell($r = Invoke-WebRequest \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\" -Method Head -ErrorAction SilentlyContinue; $r.StatusCode)",
       "PowerShell(try { $r = Invoke-RestMethod \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\" -ErrorAction Stop; $keys = \\($r | Get-Member -MemberType NoteProperty\\).Name | Select-Object -First 3; Write-Output \"OK - top keys: $keys\" } catch { Write-Output \"FAIL: $_\" })",
       "PowerShell($r = Invoke-RestMethod \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\"; $xphb = $r.xphb; $fireball = $xphb.'fireball'; Write-Output \\($fireball | ConvertTo-Json -Depth 5\\))",
-      "PowerShell($r = Invoke-RestMethod \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\"; $keys = \\($r | Get-Member -MemberType NoteProperty\\).Name; Write-Output \"Sources in lookup: $\\($keys -join ', '\\)\")"
+      "PowerShell($r = Invoke-RestMethod \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\"; $keys = \\($r | Get-Member -MemberType NoteProperty\\).Name; Write-Output \"Sources in lookup: $\\($keys -join ', '\\)\")",
+      "Bash(grep -v \"^.*:.*//.*\")",
+      "Bash(python *)",
+      "PowerShell(Set-Content *)",
+      "Bash(xxd)"
     ]
   }
 }

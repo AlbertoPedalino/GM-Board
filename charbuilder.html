@@ -2453,9 +2453,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     /* ════════════════════════════════════ COSTANTI */
     const BASE = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
     const ALLOWED = ['XPHB', 'FRAiF', 'FRHoF', 'EFA'];
-    const FULL_SLOTS = [null, [2, 0, 0, 0, 0, 0, 0, 0, 0], [3, 0, 0, 0, 0, 0, 0, 0, 0], [4, 2, 0, 0, 0, 0, 0, 0, 0], [4, 3, 0, 0, 0, 0, 0, 0, 0], [4, 3, 2, 0, 0, 0, 0, 0, 0], [4, 3, 3, 0, 0, 0, 0, 0, 0], [4, 3, 3, 1, 0, 0, 0, 0, 0], [4, 3, 3, 2, 0, 0, 0, 0, 0], [4, 3, 3, 3, 1, 0, 0, 0, 0], [4, 3, 3, 3, 2, 0, 0, 0, 0], [4, 3, 3, 3, 2, 1, 0, 0, 0], [4, 3, 3, 3, 2, 1, 0, 0, 0], [4, 3, 3, 3, 2, 1, 1, 0, 0], [4, 3, 3, 3, 2, 1, 1, 0, 0], [4, 3, 3, 3, 2, 1, 1, 1, 0], [4, 3, 3, 3, 2, 1, 1, 1, 0], [4, 3, 3, 3, 2, 1, 1, 1, 1], [4, 3, 3, 3, 3, 1, 1, 1, 1], [4, 3, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 3, 2, 2, 1, 1]];
-    const HALF_SLOTS = [null, null, [2, 0, 0, 0, 0], [3, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 2, 0, 0, 0], [4, 2, 0, 0, 0], [4, 3, 0, 0, 0], [4, 3, 0, 0, 0], [4, 3, 2, 0, 0], [4, 3, 2, 0, 0], [4, 3, 3, 0, 0], [4, 3, 3, 0, 0], [4, 3, 3, 1, 0], [4, 3, 3, 1, 0], [4, 3, 3, 2, 0], [4, 3, 3, 2, 0], [4, 3, 3, 3, 1], [4, 3, 3, 3, 1], [4, 3, 3, 3, 2], [4, 3, 3, 3, 2]];
-    const WLOCK = [null, { n: 1, l: 1 }, { n: 2, l: 1 }, { n: 2, l: 2 }, { n: 2, l: 2 }, { n: 3, l: 3 }, { n: 3, l: 3 }, { n: 3, l: 4 }, { n: 3, l: 4 }, { n: 3, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }, { n: 4, l: 5 }];
+    const FULL_SLOTS  = window.FULL_SLOTS;
+    const HALF_SLOTS  = window.HALF_SLOTS;
+    const PACT_SLOTS  = window.PACT_SLOTS;
     const PB = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
     const PB_COST = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
     const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -5171,6 +5171,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       renderLevelGrid();
       renderMCTabBar();
+      renderSpellPanel();
     }
     function renderExtraClassInPane(i) {
       const chipsEl = document.getElementById('mc-ex-chips');
@@ -5320,7 +5321,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         // Combined spell slot table from all non-Warlock casters
         const mcSlots = getMCSlots(); // Warlock contributes 0, correct per 5e rules
         const wLv = _warlockLevels();
-        const pactRow = wLv > 0 ? WLOCK[Math.min(wLv, 20)] : null;
+        const pactRow = wLv > 0 ? PACT_SLOTS[Math.min(wLv, 20)] : null;
 
         if (!mcSlots && !pactRow) { p.style.display = 'none'; return; }
         p.style.display = 'block';
@@ -5349,7 +5350,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!caster) { p.style.display = 'none'; return; }
       p.style.display = 'block';
       if (caster === 'pact') {
-        const w = WLOCK[lv];
+        const w = PACT_SLOTS[lv];
         body.innerHTML = w ? `<span style="font-size:var(--fs-ui-lg);color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recuperati con riposo breve</span>` : '<div class="phmsg">Nessuno slot</div>';
         return;
       }
@@ -6411,7 +6412,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         extraClasses: (char.extraClasses||[]).filter(ec=>ec.name).map(ec=>({
           name: ec.name, source: ec.source, level: ec.level||1,
           subclassShortName: ec.subclassShortName||null,
-          clsSnapshot: { hd:ec.cls?.hd, proficiency:ec.cls?.proficiency||[], casterProgression:ec.cls?.casterProgression||null },
+          clsSnapshot: { hd:ec.cls?.hd, proficiency:ec.cls?.proficiency||[], casterProgression:ec.cls?.casterProgression||(typeof getClassRuntimeConfig==='function'?getClassRuntimeConfig(ec.name)?.spellcasting?.casterProgression:null)||null },
+          selectedCantrips: ec.selectedCantrips||[],
+          selectedSpells: ec.selectedSpells||{},
           allClassFeatures: ec.allFeatures||[], allSubFeatures: ec.allSubFeatures||[],
         })),
         speciesName: char.speciesName, speciesSource: char.speciesSource,
@@ -6429,7 +6432,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         clsSnapshot: {
           hd: char.cls?.hd,
           proficiency: char.cls?.proficiency || [],
-          casterProgression: char.cls?.casterProgression || null,
+          casterProgression: char.cls?.casterProgression||(typeof getClassRuntimeConfig==='function'?getClassRuntimeConfig(char.className)?.spellcasting?.casterProgression:null)||null,
           subclassLevel: char.cls?.subclassLevel || 3,
           subclassTitle: char.cls?.subclassTitle || '',
           startingProficiencies: char.cls?.startingProficiencies || {},
@@ -7040,7 +7043,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       char.extraClasses = [];
       for (const ec of (state.extraClasses||[])) {
-        const entry = { name:null,source:null,cls:null,level:ec.level||1,subclassShortName:ec.subclassShortName||null,subclasses:[],allFeatures:[],allSubFeatures:[] };
+        const entry = { name:null,source:null,cls:null,level:ec.level||1,subclassShortName:ec.subclassShortName||null,subclasses:[],allFeatures:[],allSubFeatures:[],selectedCantrips:ec.selectedCantrips||[],selectedSpells:ec.selectedSpells||{} };
         for (const data of Object.values(classCache)) {
           const f = (data.class||[]).find(c => c.name===ec.name && c.source===ec.source);
           if (f) {
@@ -7138,12 +7141,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     let activeSpellLevel = 0;
 
     function renderSpellPanel() {
+      const tab = char.activeClassTab || 0;
+      if (tab > 0) { _renderExtraSpellPanel(tab - 1); return; }
       const panel = document.getElementById('panel-spells');
       const body = document.getElementById('spell-body');
       const cls = char.className;
       const caster = _clsCasterProg(cls, char.cls);
 
-      const hasGrantData = collectSpellGrants().length > 0;
+      const hasGrantData = collectSpellGrants().filter(g => !String(g.slotKey||'').startsWith('mc')).length > 0;
       const hasManualSpellSel = (char.selectedCantrips?.length || 0) > 0
         || Object.values(char.selectedSpells || {}).flat().length > 0;
       if (!caster && !hasGrantData && !hasManualSpellSel) { panel.style.display = 'none'; return; }
@@ -7186,12 +7191,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
         // Pact slots (separate table, independent of shared pool)
         if (caster === 'pact') {
-          const pactLv = WLOCK[char.level] ? WLOCK[char.level].l : 1;
+          const pactLv = PACT_SLOTS[char.level] ? PACT_SLOTS[char.level].l : 1;
           maxLv = Math.max(maxLv, pactLv);
         }
         for (const ec of allExtraClasses) {
           if (_clsCasterProg(ec.name, ec.cls) === 'pact') {
-            const pactLv = WLOCK[ec.level||1] ? WLOCK[ec.level||1].l : 1;
+            const pactLv = PACT_SLOTS[ec.level||1] ? PACT_SLOTS[ec.level||1].l : 1;
             maxLv = Math.max(maxLv, pactLv);
           }
         }
@@ -7247,6 +7252,108 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       renderSpellList(classSpells, maxLv, counts);
     }
     function setSpellTab(lv) { activeSpellLevel = lv; renderSpellPanel(); }
+
+    function _calcSpellCountsFor(clsName, clsObj, lv) {
+      const caster = _clsCasterProg(clsName, clsObj);
+      if (!caster) return null;
+      const cfg = typeof getClassRuntimeConfig === 'function' ? getClassRuntimeConfig(clsName)?.spellcasting : null;
+      const cantrips = clsObj?.cantripProgression?.[lv-1] || cfg?.cantripKnown?.[lv-1] || 0;
+      let spells = clsObj?.preparedSpellsProgression?.[lv-1] || 0;
+      if (!spells && cfg) {
+        if (cfg.spellsKnown) spells = cfg.spellsKnown[lv-1] || 0;
+        else if (cfg.preparedFormula) {
+          const f = cfg.preparedFormula;
+          const abilMod = Math.floor((getFinal(f.ability)-10)/2);
+          const lvPart = f.addLevel ? Math[f.levelRound||'floor'](lv/(f.levelDivisor||1)) : 0;
+          spells = Math.max(f.min||0, abilMod+lvPart);
+        }
+      }
+      return { cantrips, spells };
+    }
+
+    function _renderExtraSpellPanel(ecIdx) {
+      const panel = document.getElementById('panel-spells');
+      const body  = document.getElementById('spell-body');
+      if (!panel || !body) return;
+      const ec = (char.extraClasses||[])[ecIdx];
+      if (!ec || !ec.cls) { panel.style.display='none'; return; }
+      const caster = _clsCasterProg(ec.name, ec.cls);
+      if (!caster) { panel.style.display='none'; return; }
+      if (!ec.selectedCantrips) ec.selectedCantrips = [];
+      if (!ec.selectedSpells)   ec.selectedSpells   = {};
+      const lv     = ec.level || 1;
+      const counts = _calcSpellCountsFor(ec.name, ec.cls, lv);
+      if (!counts) { panel.style.display='none'; return; }
+      panel.style.display = 'block';
+      if (!spellDb.length) { body.innerHTML='<div class="phmsg">Loading spells…</div>'; return; }
+      const classSpells = getClassSpells(ec.name);
+      let maxLv = 0;
+      if (caster === 'pact') {
+        maxLv = PACT_SLOTS[lv]?.l || 1;
+      } else {
+        const poolLv = caster==='full'?lv : caster==='half'||caster==='1/2'?Math.floor(lv/2) : caster==='artificer'?Math.ceil(lv/2) : Math.floor(lv/3);
+        const sd = FULL_SLOTS[Math.min(poolLv,20)];
+        if (sd) for (let i=0;i<sd.length;i++) if (sd[i]>0) maxLv=i+1;
+      }
+      maxLv = Math.min(9, maxLv);
+      const availableLevels = [];
+      for (let l=0; l<=maxLv; l++) {
+        const has = classSpells.some(s=>s.level===l) || (l===0?ec.selectedCantrips.length>0:(ec.selectedSpells[l]||[]).length>0);
+        if (has || l===0) availableLevels.push(l);
+      }
+      if (!availableLevels.includes(activeSpellLevel)) activeSpellLevel = availableLevels[0]??0;
+      let h = `<div style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.6rem">`;
+      if (counts.cantrips>0) h+=`Cantrip: <b style="color:var(--gold2)">${ec.selectedCantrips.length}/${counts.cantrips}</b> · `;
+      h+=`Spells: <b style="color:var(--gold2)">${Object.values(ec.selectedSpells).flat().length}/${counts.spells}</b>`;
+      if (caster==='pact') h+=` <span style="font-size:var(--fs-label);color:var(--text3)">(Warlock: spells known)</span>`;
+      h+=`</div><div class="spell-tabs">`;
+      for (const l of availableLevels) {
+        const isActive = l===activeSpellLevel;
+        const selCount = l===0?ec.selectedCantrips.length:(ec.selectedSpells[l]||[]).length;
+        h+=`<button class="spell-tab${isActive?' on':selCount>0?' has':''}" onclick="setSpellTab(${l})">${SPELL_LEVEL_LABELS[l]}${selCount>0?` (${selCount})`:''}</button>`;
+      }
+      h+=`</div><div id="spell-list-body"></div>`;
+      body.innerHTML = h;
+      _renderExtraSpellList(classSpells, counts, ec);
+    }
+
+    function _renderExtraSpellList(classSpells, counts, ec) {
+      const el = document.getElementById('spell-list-body');
+      if (!el) return;
+      const lv = activeSpellLevel;
+      const list = classSpells.filter(s=>s.level===lv).sort((a,b)=>a.name.localeCompare(b.name));
+      if (!list.length) { el.innerHTML='<div class="phmsg">No spells available.</div>'; return; }
+      const isCantrip = lv===0;
+      const selList   = isCantrip ? ec.selectedCantrips : (ec.selectedSpells[lv]||[]);
+      const maxSel    = isCantrip ? counts.cantrips : counts.spells;
+      const selCount  = isCantrip ? ec.selectedCantrips.length : Object.values(ec.selectedSpells).flat().length;
+      const remaining = maxSel - (isCantrip ? ec.selectedCantrips.length : selCount);
+      const autoSpells = getAutoGrantedSpells();
+      let h = `<div class="spell-count-bar">
+        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${list.length} available</span>
+        <span class="${remaining<0?'spell-count-over':'spell-count-ok'}">${isCantrip?ec.selectedCantrips.length:selCount}/${maxSel}</span>
+      </div><div class="spell-list">`;
+      for (const s of list) {
+        const isAuto = !!autoSpells.find(a=>a.name===s.name);
+        const on   = isAuto || selList.includes(s.name);
+        const full = !on && (isCantrip ? ec.selectedCantrips.length>=counts.cantrips : selCount>=counts.spells);
+        const school = SCHOOL_LABELS[s.school]||s.school||'';
+        const click  = isAuto?'':(full&&!on?'':`toggleSpell(${lv},'${s.name.replace(/'/g,"\\'")}')`);
+        h+=`<div class="spell-row${on?' on':''}${isAuto?' auto-granted':''}"
+              onclick="${click}"
+              style="${isAuto?'cursor:default;border-color:var(--teal);background:var(--tealbg)':''}">
+          <div class="spell-check${on?' on':''}" style="${isAuto?'background:var(--teal);border-color:var(--teal)':''}">${on?luci('check'):''}</div>
+          <div style="flex:1;min-width:0">
+            <div class="spell-name">${esc(s.name)}${isAuto?` <span style="font-size:var(--fs-caption);color:var(--teal);margin-left:5px">${luci('sparkles')} ALWAYS PREPARED</span>`:''}</div>
+            <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
+          </div>
+          ${s.ritual?`<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>`:''}
+          ${s.concentration?`<span style="font-size:var(--fs-caption);color:var(--purple);flex-shrink:0">C</span>`:''}
+        </div>`;
+      }
+      h+='</div>';
+      el.innerHTML = h;
+    }
 
     function renderSpellList(classSpells, maxLv, counts) {
       const el = document.getElementById('spell-list-body');
@@ -7310,10 +7417,26 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     function toggleSpell(lv, name) {
-      // Impedisci modifiche se l'incantesimo è fornito automaticamente dalla sottoclasse
       const autoSpells = getAutoGrantedSpells();
       if (autoSpells.find(as => as.name === name)) return;
-
+      const tab = char.activeClassTab || 0;
+      if (tab > 0) {
+        const ec = (char.extraClasses||[])[tab-1];
+        if (!ec) return;
+        if (!ec.selectedCantrips) ec.selectedCantrips = [];
+        if (!ec.selectedSpells)   ec.selectedSpells   = {};
+        if (lv === 0) {
+          const idx = ec.selectedCantrips.indexOf(name);
+          if (idx>=0) ec.selectedCantrips.splice(idx,1); else ec.selectedCantrips.push(name);
+        } else {
+          if (!ec.selectedSpells[lv]) ec.selectedSpells[lv] = [];
+          const idx = ec.selectedSpells[lv].indexOf(name);
+          if (idx>=0) ec.selectedSpells[lv].splice(idx,1); else ec.selectedSpells[lv].push(name);
+        }
+        renderSpellPanel();
+        renderPreviewSpells();
+        return;
+      }
       if (lv === 0) {
         const idx = char.selectedCantrips.indexOf(name);
         if (idx >= 0) char.selectedCantrips.splice(idx, 1);
