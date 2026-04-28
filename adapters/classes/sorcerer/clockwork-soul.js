@@ -6,10 +6,10 @@ registerSubclassSheetActions("Sorcerer_Clockwork Soul", [
     "name": "Restore Balance",
     "icon": "",
     "cat": "reaction",
-    "uses": "PB / LR",
+    "uses": "CHA mod / LR",
     "resKey": "clockwork_restore",
     "minLevel": 3,
-    "desc": "Reaction when a creature within 60 ft you can see is about to roll a d20 with Advantage or Disadvantage: cancel that Advantage or Disadvantage before the roll. Recharge: Proficiency Bonus per Long Rest."
+    "desc": "Reaction when a creature you can see within 60 ft is about to roll a d20 with Advantage or Disadvantage: prevent the roll from being affected by Advantage or Disadvantage. Uses: CHA modifier (min 1) per Long Rest."
   },
   {
     "name": "Bastion of Law",
@@ -18,7 +18,7 @@ registerSubclassSheetActions("Sorcerer_Clockwork Soul", [
     "uses": "1–5 Sorcery Points",
     "resKey": "sorc_pts",
     "minLevel": 6,
-    "desc": "Action: spend 1–5 Sorcery Points and touch a creature to give it Protection Dice (d8s) equal to points spent. When it takes damage, spend one die (no action) to reduce the damage by that roll. Pool lasts until you finish a Long Rest or use this again."
+    "desc": "Magic action: expend 1–5 Sorcery Points to create a ward around yourself or another creature you can see within 30 ft. The ward has a number of d8s equal to the points spent. When the warded creature takes damage, it can expend any number of those dice (no action), roll them, and reduce the damage by the total. The ward lasts until you finish a Long Rest or use this feature again."
   },
   {
     "name": "Trance of Order",
@@ -27,7 +27,7 @@ registerSubclassSheetActions("Sorcerer_Clockwork Soul", [
     "uses": "1 / LR",
     "resKey": "clockwork_trance",
     "minLevel": 14,
-    "desc": "Bonus Action: enter a state of clockwork order for 1 minute. Attack rolls against you can't benefit from Advantage, and when you make an attack roll or saving throw you can treat a d20 roll of 9 or lower as a 10. Recharge: Long Rest."
+    "desc": "Bonus Action: enter this state for 1 minute. Attack rolls against you can't benefit from Advantage, and whenever you make a D20 Test (attack roll, ability check, or saving throw), you can treat a d20 roll of 9 or lower as a 10. 1/LR, or spend 5 Sorcery Points (no action) to restore this use."
   },
   {
     "name": "Clockwork Cavalcade",
@@ -36,7 +36,7 @@ registerSubclassSheetActions("Sorcerer_Clockwork Soul", [
     "uses": "1 / LR",
     "resKey": "clockwork_cavalcade",
     "minLevel": 18,
-    "desc": "Action: call spirits of order into a 30-ft cube. Creatures of your choice regain 10d6 HP; damaged objects/constructs are repaired; effects from spells of 6th level or lower are dispelled. Recharge: Long Rest."
+    "desc": "Magic action: summon spirits of order in a 30-ft Cube originating from you. The spirits create these effects before vanishing: restore up to 100 Hit Points, divided as you choose among any number of creatures of your choice in the Cube; damaged objects entirely in the Cube are repaired instantly; every spell of level 6 and lower ends on creatures and objects of your choice in the Cube. 1/LR, or spend 7 Sorcery Points (no action) to restore this use."
   }
 ]);
 registerSubclassSheetResources("Sorcerer_Clockwork Soul", [
@@ -45,7 +45,7 @@ registerSubclassSheetResources("Sorcerer_Clockwork Soul", [
     "name": "Restore Balance",
     "icon": "settings",
     "recharge": "LR",
-    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
+    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 1)
   },
   {
     "key": "clockwork_trance",

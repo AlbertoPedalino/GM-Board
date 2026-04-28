@@ -3,12 +3,20 @@ registerSubclassAdapter("Rogue_Assassin", function (cls, lv, specs) {});
 // [SheetRuntime] START
 registerSubclassSheetActions("Rogue_Assassin", [
   {
+    "name": "Assassin's Tools",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "Passive: you gain a Disguise Kit and a Poisoner's Kit, and you have proficiency with both."
+  },
+  {
     "name": "Assassinate",
     "icon": "",
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 3,
-    "desc": "Passive: you have Advantage on attack rolls against any creature that hasn't taken a turn yet. If you hit a creature that is surprised, the hit is a Critical Hit."
+    "desc": "Passive: you have Advantage on Initiative rolls. During the first round of each combat, you have Advantage on attack rolls against any creature that hasn't taken a turn. If your Sneak Attack hits any target during that first round, the target takes extra damage of the weapon's type equal to your Rogue level."
   },
   {
     "name": "Infiltration Expertise",
@@ -16,19 +24,15 @@ registerSubclassSheetActions("Rogue_Assassin", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 9,
-    "desc": "Passive: spend 7 days and 25 gp to establish a false identity (documents, history, contacts). If this identity is investigated, it appears legitimate unless the investigation succeeds against your DC (8 + PB + CHA)."
+    "desc": "Passive: you can unerringly mimic another person's speech, handwriting, or both if you have spent at least 1 hour studying them. Additionally, your Speed is not reduced to 0 by using Steady Aim."
   },
   {
     "name": "Envenom Weapons",
     "icon": "",
-    "cat": "bonus",
-    "uses": "1 / SR",
-    "resKey": "envenom",
+    "cat": "action",
+    "uses": "Passive",
     "minLevel": 13,
-    "damageFormula": "2d8",
-    "damageButtonLabel": ({ formula }) => `${formula} poison`,
-    "damageKind": "damage",
-    "desc": "Bonus Action: apply a lethal poison from your Poisoner's Kit to a weapon or piece of ammunition. The next time you hit a creature with that weapon/ammo, the target takes an extra 2d8 Poison damage and must succeed on a CON save (DC = 8 + PB + DEX) or be Poisoned until the end of your next turn. Recharge: Short Rest."
+    "desc": "Passive upgrade to Cunning Strike — Poison option: when you use the Poison option of your Cunning Strike, the target also takes 2d6 Poison damage whenever it fails the saving throw. This damage ignores Resistance to Poison damage."
   },
   {
     "name": "Death Strike",
@@ -36,16 +40,10 @@ registerSubclassSheetActions("Rogue_Assassin", [
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 17,
-    "desc": "Passive: when you hit a surprised creature with an attack during the first round of combat, that creature must make a CON save (DC = 8 + PB + DEX). On failure, the attack deals double damage."
+    "desc": "Passive: when you hit with your Sneak Attack on the first round of a combat, the target must succeed on a CON saving throw (DC = 8 + PB + DEX modifier). On a failure, the attack's damage is doubled against the target."
   }
 ]);
-registerSubclassSheetResources("Rogue_Assassin", [
-  {
-    "key": "envenom",
-    "name": "Envenom Weapons",
-    "icon": "droplets",
-    "recharge": "SR",
-    "max": () => 1
-  }
+registerSubclassSheetProficiencies("Rogue_Assassin", [
+  { type: "tool", values: ["Disguise Kit", "Poisoner's Kit"], minLevel: 3 }
 ]);
 // [SheetRuntime] END

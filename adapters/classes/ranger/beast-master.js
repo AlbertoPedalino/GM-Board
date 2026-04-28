@@ -14,12 +14,12 @@ registerSubclassAdapter("Ranger_Beast Master", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Ranger_Beast Master", [
   {
-    "name": "Animal Companion",
+    "name": "Primal Companion",
     "icon": "",
     "cat": "bonus",
     "uses": "Commands / turn",
     "minLevel": 3,
-    "desc": "Bonus Action: command your Primal Companion to take the Dash, Disengage, Dodge, or Help action. To command it to Attack, sacrifice one of your own attacks from your Attack action (not a Bonus Action). It acts on your initiative and uses your Proficiency Bonus. If it dies: expend a spell slot of 1st level or higher within 1 hour to revive it at 1 HP."
+    "desc": "Your beast acts during your turn: it can move and use its Reaction on its own, but takes the Dodge action unless you use a Bonus Action to command it to take an action from its stat block or another action. You can also sacrifice one of your attacks when you take the Attack action to command it to use Beast's Strike. If you are Incapacitated, the beast acts on its own. If it died within the last hour, take a Magic action, touch it, and expend a spell slot — it returns to life after 1 minute with all HP restored. On a Long Rest, you can summon a different primal beast (choosing stat block and appearance)."
   },
   {
     "name": "Exceptional Training",
@@ -27,7 +27,7 @@ registerSubclassSheetActions("Ranger_Beast Master", [
     "cat": "bonus",
     "uses": "Passive",
     "minLevel": 7,
-    "desc": "Your Primal Companion's attacks count as magical. On any turn you don't command it, it can take the Dash, Disengage, or Help action on its own."
+    "desc": "When you use a Bonus Action to command your Primal Companion to take an action, it can also take the Dash, Disengage, Dodge, or Help action using its Bonus Action. In addition, whenever it hits with an attack roll and deals damage, it can deal Force damage or its normal damage type (your choice)."
   },
   {
     "name": "Bestial Fury",
@@ -35,7 +35,7 @@ registerSubclassSheetActions("Ranger_Beast Master", [
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 11,
-    "desc": "When you command your Primal Companion to attack, it can make two attacks instead of one."
+    "desc": "When you command your Primal Companion to use Beast's Strike, it can use that action twice. In addition, the first time each turn it hits a creature under the effect of your Hunter's Mark, the beast deals extra Force damage equal to Hunter's Mark's bonus damage."
   },
   {
     "name": "Share Spells",
@@ -43,7 +43,7 @@ registerSubclassSheetActions("Ranger_Beast Master", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 15,
-    "desc": "When you cast a spell targeting yourself, you can also affect your Primal Companion with the spell if it is within 30 ft of you."
+    "desc": "Passive: when you cast a spell targeting yourself, you can also affect your Primal Companion with the spell if the beast is within 30 ft of you."
   }
 ]);
 // [SheetRuntime] END

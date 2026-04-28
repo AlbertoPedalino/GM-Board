@@ -12,7 +12,7 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "damageButtonLabel": ({ formula }) => `${formula} psychic`,
     "damageKind": "damage",
     "rollLabelPrefix": "Psychic Blades",
-    "desc": "Manifest spectral blades as part of an Attack action: one melee/thrown weapon (1d6 psychic, Finesse, range 60 ft, disappears after throw). As a Bonus Action on the same turn, manifest a second blade for an off-hand attack dealing 1d4 psychic (no ability modifier to damage unless negative). No material components."
+    "desc": "Whenever you take the Attack action or make an Opportunity Attack, you can manifest a Psychic Blade in your free hand and attack with it (Finesse, range 60 ft, 1d6 psychic; disappears after the hit or miss). After attacking with a blade on your turn, you can make a melee or ranged attack with a second blade as a Bonus Action (damage die is 1d4 instead of 1d6; no ability modifier added to damage unless negative)."
   },
   {
     "name": "Psi-Bolstered Knack",
@@ -21,16 +21,16 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "uses": "1 Psionic Die",
     "resKey": "psionic_dice",
     "minLevel": 3,
-    "desc": "When you fail an ability check using a skill or tool you are proficient in, roll one Psionic Energy Die and add it to the check. If this causes it to succeed, you do not expend the die."
+    "desc": "If you fail an ability check using a skill or tool you are proficient in, roll one Psionic Energy Die and add the number rolled to the check, potentially turning failure into success. The die is expended only if the roll then succeeds."
   },
   {
     "name": "Psychic Whispers",
     "icon": "",
-    "cat": "bonus",
+    "cat": "action",
     "uses": "1 Psionic Die",
     "resKey": "psionic_dice",
     "minLevel": 3,
-    "desc": "Bonus Action: roll one Psionic Energy Die and choose a number of willing creatures up to your PB that you can see. For a number of hours equal to the die result, you and those creatures can communicate telepathically within 1 mile (no line of sight required)."
+    "desc": "Magic action: choose a number of willing creatures you can see up to your Proficiency Bonus, then roll one Psionic Energy Die. For a number of hours equal to the number rolled, you and the chosen creatures can speak telepathically with each other within 1 mile (no line of sight required). A creature can end the connection at any time (no action required)."
   },
   {
     "name": "Homing Strikes",
@@ -39,7 +39,7 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "uses": "1 Psionic Die",
     "resKey": "psionic_dice",
     "minLevel": 9,
-    "desc": "Before you make an attack roll with your Psychic Blades, roll one Psionic Energy Die and add the result to the attack roll. If the attack misses, the die is not expended."
+    "desc": "If you make an attack roll with your Psychic Blade and miss the target, you can roll one Psionic Energy Die and add the number rolled to the attack roll. If this causes the attack to hit, the die is expended; if the attack still misses, the die is not expended."
   },
   {
     "name": "Psychic Teleportation",
@@ -48,7 +48,7 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "uses": "1 Psionic Die",
     "resKey": "psionic_dice",
     "minLevel": 9,
-    "desc": "Bonus Action: manifest your Psychic Blades and expend one Psionic Energy Die. Roll the die and teleport up to (result × 10) feet to an unoccupied space you can see. The blade then disappears."
+    "desc": "Bonus Action: manifest a Psychic Blade, expend one Psionic Energy Die and roll it, then throw the blade to an unoccupied space you can see up to (10 × roll) feet away. You then teleport to that space, and the blade vanishes."
   },
   {
     "name": "Psychic Veil",
@@ -57,16 +57,16 @@ registerSubclassSheetActions("Rogue_Soulknife", [
     "uses": "1 / LR",
     "resKey": "psychic_veil",
     "minLevel": 13,
-    "desc": "Action: cast Invisibility on yourself without expending a spell slot. The effect ends early if you attack, deal damage, or force a saving throw. You can also expend one Psionic Energy Die to cast it again before finishing a Long Rest. Recharge: Long Rest."
+    "desc": "Magic action: gain the Invisible condition for 1 hour, or until you dismiss it (no action required). Ends early immediately after you deal damage to a creature or force a creature to make a saving throw. Once used, you can't use this feature again until you finish a Long Rest unless you expend one Psionic Energy Die (no action required) to restore it."
   },
   {
     "name": "Rend Mind",
     "icon": "",
     "cat": "attack",
-    "uses": "3 Psionic Dice",
-    "resKey": "psionic_dice",
+    "uses": "1 / LR",
+    "resKey": "rend_mind",
     "minLevel": 17,
-    "desc": "When you deal Sneak Attack damage with your Psychic Blades, you can expend 3 Psionic Energy Dice to stun the target. It must make a WIS save (DC = 8 + PB + DEX). On failure: the target is Stunned for 1 minute. It repeats the save at the end of each of its turns, ending the effect on a success."
+    "desc": "When you use your Psychic Blades to deal Sneak Attack damage to a creature, you can force that target to make a WIS saving throw (DC = 8 + PB + DEX modifier). On a failed save, the target is Stunned for 1 minute; it repeats the save at the end of each of its turns, ending the effect on a success. 1/LR — you can restore this use by expending 3 Psionic Energy Dice (no action required)."
   }
 ]);
 registerSubclassSheetResources("Rogue_Soulknife", [
@@ -75,12 +75,20 @@ registerSubclassSheetResources("Rogue_Soulknife", [
     "name": "Psionic Energy Dice",
     "icon": "brain",
     "recharge": "LR",
-    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
+    "die": (lv) => lv >= 17 ? "d12" : lv >= 11 ? "d10" : lv >= 5 ? "d8" : "d6",
+    "max": (lv) => lv >= 17 ? 12 : lv >= 13 ? 10 : lv >= 9 ? 8 : lv >= 5 ? 6 : 4
   },
   {
     "key": "psychic_veil",
     "name": "Psychic Veil",
     "icon": "eye-off",
+    "recharge": "LR",
+    "max": () => 1
+  },
+  {
+    "key": "rend_mind",
+    "name": "Rend Mind",
+    "icon": "brain",
     "recharge": "LR",
     "max": () => 1
   }

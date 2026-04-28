@@ -3,12 +3,12 @@ const _BM_MANEUVERS = [
   'Disarming Attack', 'Distracting Strike', 'Evasive Footwork', 'Feinting Attack',
   'Goading Attack', 'Lunging Attack', 'Maneuvering Attack', 'Menacing Attack',
   'Parry', 'Precision Attack', 'Pushing Attack', 'Rally',
+  'Riposte', 'Sweeping Attack', 'Tactical Assessment', 'Trip Attack',
 ];
 
-
 const _BM_STUDENT_SKILLS = [
-  'Acrobatics', 'Animal Handling', 'Athletics', 'Insight',
-  'Intimidation', 'Perception', 'Survival',
+  'Acrobatics', 'Animal Handling', 'Athletics', 'History',
+  'Insight', 'Intimidation', 'Perception', 'Survival',
 ];
 
 // +3 a L3, +2 a L7, +2 a L10, +2 a L15 (totale max 9)
@@ -54,58 +54,20 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Fighter_Battle Master", [
-  {
-    "name": "Combat Maneuvers",
-    "icon": "",
-    "cat": "attack",
-    "uses": "Superiority Dice",
-    "resKey": "superiority_dice",
-    "minLevel": 3,
-    "desc": "Spend Superiority Dice (d8 at lv.3, d10 at lv.7, d12 at lv.18) to enhance attacks. Maneuvers chosen at character creation from the full list. Save DC = 8 + PB + STR or DEX (highest). Recharge: Short or Long Rest."
-  },
-  {
-    "name": "Know Your Enemy",
-    "icon": "",
-    "cat": "bonus",
-    "uses": "1 / LR",
-    "resKey": "know_your_enemy",
-    "minLevel": 7,
-    "desc": "Bonus Action: choose a creature within 30 ft you can see. Learn its Immunities, Resistances, and Vulnerabilities. Recharge: Long Rest (or expend one Superiority Die to restore the use, no action required)."
-  },
-  {
-    "name": "Relentless",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 15,
-    "desc": "Passive: when you roll Initiative and have no Superiority Dice remaining, you regain 1 Superiority Die."
-  },
-  {
-    "name": "Ultimate Combat Superiority",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 18,
-    "desc": "Your Superiority Die becomes a d12."
-  }
+  { name: "Combat Maneuvers", icon: "", cat: "attack", uses: "Superiority Dice", resKey: "superiority_dice", minLevel: 3,
+    desc: "Spend Superiority Dice to enhance attacks (d8 at lv.3, d10 at lv.10, d12 at lv.18). Only one maneuver per attack. Save DC = 8 + STR or DEX (your choice) + PB. Recharge: Short or Long Rest." },
+  { name: "Know Your Enemy", icon: "", cat: "bonus", uses: "1 / LR or Superiority Die", resKey: "know_your_enemy", minLevel: 7,
+    desc: "Bonus Action: choose a creature within 30 ft you can see. Learn whether it has any Immunities, Resistances, or Vulnerabilities, and if so what they are. 1/LR, or expend one Superiority Die (no action) to restore." },
+  { name: "Relentless", icon: "", cat: "action", uses: "1 / turn", minLevel: 15,
+    desc: "Once per turn, when you use a maneuver, you can roll a d8 and use the number rolled instead of expending a Superiority Die." },
+  { name: "Ultimate Combat Superiority", icon: "", cat: "action", uses: "Passive", minLevel: 18,
+    desc: "Your Superiority Die becomes a d12." },
 ]);
 registerSubclassSheetResources("Fighter_Battle Master", [
-  {
-    "key": "superiority_dice",
-    "name": "Superiority Dice",
-    "actionName": "Combat Maneuvers",
-    "icon": "swords",
-    "recharge": "SR",
-    "max": (lv)=>lv>=15?6:lv>=7?5:4,
-    "die": (lv)=>lv>=18?"d12":lv>=7?"d10":"d8",
-    "pool": true
-  },
-  {
-    "key": "know_your_enemy",
-    "name": "Know Your Enemy",
-    "icon": "eye",
-    "recharge": "LR",
-    "max": () => 1
-  }
+  { key: "superiority_dice", name: "Superiority Dice", actionName: "Combat Maneuvers", icon: "swords", recharge: "SR",
+    max: (lv) => lv >= 15 ? 6 : lv >= 7 ? 5 : 4,
+    die: (lv) => lv >= 18 ? "d12" : lv >= 10 ? "d10" : "d8",
+    pool: true },
+  { key: "know_your_enemy", name: "Know Your Enemy", icon: "eye", recharge: "LR", max: () => 1 },
 ]);
 // [SheetRuntime] END

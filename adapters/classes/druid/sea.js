@@ -6,17 +6,10 @@ registerSubclassSheetActions("Druid_Sea", [
     "name": "Wrath of the Sea",
     "icon": "",
     "cat": "bonus",
-    "uses": "WIS mod / LR",
-    "resKey": "sea_wrath",
+    "uses": "Wild Shape charge",
+    "resKey": "wild_shape",
     "minLevel": 3,
-    "damageFormula": ({ ownerLevel }) => {
-      const lv = Number(ownerLevel || 1);
-      const die = lv >= 15 ? 12 : lv >= 9 ? 10 : lv >= 5 ? 8 : 6;
-      return `1d${die}`;
-    },
-    "damageButtonLabel": ({ formula }) => `${formula} bludgeoning`,
-    "damageKind": "damage",
-    "desc": "Bonus Action: summon a spectral wave emanation (5-ft radius) for 1 minute. At the end of each of your turns, each creature within 5 ft must succeed on a STR save (spell save DC) or take 1d6 (scales by level) Bludgeoning damage, be pushed 15 ft, and knocked Prone. Uses: WIS modifier per Long Rest."
+    "desc": "Bonus Action: expend one use of Wild Shape to manifest a 5-ft Emanation of ocean spray around yourself for 10 minutes (becomes 10-ft Emanation at lv.6). Ends early if dismissed (no action), manifested again, or you are Incapacitated. When you manifest it and as a Bonus Action on subsequent turns, choose one creature you can see in the Emanation: it must succeed on a CON saving throw (spell save DC) or take Cold damage equal to a number of d6s equal to your WIS modifier (min 1d6), and if it is Large or smaller, be pushed up to 15 ft away from you."
   },
   {
     "name": "Aquatic Affinity",
@@ -24,33 +17,24 @@ registerSubclassSheetActions("Druid_Sea", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 6,
-    "desc": "Swim Speed equal to your walking speed. Can breathe underwater. Resistance to Cold damage."
+    "desc": "Passive: the size of the Wrath of the Sea Emanation increases to 10 ft. You gain a Swim Speed equal to your Speed."
   },
   {
     "name": "Stormborn",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "While Wrath active",
     "minLevel": 10,
-    "desc": "While outdoors in rain, thunderstorm, or near open water: gain a Fly Speed equal to your walking speed and can hover."
+    "desc": "While your Wrath of the Sea Emanation is active: you gain a Fly Speed equal to your Speed, and you have Resistance to Cold, Lightning, and Thunder damage."
   },
   {
     "name": "Oceanic Gift",
     "icon": "",
     "cat": "bonus",
-    "uses": "WIS mod / LR",
-    "resKey": "sea_wrath",
+    "uses": "Wild Shape charge",
+    "resKey": "wild_shape",
     "minLevel": 14,
-    "desc": "Grant a willing creature within 60 ft your Aquatic Affinity benefits (Swim Speed, breathe water, Cold resistance) for 24 hours. Uses shared with Wrath of the Sea."
-  }
-]);
-registerSubclassSheetResources("Druid_Sea", [
-  {
-    "key": "sea_wrath",
-    "name": "Wrath of the Sea",
-    "icon": "waves",
-    "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1)
+    "desc": "When you manifest Wrath of the Sea, you can choose to manifest the Emanation around one willing creature within 60 ft instead of yourself. That creature gains all Emanation benefits and uses your spell save DC and WIS modifier for it. Alternatively, expend two Wild Shape uses to manifest the Emanation around both that creature and yourself simultaneously."
   }
 ]);
 // [SheetRuntime] END

@@ -2,91 +2,38 @@ registerSubclassAdapter("Fighter_Psi Warrior", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Fighter_Psi Warrior", [
-  {
-    "name": "Psionic Strike",
-    "icon": "",
-    "cat": "attack",
-    "uses": "1 Psi Die / turn",
-    "resKey": "psi_dice",
-    "minLevel": 3,
-    "damageFormula": ({ ownerLevel }) => {
+  { name: "Protective Field", icon: "", cat: "reaction", uses: "1 Psi Die", resKey: "psi_dice", minLevel: 3,
+    desc: "Reaction when you or another creature you can see within 30 ft takes damage: expend one Psionic Energy Die, roll it, and reduce the damage taken by the number rolled plus your INT modifier (minimum reduction of 1)." },
+  { name: "Psionic Strike", icon: "", cat: "attack", uses: "1 Psi Die / turn", resKey: "psi_dice", minLevel: 3,
+    damageFormula: ({ ownerLevel }) => {
       const lv = Number(ownerLevel || 1);
       const die = lv >= 17 ? 'd12' : lv >= 11 ? 'd10' : lv >= 5 ? 'd8' : 'd6';
-      return `1${die}`;
+      return `1${die}+INT`;
     },
-    "damageButtonLabel": ({ formula }) => `+${formula} force`,
-    "damageKind": "damage",
-    "rollLabelPrefix": "Psionic Strike",
-    "desc": "Once per turn, after hitting with a weapon attack, expend one Psionic Energy Die and add its roll to the damage as Force damage. Die size: d6 (lv.3), d8 (lv.5), d10 (lv.11), d12 (lv.17). Recharge: Long Rest (or 1 die on Short Rest if you roll 20 on the die)."
-  },
-  {
-    "name": "Telekinetic Movement",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 Psi Die",
-    "resKey": "psi_dice",
-    "minLevel": 3,
-    "desc": "Action: expend one Psionic Energy Die to move one Large or smaller loose object or one willing creature within 30 ft up to 30 ft in any direction (including upward). The movement doesn't provoke opportunity attacks. You can sustain the movement on subsequent turns as a Bonus Action."
-  },
-  {
-    "name": "Psi-Powered Leap",
-    "icon": "",
-    "cat": "bonus",
-    "uses": "1 Psi Die",
-    "resKey": "psi_dice",
-    "minLevel": 7,
-    "desc": "Bonus Action: expend one Psionic Energy Die to gain a Fly Speed equal to twice your Speed until the end of the current turn."
-  },
-  {
-    "name": "Telekinetic Thrust",
-    "icon": "",
-    "cat": "attack",
-    "uses": "On Psionic Strike",
-    "minLevel": 7,
-    "desc": "When you deal Psionic Strike damage, the target must succeed on a STR save (DC = 8 + PB + INT) or be moved up to 10 ft in any direction of your choice and knocked Prone."
-  },
-  {
-    "name": "Guarded Mind",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 Psi Die",
-    "resKey": "psi_dice",
-    "minLevel": 10,
-    "desc": "Passive: you have Resistance to Psychic damage. If you start your turn Charmed or Frightened, expend one Psionic Energy Die to end every effect on you causing those conditions."
-  },
-  {
-    "name": "Bulwark of Force",
-    "icon": "",
-    "cat": "bonus",
-    "uses": "1+ Psi Dice",
-    "resKey": "psi_dice",
-    "minLevel": 15,
-    "desc": "Bonus Action: expend one Psionic Energy Die to choose up to your PB willing creatures within 30 ft (can include yourself). Each chosen creature gains Half Cover until the start of your next turn."
-  },
-  {
-    "name": "Telekinetic Master",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "telekinetic_master",
-    "minLevel": 18,
-    "desc": "Action: cast Telekinesis (no spell slot required). While concentrating on it, you can make one weapon attack as a Bonus Action on each of your turns. Recharge: Long Rest."
-  }
+    damageButtonLabel: ({ formula }) => `+${formula} force`,
+    damageKind: "damage",
+    desc: "Once per turn, immediately after hitting a target within 30 ft with a weapon and dealing damage, expend one Psionic Energy Die: deal extra Force damage equal to the roll + your INT modifier." },
+  { name: "Telekinetic Movement", icon: "", cat: "action", uses: "1 / SR+LR or Psi Die", resKey: "telekinetic_movement", minLevel: 3,
+    desc: "Magic action: choose one target within 30 ft — a loose Large or smaller object, or a willing creature other than you. Transport it up to 30 ft to an unoccupied space you can see. If target is a Tiny object, can move it to or from your hand instead. 1/SR or LR, or expend a Psionic Energy Die (no action) to restore." },
+  { name: "Psi-Powered Leap", icon: "", cat: "bonus", uses: "1 / SR+LR or Psi Die", resKey: "psi_leap", minLevel: 7,
+    desc: "Bonus Action: gain a Fly Speed equal to twice your Speed until end of the current turn. 1/SR or LR, or expend a Psionic Energy Die (no action) to restore." },
+  { name: "Telekinetic Thrust", icon: "", cat: "attack", uses: "On Psionic Strike", minLevel: 7,
+    desc: "When you deal damage with Psionic Strike, force the target to make a STR save (DC = 8 + INT mod + PB). On a failed save, choose one: give the target the Prone condition, or transport it up to 10 ft horizontally." },
+  { name: "Guarded Mind", icon: "", cat: "action", uses: "Passive + Psi Die", resKey: "psi_dice", minLevel: 10,
+    desc: "Resistance to Psychic damage. If you start your turn with the Charmed or Frightened condition, you can expend a Psionic Energy Die (no action required) to end every effect on you causing those conditions." },
+  { name: "Bulwark of Force", icon: "", cat: "bonus", uses: "1 / LR or Psi Die", resKey: "bulwark_force", minLevel: 15,
+    desc: "Bonus Action: choose creatures within 30 ft (can include yourself) up to your INT modifier (min 1). Each gains Half Cover for 1 minute or until you have the Incapacitated condition. 1/LR, or expend a Psionic Energy Die (no action) to restore." },
+  { name: "Telekinetic Master", icon: "", cat: "action", uses: "1 / LR or Psi Die", resKey: "telekinetic_master", minLevel: 18,
+    desc: "Telekinesis is always prepared for you. Cast it without a spell slot or components (INT spellcasting ability). While concentrating on it (including the turn you cast it), you can make one attack with a weapon as a Bonus Action on each of your turns. 1/LR, or expend a Psionic Energy Die (no action) to restore." },
 ]);
 registerSubclassSheetResources("Fighter_Psi Warrior", [
-  {
-    "key": "psi_dice",
-    "name": "Psionic Energy Dice",
-    "icon": "orbit",
-    "recharge": "LR",
-    "max": (lv) => lv >= 17 ? 6 : lv >= 13 ? 5 : lv >= 9 ? 4 : lv >= 5 ? 3 : 2
-  },
-  {
-    "key": "telekinetic_master",
-    "name": "Telekinetic Master",
-    "icon": "wind",
-    "recharge": "LR",
-    "max": () => 1
-  }
+  { key: "psi_dice", name: "Psionic Energy Dice", icon: "orbit", recharge: "LR",
+    max: (lv) => lv >= 17 ? 12 : lv >= 13 ? 10 : lv >= 9 ? 8 : lv >= 5 ? 6 : 4,
+    die: (lv) => lv >= 17 ? "d12" : lv >= 11 ? "d10" : lv >= 5 ? "d8" : "d6",
+    pool: true },
+  { key: "telekinetic_movement", name: "Telekinetic Movement", icon: "wind",   recharge: "SR", max: () => 1 },
+  { key: "psi_leap",             name: "Psi-Powered Leap",     icon: "arrow-up", recharge: "SR", max: () => 1 },
+  { key: "bulwark_force",        name: "Bulwark of Force",     icon: "shield", recharge: "LR", max: () => 1 },
+  { key: "telekinetic_master",   name: "Telekinetic Master",   icon: "zap",    recharge: "LR", max: () => 1 },
 ]);
 // [SheetRuntime] END

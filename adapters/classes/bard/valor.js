@@ -3,13 +3,13 @@ registerSubclassAdapter("Bard_Valor", function (cls, lv, specs) {});
 // [SheetRuntime] START
 registerSubclassSheetActions("Bard_Valor", [
   { name: "Combat Inspiration", icon: "", cat: "reaction", uses: "With Bardic Insp.", minLevel: 3,
-    desc: "Allies with your Bardic Inspiration can add the die to a weapon damage roll after hitting, or to AC as a Reaction against one attack (declare before knowing outcome)." },
+    desc: "A creature that has one of your Bardic Inspiration dice can use it for one of these effects: Shield — when hit by an attack roll, use its Reaction to roll the die and add the result to its AC against that attack (potentially causing a miss); Strike — immediately after hitting a target with an attack roll, roll the die and add the result to the attack's damage." },
   { name: "Martial Training",   icon: "", cat: "action",   uses: "Passive",           minLevel: 3,
-    desc: "You gain proficiency with Martial weapons, Medium Armor, and Shields." },
+    desc: "Passive: proficiency with Martial weapons, Medium Armor, and Shields. You can use a Simple or Martial weapon as a Spellcasting Focus to cast spells from your Bard spell list." },
   { name: "Extra Attack",       icon: "", cat: "attack",   uses: "Passive",           minLevel: 6,
-    desc: "You can attack twice, instead of once, whenever you take the Attack action on your turn." },
-  { name: "Battle Magic",       icon: "", cat: "bonus",    uses: "After casting Bard spell", minLevel: 14,
-    desc: "When you cast a Bard spell using your action, you can make one weapon attack as a Bonus Action." },
+    desc: "Passive: attack twice, instead of once, whenever you take the Attack action on your turn. You can also cast one of your cantrips that has a casting time of an action in place of one of those attacks." },
+  { name: "Battle Magic",       icon: "", cat: "bonus",    uses: "After casting spell", minLevel: 14,
+    desc: "After you cast a spell that has a casting time of an action, you can make one attack with a weapon as a Bonus Action." },
 ]);
 
 registerSubclassSheetProficiencies("Bard_Valor", [

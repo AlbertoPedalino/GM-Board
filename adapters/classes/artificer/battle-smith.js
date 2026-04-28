@@ -33,6 +33,14 @@ registerSubclassSheetActions("Artificer_Battle Smith", [
     "desc": "Your Steel Defender acts on your initiative. It takes the Dodge action unless you spend a Bonus Action to command it to take another action. If you are Incapacitated, it acts on its own. Revival: if it died within the last hour, take a Magic action and expend a spell slot to touch it — it revives after 1 minute with full HP. Recreate after Long Rest (requires Smith's Tools)."
   },
   {
+    "name": "Extra Attack",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 5,
+    "desc": "Attack twice instead of once when you take the Attack action. You can forgo one of those attacks to command your Steel Defender to take the Force-Empowered Rend action."
+  },
+  {
     "name": "Arcane Jolt",
     "icon": "",
     "cat": "attack",

@@ -65,6 +65,6 @@ registerSubclassSheetResources("Artificer_Artillerist", [
 ]);
 registerSubclassSheetProficiencies("Artificer_Artillerist", [
   { type: "tool", values: ["Woodcarver's Tools"], minLevel: 3 },
-  { type: "weapon", values: ["Firearms"], minLevel: 3 }
+  { type: "weapon", values: ["Martial Ranged"], minLevel: 3 }
 ]);
 // [SheetRuntime] END

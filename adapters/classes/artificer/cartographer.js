@@ -17,6 +17,14 @@ registerSubclassAdapter("Artificer_Cartographer", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Artificer_Cartographer", [
   {
+    "name": "Scroll Crafting",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "Passive: when you scribe a Spell Scroll using the crafting rules, the time required is halved."
+  },
+  {
     "name": "Adventurer's Atlas",
     "icon": "",
     "cat": "action",
@@ -56,7 +64,7 @@ registerSubclassSheetActions("Artificer_Cartographer", [
     "uses": "Passive + 1/LR",
     "resKey": "superior_atlas_path",
     "minLevel": 15,
-    "desc": "Safe Haven: when a map holder would drop to 0 HP but not be killed outright, that creature can destroy its map — its HP instead change to twice your Artificer level, and it teleports to within 5 ft of you or another map holder of its choice. Unerring Path: cast Find the Path without a spell slot, without preparing it, and without spell components. 1/LR."
+    "desc": "Safe Haven: when a map holder would drop to 0 HP but not be killed outright, that creature can destroy its map — its HP instead change to twice your Artificer level, and it teleports to within 5 ft of you or another map holder of its choice. Unerring Path: if you are one of the map holders, cast Find the Path without a spell slot, without preparing it, and without spell components. 1/LR."
   }
 ]);
 registerSubclassSheetResources("Artificer_Cartographer", [

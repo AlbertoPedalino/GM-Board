@@ -8,7 +8,7 @@ registerSubclassSheetActions("Rogue_Thief", [
     "cat": "bonus",
     "uses": "Unlimited",
     "minLevel": 3,
-    "desc": "You can use Cunning Action to make a Sleight of Hand check, use Thieves' Tools to disarm a trap or open a lock, or take the Use an Object action."
+    "desc": "Bonus Action: choose one — make a DEX (Sleight of Hand) check to pick a lock or disarm a trap (with Thieves' Tools) or to pick a pocket; take the Utilize action; take the Magic action to use a magic item that requires that action."
   },
   {
     "name": "Second-Story Work",
@@ -16,15 +16,15 @@ registerSubclassSheetActions("Rogue_Thief", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "desc": "Passive: climbing costs no extra movement. When you make a running jump, the distance increases by a number of feet equal to your DEX modifier."
+    "desc": "Passive: you gain a Climb Speed equal to your Speed. You can determine your jump distance using your DEX modifier rather than your STR modifier."
   },
   {
     "name": "Supreme Sneak",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "Cunning Strike option",
     "minLevel": 9,
-    "desc": "Passive: you have Advantage on DEX (Stealth) checks if you have moved no more than half your Speed on the current turn."
+    "desc": "Cunning Strike option — Stealth Attack: if you have the Invisible condition (from the Hide action) when you deal Sneak Attack damage with this option, that condition doesn't end on you if you end the turn behind Three-Quarters Cover or Total Cover."
   },
   {
     "name": "Use Magic Device",
@@ -32,7 +32,7 @@ registerSubclassSheetActions("Rogue_Thief", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 13,
-    "desc": "Passive: you ignore all class, race, and level requirements for using magic items."
+    "desc": "Passive: you can attune to up to four magic items at once. Whenever you use a magic item property that expends charges, roll 1d6 — on a 6, you use the property without expending the charges. You can use any Spell Scroll (using INT as your spellcasting ability). Cantrips and level 1 spells work reliably; higher-level scrolls require an INT (Arcana) check (DC = 10 + spell's level) — on success you cast the spell, on failure the scroll disintegrates."
   },
   {
     "name": "Thief's Reflexes",

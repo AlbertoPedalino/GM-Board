@@ -2,55 +2,17 @@ registerSubclassAdapter("Wizard_Illusionist", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Illusionist", [
-  {
-    "name": "Improved Illusions",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 3,
-    "desc": "Passive: you can create auditory or visual components of illusions independently (no need for both). You add your Proficiency Bonus to the spell save DC of Illusion spells you cast."
-  },
-  {
-    "name": "Phantasmal Creatures",
-    "icon": "",
-    "cat": "action",
-    "uses": "2 / LR",
-    "resKey": "phantasmal_creatures",
-    "minLevel": 6,
-    "desc": "Summon Beast and Summon Fey are always prepared for you. Once per Long Rest each, you can cast one of them as an Illusion (spectral appearance) without a spell slot — the summoned creature has half its normal Hit Points when cast this way."
-  },
-  {
-    "name": "Illusory Self",
-    "icon": "",
-    "cat": "reaction",
-    "uses": "1 / SR",
-    "resKey": "illusory_self",
-    "minLevel": 10,
-    "desc": "When a creature makes an attack roll against you, use your Reaction to interpose an illusory duplicate. The attack automatically misses you. Recharge: Short Rest."
-  },
-  {
-    "name": "Illusory Reality",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 14,
-    "desc": "When you cast an Illusion spell of level 1+, you can choose one non-magical, non-living object within the spell (up to 5-foot cube) and make it temporarily real for 1 minute. The object interacts with the world normally until it disappears at the end of the duration."
-  }
+  { name: "Improved Illusions", icon: "", cat: "action", uses: "Passive", minLevel: 3,
+    desc: "You can cast Illusion spells without providing Verbal components. If an Illusion spell you cast has a range of 10 ft or more, its range increases by 60 ft. You also know Minor Illusion (doesn't count against cantrips known); you can create both a sound and an image with a single casting, and you can cast it as a Bonus Action." },
+  { name: "Phantasmal Creatures", icon: "", cat: "action", uses: "2 / LR", resKey: "phantasmal_creatures", minLevel: 6,
+    desc: "Summon Beast and Summon Fey are always prepared for you. Whenever you cast either spell, you can change its school to Illusion (the summoned creature appears spectral). Once per LR each, you can cast the Illusion version without expending a spell slot — the summoned creature has half its normal HP when cast this way." },
+  { name: "Illusory Self", icon: "", cat: "reaction", uses: "1 / SR+LR or lv2+ slot", resKey: "illusory_self", minLevel: 10,
+    desc: "Reaction when a creature hits you with an attack roll: interpose an illusory duplicate. The attack automatically misses you, then the illusion dissipates. Recharge: Short or Long Rest, or expend a level 2+ spell slot (no action required)." },
+  { name: "Illusory Reality", icon: "", cat: "bonus", uses: "With Illusion slot", minLevel: 14,
+    desc: "When you cast an Illusion spell with a spell slot, you can take a Bonus Action while the spell is ongoing to make one inanimate, nonmagical object that is part of the illusion real. The object remains real for 1 minute but cannot deal damage or impose conditions." },
 ]);
 registerSubclassSheetResources("Wizard_Illusionist", [
-  {
-    "key": "phantasmal_creatures",
-    "name": "Phantasmal Creatures",
-    "icon": "ghost",
-    "recharge": "LR",
-    "max": () => 2
-  },
-  {
-    "key": "illusory_self",
-    "name": "Illusory Self",
-    "icon": "user",
-    "recharge": "SR",
-    "max": () => 1
-  }
+  { key: "phantasmal_creatures", name: "Phantasmal Creatures", icon: "ghost", recharge: "LR", max: () => 2 },
+  { key: "illusory_self",        name: "Illusory Self",         icon: "user",  recharge: "SR", max: () => 1 },
 ]);
 // [SheetRuntime] END

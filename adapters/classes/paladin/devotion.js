@@ -2,50 +2,22 @@ registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Paladin_Devotion", [
-  {
-    "name": "Channel: Sacred Weapon",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 Channel",
-    "resKey": "paladin_channel_div",
-    "desc": "Action: for 1 minute, imbue your held weapon with divine energy. Add CHA modifier (min +1) to attack rolls. The weapon sheds bright light in a 20-ft radius and dim light 20 ft beyond. Ends if you're Incapacitated or sheathe/drop it."
-  },
-  {
-    "name": "Aura of Devotion",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 7,
-    "desc": "While conscious, you and friendly creatures within your aura are immune to the Charmed condition. Range: 10 ft (30 ft at lv.18)."
-  },
-  {
-    "name": "Smite of Protection",
-    "icon": "",
-    "cat": "reaction",
-    "uses": "Passive",
-    "minLevel": 15,
-    "desc": "When you hit a creature with Divine Smite, you and allies within 10 ft gain Temporary HP equal to the number of damage dice used for that Divine Smite."
-  },
-  {
-    "name": "Holy Nimbus",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "devotion_holy_nimbus",
-    "minLevel": 20,
-    "damageFormula": "10",
-    "damageButtonLabel": "10 radiant",
-    "damageKind": "damage",
-    "desc": "Action: emit an aura of sunlight for 1 minute (30-ft radius bright light + 30 ft dim). Enemies starting their turn in the aura take 10 Radiant damage. Advantage on saving throws against spells cast by Fiends and Undead. Recharge: Long Rest."
-  }
+  { name: "Channel: Sacred Weapon", icon: "", cat: "action", uses: "1 Channel", resKey: "paladin_channel_div",
+    desc: "When you take the Attack action, expend one use of Channel Divinity to imbue one melee weapon you're holding. For 10 minutes or until you use this feature again: add your CHA modifier (min +1) to attack rolls with that weapon; each hit deals its normal damage type or Radiant damage (your choice per hit); emits Bright Light 20 ft and Dim Light 20 ft beyond. You can end this early (no action). Ends if you aren't carrying the weapon." },
+  { name: "Aura of Devotion", icon: "", cat: "action", uses: "Passive", minLevel: 7,
+    desc: "While conscious, you and friendly creatures within your Aura of Protection have Immunity to the Charmed condition. If a Charmed ally enters the aura, that condition has no effect on them while there. Range: 10 ft (30 ft at lv.18)." },
+  { name: "Smite of Protection", icon: "", cat: "action", uses: "Passive", minLevel: 15,
+    desc: "Whenever you cast Divine Smite, you and your allies have Half Cover while in your Aura of Protection until the start of your next turn." },
+  { name: "Holy Nimbus", icon: "", cat: "bonus", uses: "1 / LR or lv5 slot", resKey: "devotion_holy_nimbus", minLevel: 20,
+    inlinePills: ({ ownerLevel, character }) => {
+      const cha = typeof getMod === "function" && typeof getFinal === "function"
+        ? Number(getMod(getFinal("cha")) || 0) : 0;
+      const pb = typeof getPB === "function" ? getPB() : 4;
+      return [{ icon: "sun", label: "Radiant/turn", value: cha + pb }];
+    },
+    desc: "Bonus Action: imbue your Aura of Protection with holy power for 10 minutes (no action to end). Three benefits — Holy Ward: Advantage on saving throws forced by Fiends or Undead; Radiant Damage: enemies starting their turn in the aura take Radiant damage equal to your CHA modifier + Proficiency Bonus; Sunlight: the aura is filled with Bright Light that is sunlight. Recharge: LR, or expend a level 5 spell slot." },
 ]);
 registerSubclassSheetResources("Paladin_Devotion", [
-  {
-    "key": "devotion_holy_nimbus",
-    "name": "Holy Nimbus",
-    "icon": "sun",
-    "recharge": "LR",
-    "max": () => 1
-  }
+  { key: "devotion_holy_nimbus", name: "Holy Nimbus", icon: "sun", recharge: "LR", max: () => 1 },
 ]);
 // [SheetRuntime] END

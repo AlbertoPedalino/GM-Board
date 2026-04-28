@@ -2,37 +2,13 @@ registerSubclassAdapter("Wizard_Abjurer", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Abjurer", [
-  {
-    "name": "Arcane Ward",
-    "icon": "",
-    "cat": "action",
-    "uses": "Ward HP",
-    "minLevel": 3,
-    "desc": "An Arcane Ward surrounds you whenever you cast an Abjuration spell. Ward HP = 2 × Wizard level + INT modifier. When you take damage, the ward absorbs it first. Restore ward HP equal to 2 × spell level each time you cast an Abjuration spell of level 1+. Resets fully on Long Rest."
-  },
-  {
-    "name": "Projected Ward",
-    "icon": "",
-    "cat": "reaction",
-    "uses": "Reaction",
-    "minLevel": 6,
-    "desc": "When a creature within 30 ft of you takes damage, use your Reaction: your Arcane Ward absorbs that damage instead of the target. The ward loses HP as normal."
-  },
-  {
-    "name": "Spell Breaker",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 10,
-    "desc": "Passive: when you use Dispel Magic or Counterspell, add your Proficiency Bonus to the ability check (if one is required)."
-  },
-  {
-    "name": "Spell Resistance",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 14,
-    "desc": "You have Advantage on saving throws against spells. Additionally, you have Resistance to the damage of spells."
-  }
+  { name: "Arcane Ward", icon: "", cat: "action", uses: "Ward HP", minLevel: 3,
+    desc: "When you cast an Abjuration spell with a spell slot, you can simultaneously create an Arcane Ward that lasts until you finish a Long Rest. Ward max HP = 2 × Wizard level + INT modifier. When you take damage, the ward takes it first (your Resistances/Vulnerabilities apply before reducing ward HP); if the ward reaches 0 HP, you take any remaining damage. Restore ward HP equal to 2 × spell slot level whenever you cast an Abjuration spell with a slot. Alternatively, Bonus Action: expend a spell slot to restore 2 × that slot's level to the ward. You can only create the ward once per Long Rest." },
+  { name: "Projected Ward", icon: "", cat: "reaction", uses: "Reaction", minLevel: 6,
+    desc: "When a creature you can see within 30 ft takes damage, use your Reaction: your Arcane Ward absorbs that damage instead. If it reduces the ward to 0 HP, the creature takes any remaining damage (the creature's own Resistances/Vulnerabilities apply before reducing the ward's HP)." },
+  { name: "Spell Breaker", icon: "", cat: "action", uses: "Passive", minLevel: 10,
+    desc: "Counterspell and Dispel Magic are always prepared for you. You can cast Dispel Magic as a Bonus Action, and add your Proficiency Bonus to its ability check. When you cast either spell with a spell slot, that slot is not expended if the spell fails to stop a spell." },
+  { name: "Spell Resistance", icon: "", cat: "action", uses: "Passive", minLevel: 14,
+    desc: "Advantage on saving throws against spells. Resistance to the damage of spells." },
 ]);
 // [SheetRuntime] END

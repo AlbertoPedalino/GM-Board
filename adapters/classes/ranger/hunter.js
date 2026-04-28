@@ -2,9 +2,9 @@ registerSubclassAdapter("Ranger_Hunter", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
       key: 'subclass_hunter_prey',
-      label: "Hunter's Prey",
+      label: "Hunter's Prey (swappable on rest)",
       type: 'generic_choice',
-      from: ['Colossus Slayer', 'Giant Killer', 'Horde Breaker'],
+      from: ['Colossus Slayer', 'Horde Breaker'],
       count: 1,
       level: 3
     });
@@ -12,31 +12,11 @@ registerSubclassAdapter("Ranger_Hunter", function (cls, lv, specs) {
   if (lv >= 7) {
     specs.push({
       key: 'subclass_hunter_defensive',
-      label: 'Defensive Tactics',
+      label: 'Defensive Tactics (swappable on rest)',
       type: 'generic_choice',
-      from: ['Escape the Horde', 'Multiattack Defense', 'Steel Will'],
+      from: ['Escape the Horde', 'Multiattack Defense'],
       count: 1,
       level: 7
-    });
-  }
-  if (lv >= 11) {
-    specs.push({
-      key: 'subclass_hunter_superior_prey',
-      label: "Superior Hunter's Prey",
-      type: 'generic_choice',
-      from: ['Volley', 'Whirlwind Attack'],
-      count: 1,
-      level: 11
-    });
-  }
-  if (lv >= 15) {
-    specs.push({
-      key: 'subclass_hunter_superior',
-      label: "Superior Hunter's Defense",
-      type: 'generic_choice',
-      from: ['Evasion', 'Stand Against the Tide', 'Uncanny Dodge'],
-      count: 1,
-      level: 15
     });
   }
 });
@@ -44,13 +24,21 @@ registerSubclassAdapter("Ranger_Hunter", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Ranger_Hunter", [
   {
+    "name": "Hunter's Lore",
+    "icon": "",
+    "cat": "action",
+    "uses": "Passive",
+    "minLevel": 3,
+    "desc": "Passive: while a creature is marked by your Hunter's Mark, you know whether that creature has any Immunities, Resistances, or Vulnerabilities, and if so, what they are."
+  },
+  {
     "name": "Hunter's Prey",
     "icon": "",
     "cat": "attack",
     "uses": "Passive",
     "minLevel": 3,
     "noRoll": true,
-    "desc": "Choose: Colossus Slayer (+1d8 vs wounded creatures, 1/turn), Giant Killer (reaction to attack giants that hit you), Horde Breaker (extra attack on creature adjacent to your target)."
+    "desc": "Choose one option (swappable on Short or Long Rest): Colossus Slayer — when you hit a creature with a weapon, deal an extra 1d8 damage if the target is missing any HP (once per turn). Horde Breaker — once per turn when you make an attack with a weapon, make another attack with the same weapon against a different creature within 5 ft of the original target (within weapon range) that you haven't attacked this turn."
   },
   {
     "name": "Defensive Tactics",
@@ -58,23 +46,23 @@ registerSubclassSheetActions("Ranger_Hunter", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 7,
-    "desc": "Choose: Escape the Horde (Opportunity Attacks against you have Disadvantage), Multiattack Defense (+4 AC against subsequent attacks from a creature that hit you this turn), or Steel Will (Advantage on saves against being Frightened)."
+    "desc": "Choose one option (swappable on Short or Long Rest): Escape the Horde — Opportunity Attacks against you have Disadvantage. Multiattack Defense — when a creature hits you with an attack roll, that creature has Disadvantage on all other attack rolls against you for the rest of this turn."
   },
   {
     "name": "Superior Hunter's Prey",
     "icon": "",
-    "cat": "action",
-    "uses": "Action",
+    "cat": "attack",
+    "uses": "1 / turn",
     "minLevel": 11,
-    "desc": "Choose: Volley (Action, fire a volley at any number of creatures in a 10-ft radius within 40 ft, expending one arrow per target — each takes 1 hit from your weapon), or Whirlwind Attack (Action, make a melee attack against every creature within 5 ft of you)."
+    "desc": "Once per turn, when you deal damage to a creature marked by your Hunter's Mark, you can also deal that spell's extra damage to a different creature you can see within 30 ft of the first creature."
   },
   {
     "name": "Superior Hunter's Defense",
     "icon": "",
     "cat": "reaction",
-    "uses": "Passive",
+    "uses": "At will",
     "minLevel": 15,
-    "desc": "Choose: Evasion (DEX save: no damage on success, half on fail), Stand Against the Tide (when missed by a melee attack, redirect it to another creature within reach), or Uncanny Dodge (Reaction: halve one attack's damage against you)."
+    "desc": "Reaction when you take damage: give yourself Resistance to that damage type and any other damage of the same type until the end of the current turn."
   }
 ]);
 // [SheetRuntime] END

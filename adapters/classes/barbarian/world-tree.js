@@ -2,13 +2,13 @@ registerSubclassAdapter("Barbarian_World Tree", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Barbarian_World Tree", [
-  { name: "Vitality of the Tree", icon: "", cat: "action",   uses: "Passive",      minLevel: 3,
-    desc: "When you Rage, and at the start of each of your turns while Raging, you gain temporary HP equal to your Proficiency Bonus." },
+  { name: "Vitality of the Tree", icon: "", cat: "action", uses: "Passive", minLevel: 3,
+    desc: "Two benefits — Vitality Surge: when you activate your Rage, gain Temporary HP equal to your Barbarian level. Life-Giving Force: at the start of each of your turns while Raging, choose another creature within 10 ft of you; it gains Temporary HP equal to a number of d6s rolled equal to your Rage Damage bonus (these THP vanish when your Rage ends)." },
   { name: "Branches of the Tree", icon: "", cat: "reaction", uses: "While Raging", minLevel: 6,
-    desc: "When a creature you can see starts its turn within 30 ft of you while you're Raging, use your Reaction: that creature must succeed on a STR save (DC = 8 + PB + STR mod) or be teleported to an unoccupied space within 30 ft that you can see. Its speed becomes 0 for the rest of the turn." },
-  { name: "Battering Roots",      icon: "", cat: "action",   uses: "While Raging", minLevel: 10,
-    desc: "While Raging, melee weapons you wield gain the Push property (push target 10 ft on a hit) and the Reach property (extends reach by 5 ft)." },
-  { name: "Travel Along the Tree",icon: "", cat: "bonus",    uses: "While Raging", minLevel: 14,
-    desc: "While Raging, Bonus Action: teleport up to 60 ft to an unoccupied space you can see. When your Rage ends, you may teleport up to 6 willing creatures you can see within 10 ft to unoccupied spaces within 500 ft (their choice of destination)." },
+    desc: "Reaction when a creature you can see starts its turn within 30 ft of you while you're Raging: that creature must succeed on a STR save (DC = 8 + STR mod + PB) or be teleported to an unoccupied space you can see within 5 ft of yourself (or the nearest unoccupied space). After it teleports, you can reduce its Speed to 0 until the end of the current turn." },
+  { name: "Battering Roots", icon: "", cat: "action", uses: "While Raging", minLevel: 10,
+    desc: "While Raging, your reach increases by 10 ft with any melee weapon that has the Heavy or Versatile property. When you hit with such a weapon on your turn, you can activate the Push or Topple mastery property in addition to the mastery property you're already using with that weapon." },
+  { name: "Travel Along the Tree", icon: "", cat: "bonus", uses: "While Raging", minLevel: 14,
+    desc: "When you activate your Rage, and as a Bonus Action while Raging, you can teleport up to 60 ft to an unoccupied space you can see. Once per Rage, you can extend that teleport's range to 150 ft; when you do, you can also bring up to 6 willing creatures within 10 ft of you, each teleporting to an unoccupied space of your choice within 10 ft of your destination." },
 ]);
 // [SheetRuntime] END

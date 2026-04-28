@@ -5,10 +5,10 @@ registerSubclassSheetActions("Sorcerer_Aberrant", [
   {
     "name": "Telepathic Speech",
     "icon": "",
-    "cat": "action",
-    "uses": "Passive",
+    "cat": "bonus",
+    "uses": "At will",
     "minLevel": 3,
-    "desc": "Form a telepathic connection with a creature you can see within 30 ft. For CHA mod minutes (min 1), communicate telepathically if you share a language. Ends if either of you moves beyond 30 ft from the other."
+    "desc": "Bonus Action: choose one creature you can see within 30 ft. For a number of minutes equal to your Sorcerer level, you and the chosen creature can communicate telepathically with each other while within a number of miles equal to your CHA modifier (min 1 mile). You each must mentally use a language the other knows. Ends early if you form a connection with a different creature."
   },
   {
     "name": "Psionic Sorcery",
@@ -17,7 +17,7 @@ registerSubclassSheetActions("Sorcerer_Aberrant", [
     "uses": "Sorcery Points",
     "resKey": "sorc_pts",
     "minLevel": 6,
-    "desc": "When you cast a psionic spell from your subclass spell list, spend Sorcery Points equal to the spell's level instead of a spell slot. No verbal or somatic components required when you do so."
+    "desc": "When you cast any level 1+ spell from your Psionic Spells feature, you can cast it by spending Sorcery Points equal to the spell's level instead of expending a spell slot. If you cast the spell using Sorcery Points, it requires no Verbal, Somatic, or Material components unless the components are consumed by the spell or have a specified cost."
   },
   {
     "name": "Psychic Defenses",
@@ -25,7 +25,7 @@ registerSubclassSheetActions("Sorcerer_Aberrant", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 6,
-    "desc": "Resistance to Psychic damage. Advantage on saving throws against the Charmed and Frightened conditions."
+    "desc": "Passive: Resistance to Psychic damage. Advantage on saving throws to avoid or end the Charmed or Frightened condition."
   },
   {
     "name": "Revelation in Flesh",
@@ -34,7 +34,7 @@ registerSubclassSheetActions("Sorcerer_Aberrant", [
     "uses": "1+ Sorcery Points",
     "resKey": "sorc_pts",
     "minLevel": 14,
-    "desc": "Bonus Action: spend 1 or more Sorcery Points to transform for 10 minutes (1 SP each, stackable): wings (fly = walk speed), tentacles (reach +10 ft), gills (swim speed + breathe water), alien eyes (see Invisible and through darkness 60 ft)."
+    "desc": "Bonus Action: spend 1 or more Sorcery Points. For each SP spent, gain one benefit (stackable) for 10 minutes: Swim Speed equal to 2× your Speed + breathe underwater; Fly Speed equal to your Speed with Hover; see Invisible creatures within 60 ft that aren't behind Total Cover; move through spaces as narrow as 1 inch and spend 5 ft of movement to escape nonmagical restraints or the Grappled condition."
   },
   {
     "name": "Warping Implosion",
@@ -46,7 +46,7 @@ registerSubclassSheetActions("Sorcerer_Aberrant", [
     "damageFormula": "3d10",
     "damageButtonLabel": ({ formula }) => `${formula} force`,
     "damageKind": "damage",
-    "desc": "Action: teleport to an unoccupied space you can see within 120 ft. Each creature within 30 ft of the space you left must succeed on a STR save (spell save DC) or take 3d10 Force damage and be pulled 30 ft toward that space (half damage, not pulled on success). Recharge: Long Rest."
+    "desc": "Magic action: teleport to an unoccupied space you can see within 120 ft. Each creature within 30 ft of the space you left must make a STR saving throw (spell save DC). On a failed save: 3d10 Force damage and pulled straight toward that space (ending in nearest unoccupied space). On success: half damage only. 1/LR, or spend 5 Sorcery Points (no action) to restore this use."
   }
 ]);
 registerSubclassSheetResources("Sorcerer_Aberrant", [

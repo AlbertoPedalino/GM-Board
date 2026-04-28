@@ -1,4 +1,15 @@
-registerSubclassAdapter("Ranger_Fey Wanderer", function (cls, lv, specs) {});
+registerSubclassAdapter("Ranger_Fey Wanderer", function (cls, lv, specs) {
+  if (lv >= 3) {
+    specs.push({
+      key: 'subclass_fey_wanderer_skill',
+      label: 'Otherworldly Glamour — Skill Proficiency',
+      type: 'skill_choice',
+      from: ['Deception', 'Performance', 'Persuasion'],
+      count: 1,
+      level: 3
+    });
+  }
+});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Ranger_Fey Wanderer", [
@@ -11,7 +22,7 @@ registerSubclassSheetActions("Ranger_Fey Wanderer", [
     "damageFormula": ({ ownerLevel }) => Number(ownerLevel || 1) >= 11 ? "1d6" : "1d4",
     "damageButtonLabel": ({ formula }) => `+${formula} psychic`,
     "damageKind": "damage",
-    "desc": "Once per turn when you hit with a weapon: deal extra Psychic damage (1d4; 1d6 at lv.11)."
+    "desc": "Once per turn when you hit a creature with a weapon, deal an extra 1d4 Psychic damage (1d6 at lv.11)."
   },
   {
     "name": "Otherworldly Glamour",
@@ -19,25 +30,24 @@ registerSubclassSheetActions("Ranger_Fey Wanderer", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "desc": "Add your WIS modifier to any CHA ability check (min +1). Gain proficiency in Deception, Performance, or Persuasion (your choice)."
+    "desc": "Passive: whenever you make a Charisma check, add your WIS modifier as a bonus (minimum +1). You gain proficiency in one of: Deception, Performance, or Persuasion (your choice)."
   },
   {
     "name": "Beguiling Twist",
     "icon": "",
     "cat": "reaction",
-    "uses": "1 / LR",
-    "resKey": "fey_beguiling_twist",
+    "uses": "At will",
     "minLevel": 7,
-    "desc": "You have Advantage on saving throws against the Charmed and Frightened conditions. Also, as a Reaction when a creature within 120 ft that you can see succeeds on a save against Charmed or Frightened: redirect that effect to another creature within 30 ft of the first (WIS save, spell save DC, Charmed or Frightened for 1 minute). Recharge: Long Rest."
+    "desc": "Passive: Advantage on saving throws to avoid or end the Charmed or Frightened condition. Reaction — when you or a creature you can see within 120 ft succeeds on a saving throw to avoid or end Charmed or Frightened: force a different creature you can see within 120 ft to make a WIS saving throw (spell save DC). On a failed save, the target is Charmed or Frightened (your choice) for 1 minute; it repeats the save at the end of each of its turns, ending the effect on a success."
   },
   {
     "name": "Fey Reinforcements",
     "icon": "",
     "cat": "action",
-    "uses": "1 / LR",
+    "uses": "1 / LR (free slot)",
     "resKey": "fey_reinforcements",
     "minLevel": 11,
-    "desc": "Action (Concentration, 1 hour): summon a spirit in the form of a Dryad, Pixie, or Sprite. It obeys your commands and uses your spell save DC. Recharge: Long Rest (or cast Summon Fey with a spell slot)."
+    "desc": "You can cast Summon Fey without a Material component. Once per Long Rest you can cast it without expending a spell slot; additional castings require a spell slot. Whenever you start casting the spell, you can modify it to not require Concentration — if you do, the spell's duration becomes 1 minute."
   },
   {
     "name": "Misty Wanderer",
@@ -46,17 +56,10 @@ registerSubclassSheetActions("Ranger_Fey Wanderer", [
     "uses": "WIS mod / LR",
     "resKey": "fey_misty_wanderer",
     "minLevel": 15,
-    "desc": "Can cast Misty Step without expending a spell slot. When you do, bring one willing creature within 5 ft along with you. Uses: WIS modifier (min 1) per Long Rest."
+    "desc": "You can cast Misty Step without expending a spell slot (WIS modifier uses, min 1, per Long Rest). Whenever you cast Misty Step, you can bring one willing creature you can see within 5 ft along — it teleports to an unoccupied space of your choice within 5 ft of your destination."
   }
 ]);
 registerSubclassSheetResources("Ranger_Fey Wanderer", [
-  {
-    "key": "fey_beguiling_twist",
-    "name": "Beguiling Twist",
-    "icon": "wind",
-    "recharge": "LR",
-    "max": () => 1
-  },
   {
     "key": "fey_reinforcements",
     "name": "Fey Reinforcements",

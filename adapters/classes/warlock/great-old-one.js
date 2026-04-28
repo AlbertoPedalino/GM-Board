@@ -2,47 +2,20 @@ registerSubclassAdapter("Warlock_Great Old One", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Warlock_Great Old One", [
-  {
-    "name": "Awakened Mind",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 3,
-    "desc": "Telepathically communicate with any creature within 30 ft that knows at least one language, even if it doesn't speak yours."
-  },
-  {
-    "name": "Clairvoyant Combatant",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 / SR",
-    "resKey": "goo_clairvoyant",
-    "minLevel": 6,
-    "desc": "When you establish telepathic contact with a creature using Awakened Mind, you can force it to make a WIS saving throw (spell save DC). On a failure, the creature has Disadvantage on attack rolls against you until the telepathic contact ends. Recharge: Short Rest."
-  },
-  {
-    "name": "Thought Shield",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 10,
-    "desc": "Your thoughts can't be read by telepathy or other means unless you allow it. Resistance to Psychic damage. Whenever a creature deals Psychic damage to you, that creature takes the same amount."
-  },
-  {
-    "name": "Create Thrall",
-    "icon": "",
-    "cat": "action",
-    "uses": "Spell slot",
-    "minLevel": 14,
-    "desc": "Cast Charm Person on an Incapacitated humanoid using a Warlock spell slot. On success: the charm is indefinite and a telepathic link forms (no range limit, same plane). The target is Charmed until the charm is broken by magic or it takes damage from you or your allies."
-  }
+  { name: "Awakened Mind", icon: "", cat: "bonus", uses: "CHA mod / LR", resKey: "goo_awakened", minLevel: 3,
+    desc: "Bonus Action: telepathically contact one creature you can see within a range of your CHA modifier × 1 mile. The telepathic contact lasts for a number of minutes equal to your Warlock level. The creature doesn't need to share a language with you, but must be able to understand at least one language. Recharge: Long Rest." },
+  { name: "Psychic Spells", icon: "", cat: "action", uses: "Passive", minLevel: 3,
+    desc: "When you cast a Warlock spell that deals damage, you can change its damage type to Psychic. When you cast a Warlock spell from the Enchantment or Illusion school, you can cast it without Verbal or Somatic components." },
+  { name: "Clairvoyant Combatant", icon: "", cat: "action", uses: "1 / SR or Pact Magic slot", resKey: "goo_clairvoyant", minLevel: 6,
+    desc: "When you establish telepathic contact with a creature using Awakened Mind, you can force it to make a WIS saving throw (spell save DC). On a failure, the creature has Disadvantage on attack rolls against you, and you have Advantage on attack rolls against it, until the telepathic contact ends. Recharge: SR or LR, or expend a Pact Magic slot." },
+  { name: "Eldritch Hex", icon: "", cat: "action", uses: "Passive", minLevel: 10,
+    desc: "Hex is always prepared for you and doesn't count against your number of spells prepared. When you cast Hex, choose one ability. The Hexed creature has Disadvantage on saving throws using that ability for the duration." },
+  { name: "Create Thrall", icon: "", cat: "action", uses: "Spell slot", minLevel: 14,
+    desc: "You can cast Summon Aberration without a spell slot, without expending material components, and without Concentration — it lasts for 1 minute. The summoned aberration gains Temporary HP equal to your Warlock level. When you deal damage to a creature under your Hex, the aberration can use its Reaction to move up to its Speed toward the Hexed target and make one attack against it." },
 ]);
 registerSubclassSheetResources("Warlock_Great Old One", [
-  {
-    "key": "goo_clairvoyant",
-    "name": "Clairvoyant Combatant",
-    "icon": "eye",
-    "recharge": "SR",
-    "max": () => 1
-  }
+  { key: "goo_awakened",   name: "Awakened Mind",        icon: "brain", recharge: "LR",
+    max: (lv) => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('cha'))) : 3 },
+  { key: "goo_clairvoyant", name: "Clairvoyant Combatant", icon: "eye",   recharge: "SR", max: () => 1 },
 ]);
 // [SheetRuntime] END

@@ -25,42 +25,49 @@ registerSubclassSheetActions("Sorcerer_Draconic", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "desc": "Your hit point maximum increases by 1 per Sorcerer level. When you aren't wearing armor, your base AC equals 13 + your DEX modifier."
+    "desc": "Passive: your Hit Point maximum increases by 3 at lv.3 and by 1 for each additional Sorcerer level. While you aren't wearing armor, your base AC equals 10 + DEX modifier + CHA modifier."
   },
   {
     "name": "Elemental Affinity",
     "icon": "",
     "cat": "action",
-    "uses": "Passive / 1 Sorc Pt",
-    "resKey": "sorc_pts",
+    "uses": "Passive",
     "minLevel": 6,
-    "desc": "When you cast a spell with a damage type matching your Dragon Ancestor, add your CHA modifier to one damage roll. Spend 1 Sorcery Point to also gain Resistance to that damage type for 1 hour."
+    "desc": "Choose one damage type: Acid, Cold, Fire, Lightning, or Poison. You have permanent Resistance to that damage type. When you cast a spell that deals damage of that type, you can add your CHA modifier to one damage roll of that spell."
   },
   {
     "name": "Dragon Wings",
     "icon": "",
     "cat": "bonus",
-    "uses": "Toggle",
+    "uses": "1 / LR",
+    "resKey": "draconic_wings",
     "minLevel": 14,
-    "desc": "Bonus Action: sprout draconic wings, gaining a Fly Speed equal to your walking speed. Retract them as a Bonus Action."
+    "desc": "Bonus Action: cause draconic wings to appear on your back for 1 hour, or until you dismiss them (no action required). For the duration, you have a Fly Speed of 60 ft. 1/LR, or spend 3 Sorcery Points (no action) to restore this use."
   },
   {
     "name": "Dragon Companion",
     "icon": "",
     "cat": "action",
-    "uses": "CHA mod / LR",
+    "uses": "1 / LR (free slot)",
     "resKey": "draconic_companion",
     "minLevel": 18,
-    "desc": "You can cast Summon Dragon without expending a spell slot. The summoned dragon uses your spell save DC and spell attack bonus. Uses per Long Rest = CHA modifier (min 1)."
+    "desc": "You can cast Summon Dragon without a Material component. Once per Long Rest you can cast it without expending a spell slot; additional castings require a spell slot. Whenever you start casting the spell, you can modify it to not require Concentration — if you do, the spell's duration becomes 1 minute."
   }
 ]);
 registerSubclassSheetResources("Sorcerer_Draconic", [
   {
-    "key": "draconic_companion",
-    "name": "Dragon Companion",
-    "icon": "dragon",
+    "key": "draconic_wings",
+    "name": "Dragon Wings",
+    "icon": "feather",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 1)
+    "max": () => 1
+  },
+  {
+    "key": "draconic_companion",
+    "name": "Dragon Companion (free cast)",
+    "icon": "star",
+    "recharge": "LR",
+    "max": () => 1
   }
 ]);
 // [SheetRuntime] END

@@ -6,9 +6,9 @@ registerSubclassSheetActions("Sorcerer_Wild Magic", [
     "name": "Wild Magic Surge",
     "icon": "",
     "cat": "action",
-    "uses": "DM discretion",
+    "uses": "Once / turn (optional)",
     "minLevel": 3,
-    "desc": "Each time you cast a 1st-level or higher spell, the DM may have you roll a d20: on a 1, roll a d100 on the Wild Magic Surge table. At lv.14 (Controlled Chaos): roll twice and choose either result."
+    "desc": "Once per turn, immediately after you cast a Sorcerer spell with a spell slot, you can choose to roll a d20. On a 20, roll on the Wild Magic Surge table to create a magical effect; the effect is too wild to be affected by your Metamagic."
   },
   {
     "name": "Tides of Chaos",
@@ -17,16 +17,16 @@ registerSubclassSheetActions("Sorcerer_Wild Magic", [
     "uses": "1 / LR",
     "resKey": "wild_tides",
     "minLevel": 3,
-    "desc": "Gain Advantage on one attack roll, ability check, or saving throw of your choice. The DM may have you roll on the Wild Magic Surge table before you can regain this use. Recharge: Long Rest (or triggered surge)."
+    "desc": "Gain Advantage on one D20 Test (attack roll, ability check, or saving throw) before you roll. Recharge: finish a Long Rest OR cast a Sorcerer spell with a spell slot (but doing so before finishing a Long Rest causes you to automatically roll on the Wild Magic Surge table)."
   },
   {
     "name": "Bend Luck",
     "icon": "",
     "cat": "reaction",
-    "uses": "2 Sorcery Points",
+    "uses": "1 Sorcery Point",
     "resKey": "sorc_pts",
     "minLevel": 6,
-    "desc": "Reaction when another creature you can see makes an attack roll, ability check, or saving throw: spend 2 Sorcery Points to roll 1d4 and add or subtract it from the roll (before the DM reveals the outcome)."
+    "desc": "Reaction — immediately after another creature you can see rolls a d20 for a D20 Test: spend 1 Sorcery Point to roll 1d4 and apply the number as a bonus or penalty (your choice) to the d20 roll."
   },
   {
     "name": "Controlled Chaos",
@@ -34,15 +34,16 @@ registerSubclassSheetActions("Sorcerer_Wild Magic", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 14,
-    "desc": "When you roll on the Wild Magic Surge table, roll twice and choose either result."
+    "desc": "Passive: whenever you roll on the Wild Magic Surge table, you can roll twice and use either result."
   },
   {
     "name": "Tamed Surge",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "1 / LR",
+    "resKey": "wild_tamed",
     "minLevel": 18,
-    "desc": "Whenever you roll on the Wild Magic Surge table, you can roll twice and use either result."
+    "desc": "Immediately after you cast a Sorcerer spell with a spell slot, you can create an effect of your choice from the Wild Magic Surge table instead of rolling on it. You can choose any effect except the final row; if the chosen effect involves a roll, you must make it. 1/LR."
   }
 ]);
 registerSubclassSheetResources("Sorcerer_Wild Magic", [
@@ -50,6 +51,13 @@ registerSubclassSheetResources("Sorcerer_Wild Magic", [
     "key": "wild_tides",
     "name": "Tides of Chaos",
     "icon": "zap",
+    "recharge": "LR",
+    "max": () => 1
+  },
+  {
+    "key": "wild_tamed",
+    "name": "Tamed Surge",
+    "icon": "sparkles",
     "recharge": "LR",
     "max": () => 1
   }

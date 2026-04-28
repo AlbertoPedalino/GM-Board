@@ -14,13 +14,28 @@ registerSubclassAdapter("Druid_Land", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Druid_Land", [
   {
+    "name": "Land's Aid",
+    "icon": "",
+    "cat": "action",
+    "uses": "Wild Shape charge",
+    "resKey": "wild_shape",
+    "minLevel": 3,
+    "damageFormula": ({ ownerLevel }) => {
+      const lv = Number(ownerLevel || 1);
+      return lv >= 14 ? "4d6" : lv >= 10 ? "3d6" : "2d6";
+    },
+    "damageButtonLabel": ({ formula }) => `${formula} necrotic`,
+    "damageKind": "damage",
+    "desc": "Magic action: expend a use of Wild Shape and choose a point within 60 ft. Vitality-giving flowers and life-draining thorns appear in a 10-ft Sphere centered on that point. Each creature of your choice in the Sphere must make a CON saving throw (spell save DC), taking 2d6 Necrotic damage on a failed save or half on a success (increases to 3d6 at lv.10, 4d6 at lv.14). One creature of your choice in that area regains 2d6 HP (3d6 at lv.10, 4d6 at lv.14)."
+  },
+  {
     "name": "Natural Recovery",
     "icon": "",
     "cat": "action",
     "uses": "1 / LR",
     "resKey": "natural_recovery",
     "minLevel": 6,
-    "desc": "After a Short Rest: regain spell slots whose combined levels are no greater than half your Druid level (rounded up). No single slot can be 6th level or higher. Recharge: Long Rest."
+    "desc": "Two benefits (each 1/LR): Free Spell — cast one level 1+ spell you have prepared from your Circle Spells feature without expending a spell slot. Short Rest Recovery — when you finish a Short Rest, recover expended spell slots with a combined level ≤ half your Druid level (round up), with no single slot of level 6+."
   },
   {
     "name": "Nature's Ward",
@@ -28,15 +43,16 @@ registerSubclassSheetActions("Druid_Land", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 10,
-    "desc": "Immune to poison and disease (Poisoned condition and diseases). Elementals and Fey can't charm or frighten you."
+    "desc": "Passive: you are immune to the Poisoned condition. You have Resistance to a damage type associated with your current land choice (see the Nature's Ward table in your subclass description)."
   },
   {
     "name": "Nature's Sanctuary",
     "icon": "",
-    "cat": "reaction",
-    "uses": "Passive",
+    "cat": "action",
+    "uses": "Wild Shape charge",
+    "resKey": "wild_shape",
     "minLevel": 14,
-    "desc": "When a beast or plant creature attacks you: it must succeed on a WIS save (spell save DC) or choose a different target. On a successful save, it is immune to this effect for 24 hours."
+    "desc": "Magic action: expend a use of Wild Shape to cause spectral trees and vines to appear in a 15-ft Cube on the ground within 120 ft. They last 1 minute or until you are Incapacitated or die. While in that area: you and your allies have Half Cover, and your allies gain your current Nature's Ward Resistance. Bonus Action: move the Cube up to 60 ft to ground within 120 ft of yourself."
   }
 ]);
 registerSubclassSheetResources("Druid_Land", [
@@ -45,7 +61,7 @@ registerSubclassSheetResources("Druid_Land", [
     "name": "Natural Recovery",
     "icon": "leaf",
     "recharge": "LR",
-    "max": ()=>1
+    "max": () => 1
   }
 ]);
 // [SheetRuntime] END
