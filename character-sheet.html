@@ -2791,8 +2791,8 @@ function renderActionsTab(){
   const cls=C?.className||'';
   const lv=C?.level||1;
   const inv=(sheetInventory||[]).map(_resolveInvItem);
-  const equippedWeapons=inv.filter(i=>i.equipped&&['M','R'].includes(i.type)&&i.hand!=='off');
-  const offHandWeapons=inv.filter(i=>i.equipped&&['M','R'].includes(i.type)&&i.hand==='off');
+  const equippedWeapons=inv.map((item,idx)=>({item,idx})).filter(({item})=>item.equipped&&['M','R'].includes(item.type)&&item.hand!=='off');
+  const offHandWeapons=inv.map((item,idx)=>({item,idx})).filter(({item})=>item.equipped&&['M','R'].includes(item.type)&&item.hand==='off');
   const cantripSet = new Set(C?.selectedCantrips||[]);
   const _choiceSpellName = (v) => String(v || '').split('|')[0].trim();
   if(C?.choices){
@@ -2872,12 +2872,12 @@ function renderActionsTab(){
       const full = sheetSpellDb?.find(s => s.name === cn);
       return full?.spellAttack?.length || full?.savingThrow?.length;
     });
-    if(!equippedWeapons.length && !offHandWeapons.length && !attackCantrips.length){
+    if(!equippedWeapons.length && !offHandWeapons.length && !attackCantrips.length){  // still arrays
       html+=`<div style="font-size:var(--fs-body);color:var(--text3);font-style:italic;padding:.3rem 0">
         ${luci('lightbulb')} Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
       </div>`;
     }
-    for(const w of equippedWeapons) html+=buildWeaponCard(w);
+    for(const {item:w,idx:wIdx} of equippedWeapons) html+=buildWeaponCard(w,wIdx);
     for(const cn of attackCantrips) html+=buildCantripCard(cn);
     html+=buildUnarmedCard(UNARMED_OPTIONS[0]);
     for(const a of allClassActions.filter(a=>a.cat==='attack')) html+=buildClassActionCard(a);
@@ -2892,7 +2892,7 @@ function renderActionsTab(){
   // ── BONUS ACTIONS ──
   if(show('bonus')){
     if(f==='all') html+=`<div class="action-section-hdr">${luci('zap')} Bonus Actions</div>`;
-    for(const w of offHandWeapons) html+=buildWeaponCard(w);
+    for(const {item:w,idx:wIdx} of offHandWeapons) html+=buildWeaponCard(w,wIdx);
     for(const a of allClassActions.filter(a=>a.cat==='bonus')) html+=buildClassActionCard(a);
     for(const a of stdVisible.filter(a=>a.cat==='bonus')) html+=buildStdActionCard(a);
     if(!offHandWeapons.length && !allClassActions.filter(a=>a.cat==='bonus').length)
@@ -3806,6 +3806,32 @@ function toggleSpellDesc(id){
   if(el) el.classList.toggle('open');
 }
 
+function _getActiveWeaponOverrides(){
+  if(typeof getWeaponAbilityOverrides!=='function') return [];
+  return getWeaponAbilityOverrides().filter(function(o){
+    try{ return o.condition(C); } catch(e){ return false; }
+  });
+}
+
+function setWeaponOverride(idx, key){
+  if(!sheetInventory[idx]) return;
+  // exclusive: clear same key from all other items
+  sheetInventory.forEach(function(item, i){
+    if(i!==idx && item.weaponMod===key) item.weaponMod=null;
+  });
+  sheetInventory[idx].weaponMod = sheetInventory[idx].weaponMod===key ? null : key;
+  persistInventory();
+  renderInventoryList();
+  renderActionsTab();
+}
+
+function toggleVersatile(idx){
+  if(!sheetInventory[idx]) return;
+  sheetInventory[idx].versatileHand = sheetInventory[idx].versatileHand==='2h' ? '1h' : '2h';
+  persistInventory();
+  renderActionsTab();
+}
+
 function toggleWeaponHand(idx){
   if(!sheetInventory[idx]) return;
   const item = sheetInventory[idx];
@@ -3881,6 +3907,8 @@ function _resolveInvItem(stored) {
     bonusWeapon: stored.bonusWeapon || db.bonusWeapon || null,
     bonusAc: stored.bonusAc || db.bonusAc || null,
     hand: stored.hand || null,
+    weaponMod: stored.weaponMod || null,
+    versatileHand: stored.versatileHand || null,
     custom: false,
   };
 }
@@ -3946,7 +3974,7 @@ function renderInventoryList(){
           ${meta?`<div style="font-size:var(--fs-label);color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
         ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?`${luci('check')} Equip.`:'Equip'}</button>`:''}
-        ${(item.equipped&&['M','R'].includes(item.type))?`<button class="inv-equip-btn on" onclick="toggleWeaponHand(${idx})" title="${item.hand==='off'?'Off-hand (no ability mod to dmg)':'Main hand'}">${item.hand==='off'?'Off':'Main'}</button>`:''}
+        ${(()=>{ if(!item.equipped) return ''; const ovr=_getActiveWeaponOverrides().filter(function(o){return !o.weaponTypes||o.weaponTypes.includes(item.type);}); return ovr.map(function(o){return `<button class="inv-equip-btn${item.weaponMod===o.key?' on':''}" onclick="setWeaponOverride(${idx},'${o.key}')" title="Usa ${o.ability.toUpperCase()} per attacco e danno">${esc(o.label)}</button>`;}).join(''); })()}
         <div class="inv-qty-wrap">
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},-1)">−</button>
           <div class="inv-qty-val">${item.qty||1}</div>
@@ -4866,24 +4894,29 @@ function getWeaponMasteries(){
   return out;
 }
 
-function buildWeaponCard(item){
+function buildWeaponCard(item, invIdx){
   const strMod=getMod(getFinal('str')), dexMod=getMod(getFinal('dex')), pb=getPB();
   const props=item.property||[];
   const isRanged=item.type==='R', isFinesse=props.includes('F');
   const isOffHand=item.hand==='off';
+  const isVersatile=props.includes('V')&&!!item.dmg2;
+  const isTwoHanded=isVersatile&&item.versatileHand==='2h';
   const bonus=parseInt((item.bonusWeapon||'0').replace('+',''))||0;
+  const activeOverrides=_getActiveWeaponOverrides();
+  const weaponOverride=item.weaponMod ? activeOverrides.find(function(o){return o.key===item.weaponMod;}) : null;
   let atkMod,dmgMod,abilityMod;
-  if(isRanged){       abilityMod=dexMod; atkMod=dexMod+pb+bonus; }
-  else if(isFinesse){ abilityMod=Math.max(strMod,dexMod); atkMod=abilityMod+pb+bonus; }
-  else{               abilityMod=strMod; atkMod=strMod+pb+bonus; }
+  if(weaponOverride){
+    abilityMod=getMod(getFinal(weaponOverride.ability)); atkMod=abilityMod+pb+bonus;
+  } else if(isRanged){  abilityMod=dexMod; atkMod=dexMod+pb+bonus;
+  } else if(isFinesse){ abilityMod=Math.max(strMod,dexMod); atkMod=abilityMod+pb+bonus;
+  } else{               abilityMod=strMod; atkMod=strMod+pb+bonus; }
   dmgMod = isOffHand ? Math.min(0, abilityMod)+bonus : abilityMod+bonus;
   const propStr=props.map(p=>WEAPON_PROP_LABELS[p]||p).filter(Boolean).join(', ');
   const range=isRanged?(item.range||'varia'):'5 ft'+(props.includes('T')?' / lancio':'');
-  const dmgDie=item.dmg1||'1d4', dmgType=item.dmgType||'';
+  const dmgDie=(isTwoHanded?item.dmg2:item.dmg1)||'1d4', dmgType=item.dmgType||'';
   const dmgSign=dmgMod>=0?'+':'';
   const dmgFormula=`${dmgDie}${dmgSign}${dmgMod}`;
   const dmgLabel=`${dmgDie}${dmgSign}${dmgMod} ${dmgType}`.trim();
-  const versDie=item.dmg2;
   const rarity=item.rarity&&item.rarity!=='none'?item.rarity:null;
   const rc=ITEM_RARITY_COLOR[rarity]||null;
   const src=SOURCE_LABELS[item.source]||item.source||'';
@@ -4896,9 +4929,14 @@ function buildWeaponCard(item){
   const masteryProp = hasMastery ? (item.mastery || _dbItem?.mastery || '') : '';
   const tagHtml=`<span class="action-tag atk">ATK</span>`
     +(isOffHand?`<span class="action-tag" style="border-color:var(--text3);color:var(--text3)">OFF</span>`:'')
-    +(hasMastery?`<span class="action-tag" style="border-color:var(--gold);color:var(--gold)">${luci('star')} ${masteryProp ? esc(masteryProp) : 'MASTERY'}</span>`:'')
+    +(isTwoHanded?`<span class="action-tag" style="border-color:var(--text3);color:var(--text3)">2H</span>`:'')
+    +(weaponOverride?`<span class="action-tag" style="border-color:var(--purple);color:var(--purple)">${esc((weaponOverride.label||weaponOverride.key).toUpperCase())}</span>`:'')
+    +(hasMastery?`<span class="action-tag" style="border-color:var(--gold);color:var(--gold)">${luci('star')} ${masteryProp?esc(masteryProp):'MASTERY'}</span>`:'')
     +(rc?`<span class="action-tag" style="border-color:${rc};color:${rc}">${esc(rarity)}</span>`:'');
-  const sub=[src, bonus>0?'Magica +'+bonus:'', propStr, isOffHand?'no ability mod to dmg':''].filter(Boolean).join(' · ');
+  const sub=[src, bonus>0?'Magica +'+bonus:'', propStr, isOffHand?'no ability mod to dmg':'', weaponOverride?weaponOverride.ability.toUpperCase()+' mod':''].filter(Boolean).join(' · ');
+  const idxAttr = invIdx != null ? invIdx : -1;
+  const handBtn=`<button class="inv-equip-btn on" onclick="toggleWeaponHand(${idxAttr})" style="font-size:var(--fs-xs);padding:2px 7px">${isOffHand?'Off':'Main'}</button>`;
+  const versBtn=isVersatile?`<button class="inv-equip-btn on" onclick="toggleVersatile(${idxAttr})" style="font-size:var(--fs-xs);padding:2px 7px">${isTwoHanded?'2H':'1H'}</button>`:'';
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr">
       <span class="action-card-icon">${icon}</span>
@@ -4906,12 +4944,12 @@ function buildWeaponCard(item){
         <div class="action-card-name">${wName}${sub?`<span class="sub">${esc(sub)}</span>`:''}</div>
       </div>
       <div class="action-card-tags">${tagHtml}</div>
+      <div style="display:flex;gap:3px;align-items:center;flex-shrink:0">${handBtn}${versBtn}</div>
       <div class="action-stat">${fbonus(atkMod)}</div>
     </div>
     <div class="action-card-bar">
       <button class="roll-btn" onclick="rollD20(${atkMod},'Attack: ${wName}')">${luci('dice-5')} Hits ${fbonus(atkMod)}</button>
       <button class="roll-btn dmg" onclick="rollDamage('${dmgFormula}','Damage: ${wName}')">${luci('sword')} ${esc(dmgLabel)}</button>
-      ${versDie?`<button class="roll-btn dmg" onclick="rollDamage('${versDie}${dmgSign}${dmgMod}','Damage (vers.): ${wName}')">${luci('swords')} ${versDie} vers.</button>`:''}
       <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
       ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
       ${bonus>0?`<div class="action-dmg-pill" style="color:var(--gold)">${luci('sparkles')} +${bonus}</div>`:''}

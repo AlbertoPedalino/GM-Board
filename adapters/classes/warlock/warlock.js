@@ -104,6 +104,25 @@ registerClassSheetActions("Warlock", [
 ]);
 // [SheetRuntime] END
 
+if (typeof registerWeaponAbilityOverride === 'function') {
+  registerWeaponAbilityOverride({
+    key: 'pact_blade',
+    label: 'Patto',
+    ability: 'cha',
+    weaponTypes: ['M'],
+    condition: function (C) {
+      if (!C) return false;
+      const isWarlock = C.className === 'Warlock' ||
+        (C.extraClasses || []).some(function (ec) { return ec.name === 'Warlock'; });
+      if (!isWarlock) return false;
+      return Object.entries(C.choices || {}).some(function (_ref) {
+        var k = _ref[0], v = _ref[1];
+        return k.replace(/^mc\d+_/, '').startsWith('warlock_invocation_') && String(v).split('|')[0].trim() === 'Pact of the Blade';
+      });
+    }
+  });
+}
+
 registerClassSheetResources("Warlock", [
   {
     "key": "magical_cunning",

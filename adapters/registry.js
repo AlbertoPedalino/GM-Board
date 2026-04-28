@@ -36,6 +36,7 @@ const ClassChoiceKeyFilters = {};
 const ClassChoiceLabelProviders = {};
 const FeatSheetResources = {};
 const FeatSheetActions   = {};
+const WeaponAbilityOverrides = [];
 
 function _normAdapterKey(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -584,6 +585,14 @@ function registerClassChoiceLabelProvider(className, fn) {
 }
 function getClassChoiceLabelProvider(className) {
   return _getStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className)) || null;
+}
+
+function registerWeaponAbilityOverride(cfg) {
+  if (!cfg || !cfg.key || !cfg.ability || typeof cfg.condition !== 'function') return;
+  WeaponAbilityOverrides.push(cfg);
+}
+function getWeaponAbilityOverrides() {
+  return WeaponAbilityOverrides.slice();
 }
 
 function registerFeatSheetResources(name, resources) {
