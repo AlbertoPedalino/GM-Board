@@ -2835,7 +2835,13 @@ function renderActionsTab(){
   }
   const speciesActions=getSheetSpeciesActions(C?.speciesName||'', C?.speciesSource||'', lv)
     .map(a=>({ ...a, _cls: C?.speciesName || 'Species' }));
-  const allClassActions=[...classActions,...subActions,...extraActions,...speciesActions];
+  const featActionsAll = [];
+  (C?.allFeatSnapshots||[]).forEach(function(feat){
+    if(!feat?.name) return;
+    const acts = typeof getFeatSheetActions === 'function' ? getFeatSheetActions(feat.name) : [];
+    acts.forEach(function(a){ featActionsAll.push({...a, _cls:'Feat'}); });
+  });
+  const allClassActions=[...classActions,...subActions,...extraActions,...speciesActions,...featActionsAll];
 
   const isCaster = !!(
     C?.clsSnapshot?.casterProgression ||
@@ -4677,6 +4683,12 @@ function getAllResDefs(){
     ownerClass: speciesName,
     ownerLevel: Number(C?.level || 1),
     ownerToken: 'species',
+  });
+
+  (C?.allFeatSnapshots || []).forEach(function(feat) {
+    if (!feat?.name) return;
+    const featRes = typeof getFeatSheetResources === 'function' ? getFeatSheetResources(feat.name) : [];
+    pushDefs(featRes, { ownerClass: '', ownerLevel: Number(C?.level || 1), ownerToken: 'feat' });
   });
 
   const byKeyOwners = new Map();

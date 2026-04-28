@@ -34,6 +34,8 @@ const SpeciesRuntimeConfigs = {};
 const SpeciesSheetHpBonus = {};
 const ClassChoiceKeyFilters = {};
 const ClassChoiceLabelProviders = {};
+const FeatSheetResources = {};
+const FeatSheetActions   = {};
 
 function _normAdapterKey(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -582,6 +584,27 @@ function registerClassChoiceLabelProvider(className, fn) {
 }
 function getClassChoiceLabelProvider(className) {
   return _getStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className)) || null;
+}
+
+function registerFeatSheetResources(name, resources) {
+  const k = _normAdapterKey(name);
+  FeatSheetResources[String(name)] = Array.isArray(resources) ? resources : [];
+  if (k) FeatSheetResources[k] = Array.isArray(resources) ? resources : [];
+}
+function getFeatSheetResources(name) {
+  const raw = String(name || "");
+  const k   = _normAdapterKey(raw);
+  return FeatSheetResources[raw] || FeatSheetResources[k] || [];
+}
+function registerFeatSheetActions(name, actions) {
+  const k = _normAdapterKey(name);
+  FeatSheetActions[String(name)] = Array.isArray(actions) ? actions : [];
+  if (k) FeatSheetActions[k] = Array.isArray(actions) ? actions : [];
+}
+function getFeatSheetActions(name) {
+  const raw = String(name || "");
+  const k   = _normAdapterKey(raw);
+  return FeatSheetActions[raw] || FeatSheetActions[k] || [];
 }
 
 const SubclassChoiceDetailDataProviders = {};
