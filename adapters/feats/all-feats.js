@@ -102,6 +102,25 @@
         versionIndexByName: map
       };
     }
+
+    // Auto-detect ability score choice: feat.ability[].choose → choiceUi.abilityScoreIncrease
+    if (Array.isArray(out.ability) && !(out.choiceUi && out.choiceUi.abilityScoreIncrease)) {
+      for (const ab of out.ability) {
+        if (ab && typeof ab === "object" && ab.choose && typeof ab.choose === "object") {
+          const from = Array.isArray(ab.choose.from) ? ab.choose.from : [];
+          const count = typeof ab.choose.count === "number" ? ab.choose.count : 1;
+          const modes = count >= 2 ? ["double", "split"] : ["single"];
+          const asiConf = { modes };
+          if (from.length) asiConf.from = from;
+          out.choiceUi = {
+            ...(out.choiceUi && typeof out.choiceUi === "object" ? out.choiceUi : {}),
+            abilityScoreIncrease: asiConf
+          };
+          break;
+        }
+      }
+    }
+
     return out;
   });
 })(typeof window !== "undefined" ? window : globalThis);

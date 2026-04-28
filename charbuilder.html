@@ -3678,30 +3678,40 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       /* ── 3. Ability Score Improvement ── */
       if (feat.choiceUi?.abilityScoreIncrease) {
-        const mode = char.choices[`${slotKey}_asi_mode`] || 'double';
+        const asiCfg = typeof feat.choiceUi.abilityScoreIncrease === 'object' ? feat.choiceUi.abilityScoreIncrease : {};
+        const allowedModes = Array.isArray(asiCfg.modes) && asiCfg.modes.length ? asiCfg.modes : ['double', 'split'];
+        const allowedStats = Array.isArray(asiCfg.from) && asiCfg.from.length ? asiCfg.from : STATS;
+        const _storedMode = char.choices[`${slotKey}_asi_mode`];
+        const mode = allowedModes.includes(_storedMode) ? _storedMode : allowedModes[0];
+        if (mode !== _storedMode) char.choices[`${slotKey}_asi_mode`] = mode;
         const picks = Array.isArray(char.choices[`${slotKey}_asi_picks`]) ? char.choices[`${slotKey}_asi_picks`] : [];
         const sk = slotKey.replace(/'/g, "\\'");
-        const maxPicks = mode === 'double' ? 1 : 2;
+        const maxPicks = mode === 'split' ? 2 : 1;
+        const bonusPerPick = mode === 'double' ? 2 : 1;
+        const _asiModeDefs = [
+          { key: 'double', label: '+2 one stat' },
+          { key: 'split',  label: '+1/+1 two stats' },
+          { key: 'single', label: '+1 one stat' }
+        ];
         h += `<div style="margin-top:.75rem">
-  <div class="feat-section-hdr" style="color:var(--gold)">✧ Ability Score Increase</div>
-  <div style="display:flex;gap:6px;margin-bottom:.6rem">
-    <button type="button" onclick="setAsiMode('${sk}','double');return false;"
-      style="padding:5px 12px;border:1px solid ${mode==='double'?'var(--gold2)':'var(--bdr)'};
+  <div class="feat-section-hdr" style="color:var(--gold)">✧ Ability Score Increase</div>`;
+        if (allowedModes.length > 1) {
+          h += `<div style="display:flex;gap:6px;margin-bottom:.6rem">`;
+          for (const _md of _asiModeDefs.filter(d => allowedModes.includes(d.key))) {
+            h += `<button type="button" onclick="setAsiMode('${sk}','${_md.key}');return false;"
+      style="padding:5px 12px;border:1px solid ${mode===_md.key?'var(--gold2)':'var(--bdr)'};
       border-radius:var(--r);background:var(--bg3);
-      color:${mode==='double'?'var(--gold2)':'var(--text2)'};cursor:pointer;
-      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">+2 one stat</button>
-    <button type="button" onclick="setAsiMode('${sk}','split');return false;"
-      style="padding:5px 12px;border:1px solid ${mode==='split'?'var(--gold2)':'var(--bdr)'};
-      border-radius:var(--r);background:var(--bg3);
-      color:${mode==='split'?'var(--gold2)':'var(--text2)'};cursor:pointer;
-      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">+1/+1 two stats</button>
-  </div>
-  <div style="display:flex;flex-wrap:wrap;gap:5px">`;
-        for (const st of STATS) {
+      color:${mode===_md.key?'var(--gold2)':'var(--text2)'};cursor:pointer;
+      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(_md.label)}</button>`;
+          }
+          h += `</div>`;
+        }
+        h += `<div style="display:flex;flex-wrap:wrap;gap:5px">`;
+        for (const st of allowedStats) {
           const on = picks.includes(st);
           const full = !on && picks.length >= maxPicks;
           const label = SLBL[st] || st.toUpperCase();
-          const bonus = on ? (mode === 'double' ? ' +2' : ' +1') : '';
+          const bonus = on ? ` +${bonusPerPick}` : '';
           h += `<button class="exp-btn${on ? ' on' : ''}" ${full ? 'disabled' : ''}
     onclick="toggleAsiStat('${sk}','${st}',${maxPicks})"
     style="margin:2px">${esc(label)}${bonus}</button>`;

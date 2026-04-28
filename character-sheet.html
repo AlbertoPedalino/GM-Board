@@ -2098,6 +2098,12 @@ function renderProficiencies(){
       if (!g || typeof g !== 'object') return;
       const minLevel = Number(g.minLevel || 1);
       if ((lv || 1) < minLevel) return;
+      if (g.requiredChoice) {
+        const rc = g.requiredChoice;
+        const stored = C?.choices?.[rc.key];
+        const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+        if (!vals.includes(rc.value)) return;
+      }
       adapterProfGrants.push(g);
     });
   };

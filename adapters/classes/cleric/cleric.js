@@ -43,6 +43,10 @@ registerClassAdapter("Cleric", function (cls, lv, specs) {
 });
 
 // [SheetRuntime] START
+registerClassSheetProficiencies("Cleric", [
+  { type: "armor",  values: ["Heavy"],   minLevel: 1, requiredChoice: { key: "cleric_divine_order", value: "Protector" } },
+  { type: "weapon", values: ["Martial"], minLevel: 1, requiredChoice: { key: "cleric_divine_order", value: "Protector" } }
+]);
 registerClassSheetActions("Cleric", [
   {
     "name": "Divine Order",
