@@ -2188,6 +2188,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 oninput="char.name=this.value;renderPreviewHeader()" /></div>
           </div>
 
+          <!-- XP -->
+          <div class="panel" id="panel-xp" style="display:none">
+            <div class="ph"><span class="pt">Experience (XP)</span><span id="xp-next-label" class="ph-note"></span>
+            </div>
+            <div class="pb">
+              <div class="xp-bar-wrap">
+                <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+              </div>
+              <input type="number" class="xp-input" id="xp-input" min="0" value="0" placeholder="Total XP…"
+                oninput="updateXP(this.value)" />
+            </div>
+          </div>
+
           <!-- Classe (tab multiclasse) -->
           <div class="panel">
             <div class="ph"><span class="pt">Class</span><span id="cls-loading" class="ph-note">Loading…</span></div>
@@ -2215,19 +2228,6 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             <div class="pb">
               <div class="level-grid" id="level-grid"></div>
               <div class="lvl-stats" id="lvl-stats"></div>
-            </div>
-          </div>
-
-          <!-- XP -->
-          <div class="panel" id="panel-xp" style="display:none">
-            <div class="ph"><span class="pt">Experience (XP)</span><span id="xp-next-label" class="ph-note"></span>
-            </div>
-            <div class="pb">
-              <div class="xp-bar-wrap">
-                <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
-              </div>
-              <input type="number" class="xp-input" id="xp-input" min="0" value="0" placeholder="Total XP…"
-                oninput="updateXP(this.value)" />
             </div>
           </div>
 
@@ -3271,7 +3271,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             : []),
         ];
         _ecSpecs.push(..._deriveFeatureChoiceSpecs(_ecFeatures, _ec.level || 1, `auto_ec${_ecIdx}`));
-        _ecSpecs.forEach(s => { s.key = _pfx + s.key; s.label = `[${_ec.name}] ${s.label||''}`; });
+        _ecSpecs.forEach(s => { s.key = _pfx + s.key; });
         specs.push(..._ecSpecs);
       }
 
@@ -3513,8 +3513,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function renderChoicesPanel() {
       if (!char.cls) return;
       const specs = deriveAllChoices();
-      _renderFeatPanel(specs.filter(s => ['feat_fixed', 'feat_cat'].includes(s.type)));
-      _renderClassPanel(specs.filter(s => !['feat_fixed', 'feat_cat'].includes(s.type)));
+      const tab = char.activeClassTab || 0;
+      const activePfx = tab === 0 ? null : `mc${tab - 1}_`;
+      const visible = specs.filter(s => {
+        const k = String(s.key || '');
+        const isMC = /^mc\d+_/.test(k);
+        if (tab === 0) return !isMC;
+        return activePfx && k.startsWith(activePfx);
+      });
+      _renderFeatPanel(visible.filter(s => ['feat_fixed', 'feat_cat'].includes(s.type)));
+      _renderClassPanel(visible.filter(s => !['feat_fixed', 'feat_cat'].includes(s.type)));
     }
 
     // Alias per compatibilità
@@ -5173,7 +5181,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       renderLevelGrid();
       renderMCTabBar();
+      renderChoicesPanel();
       renderSpellPanel();
+      renderSlotsPanel();
     }
     function renderExtraClassInPane(i) {
       const chipsEl = document.getElementById('mc-ex-chips');
@@ -5320,28 +5330,33 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const hasExtraClasses = (char.extraClasses||[]).length > 0;
 
       if (hasExtraClasses) {
-        // Combined spell slot table from all non-Warlock casters
-        const mcSlots = getMCSlots(); // Warlock contributes 0, correct per 5e rules
+        const tab = char.activeClassTab || 0;
+        const activeClsName = tab === 0 ? (char.className || '') : ((char.extraClasses||[])[tab-1]?.name || '');
+        const activeCls     = tab === 0 ? char.cls : ((char.extraClasses||[])[tab-1]?.cls || null);
+        const activeIsPact  = _clsCasterProg(activeClsName, activeCls) === 'pact';
+
+        const mcSlots = getMCSlots();
         const wLv = _warlockLevels();
         const pactRow = wLv > 0 ? PACT_SLOTS[Math.min(wLv, 20)] : null;
 
         if (!mcSlots && !pactRow) { p.style.display = 'none'; return; }
         p.style.display = 'block';
         let h = '';
-        if (mcSlots) {
+
+        if (activeIsPact) {
+          // Active tab is a pact caster — show only pact slots
+          if (!pactRow) { body.innerHTML = '<div class="phmsg">Nessuno slot patto</div>'; return; }
+          h += `<div style="font-size:var(--fs-ui-md);color:var(--text2)">
+            <b style="color:var(--purple)">Patto (${esc(activeClsName)} Lv.${wLv}):</b>
+            <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
+        } else {
+          // Active tab is a normal caster — show only MC combined slots
+          if (!mcSlots) { body.innerHTML = '<div class="phmsg">Nessuno slot</div>'; return; }
           h += `<table class="slot-table"><thead><tr><th>MC</th>`;
           for (let i = 1; i <= mcSlots.length; i++) h += `<th>${i}°</th>`;
           h += `</tr></thead><tbody><tr><td style="font-family:var(--ff-display);color:var(--gold2)">${lv}</td>`;
           for (const n of mcSlots) h += `<td class="${n>0?'has':'zero'}">${n>0?n:'—'}</td>`;
           h += `</tr></tbody></table>`;
-        }
-        if (pactRow) {
-          let _pactCls = '';
-          if (_clsCasterProg(char.className || '', char.cls) === 'pact') _pactCls = char.className || '';
-          if (!_pactCls) { for (const _ec of (char.extraClasses||[])) { if (_clsCasterProg(_ec.name, _ec.cls) === 'pact') { _pactCls = _ec.name; break; } } }
-          h += `<div style="margin-top:${mcSlots?'8px':'0'};font-size:var(--fs-ui-md);color:var(--text2)">
-            <b style="color:var(--purple)">Patto (${esc(_pactCls)} Lv.${wLv}):</b>
-            <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
         }
         body.innerHTML = h;
         return;
