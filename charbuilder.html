@@ -3483,6 +3483,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       renderPreview(); renderScoreUI();
     }
 
+    function setWeaponMastery(slotKey, keySuffix, value) {
+      if (!char.choices) char.choices = {};
+      char.choices[`${slotKey}_${keySuffix}`] = value || '';
+      const gd = document.getElementById('feat-grant-' + slotKey);
+      if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
+      renderPreview();
+    }
+
     function getSelectedFeats() {
       const result = {};
       for (const spec of deriveAllChoices()) {
@@ -3717,6 +3725,25 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     style="margin:2px">${esc(label)}${bonus}</button>`;
         }
         h += `</div></div>`;
+      }
+
+      /* ── 4. Weapon Mastery ── */
+      if (feat.choiceUi?.weaponMastery) {
+        const wmCfg = typeof feat.choiceUi.weaponMastery === 'object' ? feat.choiceUi.weaponMastery : {};
+        const wmKey = `${slotKey}_${wmCfg.keySuffix || 'weapon_mastery'}`;
+        const curWm = char.choices[wmKey] || '';
+        const sk = slotKey.replace(/'/g, "\\'");
+        const ksSafe = (wmCfg.keySuffix || 'weapon_mastery').replace(/'/g, "\\'");
+        const weapons = Array.isArray(wmCfg.weapons) ? wmCfg.weapons : [];
+        h += `<div style="margin-top:.75rem">
+  <div class="feat-section-hdr" style="color:var(--gold)">✧ Weapon Mastery</div>
+  <select onchange="setWeaponMastery('${sk}','${ksSafe}',this.value)"
+    style="background:var(--bg3);border:1px solid ${curWm ? 'var(--gold2)' : 'var(--bdr)'};border-radius:var(--r);color:var(--text);padding:5px 10px;font-size:var(--fs-ui-sm);font-family:var(--ff-display);cursor:pointer;min-width:180px">
+    <option value="">— Choose weapon —</option>`;
+        for (const w of weapons) {
+          h += `<option value="${esc(w)}"${curWm === w ? ' selected' : ''}>${esc(w)}</option>`;
+        }
+        h += `</select></div>`;
       }
 
       return h;
@@ -6896,7 +6923,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const d = await r.json();
           (d.spell || []).forEach(s => {
             if (ALLOWED.includes(s.source) && !spellDb.find(x => x.name === s.name && x.source === s.source))
-              spellDb.push(s);
+              spellDb.push(typeof adaptSpellRecord === 'function' ? adaptSpellRecord(s) : s);
           });
         } catch (e) { }
       }

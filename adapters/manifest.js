@@ -118,6 +118,7 @@ const ADAPTER_MANIFEST = [
 
   // ── Spell data ──────────────────────────────────────────
   'adapters/spells/core.js',
+  'adapters/spells/all-spells.js',
   'adapters/spells/cantrips.js',
   'adapters/spells/spells.js',
 
@@ -132,6 +133,7 @@ const ADAPTER_MANIFEST = [
   'adapters/feats/tough.js',
   'adapters/feats/fey-touched.js',
   'adapters/feats/shadow-touched.js',
+  'adapters/feats/weapon-master.js',
 
   // Shared class/subclass/species runtime config
   'adapters/classes/runtime-config.js',

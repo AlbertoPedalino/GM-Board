@@ -5328,14 +5328,60 @@ function buildResourceBlockInline(actionRef){
 /* ═════════════════════ SPELL PICKER (sheet-side) ═════════════════════ */
 
 let sheetSpellDb = null;
+let _sheetClassSpellSets = null; // className_lc → Set<spellKey_lc> (no special chars)
+let _sheetSubclassSpellSets = null; // "className_lc|subclassName_lc" → Set<spellKey_lc>
 let _splFilter = { level: 0 };
 const _SPL_BASE = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
 const _SPL_FILES = ['spells/spells-xphb.json','spells/spells-fraif.json','spells/spells-frhof.json','spells/spells-efa.json'];
 const _SPL_ALLOWED = new Set(['XPHB','FRAiF','FRHoF','EFA']);
 
+function _normSpellKey(n){ return String(n||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+
 async function _loadSheetSpells(){
   if(sheetSpellDb) return;
   sheetSpellDb = [];
+  _sheetClassSpellSets = {};
+  _sheetSubclassSpellSets = {};
+
+  // Load class→spell lookup from CDN
+  try {
+    const lr = await fetch(BASE_URL + 'generated/gendata-spell-source-lookup.json');
+    if(lr.ok){
+      const lookup = await lr.json();
+      for(const spellsBySrc of Object.values(lookup)){
+        for(const [spellLc, data] of Object.entries(spellsBySrc)){
+          // class entries: data.class[src][ClassName] = true
+          const normKey = _normSpellKey(spellLc);
+          if(data.class && typeof data.class === 'object'){
+            for(const classMap of Object.values(data.class)){
+              for(const className of Object.keys(classMap)){
+                const lc = className.toLowerCase();
+                if(!_sheetClassSpellSets[lc]) _sheetClassSpellSets[lc] = new Set();
+                _sheetClassSpellSets[lc].add(normKey);
+              }
+            }
+          }
+          // subclass entries: data.subclass[src][className][src][subclassName]
+          if(data.subclass && typeof data.subclass === 'object'){
+            for(const subSrcMap of Object.values(data.subclass)){
+              for(const [className, subclassMap] of Object.entries(subSrcMap)){
+                const classLc = className.toLowerCase();
+                for(const subclassSrcMap of Object.values(subclassMap)){
+                  for(const subclassName of Object.keys(subclassSrcMap)){
+                    const key = `${classLc}|${subclassName.toLowerCase()}`;
+                    if(!_sheetSubclassSpellSets[key]) _sheetSubclassSpellSets[key] = new Set();
+                    _sheetSubclassSpellSets[key].add(normKey);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch(e){ console.warn('[sheet] spell lookup failed:', e); }
+
+  // Load spell data
   for(const f of _SPL_FILES){
     try{
       const r = await fetch(_SPL_BASE+f);
@@ -5343,7 +5389,7 @@ async function _loadSheetSpells(){
       const d = await r.json();
       (d.spell||[]).forEach(s=>{
         if(_SPL_ALLOWED.has(s.source) && !sheetSpellDb.find(x=>x.name===s.name))
-          sheetSpellDb.push(s);
+          sheetSpellDb.push(typeof adaptSpellRecord === 'function' ? adaptSpellRecord(s) : s);
       });
     } catch(e){}
   }
@@ -5454,7 +5500,24 @@ function _renderPickerList(){
   if(!el || !sheetSpellDb) return;
   const q = (document.getElementById('spl-q')?.value||'').toLowerCase().trim();
   const lv = _splFilter.level;
-  let list = sheetSpellDb.filter(s=>s.level===lv);
+  // Build lookup keys for class + subclass filter
+  const _clsKeys = [];
+  const _subKeys = [];
+  const _addFilterKeys = (clsName, subName) => {
+    if(!clsName) return;
+    _clsKeys.push(clsName.toLowerCase());
+    if(subName) _subKeys.push(`${clsName.toLowerCase()}|${subName.toLowerCase()}`);
+  };
+  _addFilterKeys(C?.className, C?.subclassShortName);
+  for(const ec of (C?.extraClasses||[])) _addFilterKeys(ec.name, ec.subclassShortName);
+  const _hasLookup = _sheetClassSpellSets && Object.keys(_sheetClassSpellSets).length > 0;
+  let list = sheetSpellDb.filter(s => {
+    if(s.level !== lv) return false;
+    if(!_hasLookup || !_clsKeys.length) return true;
+    const sk = _normSpellKey(s.name);
+    return _clsKeys.some(k => _sheetClassSpellSets[k]?.has(sk))
+        || _subKeys.some(k => _sheetSubclassSpellSets[k]?.has(sk));
+  });
   if(q) list = list.filter(s=>s.name.toLowerCase().includes(q));
   list.sort((a,b)=>a.name.localeCompare(b.name));
   list = list.slice(0,80);
