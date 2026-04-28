@@ -7,6 +7,7 @@
 const ADAPTER_MANIFEST = [
   // ── Costanti condivise ───────────────────────────────────
   'adapters/spell-slots.js',
+  'adapters/spellcasting-utils.js',
 
   // ── Classi ──────────────────────────────────────────────
   'adapters/classes/core.js',

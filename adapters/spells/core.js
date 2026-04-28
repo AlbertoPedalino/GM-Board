@@ -107,6 +107,7 @@
     spell.castingTime  = _normalizeCastingTime(raw.time);
     spell.durationText = _normalizeDuration(raw.duration);
     spell.concentration = _isConcentration(raw.duration);
+    spell.ritual        = !!(raw.ritual || (raw.meta && raw.meta.ritual));
 
     // Merge overlay data dall'adapter (cantrips.js / spells.js)
     var adapterData = null;

@@ -48,6 +48,7 @@
       preparedMode: "prepared",
       cantripKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
       preparedFormula: { ability: "wis", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
+      ritualCasting: true,
       choiceSpellSources: {
         cleric_thaumaturge_cantrip: { label: "Divine Order (Thaumaturge)", ability: "wis" },
       },
@@ -61,6 +62,7 @@
       preparedMode: "prepared",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
       preparedFormula: { ability: "wis", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
+      ritualCasting: true,
       choiceSpellSources: {
         druid_magician_cantrip: { label: "Primal Order (Magician)", ability: "wis" },
       },
@@ -127,6 +129,7 @@
       preparedMode: "prepared",
       cantripKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
       preparedFormula: { ability: "int", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
+      ritualCasting: true,
       choiceSpellSources: {
         wizard_spell_mastery_l1: { label: "Spell Mastery (Lv.18)", ability: "int" },
         wizard_spell_mastery_l2: { label: "Spell Mastery (Lv.18)", ability: "int" },
@@ -142,6 +145,8 @@
       casterProgression: "artificer",
       preparedMode: "prepared",
       preparedFormula: { ability: "int", addLevel: true, levelDivisor: 2, levelRound: "ceil", min: 1 },
+      cantripKnown: [2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3],
+      ritualCasting: true,
     },
   });
 

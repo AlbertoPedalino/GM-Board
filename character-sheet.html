@@ -2626,33 +2626,10 @@ function _sheetClassEntities(){
   return out;
 }
 function _sheetSpellcastingProfile(className, subclassShortName, clsSnapshot){
-  const classCfg = _sheetGetClassRuntimeConfig(className);
-  const subCfg = _sheetGetSubclassRuntimeConfig(className, subclassShortName);
-  const classSp = classCfg?.spellcasting && typeof classCfg.spellcasting === 'object' ? classCfg.spellcasting : {};
-  const subSp = subCfg?.spellcasting && typeof subCfg.spellcasting === 'object' ? subCfg.spellcasting : {};
-  const merged = { ...classSp, ...subSp };
-  if (!merged.casterProgression && clsSnapshot?.casterProgression) merged.casterProgression = clsSnapshot.casterProgression;
-  return merged;
+  return getSpellcastingProfile(className, subclassShortName, clsSnapshot);
 }
-function _sheetCasterProgression(v){
-  const s = String(v || '').toLowerCase().trim();
-  if (!s) return null;
-  if (s === 'full') return 'full';
-  if (s === 'half' || s === '1/2') return 'half';
-  if (s === 'artificer') return 'artificer';
-  if (s === 'pact') return 'pact';
-  if (s === '1/3' || s === 'third') return '1/3';
-  return s;
-}
-function _sheetCasterContribution(prog, level){
-  const lv = Number(level || 0);
-  if (!Number.isFinite(lv) || lv <= 0) return 0;
-  if (prog === 'full') return lv;
-  if (prog === 'half') return Math.floor(lv / 2);
-  if (prog === 'artificer') return Math.ceil(lv / 2);
-  if (prog === '1/3') return Math.floor(lv / 3);
-  return 0;
-}
+function _sheetCasterProgression(v){ return normCasterProg(v); }
+function _sheetCasterContribution(prog, level){ return getCasterContribution(prog, level); }
 function _sheetCollectChoiceSpellSourceMeta(){
   const out = {};
   const merge = (obj) => {
@@ -2686,14 +2663,7 @@ function _sheetPreparedCountFromFormula(spellProfile, level){
   if (!f || typeof f !== 'object') return null;
   const ab = String(f.ability || '').toLowerCase();
   if (!STATS.includes(ab)) return null;
-  const sm = getMod(getFinal(ab));
-  const divisor = Number(f.levelDivisor || 1) || 1;
-  const rawLv = Number(level || 1) / divisor;
-  const lvTerm = String(f.levelRound || 'floor') === 'ceil' ? Math.ceil(rawLv) : Math.floor(rawLv);
-  const addLv = f.addLevel ? lvTerm : 0;
-  const min = Number(f.min || 0);
-  const total = sm + addLv;
-  return Number.isFinite(min) ? Math.max(min, total) : total;
+  return applyPreparedFormula(f, getMod(getFinal(ab)), level);
 }
 
 function _applySheetFeatureFilters(className, subclassShortName, features, ctx){
@@ -3452,6 +3422,7 @@ function renderSpellsTab(){
   if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length && !Object.values(choiceSpellsByLevel).flat().length){
     h+='<div class="phmsg">No spells selected.</div>';
   }
+
   h+='<div style="margin-top:.75rem"><button class="spl-add-btn" onclick="openSpellPicker()">+ Add / Remove Spell</button></div>';
   el.innerHTML = h;
   refreshIcons();
@@ -5471,28 +5442,21 @@ function _getCasterClasses(){
   return out;
 }
 
-function _clsMaxCastLevel(cls){
-  const lv = Math.min(cls.lv, 20);
-  const prog = cls.prog;
-  const PACT_LV=[0,1,1,2,2,3,3,4,4,5,5,5,5,5,5,5,5,5,5,5,5];
-  if(prog==='pact') return PACT_LV[lv];
-  const slots = prog==='full' ? FULL_SLOTS[lv]
-    : (prog==='1/2'||prog==='half'||prog==='artificer') ? HALF_SLOTS[lv] : null;
-  if(!slots) return 0;
-  let max=0; for(let i=0;i<slots.length;i++) if(slots[i]>0) max=i+1;
-  return max;
-}
+function _clsMaxCastLevel(cls){ return getMaxCastableLevel(cls.prog, cls.lv); }
 
 // Per-class spell/cantrip limit for picker
 function _clsSpellLimit(cls, isCantrip){
-  const p = _sheetSpellcastingProfile(cls.clsName, cls.scName, cls.clsSnap);
+  const p = getSpellcastingProfile(cls.clsName, cls.scName, cls.clsSnap);
+  if(!p.casterProgression) return { max: null, current: 0 };
   let m = null;
-  if(p?.casterProgression){
-    if(isCantrip){
-      m = p.cantripKnown?.[cls.lv-1]??null;
-    } else {
-      if(Array.isArray(p.spellsKnown)) m = p.spellsKnown[cls.lv-1]??null;
-      else { const prep = _sheetPreparedCountFromFormula(p, cls.lv); if(prep!=null) m = prep; }
+  if(isCantrip){
+    m = p.cantripKnown?.[cls.lv-1]??null;
+  } else {
+    if(Array.isArray(p.spellsKnown)) m = p.spellsKnown[cls.lv-1]??null;
+    else if(p.preparedFormula){
+      const ab = String(p.preparedFormula.ability||'').toLowerCase();
+      if(typeof STATS!=='undefined'&&STATS.includes(ab))
+        m = applyPreparedFormula(p.preparedFormula, getMod(getFinal(ab)), cls.lv);
     }
   }
   const bucket = cls.isPrimary ? C : cls.ec;
