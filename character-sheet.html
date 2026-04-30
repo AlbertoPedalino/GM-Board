@@ -470,6 +470,29 @@
       padding:2px 7px;border-radius:3px;border:1px solid var(--bdr2);
       color:var(--text2);margin:2px;
     }
+    .inspiration-block {
+      min-width:90px;max-width:110px;
+      background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);
+      padding:.4rem .62rem;cursor:pointer;transition:border-color .15s,background .15s;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+      user-select:none;
+    }
+    .inspiration-block:hover { border-color:var(--gold) }
+    .inspiration-block.active { border-color:var(--gold);background:var(--gdim);box-shadow:0 0 10px rgba(202,165,80,.2) }
+    .insp-star { font-size:20px;line-height:1;transition:all .15s }
+    .inspiration-block.active .insp-star { filter:drop-shadow(0 0 6px rgba(202,165,80,.6)) }
+    /* Weight bar in inv-stat-row */
+    .inv-weight-bar-wrap { width:100%;margin-top:.3rem }
+    .inv-weight-track {
+      height:6px;background:var(--bg4);border-radius:3px;
+      position:relative;overflow:hidden;margin-bottom:2px;
+    }
+    .inv-weight-fill { position:absolute;top:0;left:0;height:100%;border-radius:3px;transition:width .3s,background .3s }
+    .inv-weight-mark { position:absolute;top:0;width:2px;height:100%;background:rgba(0,0,0,.4) }
+    .inv-enc-badge {
+      display:inline-block;font-size:var(--fs-label);font-family:var(--ff-display);
+      font-weight:700;padding:1px 7px;border-radius:3px;
+    }
 
     /* ─── TABS ─── */
     .tabs-bar {
@@ -1217,19 +1240,17 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     <!-- Top info row -->
     <div class="right-top-row">
-      <div class="circle-stat clickable" onclick="rollInitiative()" title="Roll Initiative">
-        <div class="circle-stat-val" id="init-val">+0</div>
-        <div class="circle-stat-lbl">Initiative</div>
+      <div class="inspiration-block" onclick="rollInitiative()" title="Roll Initiative">
+        <div class="insp-star" id="init-val">+0</div>
+        <div class="block-title" style="margin-bottom:0;text-align:center">Initiative</div>
       </div>
-      <div class="ac-shield">
-        <svg viewBox="0 0 72 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M36 4 L68 18 L68 44 C68 60 52 74 36 78 C20 74 4 60 4 44 L4 18 Z"
-            fill="rgba(35,32,25,.8)" stroke="rgba(180,150,90,.45)" stroke-width="1.5"/>
-        </svg>
-        <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:1">
-          <div class="circle-stat-val" id="ac-val">10</div>
-          <div class="circle-stat-lbl">AC</div>
-        </div>
+      <div class="inspiration-block" style="cursor:default">
+        <div class="insp-star" id="ac-val">10</div>
+        <div class="block-title" style="margin-bottom:0;text-align:center">AC</div>
+      </div>
+      <div class="inspiration-block" id="inspiration-block" onclick="toggleInspirationSheet()" title="Toggle Inspiration">
+        <div class="insp-star" id="insp-star">✦</div>
+        <div class="block-title" style="margin-bottom:0;text-align:center" id="insp-label">No Insp.</div>
       </div>
       <div class="defenses-block" id="defenses-block">
         <div class="block-title">Defenses</div>
@@ -1432,6 +1453,8 @@ let usedHD = 0;
 let spellSlotUsed = {}; // {lvl: count}
 let sheetInventory = []; // live inventory for this session
 let sheetCurrency = { cp:0, sp:0, ep:0, gp:10, pp:0 };
+let sheetInspiration = false;
+let cachedEncLevel = 0; // 0=ok, 1=encumbered, 2=heavily — recomputed once per inventory change
 let allItemsDb = []; // loaded from 5etools
 let invFilter = 'all';
 let activeConditions = [];
@@ -1658,9 +1681,11 @@ function renderAll(){
   // Load inventory & currency from localStorage (builder saves these separately too)
   try { sheetInventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(C.inventory||[])); } catch(e){ sheetInventory = C.inventory||[]; }
   try { sheetCurrency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(C.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})); } catch(e){ sheetCurrency = {cp:0,sp:0,ep:0,gp:10,pp:0}; }
+  sheetInspiration = localStorage.getItem('5e_inspiration') === 'true' || C?.inspiration || false;
   loadConditionsState();
   loadResources();
 
+  getEncumberedLevel();
   renderTopBar();
   renderStatsRow();
   renderSaves();
@@ -1818,7 +1843,8 @@ function renderStatsRow(){
   const oldStatsEl = document.getElementById('stats-row');
   const pb = getPB();
   const spd = C.speciesSnapshot?.speed||30;
-  const spdVal = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
+  const spdBase = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
+  const spdVal = cachedEncLevel === 1 ? 5 : spdBase;
   const scoresHtml = STATS.map(s => {
     const val = getFinal(s);
     const mod = getMod(val);
@@ -1838,9 +1864,9 @@ function renderStatsRow(){
         <div class="stat-box-val">${fbonus(pb)}</div>
         <div class="stat-box-lbl">Prof. Bonus</div>
       </div>
-      <div class="stat-box">
-        <div class="stat-box-val">${spdVal} ft.</div>
-        <div class="stat-box-lbl">Speed</div>
+      <div class="stat-box" title="${cachedEncLevel===1?`Base ${spdBase} ft — Over Capacity`:''}">
+        <div class="stat-box-val" style="${cachedEncLevel===1?'color:var(--red2)':''}">${spdVal} ft.</div>
+        <div class="stat-box-lbl">Speed${cachedEncLevel===1?'<br><span style="color:var(--red2);font-size:6px">5 ft</span>':''}</div>
       </div>
     </div>
     ${buildHPBlock()}
@@ -2336,6 +2362,10 @@ function cycleSkillAdv(name){
 
 function renderSkills(){
   const el = document.getElementById('skills-body');
+  if(!el) return;
+  const inv = _resolvedInventory();
+  const equippedArmor = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
+  const hasStealthDis = equippedArmor && (equippedArmor.type === 'HA' || (equippedArmor.property||[]).includes('S'));
   const isJoat = _sheetClassEntities().some(ent => {
     const classMin = Number(_sheetGetClassRuntimeConfig(ent.className)?.skillRules?.jackOfAllTradesMinLevel || 0);
     const subMin = Number(_sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName)?.skillRules?.jackOfAllTradesMinLevel || 0);
@@ -2346,20 +2376,22 @@ function renderSkills(){
     const ptype = getSkillProficiency(sk.n);
     const dotCls = ptype==='exp'?' exp':ptype==='prof'?' prof':(isJoat&&!ptype)?' joat':'';
     const adv = skillAdv[sk.n]||null;
+    const armorDis = hasStealthDis && sk.n === 'Stealth';
     const advBadge = adv==='adv'
       ? `<span class="adv-badge adv" title="Advantage">ADV</span>`
       : adv==='disadv'
       ? `<span class="adv-badge disadv" title="Disadvantage">DIS</span>`
       : '';
+    const armorBadge = armorDis ? `<span class="adv-badge disadv" title="Disadvantage (Heavy Armor)">D</span>` : '';
     const safeN = sk.n.replace(/'/g,"\\'");
     return `<div class="skill-row"
       onclick="rollSkill('${safeN}',${bonus},'${adv||''}')"
       oncontextmenu="event.preventDefault();cycleSkillAdv('${safeN}')"
-      title="Click: roll | Right-click: advantage/disadvantage">
+      title="Click: roll | Right-click: advantage/disadvantage${armorDis?' | Disadvantage (Heavy Armor)':''}">
       <div class="skill-dot${dotCls}"></div>
       <span class="skill-ability">${SLBL[sk.a]}</span>
       <span class="skill-name">${esc(sk.n)}</span>
-      ${advBadge}
+      ${advBadge}${armorBadge}
       <span class="skill-bonus">${fbonus(bonus)}</span>
     </div>`;
   }).join('');
@@ -2372,6 +2404,13 @@ function rollSkill(name, bonus, adv){
 function rollInitiative(){
   const initMod = getMod(getFinal('dex'));
   rollD20(initMod, 'Initiative');
+}
+
+function getEncumberedLevel(){
+  const tw = sheetInventory.reduce((s,i) => s + (_resolveInvItem(i).weight||0)*(i.qty||1), 0);
+  const str = getFinal('str');
+  cachedEncLevel = tw > str*15 ? 1 : 0;
+  return cachedEncLevel;
 }
 
 function renderRightTop(){
@@ -2429,6 +2468,35 @@ function renderRightTop(){
   if(!items.length){ defEl.innerHTML='<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
   renderConditions();
+  renderInspirationSheet();
+}
+
+function refreshEncumberedUI(){
+  const prev = cachedEncLevel;
+  getEncumberedLevel();
+  if(cachedEncLevel === prev) return;
+  renderStatsRow();
+  renderActionsTab();
+}
+
+function renderInspirationSheet(){
+  const block = document.getElementById('inspiration-block');
+  const label = document.getElementById('insp-label');
+  if(!block||!label) return;
+  if(sheetInspiration){
+    block.classList.add('active');
+    label.textContent = 'Inspired!';
+    label.style.color = 'var(--gold2)';
+  } else {
+    block.classList.remove('active');
+    label.textContent = 'No Insp.';
+    label.style.color = '';
+  }
+}
+function toggleInspirationSheet(){
+  sheetInspiration = !sheetInspiration;
+  localStorage.setItem('5e_inspiration', String(sheetInspiration));
+  renderInspirationSheet();
 }
 
 /* ═══════════════ ACTIONS SYSTEM ═══════════════ */
@@ -3747,6 +3815,7 @@ function renderItemSearch(){
     const srcLabel = SOURCE_LABELS[item.source]||item.source||'';
     const payload = encodeURIComponent(JSON.stringify({
       name:item.name, source:item.source,
+      type:item.type||null, weight:item.weight??null, ac:item.ac??null,
       bonusWeapon:item.bonusWeapon||null, bonusAc:item.bonusAc||null,
     })).replace(/'/g,'%27');
     return `<div class="inv-search-row" onclick="addItemToInventory(decodeURIComponent('${payload}'))">
@@ -3772,8 +3841,10 @@ function addItemToInventory(jsonStr){
     sheetInventory.push({
       name:item.name, source:item.source||'',
       qty:1, equipped:false, custom:false,
-      type: item.type || db.type || null,
-      ac:   item.ac   ?? db.ac   ?? null,
+      type:     item.type     ?? db.type     ?? null,
+      ac:       item.ac       ?? db.ac       ?? null,
+      weight:   item.weight   ?? db.weight   ?? null,
+      property: item.property ?? db.property ?? null,
       bonusWeapon:item.bonusWeapon||db.bonusWeapon||null,
       bonusAc:item.bonusAc||db.bonusAc||null,
     });
@@ -3854,6 +3925,7 @@ function toggleEquip(idx){
     sheetInventory.forEach((i,n)=>{ if(n!==idx&&(resolvedTypes[n]||i.type||'')==='S') i.equipped=false; });
   item.equipped = !item.equipped;
   persistInventory();
+  renderSkills();
   renderInventoryList();
   renderActionsTab();
   const acEl = document.getElementById('ac-val');
@@ -3881,9 +3953,9 @@ function renderCurrency(){
   const el = document.getElementById('currency-row');
   if(!el) return;
   const coins=[
-    {k:'cp',label:'Rame',color:'#b87333'},{k:'sp',label:'Argento',color:'#aaa'},
-    {k:'ep',label:'Electrum',color:'#888'},{k:'gp',label:'Oro',color:'var(--gold)'},
-    {k:'pp',label:'Platino',color:'#e0e0ff'},
+    {k:'cp',label:'Copper',color:'#b87333'},{k:'sp',label:'Silver',color:'#aaa'},
+    {k:'ep',label:'Electrum',color:'#888'},{k:'gp',label:'Gold',color:'var(--gold)'},
+    {k:'pp',label:'Platinum',color:'#e0e0ff'},
   ];
   el.innerHTML=coins.map(c=>`
     <div class="currency-cell">
@@ -3923,10 +3995,35 @@ function renderInventoryList(){
   const totalWeight = resolved.reduce((s,{item})=>s+(item.weight||0)*(item.qty||1),0).toFixed(1);
   const totalGP = resolved.reduce((s,{item})=>s+((item.value||0)/100)*(item.qty||1),0).toFixed(1);
   if(countEl) countEl.textContent=totalItems;
-  if(statsEl) statsEl.innerHTML=`
-    <div class="inv-stat-pill">Weight: <b>${totalWeight} lb</b></div>
-    <div class="inv-stat-pill">Capacity: <b>${getFinal('str')*15} lb</b></div>
-    <div class="inv-stat-pill">Value: <b>${totalGP} GP</b></div>`;
+  if(statsEl){
+    const strScore = getFinal('str');
+    const maxCarry = strScore * 15;
+    const tw = parseFloat(totalWeight);
+    const pct = maxCarry > 0 ? Math.min(100, tw / maxCarry * 100) : 0;
+    const isOver = tw > maxCarry;
+    const barColor = isOver ? 'var(--red2)' : 'var(--green)';
+    const statusText = isOver ? '✕ Over Capacity' : '✓ OK';
+    const statusBg = isOver ? 'var(--redbg)' : 'var(--gbg)';
+    const statusColor = isOver ? 'var(--red2)' : 'var(--green)';
+    const penaltyHtml = isOver
+      ? `<div style="margin-top:3px;font-size:var(--fs-label);color:${statusColor};line-height:1.4">• Speed 5 ft</div>`
+      : '';
+    statsEl.innerHTML=`
+      <div class="inv-stat-pill">Weight: <b>${totalWeight} / ${maxCarry} lb</b></div>
+      <div class="inv-stat-pill">Value: <b>${totalGP} GP</b></div>
+      <div style="width:100%;margin-top:.3rem">
+        <div class="inv-weight-track">
+          <div class="inv-weight-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-label)">
+          <span style="color:var(--text3);font-family:var(--ff-display)">${tw.toFixed(1)} / ${maxCarry} lb</span>
+          <span class="inv-enc-badge" style="background:${statusBg};color:${statusColor}">${statusText}</span>
+        </div>
+        ${penaltyHtml}
+      </div>`;
+  }
+  renderSkills();
+  refreshEncumberedUI();
   if(!resolved.length){ el.innerHTML='<div class="phmsg">Inventory empty.</div>'; return; }
   const groupDefs = [
     {g:'weapon',label:`${luci('swords')} Weapons`},{g:'armor',label:`${luci('shield')} Armor`},
@@ -3980,7 +4077,7 @@ function renderInventoryList(){
           <div class="inv-qty-val">${item.qty||1}</div>
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},1)">+</button>
         </div>
-        <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Rimuovi">${luci('trash-2')}</button>
+        <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Remove">${luci('trash-2')}</button>
       </div>
       ${entryText?`<div id="${iid}" class="inv-entry-body">${entryText}…</div>`:''}`;
     }
@@ -5197,7 +5294,6 @@ function buildCantripCard(name){
   const hitStr = toHit ? fbonus(atkBonus) : hasSave ? `CD ${saveDC}` : '';
   const notes = known?.notes || '';
   const lv5note = dmgFormula ? 'x5/11/17' : '';
-
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr">
       <span class="action-card-icon">${luci(icon)}</span>
@@ -5710,7 +5806,7 @@ function goBackToBuilder(e) {
 function downloadSheet() {
   try {
     // Bundle all 5e_ keys so the downloaded file is fully self-contained
-    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_hp_step','5e_death_saves','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state'];
+    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_hp_step','5e_death_saves','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state','5e_inspiration'];
     const data = {};
     keys.forEach(k => { const v = localStorage.getItem(k); if (v != null) data[k] = v; });
     const safeJson = JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');

@@ -1936,6 +1936,55 @@
       margin-bottom: .75rem;
     }
 
+    /* ── WEIGHT BAR ── */
+    .weight-bar-wrap {
+      margin-bottom: .6rem;
+      font-style: normal;
+    }
+    .weight-bar-track {
+      height: 8px;
+      background: var(--bg4);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 3px;
+    }
+    .weight-bar-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      border-radius: 4px;
+      transition: width .3s, background .3s;
+    }
+    .weight-bar-marker {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    .weight-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--fs-caption);
+      color: var(--text3);
+      font-family: var(--ff-display);
+      margin-top: 2px;
+    }
+    .weight-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: var(--fs-ui-sm);
+      font-family: var(--ff-display);
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+
     .currency-cell {
       background: var(--bg3);
       border: 1px solid var(--bdr);
@@ -2358,10 +2407,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             </div>
           </div>
 
-          <!-- Inventario personale -->
+          <!-- Personal Inventory -->
           <div class="panel">
             <div class="ph">
-              <span class="pt">${luci('backpack')} Inventario</span>
+              <span class="pt">${luci('backpack')} Inventory</span>
               <span id="inv-weight-label" class="ph-note"></span>
             </div>
             <div class="pb">
@@ -4591,7 +4640,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       renderEquipPanel();
-      renderInventoryList(); // <-- Aggiungi questa riga per aggiornare visivamente l'Inventario
+      renderInventoryList();
       renderPreview();
     }
 
@@ -7038,8 +7087,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       char.equipChoices = state.equipChoices || {};
       char.selectedCantrips = state.selectedCantrips || [];
       char.selectedSpells = state.selectedSpells || {};
-      char.inventory = state.inventory || [];
-      char.currency = state.currency || { cp:0,sp:0,ep:0,gp:10,pp:0 };
+      try { char.inventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(state.inventory || [])); } catch(e) { char.inventory = state.inventory || []; }
+      try { char.currency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(state.currency || {cp:0,sp:0,ep:0,gp:10,pp:0})); } catch(e) { char.currency = state.currency || {cp:0,sp:0,ep:0,gp:10,pp:0}; }
       char.xp = state.xp || 0;
 
       if (state.className && state.classSource) {
@@ -7820,10 +7869,36 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const el = document.getElementById('inv-list');
       if (!el) return;
       const totalWeight = char.inventory.reduce((s, i) => s + (i.weight || 0) * (i.qty || 1), 0);
-      const wl = document.getElementById('inv-weight-label');
-      if (wl) wl.textContent = totalWeight > 0 ? `${totalWeight.toFixed(1)} lb` : '';
 
-      if (!char.inventory.length) { el.innerHTML = '<div class="phmsg">Nessun oggetto. Cerca e aggiungi sopra.</div>'; return; }
+      // Weight bar
+      const strScore = getFinal('str');
+      const maxCarry = strScore * 15;
+      const pct = maxCarry > 0 ? Math.min(100, totalWeight / maxCarry * 100) : 0;
+      const isOver = totalWeight > maxCarry;
+      const barColor = isOver ? 'var(--red2)' : 'var(--green)';
+      const statusText = isOver ? '✕ Over Capacity' : '✓ OK';
+      const statusBg = isOver ? 'var(--redbg)' : 'var(--greenbg)';
+      const statusColor = isOver ? 'var(--red2)' : 'var(--green)';
+      const wl = document.getElementById('inv-weight-label');
+      if (wl) {
+        const weightDisplay = `${totalWeight.toFixed(1)} / ${maxCarry} lb`;
+        const penaltyHtml = isOver
+          ? `<div style="margin-top:4px;font-size:var(--fs-caption);color:${statusColor};font-family:var(--ff-body);font-style:normal;line-height:1.4">• Speed 5 ft</div>`
+          : '';
+        wl.innerHTML = `
+          <div class="weight-bar-wrap" style="min-width:180px">
+            <div class="weight-bar-track">
+              <div class="weight-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+            </div>
+            <div class="weight-bar-labels">
+              <span>${weightDisplay}</span>
+              <span class="weight-status-badge" style="background:${statusBg};color:${statusColor}">${statusText}</span>
+            </div>
+            ${penaltyHtml}
+          </div>`;
+      }
+
+      if (!char.inventory.length) { el.innerHTML = '<div class="phmsg">No items. Search and add above.</div>'; return; }
 
       el.innerHTML = char.inventory.map((item, idx) => {
         const typeLabel = ITEM_TYPE_LABELS[item.type] || item.type || '';
@@ -7856,6 +7931,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!char.currency) char.currency = { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 };
       char.currency[coin] = parseInt(val) || 0;
     }
+
 
     /* ════════════════════════════════════ INIT */
     loadClassIndex();
