@@ -17,6 +17,12 @@
     }
   }
 
+  // XPHB 2024 fixed prepared-spell tables (source: 5etools class JSON)
+  const _PREP_FULL    = [4,5,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22];
+  const _PREP_WIZARD  = [4,5,6,7,9,10,11,12,14,15,16,16,17,18,19,21,22,23,24,25];
+  const _PREP_HALF    = [2,3,4,5,6,6,7,7,9,9,10,10,11,11,12,12,14,14,15,15];
+  const _PREP_THIRD   = [0,0,3,4,4,4,5,6,6,7,8,8,9,10,10,11,11,11,12,13];
+
   regClass("Barbarian", {
     multiclassPrerequisites: [{ str: 13 }],
     unarmoredDefense: [{ base: 10, abilities: ["dex", "con"], allowShield: true, minLevel: 1 }],
@@ -29,6 +35,7 @@
       preparedMode: "known",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
       spellsKnown: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 19, 20, 22, 22, 22],
+      preparedSpellsProgression: _PREP_FULL,
     },
     skillRules: { jackOfAllTradesMinLevel: 2 },
     featureDice: {
@@ -47,6 +54,7 @@
       casterProgression: "full",
       preparedMode: "prepared",
       cantripKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+      preparedSpellsProgression: _PREP_FULL,
       preparedFormula: { ability: "wis", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
       ritualCasting: true,
       choiceSpellSources: {
@@ -61,6 +69,7 @@
       casterProgression: "full",
       preparedMode: "prepared",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+      preparedSpellsProgression: _PREP_FULL,
       preparedFormula: { ability: "wis", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
       ritualCasting: true,
       choiceSpellSources: {
@@ -81,6 +90,7 @@
       ability: "cha",
       casterProgression: "half",
       preparedMode: "prepared",
+      preparedSpellsProgression: _PREP_HALF,
       preparedFormula: { ability: "cha", addLevel: true, levelDivisor: 2, levelRound: "floor", min: 1 },
     },
   });
@@ -91,6 +101,7 @@
       casterProgression: "half",
       preparedMode: "known",
       spellsKnown: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11],
+      preparedSpellsProgression: _PREP_HALF,
     },
   });
   regClass("Rogue", {
@@ -128,6 +139,7 @@
       casterProgression: "full",
       preparedMode: "prepared",
       cantripKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+      preparedSpellsProgression: _PREP_WIZARD,
       preparedFormula: { ability: "int", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
       ritualCasting: true,
       choiceSpellSources: {
@@ -144,6 +156,7 @@
       ability: "int",
       casterProgression: "artificer",
       preparedMode: "prepared",
+      preparedSpellsProgression: _PREP_HALF,
       preparedFormula: { ability: "int", addLevel: true, levelDivisor: 2, levelRound: "ceil", min: 1 },
       cantripKnown: [2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3],
       ritualCasting: true,
@@ -171,6 +184,7 @@
     spellcasting: {
       ability: "int",
       casterProgression: "1/3",
+      preparedSpellsProgression: _PREP_THIRD,
       choiceSpellSources: {
         subclass_ek_cantrip_1: { label: "Eldritch Knight", ability: "int" },
         subclass_ek_cantrip_2: { label: "Eldritch Knight", ability: "int" },
@@ -181,6 +195,7 @@
     spellcasting: {
       ability: "int",
       casterProgression: "1/3",
+      preparedSpellsProgression: _PREP_THIRD,
       choiceSpellSources: {
         subclass_at_cantrip_1: { label: "Arcane Trickster", ability: "int" },
         subclass_at_cantrip_2: { label: "Arcane Trickster", ability: "int" },

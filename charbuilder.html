@@ -2359,6 +2359,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 <button class="score-tab on" onclick="setScoreMethod('pointbuy')">Point Buy</button>
                 <button class="score-tab" onclick="setScoreMethod('standard')">Standard Array</button>
                 <button class="score-tab" onclick="setScoreMethod('dice')">Roll Dice</button>
+                <button class="score-tab" onclick="setScoreMethod('manual')">Manuale</button>
               </div>
               <div id="scores-ui"></div>
             </div>
@@ -2542,6 +2543,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       pbScores: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 },
       arrAssign: { str: null, dex: null, con: null, int: null, wis: null, cha: null },
       dicePool: [], diceAssign: { str: null, dex: null, con: null, int: null, wis: null, cha: null },
+      manualScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
       selPoolVal: null, selDiceIdx: null,
       choices: {},        // unico oggetto per tutte le scelte (feat, optfeat, option, expertise, spell grants)
       equipChoices: {},
@@ -5961,6 +5963,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let base = 8;
       if (char.scoreMethod === 'pointbuy') base = char.pbScores[stat];
       else if (char.scoreMethod === 'standard') { const v = char.arrAssign[stat]; base = v !== null ? v : 8; }
+      else if (char.scoreMethod === 'manual') { const v = char.manualScores?.[stat]; base = v != null ? v : 8; }
       else { const v = char.diceAssign[stat]; base = v !== null ? v : 8; }
       return base + bgBonus(stat) + getAsiFeatBonus(stat);
     }
@@ -5968,13 +5971,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     function setScoreMethod(m) {
       char.scoreMethod = m;
-      document.querySelectorAll('.score-tab').forEach((t, i) => t.classList.toggle('on', ['pointbuy', 'standard', 'dice'][i] === m));
+      document.querySelectorAll('.score-tab').forEach((t, i) => t.classList.toggle('on', ['pointbuy', 'standard', 'dice', 'manual'][i] === m));
       renderScoreUI();
     }
     function renderScoreUI() {
       const el = document.getElementById('scores-ui');
       if (char.scoreMethod === 'pointbuy') renderPB(el);
       else if (char.scoreMethod === 'standard') renderStd(el);
+      else if (char.scoreMethod === 'manual') renderManual(el);
       else renderDice(el);
       renderPreviewScores();
       renderSpellPanel();
@@ -6098,6 +6102,43 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function selDice(i) { char.selDiceIdx = char.selDiceIdx === i ? null : i; renderScoreUI(); }
     function assDice(stat) { if (char.selDiceIdx === null) return; char.diceAssign[stat] = char.dicePool[char.selDiceIdx]; char.dicePool.splice(char.selDiceIdx, 1); char.selDiceIdx = null; renderScoreUI(); }
     function unDice(stat) { if (char.diceAssign[stat] !== null) { char.dicePool.push(char.diceAssign[stat]); char.diceAssign[stat] = null; } renderScoreUI(); }
+
+    /* Manual */
+    function renderManual(el) {
+      if (!char.manualScores) char.manualScores = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
+      let h = `<p style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.5rem">Inserisci liberamente i valori delle caratteristiche (1–30).</p><div class="score-grid">`;
+      for (const s of STATS) {
+        const base = char.manualScores[s] ?? 10;
+        const bon = bgBonus(s), featBon = getAsiFeatBonus(s), fin = base + bon + featBon;
+        h += `<div class="score-cell">
+          <div class="score-label">${SLBL[s]}</div>
+          <input type="number" min="1" max="30" value="${base}"
+            style="width:52px;text-align:center;background:var(--bg1);border:1px solid var(--bdr2);border-radius:var(--r);color:var(--text1);font-family:var(--ff-display);font-size:var(--fs-value);padding:2px 0"
+            oninput="setManual('${s}',this.value,this)" />
+          <div class="score-val" style="margin-top:2px">${fin}</div>
+          <div class="score-mod">${fmod(fin)}</div>
+          ${bon ? `<div class="score-bonus">+${bon} bg</div>` : ''}
+          ${featBon ? `<div class="score-bonus" style="color:var(--purple)">+${featBon} feat</div>` : ''}
+        </div>`;
+      }
+      h += `</div>`;
+      el.innerHTML = h;
+    }
+    function setManual(stat, val, inputEl) {
+      const n = parseInt(val);
+      if (!char.manualScores) char.manualScores = {};
+      char.manualScores[stat] = isNaN(n) ? 8 : Math.max(1, Math.min(30, n));
+      const fin = getFinal(stat);
+      const mod = Math.floor((fin - 10) / 2);
+      const cell = inputEl?.closest('.score-cell');
+      if (cell) {
+        const valEl = cell.querySelector('.score-val');
+        const modEl = cell.querySelector('.score-mod');
+        if (valEl) valEl.textContent = fin;
+        if (modEl) modEl.textContent = (mod >= 0 ? '+' : '') + mod;
+      }
+      renderPreviewScores();
+    }
 
     /* ════════════════════════════════════ PREVIEW */
     function renderPreviewHeader() {
@@ -6487,9 +6528,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         bgName: char.bgName, bgSource: char.bgSource,
         bgAbility: char.bgAbility,
         scoreMethod: char.scoreMethod,
+        hpMode: char.hpMode || 'average',
+        hpManualRolls: { ...char.hpManualRolls },
         pbScores: { ...char.pbScores },
         arrAssign: { ...char.arrAssign },
         diceAssign: { ...char.diceAssign },
+        manualScores: { ...char.manualScores },
         choices: { ...char.choices || {} },
         selectedSkills: skills,
         selectedLanguages: languages,
@@ -6499,6 +6543,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           hd: char.cls?.hd,
           proficiency: char.cls?.proficiency || [],
           casterProgression: char.cls?.casterProgression||(typeof getClassRuntimeConfig==='function'?getClassRuntimeConfig(char.className)?.spellcasting?.casterProgression:null)||null,
+          preparedSpellsProgression: char.cls?.preparedSpellsProgression || null,
+          cantripProgression: char.cls?.cantripProgression || null,
           subclassLevel: char.cls?.subclassLevel || 3,
           subclassTitle: char.cls?.subclassTitle || '',
           startingProficiencies: char.cls?.startingProficiencies || {},

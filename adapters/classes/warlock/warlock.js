@@ -12,8 +12,17 @@ const _INVOCATIONS = [
   'Whispers of the Grave', 'Witch Sight',
 ];
 
-// Progressione slot: [livello_acquisizione, ...]
-// XPHB 2024: 10 total invocations, gained at: lv1(+1), lv2(+2), lv5(+2), lv7(+1), lv9(+1), lv12(+1), lv15(+1), lv18(+1)
+// Check if a character has a specific Eldritch Invocation chosen (works for both sheet C and charbuilder char)
+function _warlockHasInvocation(C, name) {
+  if (!C || !C.choices) return false;
+  return Object.entries(C.choices).some(function(e) {
+    return e[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
+           String(e[1]).split('|')[0].trim() === name;
+  });
+}
+
+// Progressione: [livello_acquisizione, ...]
+// XPHB 2024: 10 total invocations at lv1(+1), lv2(+2), lv5(+2), lv7(+1), lv9(+1), lv12(+1), lv15(+1), lv18(+1)
 const _INV_LEVELS = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
 
 registerClassAdapter("Warlock", function (cls, lv, specs) {
@@ -30,11 +39,10 @@ registerClassAdapter("Warlock", function (cls, lv, specs) {
     }
   });
 
-  // Pact of the Tome: se scelta in una qualsiasi invocazione, aggiunge 3 cantrip da qualsiasi lista
-  var _hasTome = typeof char !== 'undefined' && char.choices && Object.entries(char.choices).some(function (e) {
-    return e[0].startsWith('warlock_invocation_') && e[1] === 'Pact of the Tome';
-  });
-  if (_hasTome) {
+  var _charRef = (typeof char !== 'undefined' && char) ? char : null;
+
+  // Pact of the Tome: 3 cantrips from any list
+  if (_charRef && _warlockHasInvocation(_charRef, 'Pact of the Tome')) {
     [1, 2, 3].forEach(function (n) {
       specs.push({
         key: 'warlock_tome_cantrip_' + n,
@@ -44,6 +52,18 @@ registerClassAdapter("Warlock", function (cls, lv, specs) {
         count: 1,
         level: 1
       });
+    });
+  }
+
+  // Lessons of the First Ones: Origin feat choice
+  if (_charRef && _warlockHasInvocation(_charRef, 'Lessons of the First Ones')) {
+    specs.push({
+      key: 'warlock_lessons_feat',
+      label: 'Lessons of the First Ones — Origin Feat',
+      type: 'feat_cat',
+      categories: ['O'],
+      count: 1,
+      level: 1
     });
   }
 
@@ -59,7 +79,7 @@ registerClassSheetActions("Warlock", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "desc": "Learn 1 invocation at lv.1 (more at odd levels). Key options: Agonizing Blast (add CHA to Eldritch Blast damage), Armor of Shadows (Mage Armor at will), Devil's Sight (see 120 ft in magical darkness), Repelling Blast (push target 10 ft), One with Shadows (Invisible in dim/dark as Action)."
+    "desc": "Learn 1 invocation at lv.1 (more at odd levels). Key passive options: Agonizing Blast (add CHA to EB damage), Devil's Sight (see 120 ft in magical darkness), Eldritch Mind (Adv. on Concentration), Eldritch Spear (EB range 300 ft), Repelling Blast (push 10 ft), Witch Sight (see true forms)."
   },
   {
     "name": "Pact Magic",
@@ -100,6 +120,154 @@ registerClassSheetActions("Warlock", [
     "uses": "1 / LR",
     "minLevel": 20,
     "desc": "Magical Cunning is upgraded: when you use its 1-minute ritual, you regain ALL expended Pact Magic slots (instead of half). Once per Long Rest."
+  },
+
+  // ── INVOCATIONS: spell-granting (at will) ──────────────────────────────────
+
+  {
+    "name": "Armor of Shadows",
+    "icon": "shield",
+    "cat": "action",
+    "uses": "At Will",
+    "condition": function(C) { return _warlockHasInvocation(C, 'Armor of Shadows'); },
+    "desc": "Cast Mage Armor on yourself at will without a spell slot or material components. AC = 13 + DEX modifier. Lasts 8 hours or until you don armor."
+  },
+  {
+    "name": "Fiendish Vigor",
+    "icon": "heart",
+    "cat": "action",
+    "uses": "At Will",
+    "condition": function(C) { return _warlockHasInvocation(C, 'Fiendish Vigor'); },
+    "desc": "Cast False Life on yourself at will without a spell slot or material components, always at 1st level maximum effect: gain 8 Temporary Hit Points."
+  },
+  {
+    "name": "Mask of Many Faces",
+    "icon": "user",
+    "cat": "action",
+    "uses": "At Will",
+    "condition": function(C) { return _warlockHasInvocation(C, 'Mask of Many Faces'); },
+    "desc": "Cast Disguise Self at will without a spell slot. Change clothing, features, height (±1 ft), weight. Investigation DC 16 to see through. Duration: 1 hour."
+  },
+  {
+    "name": "Misty Visions",
+    "icon": "cloud",
+    "cat": "action",
+    "uses": "At Will",
+    "condition": function(C) { return _warlockHasInvocation(C, 'Misty Visions'); },
+    "desc": "Cast Silent Image at will without a spell slot. Create a static visual illusion (15-ft cube) within 60 ft. Investigation DC to disbelieve. Concentration, 10 minutes."
+  },
+  {
+    "name": "Otherworldly Leap",
+    "icon": "move-up",
+    "cat": "action",
+    "uses": "At Will",
+    "condition": function(C) { return _warlockHasInvocation(C, 'Otherworldly Leap'); },
+    "desc": "Cast Jump on yourself at will without a spell slot. Triple your jump distance for 1 minute (no Concentration)."
+  },
+  {
+    "name": "Ascendant Step",
+    "icon": "arrow-up",
+    "cat": "action",
+    "uses": "At Will",
+    "minLevel": 9,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Ascendant Step'); },
+    "desc": "Cast Levitate on yourself at will without a spell slot. Rise or descend up to 20 ft per turn. Concentration, 10 minutes."
+  },
+  {
+    "name": "Master of Myriad Forms",
+    "icon": "refresh-cw",
+    "cat": "action",
+    "uses": "At Will",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Master of Myriad Forms'); },
+    "desc": "Cast Alter Self at will without a spell slot. Choose Aquatic Adaptation, Change Appearance, or Natural Weapon each time you cast. Concentration, 1 hour."
+  },
+  {
+    "name": "Whispers of the Grave",
+    "icon": "skull",
+    "cat": "action",
+    "uses": "At Will",
+    "minLevel": 7,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Whispers of the Grave'); },
+    "desc": "Cast Speak with Dead at will without a spell slot. Ask a corpse up to 5 questions (it can refuse unhelpful answers). Duration: 10 minutes."
+  },
+  {
+    "name": "Visions of Distant Realms",
+    "icon": "eye",
+    "cat": "action",
+    "uses": "At Will",
+    "minLevel": 15,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Visions of Distant Realms'); },
+    "desc": "Cast Arcane Eye at will without a spell slot. Create an invisible magical sensor and perceive through it for 1 hour (Concentration). Move sensor 30 ft per action."
+  },
+
+  // ── INVOCATIONS: other action types ───────────────────────────────────────
+
+  {
+    "name": "One with Shadows",
+    "icon": "moon",
+    "cat": "action",
+    "uses": "Magic Action",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'One with Shadows'); },
+    "desc": "While in Dim Light or Darkness, use the Magic action to become Invisible until you move, take an action, reaction, or bonus action — or until the light level changes."
+  },
+  {
+    "name": "Gift of the Depths",
+    "icon": "waves",
+    "cat": "action",
+    "uses": "1 / LR",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Gift of the Depths'); },
+    "desc": "Passive: swim speed = walking speed, breathe underwater. Once per Long Rest, cast Water Breathing without a slot (up to 10 willing creatures, 24 hours)."
+  },
+  {
+    "name": "Gaze of Two Minds",
+    "icon": "eye",
+    "cat": "bonus",
+    "uses": "Bonus Action",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Gaze of Two Minds'); },
+    "desc": "Bonus Action: touch a willing creature to perceive through its senses for 1 hour. You can perceive through it simultaneously and use its position for spells. Each new use ends the previous one."
+  },
+
+  // ── INVOCATIONS: Pact of the Blade combat upgrades ─────────────────────────
+
+  {
+    "name": "Thirsting Blade",
+    "icon": "swords",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Thirsting Blade') && _warlockHasInvocation(C, 'Pact of the Blade'); },
+    "desc": "Extra Attack: when you take the Attack action, you attack twice instead of once with your Pact Weapon. Requires Pact of the Blade."
+  },
+  {
+    "name": "Devouring Blade",
+    "icon": "swords",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 12,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Devouring Blade') && _warlockHasInvocation(C, 'Thirsting Blade'); },
+    "desc": "Your second Pact Weapon attack (from Thirsting Blade) can target a different creature within 5 ft of the first target. Requires Thirsting Blade."
+  },
+  {
+    "name": "Eldritch Smite",
+    "icon": "zap",
+    "cat": "action",
+    "uses": "On Hit",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Eldritch Smite') && _warlockHasInvocation(C, 'Pact of the Blade'); },
+    "desc": "On Hit: expend a Pact Magic slot when you hit with your Pact Weapon. Deal 1d8 Force per slot level extra damage (+1d8 on a Critical Hit). The target is also knocked Prone if Large or smaller. Requires Pact of the Blade."
+  },
+  {
+    "name": "Lifedrinker",
+    "icon": "droplets",
+    "cat": "attack",
+    "uses": "Passive",
+    "minLevel": 9,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Lifedrinker') && _warlockHasInvocation(C, 'Pact of the Blade'); },
+    "desc": "Passive: when you hit with your Pact Weapon, deal extra Necrotic, Psychic, or Radiant damage (chosen at invocation selection) equal to your CHA modifier (min 1). Requires Pact of the Blade."
   }
 ]);
 // [SheetRuntime] END
@@ -115,10 +283,7 @@ if (typeof registerWeaponAbilityOverride === 'function') {
       const isWarlock = C.className === 'Warlock' ||
         (C.extraClasses || []).some(function (ec) { return ec.name === 'Warlock'; });
       if (!isWarlock) return false;
-      return Object.entries(C.choices || {}).some(function (_ref) {
-        var k = _ref[0], v = _ref[1];
-        return k.replace(/^mc\d+_/, '').startsWith('warlock_invocation_') && String(v).split('|')[0].trim() === 'Pact of the Blade';
-      });
+      return _warlockHasInvocation(C, 'Pact of the Blade');
     }
   });
 }

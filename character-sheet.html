@@ -1474,6 +1474,7 @@ function getBase(stat){
   const m = C.scoreMethod;
   if(m==='pointbuy') return (C.pbScores||{})[stat] || 8;
   if(m==='standard') { const v = (C.arrAssign||{})[stat]; return v!==null&&v!==undefined ? v : 8; }
+  if(m==='manual') { const v = (C.manualScores||{})[stat]; return v!=null ? v : 8; }
   const v = (C.diceAssign||{})[stat]; return v!==null&&v!==undefined ? v : 8;
 }
 function bgBonus(stat){
@@ -2401,8 +2402,14 @@ function rollSkill(name, bonus, adv){
   rollD20(bonus, name, a);
 }
 
+function _getInitiativeBonus(){
+  if(!C) return 0;
+  const snaps = Array.isArray(C.allFeatSnapshots) ? C.allFeatSnapshots : [];
+  return snaps.some(f => f.name === 'Alert') ? getPB() : 0;
+}
+
 function rollInitiative(){
-  const initMod = getMod(getFinal('dex'));
+  const initMod = getMod(getFinal('dex')) + _getInitiativeBonus();
   rollD20(initMod, 'Initiative');
 }
 
@@ -2414,7 +2421,7 @@ function getEncumberedLevel(){
 }
 
 function renderRightTop(){
-  const initMod = getMod(getFinal('dex'));
+  const initMod = getMod(getFinal('dex')) + _getInitiativeBonus();
   document.getElementById('init-val').textContent = fbonus(initMod);
   document.getElementById('ac-val').textContent = calcAC();
 
@@ -2807,7 +2814,12 @@ function _sheetFilterActionsByChoice(actions, choicePrefix){
 
 function getSheetClassActions(className, classLevel){
   const lv = Number(classLevel || C?.classLevel || C?.level || 1);
-  return _sheetGetClassActions(className).filter(a => !a?.minLevel || lv >= Number(a.minLevel));
+  return _sheetGetClassActions(className).filter(a => {
+    if (!a || typeof a !== 'object') return false;
+    if (a.minLevel && lv < Number(a.minLevel)) return false;
+    if (typeof a.condition === 'function') { try { return !!a.condition(C); } catch(_){return false;} }
+    return true;
+  });
 }
 
 function getSheetSubclassActions(subclassKey, classLevel, choicePrefix){
@@ -5612,13 +5624,20 @@ function _clsSpellLimit(cls, isCantrip){
   if(!p.casterProgression) return { max: null, current: 0 };
   let m = null;
   if(isCantrip){
-    m = p.cantripKnown?.[cls.lv-1]??null;
+    // Mirror charbuilder priority: fixed progression table → runtime config
+    m = cls.clsSnap?.cantripProgression?.[cls.lv-1] ?? p.cantripKnown?.[cls.lv-1] ?? null;
   } else {
-    if(Array.isArray(p.spellsKnown)) m = p.spellsKnown[cls.lv-1]??null;
-    else if(p.preparedFormula){
-      const ab = String(p.preparedFormula.ability||'').toLowerCase();
-      if(typeof STATS!=='undefined'&&STATS.includes(ab))
-        m = applyPreparedFormula(p.preparedFormula, getMod(getFinal(ab)), cls.lv);
+    // Priority: snapshot table → runtime-config table → spellsKnown → preparedFormula
+    m = cls.clsSnap?.preparedSpellsProgression?.[cls.lv-1] ||
+        p.preparedSpellsProgression?.[cls.lv-1] ||
+        null;
+    if(!m){
+      if(Array.isArray(p.spellsKnown)) m = p.spellsKnown[cls.lv-1]??null;
+      else if(p.preparedFormula){
+        const ab = String(p.preparedFormula.ability||'').toLowerCase();
+        if(typeof STATS!=='undefined'&&STATS.includes(ab))
+          m = applyPreparedFormula(p.preparedFormula, getMod(getFinal(ab)), cls.lv);
+      }
     }
   }
   const bucket = cls.isPrimary ? C : cls.ec;
@@ -5659,7 +5678,8 @@ function _buildPickerTabs(){
     const cnt = i===0 ? (bucket?.selectedCantrips||[]).length : (bucket?.selectedSpells?.[i]||[]).length;
     if(i>0 && i>maxCast && cnt===0) return '';
     const lim = cls ? _clsSpellLimit(cls, i===0) : { max: null, current: cnt };
-    const badge = lim.max!==null ? ` (${cnt}/${lim.max})` : '';
+    // lim.max is always a total budget; show total-used/total-max for clarity
+    const badge = lim.max!==null ? ` (${lim.current}/${lim.max})` : '';
     return `<button class="af-btn${_splFilter.level===i?' on':''}"
       onclick="setPickerLevel(${i})" style="font-size:var(--fs-label);padding:3px 8px">${l}${badge}</button>`;
   }).join('');

@@ -139,6 +139,7 @@ const ADAPTER_MANIFEST = [
   'adapters/feats/shadow-touched.js',
   'adapters/feats/weapon-master.js',
   'adapters/feats/lucky.js',
+  'adapters/feats/alert.js',
 
   // Shared class/subclass/species runtime config
   'adapters/classes/runtime-config.js',
