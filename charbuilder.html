@@ -1250,7 +1250,7 @@
       background: rgba(155, 89, 182, .25)
     }
 
-    /* ── Scelte di Classe ── */
+    /* ── Class Choices ── */
     .choice-block {
       margin-bottom: 1rem
     }
@@ -1564,7 +1564,7 @@
       background: var(--tealbg)
     }
 
-    /* ── Incantesimi ── */
+    /* ── Spells ── */
     .spell-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -2260,7 +2260,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 <div class="chips" id="cls-chips"></div>
                 <div id="cls-card"></div>
               </div>
-              <!-- Pane extra: riusato per ogni tab extra attivo -->
+              <!-- Extra pane: reused for each active extra class tab -->
               <div id="mc-pane-extra" style="display:none">
                 <div class="chips" id="mc-ex-chips"></div>
                 <div id="mc-ex-card" style="margin-top:6px"></div>
@@ -2268,7 +2268,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             </div>
           </div>
 
-          <!-- Livello (classe attiva nel tab) -->
+          <!-- Level (active class tab) -->
           <div class="panel" id="panel-level" style="display:none">
             <div class="ph">
               <span class="pt" id="level-panel-title">Level</span>
@@ -2295,13 +2295,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             <div class="pb" id="slots-body"></div>
           </div>
 
-          <!-- Scelte di Classe -->
+          <!-- Class Choices -->
           <div class="panel" id="panel-class-choices" style="display:none">
             <div class="ph"><span class="pt">Class Choices</span><span id="cc-loading" class="ph-note"></span></div>
             <div class="pb" id="cc-body"></div>
           </div>
 
-          <!-- Incantesimi -->
+          <!-- Spells -->
           <div class="panel" id="panel-spells" style="display:none">
             <div class="ph"><span class="pt">Spells</span><span id="spell-loading" class="ph-note"></span></div>
             <div class="pb" id="spell-body"></div>
@@ -2322,7 +2322,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             </div>
           </div>
 
-          <!-- Scelte Specie -->
+          <!-- Species Choices -->
           <div class="panel" id="panel-species-choices" style="display:none">
             <div class="ph"><span class="pt"><i data-lucide="sparkles" class="lucide-emoji" aria-hidden="true"></i> Species Choices</span></div>
             <div class="pb" id="species-choices-body"></div>
@@ -2342,16 +2342,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             </div>
           </div>
 
-          <!-- Bonus caratteristiche background -->
+          <!-- Background ability bonus -->
           <div class="panel" id="panel-bg-ability" style="display:none">
             <div class="ph"><span class="pt">Background Ability Bonus</span></div>
             <div class="pb" id="bg-ability-body"></div>
           </div>
         </div>
 
-        <!-- ── TAB 4: CARATTERISTICHE ── -->
+        <!-- ── TAB 4: ABILITY SCORES ── -->
         <div id="tab-4" class="tab-pane">
-          <!-- Punteggi -->
+          <!-- Scores -->
           <div class="panel" id="panel-scores" style="display:none">
             <div class="ph"><span class="pt">Ability Scores</span></div>
             <div class="pb">
@@ -2359,16 +2359,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 <button class="score-tab on" onclick="setScoreMethod('pointbuy')">Point Buy</button>
                 <button class="score-tab" onclick="setScoreMethod('standard')">Standard Array</button>
                 <button class="score-tab" onclick="setScoreMethod('dice')">Roll Dice</button>
-                <button class="score-tab" onclick="setScoreMethod('manual')">Manuale</button>
+                <button class="score-tab" onclick="setScoreMethod('manual')">Manual</button>
               </div>
               <div id="scores-ui"></div>
             </div>
           </div>
         </div>
 
-        <!-- ── TAB 5: EQUIPAGGIAMENTO ── -->
+        <!-- ── TAB 5: EQUIPMENT ── -->
         <div id="tab-5" class="tab-pane">
-          <!-- Equipaggiamento iniziale (read-only) -->
+          <!-- Starting equipment (read-only) -->
           <div class="panel" id="panel-equip" style="display:none">
             <div class="ph"><span class="pt">Starting Equipment</span></div>
             <div class="pb" id="equip-body"></div>
@@ -2505,6 +2505,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     const ALLOWED = ['XPHB', 'FRAiF', 'FRHoF', 'EFA'];
     const FULL_SLOTS  = window.FULL_SLOTS;
     const HALF_SLOTS  = window.HALF_SLOTS;
+    const THIRD_SLOTS = window.THIRD_SLOTS;
     const PACT_SLOTS  = window.PACT_SLOTS;
     const PB = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
     const PB_COST = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
@@ -2513,8 +2514,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     const STD_ARR = [15, 14, 13, 12, 10, 8];
     const CLASS_FILES = ['class-barbarian.json', 'class-bard.json', 'class-cleric.json', 'class-druid.json', 'class-fighter.json', 'class-monk.json', 'class-paladin.json', 'class-ranger.json', 'class-rogue.json', 'class-sorcerer.json', 'class-warlock.json', 'class-wizard.json', 'class-artificer.json'];
 
-    // Numero di ASI/Feat per classe (livelli in cui si ottengono)
-    // Solo Expertise rimane hardcoded — non esiste struttura machine-readable nei dati
+    // ASI/Feat count per class (levels at which they are gained)
+    // Only Expertise remains hardcoded — no machine-readable data structure for it
 
 
     const SPELL_FILES = ['spells-xphb.json', 'spells-fraif.json', 'spells-frhof.json', 'spells-efa.json'];
@@ -2539,22 +2540,25 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       bgName: null, bgSource: null, bgObj: null, bgAbility: [], bgPatternIdx: 0,
       scoreMethod: 'pointbuy',
       hpMode: 'average', // 'average' o 'rolled'
-      hpManualRolls: {}, // conterrà i tiri per ogni livello: {2: 6, 3: 4, ...}
+      hpManualRolls: {}, // stores manual rolls per level: {2: 6, 3: 4, ...}
       pbScores: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 },
       arrAssign: { str: null, dex: null, con: null, int: null, wis: null, cha: null },
       dicePool: [], diceAssign: { str: null, dex: null, con: null, int: null, wis: null, cha: null },
       manualScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
       selPoolVal: null, selDiceIdx: null,
-      choices: {},        // unico oggetto per tutte le scelte (feat, optfeat, option, expertise, spell grants)
+      choices: {},        // single flat object for all choices (feat, optfeat, option, expertise, spell grants)
       equipChoices: {},
       selectedCantrips: [],
       selectedSpells: {},
+      wizardSpellbook: {},
+      wizardSpellMastery: {},
+      wizardSignatureSpells: {},
       xp: 0,
       inventory: [],    // [{name, source, type, qty, weight, value, rarity, dmg1, dmgType, ac, custom}]
       currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
     };
     let classCache = {}, allSpecies = [], allBgs = [], allFeats = [], allOptFeats = [], spellDb = [], allItemsDb = [];
-    // classSpellIndex[className_lc] = Set<spellName_lc> — costruito da gendata-spell-source-lookup.json
+    // classSpellIndex[className_lc] = Set<spellName_lc> — built from gendata-spell-source-lookup.json
     let classSpellIndex = {};
     const CANON_CLASS_KEYS = new Set([
       'artificer', 'barbarian', 'bard', 'cleric', 'druid', 'fighter',
@@ -2829,9 +2833,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     /* ═══════════════════════════════════ CHOICE ENGINE ═══════════════════════════════════
-     * Deriva TUTTE le scelte dai dati del file di classe.
-     * Nessun hardcode per singole classi (eccetto Expertise — no struttura dati).
-     * char.choices = unico stato piatto: {key: value_or_array}
+     * Derives ALL choices from class file data.
+     * No hardcoding per individual class (except Expertise — no data structure for it).
+     * char.choices = single flat state: {key: value_or_array}
      * ══════════════════════════════════════════════════════════════════════════════════════ */
 
     function _asiLevelsFromClass(cls, classFeatures) {
@@ -3593,9 +3597,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           h += `<div class="feat-item open">
         <div class="feat-item-hdr" onclick="tf(this.parentElement)">
           <span class="feat-item-name ft">${esc(feat ? feat.name : spec.fixed)}</span>
-          <span class="feat-cat-badge origin">Origine</span><span class="feat-arrow">${luci('chevron-right')}</span>
+          <span class="feat-cat-badge origin">Origin</span><span class="feat-arrow">${luci('chevron-right')}</span>
         </div>
-        <div class="feat-item-body">${feat ? rE(feat.entries) : '<i>Descrizione non disponibile.</i>'}</div>
+        <div class="feat-item-body">${feat ? rE(feat.entries) : '<i>Description not available.</i>'}</div>
       </div>
       <div id="feat-grant-${spec.key}"></div>`;
         } else {
@@ -3703,7 +3707,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (feat.additionalSpells.length > 1) {
           const selectedEntry = (char.choices[`${slotKey}_entry`] ?? 0);
           h += `<div style="margin-top:.75rem">
-        <div class="feat-section-hdr" style="color:var(--orange)">✧ ${esc(featName)} — Scegli lista</div>
+        <div class="feat-section-hdr" style="color:var(--orange)">✧ ${esc(featName)} — Choose list</div>
         
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem">`;
           feat.additionalSpells.forEach((g, idx) => {
@@ -3839,7 +3843,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         let ph = `<div style="margin-top:.75rem">
       <div class="feat-section-hdr" style="color:${color}">✧ ${esc(label)}</div>
       <div class="spell-count-bar" style="margin-bottom:.4rem">
-        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${items.length} disponibili</span>
+        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${items.length} available</span>
         <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${sel.length}/${count}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto">`;
@@ -3957,7 +3961,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         h += `<div class="choice-block">
       <div class="choice-block-hdr">
         <span>${esc(spec.label)}</span>
-        <span class="choice-count">Scegli ${spec.count || 1}</span>
+        <span class="choice-count">Choose ${spec.count || 1}</span>
       </div>
       <div id="cb_${spec.key}" class="choice-grid"></div>
       <div id="cb_sub_${spec.key}"></div> </div>`;
@@ -4143,7 +4147,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let h = `<div style="margin-top:.75rem">
     <div class="feat-section-hdr" style="color:var(--orange)">✧ ${esc(choice.label)}</div>
     <div class="spell-count-bar" style="margin-bottom:.4rem">
-      <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${spells.length} disponibili</span>
+      <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${spells.length} available</span>
       <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${selected.length}/${choice.count}</span>
     </div><div class="spell-list" style="max-height:180px">`;
       for (const s of spells.slice(0, 120)) {
@@ -4168,22 +4172,22 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     /* ════════════════════════ ADDITIONAL SPELL GRANTS ENGINE ════════════════════════
      *
-     * Gestisce in modo generico QUALSIASI fonte di spell aggiuntive:
-     *   • feat con additionalSpells (Magic Initiate, Artificer Initiate, Blessed Warrior…)
-     *   • sottoclasse con additionalSpells (Oath Spells, Patron Spells…)
-     *   • feature di classe con additionalSpells
+     * Generically handles ANY source of additional spells:
+     *   • feats with additionalSpells (Magic Initiate, Artificer Initiate, Blessed Warrior…)
+     *   • subclasses with additionalSpells (Oath Spells, Patron Spells…)
+     *   • class features with additionalSpells
      *
-     * Schema additionalSpells (5etools):
-     *   "known"    → spell permanentemente conosciute
-     *   "innate"   → spell innate (slot-less, con recupero riposo)
-     *   "prepared" → spell sempre preparate (automatiche, nessuna UI)
-     *   "expanded" → ampliano la lista selezionabile della classe
+     * additionalSpells schema (5etools):
+     *   "known"    → permanently known spells
+     *   "innate"   → innate spells (slot-less, with rest recovery)
+     *   "prepared" → always prepared spells (automatic, no UI)
+     *   "expanded" → expand the class's selectable spell list
      *
-     *   Chiave livello: "_" = qualsiasi livello, "3"/"5" ecc. = livello minimo personaggio
-     *   Formato choose: { choose: "level=N|class=ClassName", count: N }
+     *   Level key: "_" = any level, "3"/"5" etc. = minimum character level
+     *   Choose format: { choose: "level=N|class=ClassName", count: N }
      * =============================================================================== */
 
-    // Parsa stringa "level=1|class=Sorcerer" → {level, classes, schools}
+    // Parse string "level=1|class=Sorcerer" → {level, classes, schools}
     function parseChooseStr(str) {
       if (!str || typeof str !== 'string') return null;
       const res = { level: null, classes: null, schools: null };
@@ -4328,7 +4332,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             const processItems = (items) => {
               if (!Array.isArray(items)) return;
               for (const s of items) {
-                // Estrae il nome dell'incantesimo (gestisce stringhe e oggetti)
+                // Extract spell name (handles both strings and objects)
                 let rawName = null;
                 if (typeof s === 'string') rawName = _normalizeSpellRefName(s);
                 else if (s && s.item) rawName = _normalizeSpellRefName(s.item);
@@ -4520,7 +4524,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const ck = `${prefix}_text_choice`;
         const sel = char.equipChoices[ck] || null;
         let h = `<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
-        h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+        h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Choose an option:</div>`;
         h += `<div style="display:flex;flex-direction:column;gap:4px">`;
         for (const ch of choices) {
           const isSel = sel === ch.key;
@@ -4548,7 +4552,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           const ck = `${prefix}_choice_0`;
           const sel = char.equipChoices[ck] || null;
           let h = `<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
-          h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+          h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Choose an option:</div>`;
           h += `<div style="display:flex;flex-direction:column;gap:4px">`;
           for (const k of choiceKeys) {
             const items = []; flattenEquip(choiceData[k], items);
@@ -4585,7 +4589,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             const ck = `${prefix}_choice_${choiceIdx++}`;
             const sel = char.equipChoices[ck] || null;
             h += `<div style="margin-bottom:8px;background:var(--bg4);border:1px solid var(--bdr2);border-radius:var(--r);padding:8px 10px">`;
-            h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Scegli una opzione:</div>`;
+            h += `<div style="font-family:var(--ff-display);font-size:var(--fs-caption);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">Choose an option:</div>`;
             h += `<div style="display:flex;flex-direction:column;gap:4px">`;
             resolvedKeys.forEach(k => {
               const items = []; flattenEquip(node[k], items);
@@ -4862,7 +4866,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function renderEquipBlock(eq) {
       if (!eq) return '';
       const items = flattenEquip(eq);
-      if (!items.length) return '<div class="phmsg" style="padding:.5rem 0">Dati non disponibili.</div>';
+      if (!items.length) return '<div class="phmsg" style="padding:.5rem 0">No data available.</div>';
       return items.map(i => `<div class="eq-item">${i}</div>`).join('');
     }
 
@@ -4899,7 +4903,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderMCTabBar(); renderSlotsPanel();
       ['panel-level', 'panel-xp', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
       document.getElementById('btn-next').disabled = false;
-      char.choices = {}; char.selectedCantrips = []; char.selectedSpells = {};
+      char.choices = {};
+      char.selectedCantrips = [];
+      char.selectedSpells = {};
+      char.wizardSpellbook = {};
+      char.wizardSpellMastery = {};
+      char.wizardSignatureSpells = {};
       renderScoreUI(); renderChoicesPanel(); renderEquipPanel(); renderSpellPanel(); renderPreview(); updateSteps();
       renderXPPanel(); renderInventoryList();
     }
@@ -4915,7 +4924,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (sp.skills && Array.isArray(sp.skills)) {
         sk = sp.skills.map(item => {
           if (typeof item === 'string') return item;
-          if (item.choose) return `Scegli ${item.choose.count} da: ${item.choose.from.join(', ')}`;
+          if (item.choose) return `Choose ${item.choose.count} from: ${item.choose.from.join(', ')}`;
           return '';
         }).filter(Boolean).join(' · ');
       }
@@ -4935,10 +4944,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const conMod = Math.floor((getFinal('con') - 10) / 2);
       const pLv = getPrimaryClassLevel();
 
-      // Livello 1: massimo dado primario + CON
+      // Level 1: max primary die + CON
       let totalHP = primaryFaces + conMod;
 
-      // Livelli 2+ della classe primaria
+      // Levels 2+ of the primary class
       if (pLv > 1) {
         if (char.hpMode === 'average' || !char.hpMode) {
           totalHP += (Math.floor(primaryFaces / 2) + 1 + conMod) * (pLv - 1);
@@ -4989,7 +4998,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return totalHP + (bonusPerLv * lv);
     }
 
-    /* ════════════════════════════════════ LIVELLO */
+    /* ════════════════════════════════════ LEVEL */
     function renderLevelGrid() {
       const tab = char.activeClassTab || 0;
       if (tab > 0) { renderExtraLevelGrid(tab - 1); return; }
@@ -5005,7 +5014,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       document.getElementById('level-grid').innerHTML = h;
 
-      const caster = char.cls ? _clsCasterProg(char.cls.name, char.cls) : null;
+      const caster = char.cls ? _clsCasterProg(char.cls.name, char.cls, char.subclassShortName) : null;
       const cLbl = caster === 'full' ? 'Full' : (caster === '1/2' || caster === 'half') ? '½' : caster === 'artificer' ? 'Artif.' : caster === 'pact' ? 'Patto' : '';
       const faces = char.cls?.hd?.faces || char.cls?.hd?.[0]?.faces || '?';
       const hp = calcMaxHP();
@@ -5016,7 +5025,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
           <span class="pt" style="font-size:var(--fs-caption)">Metodo Punti Ferita:</span>
           <button class="chip ${char.hpMode === 'average' || !char.hpMode ? 'on' : ''}" onclick="setHPMode('average')">Media</button>
-          <button class="chip ${char.hpMode === 'rolled' ? 'on' : ''}" onclick="setHPMode('rolled')">Manuale</button>
+          <button class="chip ${char.hpMode === 'rolled' ? 'on' : ''}" onclick="setHPMode('rolled')">Manual</button>
         </div>
       `;
 
@@ -5037,7 +5046,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // Inseriamo l'UI degli HP prima dei contatori finali
       document.getElementById('lvl-stats').innerHTML = hpHtml + `
-        <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Livello</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Level</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Punti Ferita</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Bonus Comp.</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
@@ -5142,27 +5151,22 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (Array.isArray(hd) && hd[0]?.faces) return hd[0].faces;
       return 8;
     }
-    function _clsCasterProg(clsName, clsObj) {
+    function _clsCasterProg(clsName, clsObj, scName) {
       if (clsObj?.casterProgression) return clsObj.casterProgression;
+      if (typeof getSpellcastingProfile === 'function') {
+        const p = getSpellcastingProfile(clsName, scName || '', clsObj || null);
+        if (p?.casterProgression) return p.casterProgression;
+      }
       if (typeof getClassRuntimeConfig === 'function') {
         return getClassRuntimeConfig(clsName)?.spellcasting?.casterProgression || null;
       }
       return null;
     }
     function getMCCasterLevel(clsName, lv, scName) {
-      const t = _clsCasterProg(clsName);
-      if (t === 'full') return lv;
-      if (t === 'half' || t === '1/2') return Math.floor(lv / 2);
-      if (t === 'artificer') return Math.ceil(lv / 2);
-      if (t === 'pact') return 0;
-      if (typeof getSubclassRuntimeConfig === 'function') {
-        const prog = getSubclassRuntimeConfig(clsName, scName)?.spellcasting?.casterProgression;
-        if (prog === 'full') return lv;
-        if (prog === 'half') return Math.floor(lv / 2);
-        if (prog === 'artificer') return Math.ceil(lv / 2);
-        if (prog === '1/3') return Math.floor(lv / 3);
-      }
-      return 0;
+      const t = _clsCasterProg(clsName, null, scName);
+      return typeof getCasterContribution === 'function'
+        ? getCasterContribution(t, lv)
+        : 0;
     }
     function getMCSlots() {
       if (!(char.extraClasses||[]).length) return null;
@@ -5212,7 +5216,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (paneEx) paneEx.style.display = 'none';
         const title = document.getElementById('level-panel-title');
         const note  = document.getElementById('level-panel-note');
-        if (title) title.textContent = 'Livello';
+        if (title) title.textContent = 'Level';
         if (note)  note.textContent  = '';
         if (lp) lp.style.display = char.cls ? 'block' : 'none';
         renderSubclassPanel();
@@ -5224,7 +5228,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (lp) lp.style.display = (ec && ec.cls) ? 'block' : 'none';
         const title = document.getElementById('level-panel-title');
         const note  = document.getElementById('level-panel-note');
-        if (title) title.textContent = `Livello — ${ec?.name||''}`;
+        if (title) title.textContent = `Level — ${ec?.name||''}`;
         const otherExtra = (char.extraClasses||[]).filter((_,j)=>j!==i-1).reduce((s,c)=>s+(c.level||1),0);
         const maxLv = Math.max(1, 20-(char.classLevel||1)-otherExtra);
         if (note)  note.textContent  = `max Lv.${maxLv}`;
@@ -5275,11 +5279,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         h += `<button class="lvl-btn${on}${hasSub}" onclick="setExtraClassLevel(${i},${n})">${n}${n===sc?'<br><span style="font-size:calc(var(--fs-ui-micro) - 1px)">◆</span>':''}</button>`;
       }
       document.getElementById('level-grid').innerHTML = h;
-      const caster = _clsCasterProg(ec.name, ec.cls);
+      const caster = _clsCasterProg(ec.name, ec.cls, ec.subclassShortName);
       const cLbl = caster==='full'?'Full':(caster==='1/2'||caster==='half')?'½':caster==='artificer'?'Artif.':caster==='pact'?'Patto':'';
       const faces = ec.cls?.hd?.faces || '?';
       document.getElementById('lvl-stats').innerHTML = `
-        <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Livello</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Level</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
         ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}
       `;
@@ -5303,8 +5307,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function addExtraClass() {
       if (!char.extraClasses) char.extraClasses = [];
       const extraTotal = (char.extraClasses||[]).reduce((s,c)=>s+(c.level||1),0);
-      if ((char.classLevel||1) + extraTotal >= 20) { showBuilderToast('Livello totale massimo 20 raggiunto.'); return; }
-      char.extraClasses.push({ name:null,source:null,cls:null,level:1,subclassShortName:null,subclasses:[],allFeatures:[],allSubFeatures:[] });
+      if ((char.classLevel||1) + extraTotal >= 20) { showBuilderToast('Maximum total level of 20 reached.'); return; }
+      char.extraClasses.push({
+        name:null,source:null,cls:null,level:1,subclassShortName:null,subclasses:[],allFeatures:[],allSubFeatures:[],
+        selectedCantrips:[], selectedSpells:{},
+        wizardSpellbook:{}, wizardSpellMastery:{}, wizardSignatureSpells:{},
+      });
       updateTotalLevel();
       switchMCTab(char.extraClasses.length); // switch to new tab
     }
@@ -5334,6 +5342,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       ec.allFeatures = (d.classFeature||[]).filter(f=>f.className===name&&(f.classSource===source||!f.classSource)&&!f.isReprinted);
       ec.subclasses  = (d.subclass||[]).filter(s=>s.className===name&&(s.classSource===source||!s.classSource)&&ALLOWED.includes(s.source)).map(s => typeof adaptSubclassRecord === 'function' ? adaptSubclassRecord(s) : s);
       ec.allSubFeatures = (d.subclassFeature||[]).filter(f=>f.className===name&&(f.classSource===source||!f.classSource)&&ALLOWED.includes(f.source||source));
+      ec.selectedCantrips = [];
+      ec.selectedSpells = {};
+      ec.wizardSpellbook = {};
+      ec.wizardSpellMastery = {};
+      ec.wizardSignatureSpells = {};
       switchMCTab(i + 1); // refresh current tab
       renderChoicesPanel();
       renderSlotsPanel();
@@ -5366,10 +5379,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _warlockLevels() {
       let wLv = 0;
       const pName = char.className || '';
-      const pCaster = _clsCasterProg(pName, char.cls);
+      const pCaster = _clsCasterProg(pName, char.cls, char.subclassShortName);
       if (pCaster === 'pact') wLv += getPrimaryClassLevel();
       for (const ec of (char.extraClasses||[])) {
-        const t = _clsCasterProg(ec.name, ec.cls);
+        const t = _clsCasterProg(ec.name, ec.cls, ec.subclassShortName);
         if (t === 'pact') wLv += (ec.level||1);
       }
       return wLv;
@@ -5384,7 +5397,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const tab = char.activeClassTab || 0;
         const activeClsName = tab === 0 ? (char.className || '') : ((char.extraClasses||[])[tab-1]?.name || '');
         const activeCls     = tab === 0 ? char.cls : ((char.extraClasses||[])[tab-1]?.cls || null);
-        const activeIsPact  = _clsCasterProg(activeClsName, activeCls) === 'pact';
+        const activeScName  = tab === 0 ? (char.subclassShortName || '') : (((char.extraClasses||[])[tab-1]?.subclassShortName) || '');
+        const activeIsPact  = _clsCasterProg(activeClsName, activeCls, activeScName) === 'pact';
 
         const mcSlots = getMCSlots();
         const wLv = _warlockLevels();
@@ -5396,13 +5410,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
         if (activeIsPact) {
           // Active tab is a pact caster — show only pact slots
-          if (!pactRow) { body.innerHTML = '<div class="phmsg">Nessuno slot patto</div>'; return; }
+          if (!pactRow) { body.innerHTML = '<div class="phmsg">No pact slots</div>'; return; }
           h += `<div style="font-size:var(--fs-ui-md);color:var(--text2)">
             <b style="color:var(--purple)">Patto (${esc(activeClsName)} Lv.${wLv}):</b>
             <b style="color:var(--gold2)">${pactRow.n}</b> slot Lv. <b style="color:var(--gold2)">${pactRow.l}</b> — SR</div>`;
         } else {
           // Active tab is a normal caster — show only MC combined slots
-          if (!mcSlots) { body.innerHTML = '<div class="phmsg">Nessuno slot</div>'; return; }
+          if (!mcSlots) { body.innerHTML = '<div class="phmsg">No slots</div>'; return; }
           h += `<table class="slot-table"><thead><tr><th>MC</th>`;
           for (let i = 1; i <= mcSlots.length; i++) h += `<th>${i}°</th>`;
           h += `</tr></thead><tbody><tr><td style="font-family:var(--ff-display);color:var(--gold2)">${lv}</td>`;
@@ -5414,19 +5428,20 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       // Single class
-      const caster = _clsCasterProg(char.cls.name, char.cls);
+      const caster = _clsCasterProg(char.cls.name, char.cls, char.subclassShortName);
       if (!caster) { p.style.display = 'none'; return; }
       p.style.display = 'block';
       if (caster === 'pact') {
         const w = PACT_SLOTS[lv];
-        body.innerHTML = w ? `<span style="font-size:var(--fs-ui-lg);color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recuperati con riposo breve</span>` : '<div class="phmsg">Nessuno slot</div>';
+        body.innerHTML = w ? `<span style="font-size:var(--fs-ui-lg);color:var(--text2)"><b style="color:var(--gold2)">${w.n}</b> slot Lv. <b style="color:var(--gold2)">${w.l}</b> — recovered on short rest</span>` : '<div class="phmsg">No slots</div>';
         return;
       }
       let slots = null;
       if (caster === 'full') slots = FULL_SLOTS[lv];
       else if (caster === 'artificer') slots = FULL_SLOTS[Math.min(20, Math.ceil(lv / 2))];
+      else if (caster === '1/3') slots = THIRD_SLOTS[lv];
       else slots = HALF_SLOTS[lv]; // half / 1/2
-      if (!slots) { body.innerHTML = '<div class="phmsg">Nessuno slot a questo livello</div>'; return; }
+      if (!slots) { body.innerHTML = '<div class="phmsg">No slots at this level</div>'; return; }
       let h = `<table class="slot-table"><thead><tr><th>Lv</th>`;
       for (let i = 1; i <= slots.length; i++) h += `<th>${i}°</th>`;
       h += `</tr></thead><tbody><tr><td style="font-family:var(--ff-display);color:var(--gold2)">${lv}</td>`;
@@ -5440,7 +5455,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const q = document.getElementById('spc-search').value.toLowerCase().trim();
       const list = allSpecies.filter(s => !q || s.name.toLowerCase().includes(q));
       const el = document.getElementById('spc-list');
-      if (!list.length) { el.innerHTML = '<div class="phmsg">Nessuna specie trovata.</div>'; return; }
+      if (!list.length) { el.innerHTML = '<div class="phmsg">No species found.</div>'; return; }
       el.innerHTML = list.map(s => {
         const spd = s.speed ? (typeof s.speed === 'number' ? s.speed + ' ft' : Object.entries(s.speed).filter(([, v]) => v).map(([k, v]) => k === 'walk' ? v + ' ft' : k + ' ' + v + ' ft').join(', ')) : '30 ft';
         return `<div class="item-row${char.speciesName === s.name && char.speciesSource === s.source ? ' on' : ''}" onclick="selSpecies('${s.name.replace(/'/g, "\\'")}','${s.source}')">
@@ -5755,14 +5770,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       if (Array.isArray(species.size) && species.size.length > 1) {
         const sizeMap = { M: 'Media', S: 'Piccola' };
-        specs.push({ key: `species_size`, label: `Scegli Taglia`, type: 'generic_choice', from: species.size.map(s => sizeMap[s] || s), count: 1, level: 1 });
+        specs.push({ key: `species_size`, label: `Choose Size`, type: 'generic_choice', from: species.size.map(s => sizeMap[s] || s), count: 1, level: 1 });
       }
       if (species.resist) {
         species.resist.forEach((r, idx) => {
           if (r.choose) {
             const count = r.choose.count || 1;
             const from = r.choose.from.map(s => s.charAt(0).toUpperCase() + s.slice(1));
-            specs.push({ key: `species_resist_${idx}`, label: `Scegli Resistenza`, type: 'generic_choice', from: from, count: count, level: 1 });
+            specs.push({ key: `species_resist_${idx}`, label: `Choose Resistance`, type: 'generic_choice', from: from, count: count, level: 1 });
           }
         });
       }
@@ -5808,7 +5823,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const q = document.getElementById('bg-search').value.toLowerCase().trim();
       const list = allBgs.filter(b => !q || b.name.toLowerCase().includes(q));
       const el = document.getElementById('bg-list');
-      if (!list.length) { el.innerHTML = '<div class="phmsg">Nessun background trovato.</div>'; return; }
+      if (!list.length) { el.innerHTML = '<div class="phmsg">No background found.</div>'; return; }
       el.innerHTML = list.map(b => {
         const sk = (b.skillProficiencies || []).flatMap(sp => Object.keys(sp).filter(k => k !== 'choose')).slice(0, 2).join(', ');
         return `<div class="item-row${char.bgName === b.name && char.bgSource === b.source ? ' on' : ''}" onclick="selBg('${b.name.replace(/'/g, "\\'")}','${b.source}')">
@@ -5824,7 +5839,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       char.bgObj = allBgs.find(b => b.name === name && b.source === source) || null;
       char.bgAbility = []; char.equipChoices = {}; char.bgPatternIdx = 0;
 
-      // Resetta le scelte (il nuovo feat origin verrà auto-selezionato da deriveAllChoices)
+      // Reset choices (new origin feat will be auto-selected by deriveAllChoices)
       if (!char.choices) char.choices = {};
       delete char.choices.feat_origin;
 
@@ -5897,9 +5912,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         h += `</div></div>`;
       }
 
-      const patDesc = pat.map(v => '+' + v).join(' e ');
+      const patDesc = pat.map(v => '+' + v).join(' and ');
       h += `<div style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.75rem">
-    Assegna ${patDesc} tra: <b style="color:var(--text)">${pool.map(s => SLBL[s] || s.toUpperCase()).join(', ')}</b>
+    Assign ${patDesc} among: <b style="color:var(--text)">${pool.map(s => SLBL[s] || s.toUpperCase()).join(', ')}</b>
   </div>
   <div style="display:grid;grid-template-columns:repeat(${pool.length},1fr);gap:6px">`;
 
@@ -5919,7 +5934,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const remaining = pat.length - chosen.length;
       if (remaining > 0) {
         h += `<div style="font-size:var(--fs-ui-sm);color:var(--text3);font-style:italic;margin-top:.6rem">
-      Clicca ${remaining} caratteristica${remaining > 1 ? 'e' : ''} per assegnare il bonus
+      Click ${remaining} ability score${remaining > 1 ? 's' : ''} to assign the bonus
     </div>`;
       }
       document.getElementById('bg-ability-body').innerHTML = h;
@@ -6106,7 +6121,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     /* Manual */
     function renderManual(el) {
       if (!char.manualScores) char.manualScores = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
-      let h = `<p style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.5rem">Inserisci liberamente i valori delle caratteristiche (1–30).</p><div class="score-grid">`;
+      let h = `<p style="font-size:var(--fs-ui-md);color:var(--text2);margin-bottom:.5rem">Enter ability score values freely (1–30).</p><div class="score-grid">`;
       for (const s of STATS) {
         const base = char.manualScores[s] ?? 10;
         const bon = bgBonus(s), featBon = getAsiFeatBonus(s), fin = base + bon + featBon;
@@ -6522,6 +6537,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           clsSnapshot: { hd:ec.cls?.hd, proficiency:ec.cls?.proficiency||[], casterProgression:ec.cls?.casterProgression||(typeof getClassRuntimeConfig==='function'?getClassRuntimeConfig(ec.name)?.spellcasting?.casterProgression:null)||null },
           selectedCantrips: ec.selectedCantrips||[],
           selectedSpells: ec.selectedSpells||{},
+          wizardSpellbook: ec.wizardSpellbook||{},
+          wizardSpellMastery: ec.wizardSpellMastery||{},
+          wizardSignatureSpells: ec.wizardSignatureSpells||{},
           allClassFeatures: ec.allFeatures||[], allSubFeatures: ec.allSubFeatures||[],
         })),
         speciesName: char.speciesName, speciesSource: char.speciesSource,
@@ -6581,6 +6599,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         allSubFeatures: char.allSubFeatures,
         selectedCantrips: char.selectedCantrips,
         selectedSpells: char.selectedSpells,
+        wizardSpellbook: char.wizardSpellbook||{},
+        wizardSpellMastery: char.wizardSpellMastery||{},
+        wizardSignatureSpells: char.wizardSignatureSpells||{},
         autoGrantedSpells: getAutoGrantedSpells(),
         xp: char.xp || 0,
         inventory: inventory || [],
@@ -6592,7 +6613,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           ...char.selectedCantrips,
           ...Object.values(char.selectedSpells).flat(),
           ...Object.values(char.choices || {}).filter(v => Array.isArray(v)).flat(),
-          ...getAutoGrantedSpells().map(s => s.name) // <-- ECCO LE MAGIE RAZZIALI!
+          ...getAutoGrantedSpells().map(s => s.name) // racial/species spell grants
         ].filter((v, i, a) => typeof v === 'string' && a.indexOf(v) === i)
           .map(name => spellDb.find(s => s.name === name))
           .filter(Boolean)
@@ -6614,7 +6635,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         className: char.className,
         classSource: char.classSource,
         subclassShortName: char.subclassShortName,
-        extraClasses: (char.extraClasses||[]).filter(ec=>ec.name).map(ec=>({name:ec.name,source:ec.source,level:ec.level||1,subclassShortName:ec.subclassShortName||null})),
+        extraClasses: (char.extraClasses||[]).filter(ec=>ec.name).map(ec=>({
+          name:ec.name,source:ec.source,level:ec.level||1,subclassShortName:ec.subclassShortName||null,
+          selectedCantrips: [...(ec.selectedCantrips||[])],
+          selectedSpells: JSON.parse(JSON.stringify(ec.selectedSpells||{})),
+          wizardSpellbook: JSON.parse(JSON.stringify(ec.wizardSpellbook||{})),
+          wizardSpellMastery: JSON.parse(JSON.stringify(ec.wizardSpellMastery||{})),
+          wizardSignatureSpells: JSON.parse(JSON.stringify(ec.wizardSignatureSpells||{})),
+        })),
         speciesName: char.speciesName,
         speciesSource: char.speciesSource,
         bgName: char.bgName,
@@ -6632,6 +6660,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         equipChoices: {...(char.equipChoices||{})},
         selectedCantrips: [...char.selectedCantrips],
         selectedSpells: JSON.parse(JSON.stringify(char.selectedSpells||{})),
+        wizardSpellbook: JSON.parse(JSON.stringify(char.wizardSpellbook||{})),
+        wizardSpellMastery: JSON.parse(JSON.stringify(char.wizardSpellMastery||{})),
+        wizardSignatureSpells: JSON.parse(JSON.stringify(char.wizardSignatureSpells||{})),
         inventory: [...(char.inventory||[])],
         currency: {...(char.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})},
         xp: char.xp||0,
@@ -6999,12 +7030,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       el.textContent = 'Loading…';
       classSpellIndex = {};
 
-      // 1. Carica gendata-spell-source-lookup.json e costruisce l'indice classe→spell
+      // 1. Load gendata-spell-source-lookup.json and build class→spell index
       try {
         const r = await fetch(BASE + 'generated/gendata-spell-source-lookup.json');
         if (r.ok) {
           const lookup = await r.json();
-          // Itera ogni source (xphb, phb, ecc.) e ogni spell
+          // Iterate each source (xphb, phb, etc.) and each spell
           for (const [src, spells] of Object.entries(lookup)) {
             for (const [spellLc, data] of Object.entries(spells)) {
               const spellKey = normalizeSpellLookupKey(spellLc);
@@ -7028,9 +7059,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             }
           }
         }
-      } catch (e) { console.warn('gendata-spell-source-lookup non caricato:', e); }
+      } catch (e) { console.warn('gendata-spell-source-lookup failed to load:', e); }
 
-      // 2. Carica le spell
+      // 2. Load spell files
       for (const file of SPELL_FILES) {
         try {
           const r = await fetch(BASE + 'spells/' + file);
@@ -7133,6 +7164,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       char.equipChoices = state.equipChoices || {};
       char.selectedCantrips = state.selectedCantrips || [];
       char.selectedSpells = state.selectedSpells || {};
+      char.wizardSpellbook = state.wizardSpellbook || {};
+      char.wizardSpellMastery = state.wizardSpellMastery || {};
+      char.wizardSignatureSpells = state.wizardSignatureSpells || {};
       try { char.inventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(state.inventory || [])); } catch(e) { char.inventory = state.inventory || []; }
       try { char.currency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(state.currency || {cp:0,sp:0,ep:0,gp:10,pp:0})); } catch(e) { char.currency = state.currency || {cp:0,sp:0,ep:0,gp:10,pp:0}; }
       char.xp = state.xp || 0;
@@ -7155,7 +7189,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       char.extraClasses = [];
       for (const ec of (state.extraClasses||[])) {
-        const entry = { name:null,source:null,cls:null,level:ec.level||1,subclassShortName:ec.subclassShortName||null,subclasses:[],allFeatures:[],allSubFeatures:[],selectedCantrips:ec.selectedCantrips||[],selectedSpells:ec.selectedSpells||{} };
+        const entry = {
+          name:null,source:null,cls:null,level:ec.level||1,subclassShortName:ec.subclassShortName||null,subclasses:[],allFeatures:[],allSubFeatures:[],
+          selectedCantrips:ec.selectedCantrips||[],selectedSpells:ec.selectedSpells||{},
+          wizardSpellbook:ec.wizardSpellbook||{}, wizardSpellMastery:ec.wizardSpellMastery||{}, wizardSignatureSpells:ec.wizardSignatureSpells||{},
+        };
         for (const data of Object.values(classCache)) {
           const f = (data.class||[]).find(c => c.name===ec.name && c.source===ec.source);
           if (f) {
@@ -7203,9 +7241,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         await Promise.all([loadClassIndex(), loadSpecies(), loadBgs(), loadFeats(), loadOptionalFeatures(), loadSpells()]);
         const savedBuilderState = localStorage.getItem('5e_builder_state');
         if (savedBuilderState) {
-          try { await restoreBuilderState(JSON.parse(savedBuilderState)); } catch(e) { console.error('Errore restore builder state:', e); }
+          try { await restoreBuilderState(JSON.parse(savedBuilderState)); } catch(e) { console.error('Error restoring builder state:', e); }
         }
-      } catch (e) { console.error('Errore caricamento dati:', e); }
+      } catch (e) { console.error('Error loading data:', e); }
     })();
 
     function getClassSpells(className) {
@@ -7222,8 +7260,117 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return [];
     }
 
+    function _isWizardName(name) {
+      return String(name || '').toLowerCase() === 'wizard';
+    }
+
+    function _ensureWizardSpellbookBucket(bucket) {
+      if (!bucket) return;
+      if (!bucket.wizardSpellbook || typeof bucket.wizardSpellbook !== 'object') bucket.wizardSpellbook = {};
+      if (!Array.isArray(bucket.wizardSpellbook[0])) bucket.wizardSpellbook[0] = [];
+      for (let i = 1; i <= 9; i++) if (!Array.isArray(bucket.wizardSpellbook[i])) bucket.wizardSpellbook[i] = [];
+      if (!bucket.selectedSpells || typeof bucket.selectedSpells !== 'object') bucket.selectedSpells = {};
+    }
+
+    function _wizardSpellbookNamesAtLevel(bucket, level) {
+      _ensureWizardSpellbookBucket(bucket);
+      const arr = Array.isArray(bucket?.wizardSpellbook?.[level]) ? bucket.wizardSpellbook[level] : [];
+      return Array.from(new Set(arr.filter(Boolean)));
+    }
+
+    function _wizardPreparedCapFor(ctx) {
+      if (!ctx) return 0;
+      const lv = Number(ctx.level || 1);
+      const counts = _calcSpellCountsFor(ctx.className, ctx.clsObj, lv, ctx.subclassShortName);
+      return Math.max(0, Number(counts?.spells || 0));
+    }
+
+    function _wizardMaxLearnLevelFor(ctx) {
+      if (!ctx) return 0;
+      const lv = Number(ctx.level || 1);
+      const caster = _clsCasterProg(ctx.className, ctx.clsObj, ctx.subclassShortName) || 'full';
+      return Math.min(9, Math.max(0, Number(getMaxCastableLevel(caster, lv) || 0)));
+    }
+
+    function _activeWizardContext() {
+      const tab = char.activeClassTab || 0;
+      if (tab === 0) {
+        if (!_isWizardName(char.className) || !char.cls) return null;
+        return {
+          key: 'primary',
+          bucket: char,
+          className: char.className,
+          subclassShortName: char.subclassShortName || '',
+          clsObj: char.cls,
+          level: Number(char.level || 1),
+        };
+      }
+      const ec = (char.extraClasses || [])[tab - 1];
+      if (!ec || !_isWizardName(ec.name) || !ec.cls) return null;
+      return {
+        key: `ec:${tab - 1}`,
+        bucket: ec,
+        className: ec.name,
+        subclassShortName: ec.subclassShortName || '',
+        clsObj: ec.cls,
+        level: Number(ec.level || 1),
+      };
+    }
+
+    function _wizardContextFromKey(key) {
+      const k = String(key || 'primary');
+      if (k === 'primary') {
+        if (!_isWizardName(char.className) || !char.cls) return null;
+        return {
+          key: 'primary',
+          bucket: char,
+          className: char.className,
+          subclassShortName: char.subclassShortName || '',
+          clsObj: char.cls,
+          level: Number(char.level || 1),
+        };
+      }
+      const m = k.match(/^ec:(\d+)$/);
+      if (!m) return null;
+      const idx = Number(m[1]);
+      const ec = (char.extraClasses || [])[idx];
+      if (!ec || !_isWizardName(ec.name) || !ec.cls) return null;
+      return {
+        key: `ec:${idx}`,
+        bucket: ec,
+        className: ec.name,
+        subclassShortName: ec.subclassShortName || '',
+        clsObj: ec.cls,
+        level: Number(ec.level || 1),
+      };
+    }
+
+    function _wizardSpellbookSpellList(ctx, level) {
+      const names = _wizardSpellbookNamesAtLevel(ctx?.bucket, level);
+      const out = [];
+      names.forEach(n => {
+        const full = spellDb.find(s => String(s.name || '').toLowerCase() === String(n || '').toLowerCase());
+        if (full) out.push(full);
+      });
+      out.sort((a, b) => a.name.localeCompare(b.name));
+      return out;
+    }
+
+    function _syncWizardPreparedToSpellbook(ctx) {
+      if (!ctx || !ctx.bucket) return;
+      _ensureWizardSpellbookBucket(ctx.bucket);
+      const knownCantrips = new Set(_wizardSpellbookNamesAtLevel(ctx.bucket, 0).map(x => String(x || '').toLowerCase()));
+      const cantripArr = Array.isArray(ctx.bucket.selectedCantrips) ? ctx.bucket.selectedCantrips : [];
+      ctx.bucket.selectedCantrips = cantripArr.filter(sp => knownCantrips.has(String(sp || '').toLowerCase()));
+      for (let lv = 1; lv <= 9; lv++) {
+        const known = new Set(_wizardSpellbookNamesAtLevel(ctx.bucket, lv).map(x => String(x || '').toLowerCase()));
+        const arr = Array.isArray(ctx.bucket.selectedSpells?.[lv]) ? ctx.bucket.selectedSpells[lv] : [];
+        ctx.bucket.selectedSpells[lv] = arr.filter(sp => known.has(String(sp || '').toLowerCase()));
+      }
+    }
+
     function calcSpellCounts() {
-      return _calcSpellCountsFor(char.className, char.cls, char.level);
+      return _calcSpellCountsFor(char.className, char.cls, char.level, char.subclassShortName);
     }
 
     let activeSpellLevel = 0;
@@ -7234,7 +7381,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const panel = document.getElementById('panel-spells');
       const body = document.getElementById('spell-body');
       const cls = char.className;
-      const caster = _clsCasterProg(cls, char.cls);
+      const caster = _clsCasterProg(cls, char.cls, char.subclassShortName);
 
       const hasGrantData = collectSpellGrants().filter(g => !g.fromExtraClass).length > 0;
       const hasManualSpellSel = (char.selectedCantrips?.length || 0) > 0
@@ -7246,18 +7393,23 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       const counts = caster ? calcSpellCounts() : { cantrips: 0, spells: 0 };
       const classSpells = caster ? getClassSpells(cls) : [];
+      const wizardCtx = _activeWizardContext();
+      if (wizardCtx) {
+        _ensureWizardSpellbookBucket(wizardCtx.bucket);
+        _syncWizardPreparedToSpellbook(wizardCtx);
+      }
       const autoGranted = getAutoGrantedSpells();
       const pendingChoices = getPendingSpellChoices();
 
       // Compute max castable spell level (multiclass-aware)
       let maxLv = 0;
       const allExtraClasses = char.extraClasses || [];
-      const anyExtraCaster = allExtraClasses.some(ec => _clsCasterProg(ec.name, ec.cls));
+      const anyExtraCaster = allExtraClasses.some(ec => _clsCasterProg(ec.name, ec.cls, ec.subclassShortName));
       if (caster || anyExtraCaster) {
         // Shared pool: full=full level, 1/2=floor/2, 1/3=floor/3; pact excluded
         let poolLv = getCasterContribution(caster, char.level || 1);
         for (const ec of allExtraClasses) {
-          poolLv += getCasterContribution(_clsCasterProg(ec.name, ec.cls), ec.level || 1);
+          poolLv += getCasterContribution(_clsCasterProg(ec.name, ec.cls, ec.subclassShortName), ec.level || 1);
         }
         poolLv = Math.min(20, poolLv);
         if (poolLv > 0) {
@@ -7274,7 +7426,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           maxLv = Math.max(maxLv, pactLv);
         }
         for (const ec of allExtraClasses) {
-          if (_clsCasterProg(ec.name, ec.cls) === 'pact') {
+          if (_clsCasterProg(ec.name, ec.cls, ec.subclassShortName) === 'pact') {
             const pactLv = PACT_SLOTS[ec.level||1] ? PACT_SLOTS[ec.level||1].l : 1;
             maxLv = Math.max(maxLv, pactLv);
           }
@@ -7291,7 +7443,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       maxLv = Math.min(9, Math.max(0, maxLv)); // Range di sicurezza 0-9
 
       const hasContentAtLevel = (lv) => {
-        const row = classSpells.filter(s => s.level === lv);
+        const row = wizardCtx
+          ? _wizardSpellbookSpellList(wizardCtx, lv)
+          : classSpells.filter(s => s.level === lv);
         const hasAutoLv = autoGranted.some(s => s.level === lv);
         const hasPendingLv = pendingChoices.some(c => (c.spellLevel || 0) === lv);
         const hasSelectedLv = lv === 0 ? (char.selectedCantrips?.length || 0) > 0 : ((char.selectedSpells?.[lv] || []).length > 0);
@@ -7317,6 +7471,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const autoCount = autoGranted.length;
       if (autoCount > 0) h += ` <span style="font-size:var(--fs-label);color:var(--teal)">+ ${autoCount} auto-granted ${luci('sparkles')}</span>`;
       h += `</div>`;
+      if (wizardCtx) {
+        const bookCount = Object.values(wizardCtx.bucket.wizardSpellbook || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+        const maxLearn = _wizardMaxLearnLevelFor(wizardCtx);
+        h += `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem">
+          <span style="font-size:var(--fs-label);color:var(--text3)">Spellbook: <b style="color:var(--blue)">${bookCount}</b></span>
+          <span style="font-size:var(--fs-label);color:var(--text3)">Prepared cap: <b style="color:var(--gold2)">${_wizardPreparedCapFor(wizardCtx)}</b></span>
+          <span style="font-size:var(--fs-label);color:var(--text3)">Max learnable level: <b style="color:var(--gold2)">${maxLearn}</b></span>
+          <button class="chip" onclick="openBuilderWizardSpellbookModal()" style="margin-left:auto">${luci('book-open')} Spellbook Wizard</button>
+        </div>`;
+      }
 
       // Stampa i Tab dei livelli magici (solo fino al maxLv consentito)
       h += `<div class="spell-tabs">`;
@@ -7328,13 +7492,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       h += `</div><div id="spell-list-body"></div>`;
 
       body.innerHTML = h;
-      renderSpellList(classSpells, maxLv, counts);
+      renderSpellList(classSpells, maxLv, counts, wizardCtx);
     }
     function setSpellTab(lv) { activeSpellLevel = lv; renderSpellPanel(); }
 
-    function _calcSpellCountsFor(clsName, clsObj, lv) {
-      if (!_clsCasterProg(clsName, clsObj)) return null;
-      const cfg = getSpellcastingProfile(clsName, null, clsObj);
+    function _calcSpellCountsFor(clsName, clsObj, lv, scName) {
+      if (!_clsCasterProg(clsName, clsObj, scName)) return null;
+      const cfg = getSpellcastingProfile(clsName, scName || null, clsObj);
       const cantrips = clsObj?.cantripProgression?.[lv-1] || cfg.cantripKnown?.[lv-1] || 0;
       let spells = clsObj?.preparedSpellsProgression?.[lv-1] || 0;
       if (!spells) {
@@ -7353,20 +7517,26 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!panel || !body) return;
       const ec = (char.extraClasses||[])[ecIdx];
       if (!ec || !ec.cls) { panel.style.display='none'; return; }
-      const caster = _clsCasterProg(ec.name, ec.cls);
+      const caster = _clsCasterProg(ec.name, ec.cls, ec.subclassShortName);
       if (!caster) { panel.style.display='none'; return; }
       if (!ec.selectedCantrips) ec.selectedCantrips = [];
       if (!ec.selectedSpells)   ec.selectedSpells   = {};
       const lv     = ec.level || 1;
-      const counts = _calcSpellCountsFor(ec.name, ec.cls, lv);
+      const counts = _calcSpellCountsFor(ec.name, ec.cls, lv, ec.subclassShortName);
       if (!counts) { panel.style.display='none'; return; }
       panel.style.display = 'block';
       if (!spellDb.length) { body.innerHTML='<div class="phmsg">Loading spells…</div>'; return; }
       const classSpells = getClassSpells(ec.name);
+      const wizardCtx = _activeWizardContext();
+      if (wizardCtx) {
+        _ensureWizardSpellbookBucket(wizardCtx.bucket);
+        _syncWizardPreparedToSpellbook(wizardCtx);
+      }
       let maxLv = Math.min(9, getMaxCastableLevel(caster, lv));
       const availableLevels = [];
       for (let l=0; l<=maxLv; l++) {
-        const has = classSpells.some(s=>s.level===l) || (l===0?ec.selectedCantrips.length>0:(ec.selectedSpells[l]||[]).length>0);
+        const spellRows = wizardCtx ? _wizardSpellbookSpellList(wizardCtx, l) : classSpells.filter(s=>s.level===l);
+        const has = spellRows.length > 0 || (l===0?ec.selectedCantrips.length>0:(ec.selectedSpells[l]||[]).length>0);
         if (has || l===0) availableLevels.push(l);
       }
       if (!availableLevels.includes(activeSpellLevel)) activeSpellLevel = availableLevels[0]??0;
@@ -7374,7 +7544,18 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (counts.cantrips>0) h+=`Cantrip: <b style="color:var(--gold2)">${ec.selectedCantrips.length}/${counts.cantrips}</b> · `;
       h+=`Spells: <b style="color:var(--gold2)">${Object.values(ec.selectedSpells).flat().length}/${counts.spells}</b>`;
       if (caster==='pact') h+=` <span style="font-size:var(--fs-label);color:var(--text3)">(Warlock: spells known)</span>`;
-      h+=`</div><div class="spell-tabs">`;
+      h+=`</div>`;
+      if (wizardCtx) {
+        const bookCount = Object.values(wizardCtx.bucket.wizardSpellbook || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+        const maxLearn = _wizardMaxLearnLevelFor(wizardCtx);
+        h += `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem">
+          <span style="font-size:var(--fs-label);color:var(--text3)">Spellbook: <b style="color:var(--blue)">${bookCount}</b></span>
+          <span style="font-size:var(--fs-label);color:var(--text3)">Prepared cap: <b style="color:var(--gold2)">${_wizardPreparedCapFor(wizardCtx)}</b></span>
+          <span style="font-size:var(--fs-label);color:var(--text3)">Max learnable level: <b style="color:var(--gold2)">${maxLearn}</b></span>
+          <button class="chip" onclick="openBuilderWizardSpellbookModal()" style="margin-left:auto">${luci('book-open')} Spellbook Wizard</button>
+        </div>`;
+      }
+      h+=`<div class="spell-tabs">`;
       for (const l of availableLevels) {
         const isActive = l===activeSpellLevel;
         const selCount = l===0?ec.selectedCantrips.length:(ec.selectedSpells[l]||[]).length;
@@ -7382,14 +7563,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       h+=`</div><div id="spell-list-body"></div>`;
       body.innerHTML = h;
-      _renderExtraSpellList(classSpells, counts, ec);
+      _renderExtraSpellList(classSpells, counts, ec, wizardCtx);
     }
 
-    function _renderExtraSpellList(classSpells, counts, ec) {
+    function _renderExtraSpellList(classSpells, counts, ec, wizardCtx) {
       const el = document.getElementById('spell-list-body');
       if (!el) return;
       const lv = activeSpellLevel;
-      const list = classSpells.filter(s=>s.level===lv).sort((a,b)=>a.name.localeCompare(b.name));
+      const list = wizardCtx
+        ? _wizardSpellbookSpellList(wizardCtx, lv)
+        : classSpells.filter(s=>s.level===lv).sort((a,b)=>a.name.localeCompare(b.name));
       if (!list.length) { el.innerHTML='<div class="phmsg">No spells available.</div>'; return; }
       const isCantrip = lv===0;
       const selList   = isCantrip ? ec.selectedCantrips : (ec.selectedSpells[lv]||[]);
@@ -7423,13 +7606,15 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       el.innerHTML = h;
     }
 
-    function renderSpellList(classSpells, maxLv, counts) {
+    function renderSpellList(classSpells, maxLv, counts, wizardCtx) {
       const el = document.getElementById('spell-list-body');
       if (!el) return;
       const lv = activeSpellLevel;
 
       // 1. Prendi le spell base della classe per questo livello
-      let list = classSpells.filter(s => s.level === lv);
+      let list = wizardCtx
+        ? _wizardSpellbookSpellList(wizardCtx, lv)
+        : classSpells.filter(s => s.level === lv);
 
       // 2. Prendi le spell "Sempre Preparate" (sottoclasse) per questo livello
       const autoSpells = getAutoGrantedSpells().filter(s => s.level === lv);
@@ -7488,6 +7673,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const autoSpells = getAutoGrantedSpells();
       if (autoSpells.find(as => as.name === name)) return;
       const tab = char.activeClassTab || 0;
+      const wizardCtx = _activeWizardContext();
       if (tab > 0) {
         const ec = (char.extraClasses||[])[tab-1];
         if (!ec) return;
@@ -7495,8 +7681,20 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (!ec.selectedSpells)   ec.selectedSpells   = {};
         if (lv === 0) {
           const idx = ec.selectedCantrips.indexOf(name);
-          if (idx>=0) ec.selectedCantrips.splice(idx,1); else ec.selectedCantrips.push(name);
+          if (idx>=0) ec.selectedCantrips.splice(idx,1);
+          else {
+            if (wizardCtx && !_wizardSpellbookNamesAtLevel(wizardCtx.bucket, 0).includes(name)) return;
+            ec.selectedCantrips.push(name);
+          }
         } else {
+          if (wizardCtx) {
+            _ensureWizardSpellbookBucket(wizardCtx.bucket);
+            if (!_wizardSpellbookNamesAtLevel(wizardCtx.bucket, lv).includes(name)) return;
+            const cap = _wizardPreparedCapFor(wizardCtx);
+            const preparedTotal = Object.values(ec.selectedSpells || {}).flat().length;
+            const isAlready = (ec.selectedSpells?.[lv] || []).includes(name);
+            if (!isAlready && preparedTotal >= cap) return;
+          }
           if (!ec.selectedSpells[lv]) ec.selectedSpells[lv] = [];
           const idx = ec.selectedSpells[lv].indexOf(name);
           if (idx>=0) ec.selectedSpells[lv].splice(idx,1); else ec.selectedSpells[lv].push(name);
@@ -7508,8 +7706,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (lv === 0) {
         const idx = char.selectedCantrips.indexOf(name);
         if (idx >= 0) char.selectedCantrips.splice(idx, 1);
-        else char.selectedCantrips.push(name);
+        else {
+          if (wizardCtx && !_wizardSpellbookNamesAtLevel(wizardCtx.bucket, 0).includes(name)) return;
+          char.selectedCantrips.push(name);
+        }
       } else {
+        if (wizardCtx) {
+          _ensureWizardSpellbookBucket(wizardCtx.bucket);
+          if (!_wizardSpellbookNamesAtLevel(wizardCtx.bucket, lv).includes(name)) return;
+          const cap = _wizardPreparedCapFor(wizardCtx);
+          const preparedTotal = Object.values(char.selectedSpells || {}).flat().length;
+          const isAlready = (char.selectedSpells?.[lv] || []).includes(name);
+          if (!isAlready && preparedTotal >= cap) return;
+        }
         if (!char.selectedSpells[lv]) char.selectedSpells[lv] = [];
         const idx = char.selectedSpells[lv].indexOf(name);
         if (idx >= 0) char.selectedSpells[lv].splice(idx, 1);
@@ -7517,6 +7726,157 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       renderSpellPanel();
       renderPreviewSpells();
+    }
+
+    function _getBuilderWizardBookModal() {
+      let m = document.getElementById('builder-wiz-book-modal');
+      if (m) return m;
+      m = document.createElement('div');
+      m.id = 'builder-wiz-book-modal';
+      m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2200;overflow-y:auto;padding:1rem';
+      m.addEventListener('click', e => { if (e.target === m) closeBuilderWizardSpellbookModal(); });
+      document.body.appendChild(m);
+      return m;
+    }
+
+    function closeBuilderWizardSpellbookModal() {
+      const m = document.getElementById('builder-wiz-book-modal');
+      if (m) m.style.display = 'none';
+    }
+
+    function openBuilderWizardSpellbookModal(searchTerm, levelFilter, targetKey) {
+      const active = _activeWizardContext();
+      const ctx = _wizardContextFromKey(targetKey || active?.key || 'primary');
+      if (!ctx) return;
+      _ensureWizardSpellbookBucket(ctx.bucket);
+      const maxLearn = _wizardMaxLearnLevelFor(ctx);
+      const q = String(searchTerm || '').toLowerCase().trim();
+      const lvFilterNum = Number(levelFilter || 0);
+      const classSpells = getClassSpells(ctx.className || 'Wizard');
+      const knownByLevel = {};
+      Object.entries(ctx.bucket.wizardSpellbook || {}).forEach(([lvRaw, arr]) => {
+        const lv = Number(lvRaw || 0);
+        const list = Array.isArray(arr) ? arr.filter(Boolean) : [];
+        if (!knownByLevel[lv]) knownByLevel[lv] = [];
+        knownByLevel[lv].push(...list);
+      });
+      const known = new Set(Object.values(ctx.bucket.wizardSpellbook || {}).flat().map(x => String(x || '').toLowerCase()));
+      const available = classSpells.filter(s => {
+        if (!s || s.level < 0 || s.level > 9) return false;
+        if (s.level > maxLearn) return false;
+        if (lvFilterNum === -1 && s.level !== 0) return false;
+        if (lvFilterNum > 0 && s.level !== lvFilterNum) return false;
+        if (q && !String(s.name || '').toLowerCase().includes(q)) return false;
+        if (known.has(String(s.name || '').toLowerCase())) return false;
+        return true;
+      });
+      const byLevel = {};
+      available.forEach(s => {
+        if (!byLevel[s.level]) byLevel[s.level] = [];
+        byLevel[s.level].push(s);
+      });
+      const SCHOOL_SHORT = { A: "Abiu", C: "Amm", D: "Div", E: "Evo", I: "Ill", N: "Nec", T: "Tras", V: "Vegg" };
+
+      const m = _getBuilderWizardBookModal();
+      const label = ctx.key === 'primary'
+        ? `Wizard Lv.${ctx.level}${ctx.subclassShortName ? ` · ${ctx.subclassShortName}` : ''}`
+        : `Wizard MC Lv.${ctx.level}${ctx.subclassShortName ? ` · ${ctx.subclassShortName}` : ''}`;
+      let tabs = `<button class="chip${!lvFilterNum ? ' on' : ''}" onclick="openBuilderWizardSpellbookModal((document.getElementById('builder-wiz-book-q')||{}).value,0,'${ctx.key}')">All</button>`;
+      tabs += `<button class="chip${lvFilterNum===-1 ? ' on' : ''}" onclick="openBuilderWizardSpellbookModal((document.getElementById('builder-wiz-book-q')||{}).value,-1,'${ctx.key}')">C</button>`;
+      for (let lv = 1; lv <= 9; lv++) {
+        tabs += `<button class="chip${lvFilterNum===lv ? ' on' : ''}" onclick="openBuilderWizardSpellbookModal((document.getElementById('builder-wiz-book-q')||{}).value,${lv},'${ctx.key}')">${lv}</button>`;
+      }
+
+      let rows = '';
+      for (let lv = 0; lv <= 9; lv++) {
+        const list = (byLevel[lv] || []).sort((a, b) => a.name.localeCompare(b.name));
+        if (!list.length) continue;
+        const lvLabel = lv === 0 ? 'Cantrip' : `Level ${lv}`;
+        rows += `<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:.5rem .6rem;margin-bottom:.45rem">
+          <div style="font-family:var(--ff-display);font-size:var(--fs-label);letter-spacing:.08em;color:var(--gold);margin-bottom:.3rem">${lvLabel} (${list.length})</div>
+          ${list.slice(0, 50).map(s => {
+            const sn = String(s.name || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+            return `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.22rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
+              <span style="font-size:var(--fs-meta);color:var(--text2)">${esc(s.name)} <span style="color:var(--text3)">(${SCHOOL_SHORT[s.school]||s.school||''})</span></span>
+              <button class="chip" onclick="addBuilderWizardSpellToBook('${sn}',${s.level},'${ctx.key}')">Learn</button>
+            </div>`;
+          }).join('')}
+        </div>`;
+      }
+      if (!rows) rows = `<div class="phmsg">No spells available with this filter.</div>`;
+
+      m.innerHTML = `
+        <div style="max-width:900px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1rem">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem">
+            <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);color:var(--gold);flex:1">${luci('book-open')} Spellbook Wizard</div>
+            <span style="font-size:var(--fs-label);color:var(--text3)">${esc(label)}</span>
+            <button onclick="closeBuilderWizardSpellbookModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">${luci('x')}</button>
+          </div>
+          <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.5rem">You can only add spells up to level ${maxLearn}.</div>
+          <input id="builder-wiz-book-q" data-level="${Number.isFinite(lvFilterNum)?lvFilterNum:0}" value="${String(searchTerm || '').replace(/"/g, '&quot;')}" oninput="openBuilderWizardSpellbookModal(this.value,${Number.isFinite(lvFilterNum)?lvFilterNum:0},'${ctx.key}')" placeholder="Search spells..." style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);padding:6px 10px;margin-bottom:.45rem"/>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.55rem">${tabs}</div>
+          <details open style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:.5rem .6rem;margin-bottom:.55rem">
+            <summary style="cursor:pointer;user-select:none;font-family:var(--ff-display);font-size:var(--fs-label);letter-spacing:.08em;color:var(--gold)">Spells in your spellbook</summary>
+            <div style="margin-top:.4rem">
+              ${(() => {
+                let rowsKnown = '';
+                for (let lv = 0; lv <= 9; lv++) {
+                  const list = Array.from(new Set((knownByLevel[lv] || []).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b)));
+                  if (!list.length) continue;
+                  const lvLabel = lv === 0 ? 'Cantrip' : `Level ${lv}`;
+                  rowsKnown += `<div style="margin-bottom:.32rem">
+                    <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.18rem">${lvLabel} (${list.length})</div>
+                    ${list.map(sp => {
+                      const spSafe = String(sp || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+                      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.16rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
+                        <span style="font-size:var(--fs-meta);color:var(--text2)">${esc(sp)}</span>
+                        <button class="chip" style="border-color:var(--red2);color:var(--red2)" onclick="removeBuilderWizardSpellFromBook('${spSafe}',${lv},'${ctx.key}')">Remove</button>
+                      </div>`;
+                    }).join('')}
+                  </div>`;
+                }
+                return rowsKnown || `<div style=\"font-size:var(--fs-label);color:var(--text3)\">Empty spellbook.</div>`;
+              })()}
+            </div>
+          </details>
+          <div style="max-height:58vh;overflow:auto;padding-right:2px">${rows}</div>
+        </div>`;
+      m.style.display = 'block';
+      refreshIcons();
+    }
+
+    function addBuilderWizardSpellToBook(name, level, targetKey) {
+      const ctx = _wizardContextFromKey(targetKey);
+      if (!ctx) return;
+      _ensureWizardSpellbookBucket(ctx.bucket);
+      const maxLearn = _wizardMaxLearnLevelFor(ctx);
+      if (Number(level || 0) > maxLearn) return;
+      if (!ctx.bucket.wizardSpellbook[level]) ctx.bucket.wizardSpellbook[level] = [];
+      if (!ctx.bucket.wizardSpellbook[level].includes(name)) ctx.bucket.wizardSpellbook[level].push(name);
+      renderSpellPanel();
+      const inp = document.getElementById('builder-wiz-book-q');
+      const q = (inp || {}).value || '';
+      const lvFilter = Number((inp && inp.dataset && inp.dataset.level) || 0);
+      openBuilderWizardSpellbookModal(q, Number.isFinite(lvFilter) ? lvFilter : 0, ctx.key);
+    }
+
+    function removeBuilderWizardSpellFromBook(name, level, targetKey) {
+      const ctx = _wizardContextFromKey(targetKey);
+      if (!ctx) return;
+      _ensureWizardSpellbookBucket(ctx.bucket);
+      if (!Array.isArray(ctx.bucket.wizardSpellbook[level])) return;
+      ctx.bucket.wizardSpellbook[level] = ctx.bucket.wizardSpellbook[level].filter(sp => sp !== name);
+      if (Number(level) === 0 && Array.isArray(ctx.bucket.selectedCantrips)) {
+        ctx.bucket.selectedCantrips = ctx.bucket.selectedCantrips.filter(sp => sp !== name);
+      }
+      if (Array.isArray(ctx.bucket?.selectedSpells?.[level])) {
+        ctx.bucket.selectedSpells[level] = ctx.bucket.selectedSpells[level].filter(sp => sp !== name);
+      }
+      renderSpellPanel();
+      const inp = document.getElementById('builder-wiz-book-q');
+      const q = (inp || {}).value || '';
+      const lvFilter = Number((inp && inp.dataset && inp.dataset.level) || 0);
+      openBuilderWizardSpellbookModal(q, Number.isFinite(lvFilter) ? lvFilter : 0, ctx.key);
     }
 
     function renderPreviewSpells() {
@@ -7527,14 +7887,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const choices = char.choices || {};
       const allSpellNames = new Set();
 
-      // 1. Incantesimi scelti manualmente
+      // 1. Manually selected spells
       char.selectedCantrips.forEach(s => allSpellNames.add(s.toLowerCase()));
       Object.values(char.selectedSpells).flat().forEach(s => allSpellNames.add(s.toLowerCase()));
 
-      // 2. Incantesimi automatici (Classe + Specie)
+      // 2. Auto-granted spells (class + species)
       autoSpells.forEach(s => allSpellNames.add(s.name.toLowerCase()));
 
-      // 3. Incantesimi da altre scelte (feat/specie/altre grant choices)
+      // 3. Spells from other choices (feat/species/other grant choices)
       Object.values(choices).forEach(val => {
         if (Array.isArray(val)) {
           val.forEach(v => {
@@ -7776,7 +8136,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       allItemsDb = STANDARD_ITEMS_FALLBACK.map(normalizeItemType).sort((a, b) => a.name.localeCompare(b.name));
       renderItemSearch();
 
-      // Carica i dati remoti in background
+      // Load remote data in background
       let baseItems = [];
       let magicItems = [];
       let variants = [];
@@ -7806,7 +8166,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         magicItems = (d2.item || []).filter(i => ITEM_SOURCES.includes(i.source)).map(normalizeItemType);
         variants = d3.magicvariant || [];
       } catch (e) {
-        console.warn('Errore nel fetch dei dati remoti:', e);
+        console.warn('Error fetching remote data:', e);
       }
 
       // Fallback: Se baseItems è vuoto, usa gli item standard locali

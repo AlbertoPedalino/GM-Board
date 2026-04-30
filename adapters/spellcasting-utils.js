@@ -17,13 +17,14 @@
     return s || null;
   };
 
-  // Caster level contribution to shared multiclass pool (pact excluded)
+  // Caster level contribution to shared multiclass pool (pact excluded).
+  // 2024 rules: Paladin/Ranger count as half, rounded up.
   g.getCasterContribution = function (prog, level) {
     const lv = Number(level || 0);
     if (!Number.isFinite(lv) || lv <= 0) return 0;
     const p = g.normCasterProg(prog);
     if (p === 'full') return lv;
-    if (p === 'half') return Math.floor(lv / 2);
+    if (p === 'half') return Math.ceil(lv / 2);
     if (p === 'artificer') return Math.ceil(lv / 2);
     if (p === '1/3') return Math.floor(lv / 3);
     return 0;
@@ -33,10 +34,15 @@
   g.getMaxCastableLevel = function (prog, lv) {
     const p = g.normCasterProg(prog);
     const l = Math.min(Number(lv) || 0, 20);
-    const PACT_LV = [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
-    if (p === 'pact') return PACT_LV[l] || 0;
-    const slots = (p === 'full') ? (typeof FULL_SLOTS !== 'undefined' ? FULL_SLOTS[l] : null)
-      : (p === 'half' || p === 'artificer') ? (typeof HALF_SLOTS !== 'undefined' ? HALF_SLOTS[l] : null)
+    const pact = g.PACT_SLOTS || [];
+    if (p === 'pact') return (pact[l] && pact[l].l) ? pact[l].l : 0;
+    const full = g.FULL_SLOTS || [];
+    const half = g.HALF_SLOTS || [];
+    const third = g.THIRD_SLOTS || [];
+    const slots = (p === 'full') ? full[l]
+      : (p === 'half') ? half[l]
+      : (p === 'artificer') ? full[Math.min(20, Math.ceil(l / 2))]
+      : (p === '1/3') ? third[l]
       : null;
     if (!slots) return 0;
     let max = 0;

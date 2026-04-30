@@ -18,10 +18,12 @@
   }
 
   // XPHB 2024 fixed prepared-spell tables (source: 5etools class JSON)
-  const _PREP_FULL    = [4,5,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22];
-  const _PREP_WIZARD  = [4,5,6,7,9,10,11,12,14,15,16,16,17,18,19,21,22,23,24,25];
-  const _PREP_HALF    = [2,3,4,5,6,6,7,7,9,9,10,10,11,11,12,12,14,14,15,15];
-  const _PREP_THIRD   = [0,0,3,4,4,4,5,6,6,7,8,8,9,10,10,11,11,11,12,13];
+  const _PREP_FULL      = [4,5,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22];
+  const _PREP_WIZARD    = [4,5,6,7,9,10,11,12,14,15,16,16,17,18,19,21,22,23,24,25];
+  const _PREP_HALF      = [2,3,4,5,6,6,7,7,9,9,10,10,11,11,12,12,14,14,15,15];
+  const _PREP_THIRD     = [0,0,3,4,4,4,5,6,6,7,8,8,9,10,10,11,11,11,12,13];
+  const _PREP_SORCERER  = [2,4,6,7,9,10,11,12,14,15,16,16,17,17,18,18,19,20,21,22];
+  const _PREP_WARLOCK   = [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15];
 
   regClass("Barbarian", {
     multiclassPrerequisites: [{ str: 13 }],
@@ -115,6 +117,7 @@
       preparedMode: "known",
       cantripKnown: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
       spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
+      preparedSpellsProgression: _PREP_SORCERER,
     },
   });
   regClass("Warlock", {
@@ -125,6 +128,7 @@
       preparedMode: "known",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
       spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
+      preparedSpellsProgression: _PREP_WARLOCK,
       choiceSpellSources: {
         warlock_tome_cantrip_1: { label: "Pact of the Tome", ability: "cha" },
         warlock_tome_cantrip_2: { label: "Pact of the Tome", ability: "cha" },
