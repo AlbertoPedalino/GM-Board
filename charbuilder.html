@@ -2437,9 +2437,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                 Current Inventory</div>
               <div id="inv-list"></div>
               <!-- Add custom item -->
-              <div style="margin-top:.6rem;display:flex;gap:6px">
+              <div style="margin-top:.6rem;display:flex;gap:6px;flex-wrap:wrap">
                 <input class="search-box" id="inv-custom-name" placeholder="Custom item…"
-                  style="margin-bottom:0;flex:1" />
+                  style="margin-bottom:0;flex:1;min-width:100px"
+                  onkeydown="if(event.key==='Enter')addCustomItem()" />
+                <input type="number" id="inv-custom-weight" placeholder="lb" min="0" step="0.1"
+                  style="width:54px;padding:5px 8px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);font-size:var(--fs-ui-sm);flex-shrink:0"
+                  onkeydown="if(event.key==='Enter')addCustomItem()" />
+                <input type="number" id="inv-custom-value" placeholder="gp" min="0" step="0.01"
+                  style="width:58px;padding:5px 8px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);font-size:var(--fs-ui-sm);flex-shrink:0"
+                  onkeydown="if(event.key==='Enter')addCustomItem()" />
                 <button class="chip" onclick="addCustomItem()" style="white-space:nowrap">+ Add</button>
               </div>
             </div>
@@ -3551,6 +3558,22 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       renderPreview();
     }
 
+    function setFeatSaveProficiency(slotKey, keySuffix, value) {
+      if (!char.choices) char.choices = {};
+      char.choices[`${slotKey}_${keySuffix}`] = value || '';
+      const gd = document.getElementById('feat-grant-' + slotKey);
+      if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
+      renderPreview();
+    }
+
+    function setFeatDamageType(slotKey, keySuffix, value) {
+      if (!char.choices) char.choices = {};
+      char.choices[`${slotKey}_${keySuffix}`] = value || '';
+      const gd = document.getElementById('feat-grant-' + slotKey);
+      if (gd) gd.innerHTML = _renderGrantBlocksForSlot(slotKey);
+      renderPreview();
+    }
+
     function getSelectedFeats() {
       const result = {};
       for (const spec of deriveAllChoices()) {
@@ -3804,7 +3827,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const ksSafe = (wmCfg.keySuffix || 'weapon_mastery').replace(/'/g, "\\'");
         const weapons = Array.isArray(wmCfg.weapons) ? wmCfg.weapons : [];
         h += `<div style="margin-top:.75rem">
-  <div class="feat-section-hdr" style="color:var(--gold)">✧ Weapon Mastery</div>
+  <div class="feat-section-hdr" style="color:var(--gold)">✧ ${esc(wmCfg.label || 'Weapon Mastery')}</div>
   <select onchange="setWeaponMastery('${sk}','${ksSafe}',this.value)"
     style="background:var(--bg3);border:1px solid ${curWm ? 'var(--gold2)' : 'var(--bdr)'};border-radius:var(--r);color:var(--text);padding:5px 10px;font-size:var(--fs-ui-sm);font-family:var(--ff-display);cursor:pointer;min-width:180px">
     <option value="">— Choose weapon —</option>`;
@@ -3812,6 +3835,62 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           h += `<option value="${esc(w)}"${curWm === w ? ' selected' : ''}>${esc(w)}</option>`;
         }
         h += `</select></div>`;
+      }
+
+      /* ── 5. Save Proficiency ── */
+      if (feat.choiceUi?.saveProficiency) {
+        const spCfg = typeof feat.choiceUi.saveProficiency === 'object' ? feat.choiceUi.saveProficiency : {};
+        const spKey = `${slotKey}_${spCfg.keySuffix || 'save_prof'}`;
+        const curSp = char.choices[spKey] || '';
+        const sk = slotKey.replace(/'/g, "\\'");
+        const ksSafe = (spCfg.keySuffix || 'save_prof').replace(/'/g, "\\'");
+        const opts = Array.isArray(spCfg.options) && spCfg.options.length
+          ? spCfg.options
+          : [
+              { value: 'str', label: 'Strength' }, { value: 'dex', label: 'Dexterity' },
+              { value: 'con', label: 'Constitution' }, { value: 'int', label: 'Intelligence' },
+              { value: 'wis', label: 'Wisdom' }, { value: 'cha', label: 'Charisma' }
+            ];
+        h += `<div style="margin-top:.75rem">
+  <div class="feat-section-hdr" style="color:var(--teal)">✧ ${esc(spCfg.label || 'Saving Throw Proficiency')}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem">`;
+        for (const opt of opts) {
+          const isSel = curSp === opt.value;
+          h += `<button type="button" onclick="setFeatSaveProficiency('${sk}','${ksSafe}','${opt.value}');return false;"
+    style="padding:5px 12px;border:1px solid ${isSel ? 'var(--teal)' : 'var(--bdr)'};
+      border-radius:var(--r);background:${isSel ? 'var(--tbg)' : 'var(--bg3)'};
+      color:${isSel ? 'var(--teal)' : 'var(--text2)'};cursor:pointer;
+      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(opt.label)}</button>`;
+        }
+        h += `</div></div>`;
+      }
+
+      /* ── 6. Damage Type ── */
+      if (feat.choiceUi?.damageType) {
+        const dtCfg = typeof feat.choiceUi.damageType === 'object' ? feat.choiceUi.damageType : {};
+        const dtKey = `${slotKey}_${dtCfg.keySuffix || 'damage_type'}`;
+        const curDt = char.choices[dtKey] || '';
+        const sk = slotKey.replace(/'/g, "\\'");
+        const ksSafe = (dtCfg.keySuffix || 'damage_type').replace(/'/g, "\\'");
+        const opts = Array.isArray(dtCfg.options) && dtCfg.options.length
+          ? dtCfg.options
+          : [
+              { value: 'acid', label: 'Acid' }, { value: 'cold', label: 'Cold' },
+              { value: 'fire', label: 'Fire' }, { value: 'lightning', label: 'Lightning' },
+              { value: 'thunder', label: 'Thunder' }
+            ];
+        h += `<div style="margin-top:.75rem">
+  <div class="feat-section-hdr" style="color:var(--orange)">✧ ${esc(dtCfg.label || 'Damage Type')}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.5rem">`;
+        for (const opt of opts) {
+          const isSel = curDt === opt.value;
+          h += `<button type="button" onclick="setFeatDamageType('${sk}','${ksSafe}','${opt.value}');return false;"
+    style="padding:5px 12px;border:1px solid ${isSel ? 'var(--orange)' : 'var(--bdr)'};
+      border-radius:var(--r);background:${isSel ? 'var(--obg)' : 'var(--bg3)'};
+      color:${isSel ? 'var(--orange)' : 'var(--text2)'};cursor:pointer;
+      font-size:var(--fs-ui-sm);font-family:var(--ff-display);font-weight:600">${esc(opt.label)}</button>`;
+        }
+        h += `</div></div>`;
       }
 
       return h;
@@ -7589,7 +7668,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
               style="${isAuto?'cursor:default;border-color:var(--teal);background:var(--tealbg)':''}">
           <div class="spell-check${on?' on':''}" style="${isAuto?'background:var(--teal);border-color:var(--teal)':''}">${on?luci('check'):''}</div>
           <div style="flex:1;min-width:0">
-            <div class="spell-name">${esc(s.name)}${isAuto?` <span style="font-size:var(--fs-caption);color:var(--teal);margin-left:5px">${luci('sparkles')} ALWAYS PREPARED</span>`:''}</div>
+            <div class="spell-name">${esc(s.name)}</div>
             <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
           </div>
           ${s.ritual?`<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>`:''}
@@ -7652,7 +7731,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
                    style="${isAuto ? 'cursor:default; border-color:var(--teal); background:var(--tealbg)' : ''}">
           <div class="spell-check${on ? ' on' : ''}" style="${isAuto ? 'background:var(--teal); border-color:var(--teal)' : ''}">${on ? luci('check') : ''}</div>
           <div style="flex:1;min-width:0">
-            <div class="spell-name">${esc(s.name)} ${isAuto ? `<span style="font-size:var(--fs-caption); color:var(--teal); margin-left:5px">${luci('sparkles')} ALWAYS PREPARED</span>` : ''}</div>
+            <div class="spell-name">${esc(s.name)}</div>
             <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
           </div>
           ${s.ritual ? `<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>` : ''}
@@ -8144,8 +8223,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const inp = document.getElementById('inv-custom-name');
       const name = (inp?.value || '').trim();
       if (!name) return;
-      char.inventory.push({ name, source: 'Custom', type: 'OTH', rarity: 'none', qty: 1, weight: 0, value: 0, custom: true });
+      const wInp = document.getElementById('inv-custom-weight');
+      const vInp = document.getElementById('inv-custom-value');
+      const weight = Math.max(0, parseFloat(wInp?.value || '0') || 0);
+      const value  = Math.round(Math.max(0, parseFloat(vInp?.value || '0') || 0) * 100);
+      char.inventory.push({ name, source: 'Custom', type: 'OTH', rarity: 'none', qty: 1, weight, value, custom: true });
       inp.value = '';
+      if (wInp) wInp.value = '';
+      if (vInp) vInp.value = '';
       renderInventoryList();
     }
 

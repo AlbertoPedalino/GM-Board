@@ -1369,9 +1369,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="inv-search-list" id="inv-search-results"></div>
 
         <!-- Add custom -->
-        <div style="display:flex;gap:6px;margin-bottom:.75rem">
+        <div style="display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap">
           <input class="inv-search-box" id="inv-custom-name" placeholder="Add custom item…"
-            style="margin-bottom:0;flex:1"/>
+            style="margin-bottom:0;flex:1;min-width:120px"
+            onkeydown="if(event.key==='Enter')addCustomItemSheet()"/>
+          <input type="number" id="inv-custom-weight" placeholder="lb" min="0" step="0.1"
+            style="width:58px;padding:6px 8px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);font-size:var(--fs-label);flex-shrink:0"
+            onkeydown="if(event.key==='Enter')addCustomItemSheet()"/>
+          <input type="number" id="inv-custom-value" placeholder="gp" min="0" step="0.01"
+            style="width:62px;padding:6px 8px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);font-size:var(--fs-label);flex-shrink:0"
+            onkeydown="if(event.key==='Enter')addCustomItemSheet()"/>
           <button onclick="addCustomItemSheet()" style="padding:6px 14px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);font-family:var(--ff-display);font-size:var(--fs-label);cursor:pointer;white-space:nowrap;transition:all .12s"
             onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
             onmouseout="this.style.borderColor='var(--bdr2)';this.style.color='var(--text2)'">+ Add</button>
@@ -3203,7 +3210,32 @@ function renderSpellsTab(){
   const hasAdapterCantrips = adapterCantrips.length > 0;
   const hasChoiceSpells = choiceSpellNames.length > 0;
 
-  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips && !auto.length && !hasChoiceSpells){
+  // ── At Will Invocation Spells — compute entries early for early-return & placeholder ──
+  const _sheetHasInvocation = (invName) => {
+    if (!C?.choices) return false;
+    return Object.entries(C.choices).some(([k, v]) =>
+      k.replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
+      String(v).split('|')[0].trim() === invName
+    );
+  };
+  const _atWillEntries = [];
+  const _awClassEntities = [
+    { name: C?.className || '', level: C?.classLevel || C?.level || 1 },
+    ...(C?.extraClasses || []).map(ec => ({ name: ec.name || '', level: ec.level || 1 }))
+  ];
+  if (typeof getClassAtWillSpells === 'function') {
+    for (const ent of _awClassEntities) {
+      const awMap = getClassAtWillSpells(ent.name);
+      if (!awMap) continue;
+      for (const entry of awMap) {
+        if (ent.level < (entry.minLevel || 1)) continue;
+        if (!_sheetHasInvocation(entry.invocation)) continue;
+        if (!_atWillEntries.find(r => r.spell === entry.spell)) _atWillEntries.push(entry);
+      }
+    }
+  }
+
+  if(!hasCaster && !allCantrips.length && !Object.values(allSpells).flat().length && !hasAdapterCantrips && !auto.length && !hasChoiceSpells && !_atWillEntries.length){
     el.innerHTML='<div class="phmsg">This character is not a spellcaster.</div>'
       + '<button class="spl-add-btn" onclick="openSpellPicker()">+ Add Spell</button>';
     return;
@@ -3226,6 +3258,8 @@ function renderSpellsTab(){
       <div class="stat-box-lbl">Spell Ability</div>
     </div>
   </div>`;
+  const _AW_PLACEHOLDER = '<!--AW-->';
+  h += _AW_PLACEHOLDER;
 
   // Spell slots
   const lv = C.level;
@@ -3629,20 +3663,25 @@ function renderSpellsTab(){
     combined.sort((a,b)=>String(a).localeCompare(String(b)));
     h+=`<div class="spell-level-section"><div class="spell-level-hdr">${SPELL_LEVEL_LABELS[slv]}</div>`;
     for(const name of combined){
-      const isAuto = auto.some(a => String(a?.name || '').toLowerCase() === String(name || '').toLowerCase());
-      const src = getSpellSource(name);
-      const srcLbl = String(src?.label || '').trim().toLowerCase();
-      const showAutoBadge = isAuto && srcLbl !== 'auto';
       h+=_spellRow(
         name,
-        showAutoBadge ? `<span class="spell-badge auto">${luci('sparkles')} Auto</span>` : '',
+        '',
         canCastAtLv ? slv : null
       );
     }
     h+=`</div>`;
   }
 
-  if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length && !Object.values(choiceSpellsByLevel).flat().length){
+  // ── At Will section HTML — built here (after _spellRow available), injected via placeholder ──
+  let _hAtWill = '';
+  if (_atWillEntries.length) {
+    _hAtWill = `<div class="spell-level-section"><div class="spell-level-hdr">At Will</div>`;
+    for (const { spell } of _atWillEntries) _hAtWill += _spellRow(spell);
+    _hAtWill += `</div>`;
+  }
+  h = h.replace(_AW_PLACEHOLDER, _hAtWill);
+
+  if(!allCantripNames.length && !Object.values(allSpells).flat().length && !auto.length && !Object.values(choiceSpellsByLevel).flat().length && !_atWillEntries.length){
     h+='<div class="phmsg">No spells selected.</div>';
   }
 
@@ -3706,6 +3745,29 @@ function getSpellSource(spellName){
   if(autoEntry){
     const lbl = autoEntry.source || 'Auto';
     return {label: lbl, cls:'t', ability: _inferAbilityFromSourceLabel(lbl, autoEntry.sourceType)};
+  }
+  // At Will invocation spells
+  if (typeof getClassAtWillSpells === 'function') {
+    const _awEntities = [
+      { name: C?.className || '', level: C?.classLevel || C?.level || 1 },
+      ...(C?.extraClasses || []).map(ec => ({ name: ec.name || '', level: ec.level || 1 }))
+    ];
+    const _hasInv = (invName) => {
+      if (!C?.choices) return false;
+      return Object.entries(C.choices).some(([k, v]) =>
+        k.replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
+        String(v).split('|')[0].trim() === invName
+      );
+    };
+    for (const ent of _awEntities) {
+      const awMap = getClassAtWillSpells(ent.name);
+      if (!awMap) continue;
+      for (const entry of awMap) {
+        if (String(entry.spell || '').toLowerCase() !== n) continue;
+        if (ent.level < (entry.minLevel || 1)) continue;
+        if (_hasInv(entry.invocation)) return { label: entry.invocation, cls: 'p', ability: 'cha' };
+      }
+    }
   }
   const CHOICE_SOURCE = _sheetCollectChoiceSpellSourceMeta();
   if(C?.choices){
@@ -4004,8 +4066,14 @@ function addCustomItemSheet(){
   const inp = document.getElementById('inv-custom-name');
   const name = (inp?.value||'').trim();
   if(!name) return;
-  sheetInventory.push({name,source:'Custom',type:'OTH',rarity:'none',qty:1,weight:0,value:0,equipped:false,custom:true});
+  const wInp = document.getElementById('inv-custom-weight');
+  const vInp = document.getElementById('inv-custom-value');
+  const weight = Math.max(0, parseFloat(wInp?.value||'0')||0);
+  const value  = Math.round(Math.max(0, parseFloat(vInp?.value||'0')||0) * 100);
+  sheetInventory.push({name,source:'Custom',type:'OTH',rarity:'none',qty:1,weight,value,equipped:false,custom:true});
   inp.value='';
+  if(wInp) wInp.value='';
+  if(vInp) vInp.value='';
   persistInventory();
   renderInventoryList();
 }
@@ -4650,30 +4718,155 @@ function switchTab(name, btn){
 
 function doRest(type){
   if(type==='long'){
-    maxHP = Math.max(1, calcMaxHP() + maxHPBonus);
-    _setCurrentHp(maxHP);
-    tempHP = 0;
-    resetDeathSaves();
-    usedHD = 0;
-    spellSlotUsed = {};
-    recoverResources('LR');
-    _saveHpState();
-    localStorage.setItem('5e_hd_used', usedHD);
-    localStorage.setItem('5e_slots_used', '{}');
-    renderStatsRow();
-    renderHitDice();
-    renderSpellsTab();
-    renderActionsTab();
-    showDiceToast('Long Rest', [], 0, maxHP, 'HP, slots and resources restored!');
+    _showLongRestConfirm();
   } else {
     _showShortRestModal();
   }
+}
+
+function _showLongRestConfirm(){
+  let m = document.getElementById('lr-modal');
+  if(!m){
+    m = document.createElement('div');
+    m.id = 'lr-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;padding:1rem';
+    m.addEventListener('click', e=>{ if(e.target===m) _closeLongRestModal(); });
+    document.body.appendChild(m);
+  }
+  const _lrGrants = typeof getSpeciesLongRestGrants === 'function'
+    ? getSpeciesLongRestGrants(C?.speciesName || '', C?.speciesSource || '')
+    : null;
+  const _inspLine = (_lrGrants?.inspiration && !sheetInspiration)
+    ? `<br>Gain <b style="color:var(--gold2)">Inspiration</b>.` : '';
+  m.style.display = 'flex';
+  m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:340px;width:100%;text-align:center">
+    <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);margin-bottom:.75rem">${luci('moon')} Long Rest</div>
+    <div style="font-size:var(--fs-body);color:var(--text3);margin-bottom:1.25rem">Restore all HP, slots and resources.${_inspLine}</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button onclick="_applyLongRest()"
+        style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:pointer;font-family:var(--ff-display);font-size:var(--fs-body);font-weight:700">
+        ${luci('moon')} Rest
+      </button>
+      <button onclick="_closeLongRestModal()" style="padding:8px 16px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Cancel</button>
+    </div>
+  </div>`;
+  refreshIcons();
+}
+
+function _closeLongRestModal(){
+  const m = document.getElementById('lr-modal');
+  if(m) m.style.display = 'none';
+}
+
+function _applyLongRest(){
+  _closeLongRestModal();
+  maxHP = Math.max(1, calcMaxHP() + maxHPBonus);
+  _setCurrentHp(maxHP);
+  tempHP = 0;
+  resetDeathSaves();
+  usedHD = 0;
+  spellSlotUsed = {};
+  recoverResources('LR');
+  _saveHpState();
+  localStorage.setItem('5e_hd_used', usedHD);
+  localStorage.setItem('5e_slots_used', '{}');
+  const _lrGrants = typeof getSpeciesLongRestGrants === 'function'
+    ? getSpeciesLongRestGrants(C?.speciesName || '', C?.speciesSource || '')
+    : null;
+  if (_lrGrants?.inspiration && !sheetInspiration) {
+    sheetInspiration = true;
+    localStorage.setItem('5e_inspiration', 'true');
+  }
+  renderStatsRow();
+  renderHitDice();
+  renderSpellsTab();
+  renderActionsTab();
+  renderInspirationSheet();
+  showDiceToast('Long Rest', [], 0, maxHP, 'HP, slots and resources restored!');
 }
 
 function _getHdFaces(){
   const hd = C?.clsSnapshot?.hd;
   if(hd){ if(hd.faces) return hd.faces; if(Array.isArray(hd)&&hd[0]?.faces) return hd[0].faces; }
   return 8;
+}
+
+/* ═══ Generic Slot Recovery Modal (Arcane Recovery, etc.) ═══ */
+let _slotRec = { budget: 0, maxLv: 5, sel: {}, title: '' };
+
+function _showSlotRecoveryModal(budget, maxSlotLevel, title) {
+  _slotRec = { budget, maxLv: maxSlotLevel || 5, sel: {}, title: title || 'Slot Recovery' };
+  let m = document.getElementById('slot-rec-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'slot-rec-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2000;align-items:center;justify-content:center;padding:1rem';
+    m.addEventListener('click', e => { if (e.target === m) _closeSlotRecoveryModal(); });
+    document.body.appendChild(m);
+  }
+  m.style.display = 'flex';
+  _renderSlotRecoveryModal();
+}
+
+function _renderSlotRecoveryModal() {
+  const m = document.getElementById('slot-rec-modal');
+  if (!m) return;
+  const { budget, maxLv, sel, title } = _slotRec;
+  const spent = Object.entries(sel).reduce((s, [lv, c]) => s + Number(lv) * c, 0);
+  const remaining = budget - spent;
+  let rows = '';
+  for (let lv = 1; lv <= maxLv; lv++) {
+    const used = spellSlotUsed[lv] || 0;
+    if (!used) continue;
+    const selCnt = sel[lv] || 0;
+    const canAdd = remaining >= lv && selCnt < used;
+    const canSub = selCnt > 0;
+    rows += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
+      <span style="color:var(--text2);font-size:var(--fs-body);min-width:52px">Level ${lv}</span>
+      <span style="color:var(--text3);font-size:var(--fs-xs);flex:1">${used} used · costs ${lv}</span>
+      <button onclick="_slotRecAdj(${lv},-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);cursor:${canSub?'pointer':'default'};opacity:${canSub?1:.35};font-size:16px;line-height:1">−</button>
+      <span style="min-width:18px;text-align:center;font-family:var(--ff-display);color:var(--gold2);font-weight:700">${selCnt}</span>
+      <button onclick="_slotRecAdj(${lv},1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);cursor:${canAdd?'pointer':'default'};opacity:${canAdd?1:.35};font-size:16px;line-height:1">+</button>
+    </div>`;
+  }
+  if (!rows) rows = `<div style="color:var(--text3);font-size:var(--fs-body);text-align:center;padding:.75rem 0">No expended slots to recover.</div>`;
+  m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:320px;width:100%">
+    <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);margin-bottom:.25rem">${luci('book-open')} ${esc(title)}</div>
+    <div style="font-size:var(--fs-body);color:var(--text3);margin-bottom:.85rem">Budget: <b style="color:var(--gold2)">${remaining}</b> / ${budget} levels remaining</div>
+    ${rows}
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button onclick="_applySlotRecovery()" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:pointer;font-family:var(--ff-display);font-size:var(--fs-body);font-weight:700">${luci('sparkles')} Recover</button>
+      <button onclick="_closeSlotRecoveryModal()" style="padding:8px 16px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Cancel</button>
+    </div>
+  </div>`;
+  refreshIcons();
+}
+
+function _slotRecAdj(lv, delta) {
+  const { budget, sel } = _slotRec;
+  const used = spellSlotUsed[lv] || 0;
+  const cur = sel[lv] || 0;
+  const spent = Object.entries(sel).reduce((s, [l, c]) => s + Number(l) * c, 0);
+  if (delta > 0 && (budget - spent) >= lv && cur < used) {
+    _slotRec.sel[lv] = cur + 1;
+  } else if (delta < 0 && cur > 0) {
+    _slotRec.sel[lv] = cur - 1;
+  }
+  _renderSlotRecoveryModal();
+}
+
+function _applySlotRecovery() {
+  for (const [lv, cnt] of Object.entries(_slotRec.sel)) {
+    if (cnt > 0) spellSlotUsed[Number(lv)] = Math.max(0, (spellSlotUsed[Number(lv)] || 0) - cnt);
+  }
+  localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
+  _closeSlotRecoveryModal();
+  renderSpellsTab();
+}
+
+function _closeSlotRecoveryModal() {
+  const m = document.getElementById('slot-rec-modal');
+  if (m) m.style.display = 'none';
 }
 
 function _showShortRestModal(){
@@ -5076,14 +5269,19 @@ function saveResources(){
 }
 
 function spendResource(key, cost=1){
-  charResources[key] = Math.max(0, (charResources[key]??0) - cost);
+  const oldCur = charResources[key] ?? 0;
+  charResources[key] = Math.max(0, oldCur - cost);
   saveResources();
   renderActionsTab();
+  if (charResources[key] < oldCur) {
+    const _sideEffect = typeof getResourceSideEffect === 'function' ? getResourceSideEffect(key) : null;
+    if (typeof _sideEffect === 'function') _sideEffect();
+  }
 }
 
 function setResourcePip(key, idx, max){
-  const cur = charResources[key]??max;
-  const consumed = max - cur;
+  const oldCur = charResources[key]??max;
+  const consumed = max - oldCur;
   // left-to-right: clicking a consumed pip (idx < consumed) → restore; clicking available → consume
   charResources[key] = idx < consumed ? max - idx : max - idx - 1;
   charResources[key] = Math.max(0, Math.min(max, charResources[key]));
@@ -5095,6 +5293,10 @@ function setResourcePip(key, idx, max){
       `<div class="res-pip${i<m-newCur?' used':''}" onclick="event.stopPropagation();setResourcePip('${key}',${i},${m})" title="${i<m-newCur?'Used':'Available'}"></div>`
     ).join('');
   });
+  if (newCur < oldCur) {
+    const _sideEffect = typeof getResourceSideEffect === 'function' ? getResourceSideEffect(key) : null;
+    if (typeof _sideEffect === 'function') _sideEffect();
+  }
 }
 
 function recoverResources(type){

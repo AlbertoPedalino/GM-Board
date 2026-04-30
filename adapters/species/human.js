@@ -17,3 +17,8 @@ registerSpeciesSheetCommonChoiceMeta("Human_XPHB", {
     species_origin_feat: 'Origin Feat (Human Versatile)',
   },
 });
+
+// Heroic Inspiration: regain Inspiration on Long Rest
+if (typeof registerSpeciesLongRestGrants === 'function') {
+  registerSpeciesLongRestGrants('Human', 'XPHB', { inspiration: true });
+}

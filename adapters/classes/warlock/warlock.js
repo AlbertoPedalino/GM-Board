@@ -122,85 +122,6 @@ registerClassSheetActions("Warlock", [
     "desc": "Magical Cunning is upgraded: when you use its 1-minute ritual, you regain ALL expended Pact Magic slots (instead of half). Once per Long Rest."
   },
 
-  // ── INVOCATIONS: spell-granting (at will) ──────────────────────────────────
-
-  {
-    "name": "Armor of Shadows",
-    "icon": "shield",
-    "cat": "action",
-    "uses": "At Will",
-    "condition": function(C) { return _warlockHasInvocation(C, 'Armor of Shadows'); },
-    "desc": "Cast Mage Armor on yourself at will without a spell slot or material components. AC = 13 + DEX modifier. Lasts 8 hours or until you don armor."
-  },
-  {
-    "name": "Fiendish Vigor",
-    "icon": "heart",
-    "cat": "action",
-    "uses": "At Will",
-    "condition": function(C) { return _warlockHasInvocation(C, 'Fiendish Vigor'); },
-    "desc": "Cast False Life on yourself at will without a spell slot or material components, always at 1st level maximum effect: gain 8 Temporary Hit Points."
-  },
-  {
-    "name": "Mask of Many Faces",
-    "icon": "user",
-    "cat": "action",
-    "uses": "At Will",
-    "condition": function(C) { return _warlockHasInvocation(C, 'Mask of Many Faces'); },
-    "desc": "Cast Disguise Self at will without a spell slot. Change clothing, features, height (±1 ft), weight. Investigation DC 16 to see through. Duration: 1 hour."
-  },
-  {
-    "name": "Misty Visions",
-    "icon": "cloud",
-    "cat": "action",
-    "uses": "At Will",
-    "condition": function(C) { return _warlockHasInvocation(C, 'Misty Visions'); },
-    "desc": "Cast Silent Image at will without a spell slot. Create a static visual illusion (15-ft cube) within 60 ft. Investigation DC to disbelieve. Concentration, 10 minutes."
-  },
-  {
-    "name": "Otherworldly Leap",
-    "icon": "move-up",
-    "cat": "action",
-    "uses": "At Will",
-    "condition": function(C) { return _warlockHasInvocation(C, 'Otherworldly Leap'); },
-    "desc": "Cast Jump on yourself at will without a spell slot. Triple your jump distance for 1 minute (no Concentration)."
-  },
-  {
-    "name": "Ascendant Step",
-    "icon": "arrow-up",
-    "cat": "action",
-    "uses": "At Will",
-    "minLevel": 9,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Ascendant Step'); },
-    "desc": "Cast Levitate on yourself at will without a spell slot. Rise or descend up to 20 ft per turn. Concentration, 10 minutes."
-  },
-  {
-    "name": "Master of Myriad Forms",
-    "icon": "refresh-cw",
-    "cat": "action",
-    "uses": "At Will",
-    "minLevel": 5,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Master of Myriad Forms'); },
-    "desc": "Cast Alter Self at will without a spell slot. Choose Aquatic Adaptation, Change Appearance, or Natural Weapon each time you cast. Concentration, 1 hour."
-  },
-  {
-    "name": "Whispers of the Grave",
-    "icon": "skull",
-    "cat": "action",
-    "uses": "At Will",
-    "minLevel": 7,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Whispers of the Grave'); },
-    "desc": "Cast Speak with Dead at will without a spell slot. Ask a corpse up to 5 questions (it can refuse unhelpful answers). Duration: 10 minutes."
-  },
-  {
-    "name": "Visions of Distant Realms",
-    "icon": "eye",
-    "cat": "action",
-    "uses": "At Will",
-    "minLevel": 15,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Visions of Distant Realms'); },
-    "desc": "Cast Arcane Eye at will without a spell slot. Create an invisible magical sensor and perceive through it for 1 hour (Concentration). Move sensor 30 ft per action."
-  },
-
   // ── INVOCATIONS: other action types ───────────────────────────────────────
 
   {
@@ -272,6 +193,20 @@ registerClassSheetActions("Warlock", [
 ]);
 // [SheetRuntime] END
 
+if (typeof registerClassAtWillSpells === 'function') {
+  registerClassAtWillSpells('Warlock', [
+    { invocation: 'Armor of Shadows',          spell: 'Mage Armor',      minLevel: 1  },
+    { invocation: 'Fiendish Vigor',            spell: 'False Life',      minLevel: 1  },
+    { invocation: 'Mask of Many Faces',        spell: 'Disguise Self',   minLevel: 1  },
+    { invocation: 'Misty Visions',             spell: 'Silent Image',    minLevel: 1  },
+    { invocation: 'Otherworldly Leap',         spell: 'Jump',            minLevel: 5  },
+    { invocation: 'Ascendant Step',            spell: 'Levitate',        minLevel: 9  },
+    { invocation: 'Master of Myriad Forms',    spell: 'Alter Self',      minLevel: 5  },
+    { invocation: 'Whispers of the Grave',     spell: 'Speak with Dead', minLevel: 7  },
+    { invocation: 'Visions of Distant Realms', spell: 'Arcane Eye',      minLevel: 15 },
+  ]);
+}
+
 if (typeof registerWeaponAbilityOverride === 'function') {
   registerWeaponAbilityOverride({
     key: 'pact_blade',
@@ -307,3 +242,23 @@ registerClassSheetResources("Warlock", [
     "max": function() { return 1; }
   }
 ]);
+
+// Magical Cunning: when used, recover ceil(maxPactSlots / 2) pact magic slots
+if (typeof registerResourceSideEffect === 'function') {
+  registerResourceSideEffect('magical_cunning', function () {
+    let wlv = 0;
+    if (String(C?.className || '').toLowerCase() === 'warlock') wlv += C?.classLevel || C?.level || 0;
+    (C?.extraClasses || []).forEach(function (ec) {
+      if (String(ec?.name || '').toLowerCase() === 'warlock') wlv += ec.level || 0;
+    });
+    if (!wlv) return;
+    const ps = (typeof PACT_SLOTS !== 'undefined') ? (PACT_SLOTS[Math.min(wlv, 20)] || { n: 0, l: 1 }) : { n: 0, l: 1 };
+    if (!ps.n) return;
+    const recover = Math.ceil(ps.n / 2);
+    if (typeof spellSlotUsed !== 'undefined') {
+      spellSlotUsed[ps.l] = Math.max(0, (spellSlotUsed[ps.l] || 0) - recover);
+      localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
+    }
+    if (typeof renderSpellsTab === 'function') renderSpellsTab();
+  });
+}

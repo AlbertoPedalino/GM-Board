@@ -105,3 +105,17 @@ registerClassSheetResources("Wizard", [
   }
 ]);
 // [SheetRuntime] END
+
+// Arcane Recovery: when used, open slot recovery picker (budget = ceil(wizLv/2), max slot lv5)
+if (typeof registerResourceSideEffect === 'function') {
+  registerResourceSideEffect('arc_recovery', function () {
+    let wizLv = 0;
+    if (String(C?.className || '').toLowerCase() === 'wizard') wizLv += C?.classLevel || C?.level || 0;
+    (C?.extraClasses || []).forEach(function (ec) {
+      if (String(ec?.name || '').toLowerCase() === 'wizard') wizLv += ec.level || 0;
+    });
+    if (!wizLv) return;
+    const budget = Math.ceil(wizLv / 2);
+    if (typeof _showSlotRecoveryModal === 'function') _showSlotRecoveryModal(budget, 5, 'Arcane Recovery');
+  });
+}

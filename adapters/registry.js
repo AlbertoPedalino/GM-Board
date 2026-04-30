@@ -37,6 +37,9 @@ const ClassChoiceLabelProviders = {};
 const FeatSheetResources = {};
 const FeatSheetActions   = {};
 const WeaponAbilityOverrides = [];
+const ClassAtWillSpells  = {};
+const SpeciesLongRestGrants = {};
+const ResourceSideEffects = {};
 
 function _normAdapterKey(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -593,6 +596,37 @@ function registerWeaponAbilityOverride(cfg) {
 }
 function getWeaponAbilityOverrides() {
   return WeaponAbilityOverrides.slice();
+}
+
+function registerClassAtWillSpells(className, map) {
+  const k = _normAdapterKey(className);
+  ClassAtWillSpells[String(className)] = Array.isArray(map) ? map : [];
+  if (k) ClassAtWillSpells[k] = Array.isArray(map) ? map : [];
+}
+function getClassAtWillSpells(className) {
+  const raw = String(className || '');
+  const k = _normAdapterKey(raw);
+  return ClassAtWillSpells[raw] || ClassAtWillSpells[k] || null;
+}
+
+function registerSpeciesLongRestGrants(speciesName, speciesSource, grants) {
+  const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : String(speciesName || '');
+  const k = _toSpeciesCanonicalKey(speciesName, speciesSource);
+  SpeciesLongRestGrants[raw] = grants;
+  if (k) SpeciesLongRestGrants[k] = grants;
+}
+function getSpeciesLongRestGrants(speciesName, speciesSource) {
+  const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : String(speciesName || '');
+  const k = _toSpeciesCanonicalKey(speciesName, speciesSource);
+  return SpeciesLongRestGrants[raw] || SpeciesLongRestGrants[k] || null;
+}
+
+function registerResourceSideEffect(key, fn) {
+  if (typeof fn !== 'function') return;
+  ResourceSideEffects[String(key)] = fn;
+}
+function getResourceSideEffect(key) {
+  return ResourceSideEffects[String(key)] || null;
 }
 
 function registerFeatSheetResources(name, resources) {
