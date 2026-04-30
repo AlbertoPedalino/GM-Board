@@ -1205,19 +1205,9 @@ function refreshIcons(){
 }
 document.addEventListener('DOMContentLoaded', () => {
   refreshIcons();
-  // Debug: Verifica che i moduli Wizard sono caricati
-  console.log('🧙 Wizard Modules Status:');
-  console.log('  - WizardSpellbookAPI:', typeof window.WizardSpellbookAPI !== 'undefined' ? '✅ LOADED' : '❌ MISSING');
-  console.log('  - WizardSheetIntegration:', typeof window.WizardSheetIntegration !== 'undefined' ? '✅ LOADED' : '❌ MISSING');
-  console.log('  - WizardUIIntegration:', typeof window.WizardUIIntegration !== 'undefined' ? '✅ LOADED' : '❌ MISSING');
-  
-  // Initialize Wizard spellbook UI system if available
+  // Initialize shared Wizard spellbook UI functions
   if (window.WizardUIIntegration && typeof window.WizardUIIntegration.init === 'function') {
-    console.log('🚀 Initializing Wizard UI Integration...');
     window.WizardUIIntegration.init();
-    console.log('✅ Wizard UI Integration initialized!');
-  } else {
-    console.warn('⚠️ WizardUIIntegration.init not found - Wizard features may not be available');
   }
 });
 </script>
@@ -1418,7 +1408,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- ── Wizard spellbook system ── -->
 <script src="adapters/classes/wizard/spellbook.js"></script>
-<script src="adapters/classes/wizard/sheet-integration.js"></script>
 <script src="adapters/classes/wizard/ui-integration.js"></script>
 
 <script>
@@ -5949,7 +5938,7 @@ function _renderPickerList(){
     const ecIdx = cls?.isPrimary ? -1 : (C.extraClasses||[]).indexOf(cls?.ec);
     const targetKey = cls?.isPrimary ? 'primary' : (ecIdx >= 0 ? `ec:${ecIdx}` : 'primary');
     const btn = (typeof openWizardSpellbookManager === 'function' && (cls?.isPrimary || ecIdx >= 0))
-      ? `<button class="chip" style="margin-left:auto;background:var(--bg3);border:1px solid var(--bdr2);color:var(--gold2)" onclick="openWizardSpellbookManager('',0,'${targetKey}')">${luci('book-open')} Spellbook Wizard</button>`
+      ? `<button class="chip" style="margin-left:auto;background:var(--bg3);border:1px solid var(--bdr2);color:var(--gold2);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:var(--fs-label);letter-spacing:.07em" onclick="openWizardSpellbookManager('',0,'${targetKey}')">${luci('book-open')} Spellbook Wizard</button>`
       : '';
     wizardHdr = `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem">
       <span style="font-size:var(--fs-label);color:var(--text3)">Spellbook: <b style="color:var(--blue)">${sbCount}</b></span>
@@ -6096,3 +6085,4 @@ _loadSheetSpells().then(()=>{ if(C) renderSpellsTab(); });
 </script>
 </body>
 </html>
+

@@ -21,7 +21,7 @@
         key: "primary",
         bucket: C,
         level: lv,
-        label: `Wizard Lv.${lv}${sub ? ` Â· ${sub}` : ""}`,
+        label: `Wizard Lv.${lv}${sub ? ` · ${sub}` : ""}`,
       };
     }
 
@@ -37,7 +37,7 @@
       key: `ec:${idx}`,
       bucket: ec,
       level: lv,
-      label: `Wizard MC${idx + 1} Lv.${lv}${sub ? ` Â· ${sub}` : ""}`,
+      label: `Wizard MC${idx + 1} Lv.${lv}${sub ? ` · ${sub}` : ""}`,
     };
   }
 
@@ -140,7 +140,25 @@
     return [...new Set(arr)].sort((a, b) => String(a).localeCompare(String(b)));
   }
 
+  function ensureWizardUiStyles() {
+    if (document.getElementById("wizard-ui-shared-styles")) return;
+    const st = document.createElement("style");
+    st.id = "wizard-ui-shared-styles";
+    st.textContent = `
+      #wizard-spellbook-manager-modal .wiz-chip{
+        padding:3px 10px;border:1px solid var(--bdr);border-radius:999px;background:transparent;
+        color:var(--text2);font-family:var(--ff-display);font-size:var(--fs-xs);font-weight:600;
+        letter-spacing:.08em;cursor:pointer;transition:all .12s;line-height:1.25;
+      }
+      #wizard-spellbook-manager-modal .wiz-chip:hover{border-color:var(--bdr2);color:var(--text);}
+      #wizard-spellbook-manager-modal .wiz-chip.on{background:var(--gdim);border-color:var(--gold);color:var(--gold2);}
+      #wizard-spellbook-manager-modal .wiz-chip.danger{border-color:var(--red2);color:var(--red2);}
+    `;
+    document.head.appendChild(st);
+  }
+
   function getModalShell(id, maxWidth) {
+    ensureWizardUiStyles();
     let modal = document.getElementById(id);
     if (!modal) {
       modal = document.createElement("div");
@@ -156,6 +174,22 @@
       modal,
       cardOpen: `<div style="max-width:${maxWidth}px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);box-shadow:0 10px 35px rgba(0,0,0,.45)">`,
     };
+  }
+
+  function getWizardLookupSet() {
+    if (typeof getClassSpells === "function") {
+      const wiz = getClassSpells("Wizard");
+      if (Array.isArray(wiz) && wiz.length) {
+        return new Set(
+          wiz.map((s) => normSpellKeyLocal(s?.name))
+            .filter(Boolean)
+        );
+      }
+    }
+    if (typeof _sheetClassSpellSets !== "undefined" && _sheetClassSpellSets && _sheetClassSpellSets.wizard) {
+      return _sheetClassSpellSets.wizard;
+    }
+    return null;
   }
 
   function levelTabsHtml(currentLevel, callbackName, inputId, targetKey) {
@@ -179,7 +213,8 @@
     }
 
     const query = String(searchTerm || "").toLowerCase().trim();
-    const lvFilter = Number(levelFilter || 0);
+    const lvFilterNum = Number(levelFilter || 0);
+    const lvFilter = lvFilterNum;
     const targetKeyNorm = target.key;
     const bucket = target.bucket;
     const maxLearnLevel = getWizardMaxLearnLevel(target);
@@ -274,7 +309,7 @@
         <div style="margin-top:.5rem;font-size:var(--fs-label);color:var(--text3)">Cantrips and prepared spells are managed here; leveled spells require being in your spellbook.</div>
       </div>
       <div style="display:flex;justify-content:flex-end;padding:.75rem 1.1rem;border-top:1px solid var(--bdr)">
-        <button onclick="document.getElementById('wizard-prepare-modal').style.display='none'" style="padding:7px 12px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);cursor:pointer">Chiudi</button>
+        <button onclick="document.getElementById('wizard-prepare-modal').style.display='none'" style="padding:7px 12px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);cursor:pointer">Close</button>
       </div>
     </div>`;
 
@@ -352,9 +387,9 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
     const target = resolveWizardTarget(targetKey);
     if (!target) return;
 
-    const shell = getModalShell("wizard-spellbook-manager-modal", 1040);
+    const shell = getModalShell("wizard-spellbook-manager-modal", 900);
     const query = String(searchTerm || "").toLowerCase().trim();
-    const lvFilter = Number(levelFilter || 0);
+    const lvFilterNum = Number(levelFilter || 0);
     const targetKeyNorm = target.key;
     const bucket = target.bucket;
     const maxLearnLevel = getWizardMaxLearnLevel(target);
@@ -381,16 +416,15 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
       });
     }
 
-    const wizardSet = (typeof _sheetClassSpellSets !== "undefined" && _sheetClassSpellSets && _sheetClassSpellSets.wizard)
-      ? _sheetClassSpellSets.wizard
-      : null;
+    const wizardSet = getWizardLookupSet();
     const hasWizardLookup = !!(wizardSet && wizardSet.size);
-    const needsQueryGate = !hasWizardLookup && !query && !lvFilter;
+    const needsQueryGate = !hasWizardLookup && !query && !lvFilterNum;
 
     const available = sheetSpellDb.filter((s) => {
       if (!s || known.has(s.name) || s.level < 0 || s.level > 9) return false;
       if (s.level > 0 && s.level > maxLearnLevel) return false;
-      if (lvFilter && s.level !== lvFilter) return false;
+      if (lvFilterNum === -1 && s.level !== 0) return false;
+      if (lvFilterNum > 0 && s.level !== lvFilterNum) return false;
       if (query && !String(s.name || "").toLowerCase().includes(query)) return false;
       if (hasWizardLookup && !spellMatchesWizardList(s, wizardSet)) return false;
       if (needsQueryGate) return false;
@@ -403,22 +437,22 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
       if (!byLevel[s.level]) byLevel[s.level] = [];
       byLevel[s.level].push(s);
     });
+    let tabs = `<button class="wiz-chip${!lvFilterNum ? " on" : ""}" onclick="openWizardSpellbookManager((document.getElementById('wiz-book-search')||{}).value,0,'${escJsSingle(targetKeyNorm)}')">All</button>`;
+    tabs += `<button class="wiz-chip${lvFilterNum===-1 ? " on" : ""}" onclick="openWizardSpellbookManager((document.getElementById('wiz-book-search')||{}).value,-1,'${escJsSingle(targetKeyNorm)}')">C</button>`;
+    for (let lv = 1; lv <= 9; lv++) {
+      tabs += `<button class="wiz-chip${lvFilterNum===lv ? " on" : ""}" onclick="openWizardSpellbookManager((document.getElementById('wiz-book-search')||{}).value,${lv},'${escJsSingle(targetKeyNorm)}')">${lv}</button>`;
+    }
 
     let html = `${shell.cardOpen}
-      <div style="display:flex;align-items:center;gap:.6rem;padding:1rem 1.1rem;border-bottom:1px solid var(--bdr)">
-        <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);letter-spacing:.07em;color:var(--gold)">Add Spells (${escHtml(target.label)})</div>
-        <div style="margin-left:auto;font-size:var(--fs-meta);color:var(--text3)">In book: <b style="color:var(--blue)">${typeof WizardSpellbookAPI !== "undefined" ? WizardSpellbookAPI.getTotalSpellbookSize(bucket) : "?"}</b></div>
-        <button onclick="document.getElementById('wizard-spellbook-manager-modal').style.display='none'" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">&times;</button>
-      </div>
-      <div style="padding:1rem 1.1rem .75rem">
-        <input id="wiz-book-search" data-level="${Number.isFinite(lvFilter) ? lvFilter : 0}" data-target="${escHtml(targetKeyNorm)}" value="${escHtml(searchTerm || "")}" oninput="openWizardSpellbookManager(this.value, ${Number.isFinite(lvFilter) ? lvFilter : 0}, '${escJsSingle(targetKeyNorm)}')" placeholder="Search spells..." style="width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);margin-bottom:.58rem" />
-        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.62rem">${levelTabsHtml(lvFilter, "openWizardSpellbookManager", "wiz-book-search", targetKeyNorm)}</div>
-        <div style="font-size:var(--fs-label);color:${hasWizardLookup ? "var(--text3)" : "var(--orange)"};margin-bottom:.62rem">
-          ${hasWizardLookup
-            ? "Showing only Wizard spells not yet in your spellbook."
-            : "Wizard class lookup not available: search/level filter applied to avoid loading the full list."}
+      <div style="padding:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem">
+          <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);color:var(--gold);flex:1">${luci('book-open')} Spellbook Wizard</div>
+          <span style="font-size:var(--fs-label);color:var(--text3)">${escHtml(target.label)}</span>
+          <button onclick="document.getElementById('wizard-spellbook-manager-modal').style.display='none'" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">&times;</button>
         </div>
-        <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.62rem">You can only add spells up to the current maximum slot level: <b style="color:var(--gold2)">${maxLearnLevel}</b>.</div>
+        <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.5rem">You can only add spells up to level ${maxLearnLevel}.</div>
+        <input id="wiz-book-search" data-level="${Number.isFinite(lvFilterNum) ? lvFilterNum : 0}" data-target="${escHtml(targetKeyNorm)}" value="${escHtml(searchTerm || "")}" oninput="openWizardSpellbookManager(this.value, ${Number.isFinite(lvFilterNum) ? lvFilterNum : 0}, '${escJsSingle(targetKeyNorm)}')" placeholder="Search spells..." style="width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);margin-bottom:.58rem" />
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.55rem">${tabs}</div>
         <details open style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:.55rem .6rem;margin-bottom:.62rem">
           <summary style="cursor:pointer;user-select:none;font-family:var(--ff-display);font-size:var(--fs-label);letter-spacing:.08em;color:var(--gold)">Spells in your spellbook</summary>
           <div style="margin-top:.45rem">
@@ -432,7 +466,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
                   <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.2rem">${lvLabel} (${list.length})</div>
                   ${list.map((sp) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.16rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
                     <span style="font-size:var(--fs-meta);color:var(--text2)">${escHtml(sp)}</span>
-                    <button onclick="removeWizardSpellFromSpellbook('${escJsSingle(sp)}', ${lv}, '${escJsSingle(targetKeyNorm)}')" style="padding:2px 9px;border:1px solid var(--red2);border-radius:999px;background:transparent;color:var(--red2);cursor:pointer;font-size:var(--fs-label)">Remove</button>
+                    <button class="wiz-chip danger" onclick="removeWizardSpellFromSpellbook('${escJsSingle(sp)}', ${lv}, '${escJsSingle(targetKeyNorm)}')">Remove</button>
                   </div>`).join("")}
                 </div>`;
               }
@@ -440,7 +474,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
             })()}
           </div>
         </details>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.58rem;max-height:56vh;overflow:auto;padding-right:3px">`;
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.58rem;max-height:58vh;overflow:auto;padding-right:2px">`;
 
     let hasAny = false;
     const _allLevels = [0,1,2,3,4,5,6,7,8,9];
@@ -457,7 +491,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
         const safe = escJsSingle(s.name);
         html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.22rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
           <span style="font-size:var(--fs-meta);color:var(--text2)">${escHtml(s.name)} <span style="color:var(--text3)">(${escHtml(SCHOOL_SHORT[s.school] || s.school || "")})</span></span>
-          <button onclick="addWizardSpellToSpellbook('${safe}', ${s.level}, '${escJsSingle(targetKeyNorm)}')" style="padding:2px 9px;border:1px solid var(--bdr2);border-radius:999px;background:transparent;color:var(--text2);cursor:pointer;font-size:var(--fs-label)">Learn</button>
+          <button class="wiz-chip" onclick="addWizardSpellToSpellbook('${safe}', ${s.level}, '${escJsSingle(targetKeyNorm)}')">Learn</button>
         </div>`;
       });
 
@@ -476,11 +510,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
       }</div>`;
     }
 
-    html += `</div></div>
-      <div style="display:flex;justify-content:flex-end;padding:.75rem 1.1rem;border-top:1px solid var(--bdr)">
-        <button onclick="document.getElementById('wizard-spellbook-manager-modal').style.display='none'" style="padding:7px 12px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg3);color:var(--text2);cursor:pointer">Chiudi</button>
-      </div>
-    </div>`;
+    html += `</div></div>`;
 
     shell.modal.innerHTML = html;
     shell.modal.style.display = "block";
@@ -565,7 +595,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
           </select>
         </label>
       </div>
-      <div class="modal-footer"><button onclick="document.getElementById('wizard-mastery-modal').style.display='none'" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:4px;cursor:pointer">Chiudi</button></div>
+      <div class="modal-footer"><button onclick="document.getElementById('wizard-mastery-modal').style.display='none'" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button></div>
     </div>`;
     modal.style.display = "block";
   }
@@ -619,7 +649,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
           </select>
         </div>
       </div>
-      <div class="modal-footer"><button onclick="document.getElementById('wizard-signature-modal').style.display='none'" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:4px;cursor:pointer">Chiudi</button></div>
+      <div class="modal-footer"><button onclick="document.getElementById('wizard-signature-modal').style.display='none'" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button></div>
     </div>`;
     modal.style.display = "block";
   }

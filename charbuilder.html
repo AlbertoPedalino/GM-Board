@@ -60,6 +60,9 @@
       --text3: #8f7a57;
       --r: 9px;
       --rl: 14px;
+      --fs-xs: 9px;
+      --fs-meta: 11px;
+      --gbg: rgba(63, 166, 108, .14);
     }
 
     *,
@@ -2499,6 +2502,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
   <script src="adapters/registry.js"></script>
   <script src="adapters/manifest.js"></script>
   <script src="adapters/loader.js"></script>
+  <script src="adapters/classes/wizard/spellbook.js"></script>
+  <script src="adapters/classes/wizard/ui-integration.js"></script>
   <script>
     /* ════════════════════════════════════ COSTANTI */
     const BASE = 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/';
@@ -7266,9 +7271,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     function _ensureWizardSpellbookBucket(bucket) {
       if (!bucket) return;
-      if (!bucket.wizardSpellbook || typeof bucket.wizardSpellbook !== 'object') bucket.wizardSpellbook = {};
-      if (!Array.isArray(bucket.wizardSpellbook[0])) bucket.wizardSpellbook[0] = [];
-      for (let i = 1; i <= 9; i++) if (!Array.isArray(bucket.wizardSpellbook[i])) bucket.wizardSpellbook[i] = [];
+      WizardSpellbookAPI.initWizardSpellbook(bucket);
+      if (!Array.isArray(bucket.selectedCantrips)) bucket.selectedCantrips = [];
       if (!bucket.selectedSpells || typeof bucket.selectedSpells !== 'object') bucket.selectedSpells = {};
     }
 
@@ -7290,6 +7294,20 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const lv = Number(ctx.level || 1);
       const caster = _clsCasterProg(ctx.className, ctx.clsObj, ctx.subclassShortName) || 'full';
       return Math.min(9, Math.max(0, Number(getMaxCastableLevel(caster, lv) || 0)));
+    }
+
+    function _renderWizardSummaryRow(wizardCtx) {
+      if (!wizardCtx || !wizardCtx.bucket) return '';
+      const bookCount = Object.values(wizardCtx.bucket.wizardSpellbook || {})
+        .reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+      const maxLearn = _wizardMaxLearnLevelFor(wizardCtx);
+      const safeKey = String(wizardCtx.key || 'primary').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem">
+        <span style="font-size:var(--fs-label);color:var(--text3)">Spellbook: <b style="color:var(--blue)">${bookCount}</b></span>
+        <span style="font-size:var(--fs-label);color:var(--text3)">Prepared cap: <b style="color:var(--gold2)">${_wizardPreparedCapFor(wizardCtx)}</b></span>
+        <span style="font-size:var(--fs-label);color:var(--text3)">Max learnable level: <b style="color:var(--gold2)">${maxLearn}</b></span>
+        <button class="chip" onclick="openBuilderWizardSpellbookModal('',0,'${safeKey}')" style="margin-left:auto">${luci('book-open')} Spellbook Wizard</button>
+      </div>`;
     }
 
     function _activeWizardContext() {
@@ -7359,14 +7377,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _syncWizardPreparedToSpellbook(ctx) {
       if (!ctx || !ctx.bucket) return;
       _ensureWizardSpellbookBucket(ctx.bucket);
-      const knownCantrips = new Set(_wizardSpellbookNamesAtLevel(ctx.bucket, 0).map(x => String(x || '').toLowerCase()));
-      const cantripArr = Array.isArray(ctx.bucket.selectedCantrips) ? ctx.bucket.selectedCantrips : [];
-      ctx.bucket.selectedCantrips = cantripArr.filter(sp => knownCantrips.has(String(sp || '').toLowerCase()));
-      for (let lv = 1; lv <= 9; lv++) {
-        const known = new Set(_wizardSpellbookNamesAtLevel(ctx.bucket, lv).map(x => String(x || '').toLowerCase()));
-        const arr = Array.isArray(ctx.bucket.selectedSpells?.[lv]) ? ctx.bucket.selectedSpells[lv] : [];
-        ctx.bucket.selectedSpells[lv] = arr.filter(sp => known.has(String(sp || '').toLowerCase()));
-      }
+      const cap = _wizardPreparedCapFor(ctx);
+      WizardSpellbookAPI.validatePreparedSpells(ctx.bucket, Number(ctx.level || 1), 0, cap);
     }
 
     function calcSpellCounts() {
@@ -7471,16 +7483,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const autoCount = autoGranted.length;
       if (autoCount > 0) h += ` <span style="font-size:var(--fs-label);color:var(--teal)">+ ${autoCount} auto-granted ${luci('sparkles')}</span>`;
       h += `</div>`;
-      if (wizardCtx) {
-        const bookCount = Object.values(wizardCtx.bucket.wizardSpellbook || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-        const maxLearn = _wizardMaxLearnLevelFor(wizardCtx);
-        h += `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem">
-          <span style="font-size:var(--fs-label);color:var(--text3)">Spellbook: <b style="color:var(--blue)">${bookCount}</b></span>
-          <span style="font-size:var(--fs-label);color:var(--text3)">Prepared cap: <b style="color:var(--gold2)">${_wizardPreparedCapFor(wizardCtx)}</b></span>
-          <span style="font-size:var(--fs-label);color:var(--text3)">Max learnable level: <b style="color:var(--gold2)">${maxLearn}</b></span>
-          <button class="chip" onclick="openBuilderWizardSpellbookModal()" style="margin-left:auto">${luci('book-open')} Spellbook Wizard</button>
-        </div>`;
-      }
+      if (wizardCtx) h += _renderWizardSummaryRow(wizardCtx);
 
       // Stampa i Tab dei livelli magici (solo fino al maxLv consentito)
       h += `<div class="spell-tabs">`;
@@ -7545,16 +7548,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       h+=`Spells: <b style="color:var(--gold2)">${Object.values(ec.selectedSpells).flat().length}/${counts.spells}</b>`;
       if (caster==='pact') h+=` <span style="font-size:var(--fs-label);color:var(--text3)">(Warlock: spells known)</span>`;
       h+=`</div>`;
-      if (wizardCtx) {
-        const bookCount = Object.values(wizardCtx.bucket.wizardSpellbook || {}).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-        const maxLearn = _wizardMaxLearnLevelFor(wizardCtx);
-        h += `<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.55rem">
-          <span style="font-size:var(--fs-label);color:var(--text3)">Spellbook: <b style="color:var(--blue)">${bookCount}</b></span>
-          <span style="font-size:var(--fs-label);color:var(--text3)">Prepared cap: <b style="color:var(--gold2)">${_wizardPreparedCapFor(wizardCtx)}</b></span>
-          <span style="font-size:var(--fs-label);color:var(--text3)">Max learnable level: <b style="color:var(--gold2)">${maxLearn}</b></span>
-          <button class="chip" onclick="openBuilderWizardSpellbookModal()" style="margin-left:auto">${luci('book-open')} Spellbook Wizard</button>
-        </div>`;
-      }
+      if (wizardCtx) h += _renderWizardSummaryRow(wizardCtx);
       h+=`<div class="spell-tabs">`;
       for (const l of availableLevels) {
         const isActive = l===activeSpellLevel;
@@ -7691,9 +7685,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             _ensureWizardSpellbookBucket(wizardCtx.bucket);
             if (!_wizardSpellbookNamesAtLevel(wizardCtx.bucket, lv).includes(name)) return;
             const cap = _wizardPreparedCapFor(wizardCtx);
-            const preparedTotal = Object.values(ec.selectedSpells || {}).flat().length;
             const isAlready = (ec.selectedSpells?.[lv] || []).includes(name);
-            if (!isAlready && preparedTotal >= cap) return;
+            const ok = WizardSpellbookAPI.togglePreparedSpell(ec, name, lv, Number(wizardCtx.level || ec.level || 1), 0, cap);
+            if (!ok && !isAlready) return;
+            renderSpellPanel();
+            renderPreviewSpells();
+            return;
           }
           if (!ec.selectedSpells[lv]) ec.selectedSpells[lv] = [];
           const idx = ec.selectedSpells[lv].indexOf(name);
@@ -7715,9 +7712,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           _ensureWizardSpellbookBucket(wizardCtx.bucket);
           if (!_wizardSpellbookNamesAtLevel(wizardCtx.bucket, lv).includes(name)) return;
           const cap = _wizardPreparedCapFor(wizardCtx);
-          const preparedTotal = Object.values(char.selectedSpells || {}).flat().length;
           const isAlready = (char.selectedSpells?.[lv] || []).includes(name);
-          if (!isAlready && preparedTotal >= cap) return;
+          const ok = WizardSpellbookAPI.togglePreparedSpell(char, name, lv, Number(wizardCtx.level || char.level || 1), 0, cap);
+          if (!ok && !isAlready) return;
+          renderSpellPanel();
+          renderPreviewSpells();
+          return;
         }
         if (!char.selectedSpells[lv]) char.selectedSpells[lv] = [];
         const idx = char.selectedSpells[lv].indexOf(name);
@@ -7728,19 +7728,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       renderPreviewSpells();
     }
 
-    function _getBuilderWizardBookModal() {
-      let m = document.getElementById('builder-wiz-book-modal');
-      if (m) return m;
-      m = document.createElement('div');
-      m.id = 'builder-wiz-book-modal';
-      m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:2200;overflow-y:auto;padding:1rem';
-      m.addEventListener('click', e => { if (e.target === m) closeBuilderWizardSpellbookModal(); });
-      document.body.appendChild(m);
-      return m;
+    function _bridgeBuilderToWizardUi() {
+      window.C = char;
+      window.sheetSpellDb = spellDb;
+      window.renderSpellsTab = function () {
+        renderSpellPanel();
+        renderPreviewSpells();
+      };
+      window.renderActionsTab = function () {};
+      window.WizardUIIntegration.init();
     }
 
     function closeBuilderWizardSpellbookModal() {
-      const m = document.getElementById('builder-wiz-book-modal');
+      const m = document.getElementById('wizard-spellbook-manager-modal');
       if (m) m.style.display = 'none';
     }
 
@@ -7749,136 +7749,21 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const ctx = _wizardContextFromKey(targetKey || active?.key || 'primary');
       if (!ctx) return;
       _ensureWizardSpellbookBucket(ctx.bucket);
-      const maxLearn = _wizardMaxLearnLevelFor(ctx);
-      const q = String(searchTerm || '').toLowerCase().trim();
-      const lvFilterNum = Number(levelFilter || 0);
-      const classSpells = getClassSpells(ctx.className || 'Wizard');
-      const knownByLevel = {};
-      Object.entries(ctx.bucket.wizardSpellbook || {}).forEach(([lvRaw, arr]) => {
-        const lv = Number(lvRaw || 0);
-        const list = Array.isArray(arr) ? arr.filter(Boolean) : [];
-        if (!knownByLevel[lv]) knownByLevel[lv] = [];
-        knownByLevel[lv].push(...list);
-      });
-      const known = new Set(Object.values(ctx.bucket.wizardSpellbook || {}).flat().map(x => String(x || '').toLowerCase()));
-      const available = classSpells.filter(s => {
-        if (!s || s.level < 0 || s.level > 9) return false;
-        if (s.level > maxLearn) return false;
-        if (lvFilterNum === -1 && s.level !== 0) return false;
-        if (lvFilterNum > 0 && s.level !== lvFilterNum) return false;
-        if (q && !String(s.name || '').toLowerCase().includes(q)) return false;
-        if (known.has(String(s.name || '').toLowerCase())) return false;
-        return true;
-      });
-      const byLevel = {};
-      available.forEach(s => {
-        if (!byLevel[s.level]) byLevel[s.level] = [];
-        byLevel[s.level].push(s);
-      });
-      const SCHOOL_SHORT = { A: "Abiu", C: "Amm", D: "Div", E: "Evo", I: "Ill", N: "Nec", T: "Tras", V: "Vegg" };
+      _bridgeBuilderToWizardUi();
 
-      const m = _getBuilderWizardBookModal();
-      const label = ctx.key === 'primary'
-        ? `Wizard Lv.${ctx.level}${ctx.subclassShortName ? ` · ${ctx.subclassShortName}` : ''}`
-        : `Wizard MC Lv.${ctx.level}${ctx.subclassShortName ? ` · ${ctx.subclassShortName}` : ''}`;
-      let tabs = `<button class="chip${!lvFilterNum ? ' on' : ''}" onclick="openBuilderWizardSpellbookModal((document.getElementById('builder-wiz-book-q')||{}).value,0,'${ctx.key}')">All</button>`;
-      tabs += `<button class="chip${lvFilterNum===-1 ? ' on' : ''}" onclick="openBuilderWizardSpellbookModal((document.getElementById('builder-wiz-book-q')||{}).value,-1,'${ctx.key}')">C</button>`;
-      for (let lv = 1; lv <= 9; lv++) {
-        tabs += `<button class="chip${lvFilterNum===lv ? ' on' : ''}" onclick="openBuilderWizardSpellbookModal((document.getElementById('builder-wiz-book-q')||{}).value,${lv},'${ctx.key}')">${lv}</button>`;
-      }
-
-      let rows = '';
-      for (let lv = 0; lv <= 9; lv++) {
-        const list = (byLevel[lv] || []).sort((a, b) => a.name.localeCompare(b.name));
-        if (!list.length) continue;
-        const lvLabel = lv === 0 ? 'Cantrip' : `Level ${lv}`;
-        rows += `<div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:.5rem .6rem;margin-bottom:.45rem">
-          <div style="font-family:var(--ff-display);font-size:var(--fs-label);letter-spacing:.08em;color:var(--gold);margin-bottom:.3rem">${lvLabel} (${list.length})</div>
-          ${list.slice(0, 50).map(s => {
-            const sn = String(s.name || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-            return `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.22rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
-              <span style="font-size:var(--fs-meta);color:var(--text2)">${esc(s.name)} <span style="color:var(--text3)">(${SCHOOL_SHORT[s.school]||s.school||''})</span></span>
-              <button class="chip" onclick="addBuilderWizardSpellToBook('${sn}',${s.level},'${ctx.key}')">Learn</button>
-            </div>`;
-          }).join('')}
-        </div>`;
-      }
-      if (!rows) rows = `<div class="phmsg">No spells available with this filter.</div>`;
-
-      m.innerHTML = `
-        <div style="max-width:900px;margin:0 auto;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1rem">
-          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem">
-            <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);color:var(--gold);flex:1">${luci('book-open')} Spellbook Wizard</div>
-            <span style="font-size:var(--fs-label);color:var(--text3)">${esc(label)}</span>
-            <button onclick="closeBuilderWizardSpellbookModal()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1">${luci('x')}</button>
-          </div>
-          <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.5rem">You can only add spells up to level ${maxLearn}.</div>
-          <input id="builder-wiz-book-q" data-level="${Number.isFinite(lvFilterNum)?lvFilterNum:0}" value="${String(searchTerm || '').replace(/"/g, '&quot;')}" oninput="openBuilderWizardSpellbookModal(this.value,${Number.isFinite(lvFilterNum)?lvFilterNum:0},'${ctx.key}')" placeholder="Search spells..." style="width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);padding:6px 10px;margin-bottom:.45rem"/>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.55rem">${tabs}</div>
-          <details open style="background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:.5rem .6rem;margin-bottom:.55rem">
-            <summary style="cursor:pointer;user-select:none;font-family:var(--ff-display);font-size:var(--fs-label);letter-spacing:.08em;color:var(--gold)">Spells in your spellbook</summary>
-            <div style="margin-top:.4rem">
-              ${(() => {
-                let rowsKnown = '';
-                for (let lv = 0; lv <= 9; lv++) {
-                  const list = Array.from(new Set((knownByLevel[lv] || []).filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b)));
-                  if (!list.length) continue;
-                  const lvLabel = lv === 0 ? 'Cantrip' : `Level ${lv}`;
-                  rowsKnown += `<div style="margin-bottom:.32rem">
-                    <div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:.18rem">${lvLabel} (${list.length})</div>
-                    ${list.map(sp => {
-                      const spSafe = String(sp || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-                      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.16rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
-                        <span style="font-size:var(--fs-meta);color:var(--text2)">${esc(sp)}</span>
-                        <button class="chip" style="border-color:var(--red2);color:var(--red2)" onclick="removeBuilderWizardSpellFromBook('${spSafe}',${lv},'${ctx.key}')">Remove</button>
-                      </div>`;
-                    }).join('')}
-                  </div>`;
-                }
-                return rowsKnown || `<div style=\"font-size:var(--fs-label);color:var(--text3)\">Empty spellbook.</div>`;
-              })()}
-            </div>
-          </details>
-          <div style="max-height:58vh;overflow:auto;padding-right:2px">${rows}</div>
-        </div>`;
-      m.style.display = 'block';
-      refreshIcons();
+      const lv = Number(levelFilter || 0);
+      openWizardSpellbookManager(String(searchTerm || ''), Number.isFinite(lv) ? lv : 0, ctx.key);
     }
 
     function addBuilderWizardSpellToBook(name, level, targetKey) {
-      const ctx = _wizardContextFromKey(targetKey);
-      if (!ctx) return;
-      _ensureWizardSpellbookBucket(ctx.bucket);
-      const maxLearn = _wizardMaxLearnLevelFor(ctx);
-      if (Number(level || 0) > maxLearn) return;
-      if (!ctx.bucket.wizardSpellbook[level]) ctx.bucket.wizardSpellbook[level] = [];
-      if (!ctx.bucket.wizardSpellbook[level].includes(name)) ctx.bucket.wizardSpellbook[level].push(name);
-      renderSpellPanel();
-      const inp = document.getElementById('builder-wiz-book-q');
-      const q = (inp || {}).value || '';
-      const lvFilter = Number((inp && inp.dataset && inp.dataset.level) || 0);
-      openBuilderWizardSpellbookModal(q, Number.isFinite(lvFilter) ? lvFilter : 0, ctx.key);
+      _bridgeBuilderToWizardUi();
+      addWizardSpellToSpellbook(name, level, targetKey);
     }
 
     function removeBuilderWizardSpellFromBook(name, level, targetKey) {
-      const ctx = _wizardContextFromKey(targetKey);
-      if (!ctx) return;
-      _ensureWizardSpellbookBucket(ctx.bucket);
-      if (!Array.isArray(ctx.bucket.wizardSpellbook[level])) return;
-      ctx.bucket.wizardSpellbook[level] = ctx.bucket.wizardSpellbook[level].filter(sp => sp !== name);
-      if (Number(level) === 0 && Array.isArray(ctx.bucket.selectedCantrips)) {
-        ctx.bucket.selectedCantrips = ctx.bucket.selectedCantrips.filter(sp => sp !== name);
-      }
-      if (Array.isArray(ctx.bucket?.selectedSpells?.[level])) {
-        ctx.bucket.selectedSpells[level] = ctx.bucket.selectedSpells[level].filter(sp => sp !== name);
-      }
-      renderSpellPanel();
-      const inp = document.getElementById('builder-wiz-book-q');
-      const q = (inp || {}).value || '';
-      const lvFilter = Number((inp && inp.dataset && inp.dataset.level) || 0);
-      openBuilderWizardSpellbookModal(q, Number.isFinite(lvFilter) ? lvFilter : 0, ctx.key);
+      _bridgeBuilderToWizardUi();
+      removeWizardSpellFromSpellbook(name, level, targetKey);
     }
-
     function renderPreviewSpells() {
       const el = document.getElementById('prev-spells');
       if (!el) return;
@@ -8351,3 +8236,4 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 </body>
 
 </html>
+
