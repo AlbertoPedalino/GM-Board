@@ -1124,8 +1124,16 @@ function selDTier(btn,t){document.querySelectorAll('#d-tier-group .sel-btn').for
 function advTimeManual(hours){
   advTime(hours);
   S.hoursSinceWeather += hours;
-  const weatherTxt = checkWeatherRoll(null);
-  if(weatherTxt) showToast(luci('cloud') + ' Weather updated');
+  const ra = document.getElementById('result-area');
+  const rs = document.getElementById('result-steps');
+  rs.innerHTML = '';
+  const weatherResult = checkWeatherRoll(rs);
+  updMeteoDisplay();
+  if(weatherResult !== '') {
+    ra.classList.add('show');
+  } else {
+    ra.classList.remove('show');
+  }
   saveState();
 }
 function setTimeOnly(){
