@@ -3067,17 +3067,12 @@ function renderActionsTab(){
   // ── ATTACCHI ──
   if(show('attack')){
     if(f==='all') html+=`<div class="action-section-hdr">${luci('swords')} Attacks</div>`;
-    const attackCantrips = cantrips.filter(cn => {
-      const full = sheetSpellDb?.find(s => s.name === cn);
-      return full?.spellAttack?.length || full?.savingThrow?.length;
-    });
-    if(!equippedWeapons.length && !offHandWeapons.length && !attackCantrips.length){  // still arrays
+    if(!equippedWeapons.length && !offHandWeapons.length && !allClassActions.filter(a=>a.cat==='attack').length){
       html+=`<div style="font-size:var(--fs-body);color:var(--text3);font-style:italic;padding:.3rem 0">
         ${luci('lightbulb')} Go to <b>Inventory</b>, find a weapon and press <b>Equip</b> to see it here.
       </div>`;
     }
     for(const {item:w,idx:wIdx} of equippedWeapons) html+=buildWeaponCard(w,wIdx);
-    for(const cn of attackCantrips) html+=buildCantripCard(cn);
     html+=buildUnarmedCard(UNARMED_OPTIONS[0]);
     for(const a of allClassActions.filter(a=>a.cat==='attack')) html+=buildClassActionCard(a);
   }
@@ -3589,9 +3584,43 @@ function renderSpellsTab(){
     const castBadge = (typeof effCastLevel === 'number' && typeof baseLevel === 'number' && effCastLevel > baseLevel)
       ? `<span class="spell-badge" style="border:1px solid var(--blue);color:var(--blue);background:var(--bg3)">${effCastLevel}° slot</span>`
       : '';
+    const _castUnit = full?.time?.[0]?.unit || snap?.time?.[0]?.unit || '';
+    const _castTimeBadge = _castUnit === 'bonus'
+      ? `<span class="spell-badge" style="border:1px solid var(--yellow,#f5c542);color:var(--yellow,#f5c542);background:transparent">BA</span>`
+      : _castUnit === 'reaction'
+      ? `<span class="spell-badge" style="border:1px solid var(--orange,#f5a623);color:var(--orange,#f5a623);background:transparent">RE</span>`
+      : _castUnit === 'action' || _castUnit === ''
+      ? `<span class="spell-badge" style="border:1px solid var(--blue,#4a9eff);color:var(--blue,#4a9eff);background:transparent">A</span>`
+      : `<span class="spell-badge" style="border:1px solid var(--bdr2,#444);color:var(--text3);background:transparent">${esc(_castUnit)}</span>`;
     const _spellSrc = (snap?.source || full?.source || '').toLowerCase();
     const _spellSlug = name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const _spellUrl = _spellSrc ? `https://5e.tools/spells/${_spellSlug}-${_spellSrc}.html` : null;
+
+    // Apply cantrip data modifiers (e.g. Eldritch Blast invocations via warlock adapter)
+    const _effCantrip = _getEffectiveCantripData(name);
+    const _baseCantrip = typeof getCantripData === 'function' ? getCantripData(name) : null;
+    let _rowDmgBtn = dmgBtn, _rowMetaLine = metaLine;
+    if (_effCantrip) {
+      const _lv = C?.level || 1;
+      if (_effCantrip.dmgBonusPerBeam) {
+        const _numBeams = cantripDice(_lv);
+        const _die = _effCantrip.die;
+        const _base = _die ? `${_numBeams}d${_die.split('d')[1]}` : dmgFormula;
+        const _bonus = _numBeams * getMod(getFinal(_effCantrip.dmgBonusPerBeam));
+        if (_base) {
+          const _full = _base + (_bonus >= 0 ? `+${_bonus}` : `${_bonus}`);
+          _rowDmgBtn = `<button class="roll-btn dmg" style="font-size:var(--fs-xs);padding:2px 5px;margin-left:2px" onclick="event.stopPropagation();rollDamage('${_jsEsc(_full)}','${safeName}${castSuffix}')">${luci('flame')} ${_full}</button>`;
+        }
+      }
+      // Only override range/notes if the modifier actually changed them from base
+      if (_effCantrip.range && _effCantrip.range !== (_baseCantrip?.range)) {
+        _rowMetaLine = [castTime, _effCantrip.range, comp, dur].filter(Boolean).join(' · ');
+      }
+      const _addedNotes = (_effCantrip.notes && _effCantrip.notes !== (_baseCantrip?.notes ?? ''))
+        ? _effCantrip.notes : null;
+      if (_addedNotes) _rowMetaLine += (_rowMetaLine ? ' · ' : '') + _addedNotes;
+    }
+
     return `<div>
       <div class="spell-entry" onclick="toggleSpellDesc('${spellId}')">
         ${_spellUrl
@@ -3599,13 +3628,16 @@ function renderSpellsTab(){
           : `<span>${esc(name)}</span>`}
         ${src?`<span class="spell-badge" style="background:var(--pbg);border-color:var(--purple);color:var(--purple);border:1px solid;border-radius:3px;padding:1px 5px;font-size:var(--fs-xs);flex-shrink:0">${esc(src.label)}</span>`:''}
         ${extra}${castBadge}
-        ${atkBtn}${dmgBtn}${healBtn}
-        ${isConc?`<span class="spell-badge conc">C</span>`:''}
-        ${isRit?`<span class="spell-badge rit">R</span>`:''}
-        <span class="sp-school">${esc(school)}</span>
+        ${atkBtn}${_rowDmgBtn}${healBtn}
+        <span style="margin-left:auto;display:flex;align-items:center;gap:3px;flex-shrink:0">
+          ${school?`<span class="spell-badge" style="border:1px solid var(--bdr2,#444);color:var(--text3);background:transparent">${esc(school)}</span>`:''}
+          ${isConc?`<span class="spell-badge conc">C</span>`:''}
+          ${isRit?`<span class="spell-badge rit">R</span>`:''}
+          ${_castTimeBadge}
+        </span>
       </div>
       ${entryHtml?`<div id="${spellId}" class="spell-entry-body">
-        ${metaLine?`<div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:5px">${esc(metaLine)}</div>`:''}
+        ${_rowMetaLine?`<div style="font-size:var(--fs-label);color:var(--text3);margin-bottom:5px">${esc(_rowMetaLine)}</div>`:''}
         ${entryHtml}
       </div>`:''}
     </div>`;
@@ -5642,8 +5674,19 @@ function _buildGenericActionRollButtons(a){
   return atkBtn + dmgBtn;
 }
 
+function _getEffectiveCantripData(name) {
+  const base = typeof getCantripData === 'function' ? getCantripData(name) : null;
+  const mods = typeof getCantripDataModifiers === 'function' ? getCantripDataModifiers(name) : [];
+  if (!mods.length) return base;
+  let out = base ? Object.assign({}, base) : {};
+  for (const fn of mods) {
+    try { out = fn(out, C) || out; } catch(e) { console.warn('[CantripMod]', e); }
+  }
+  return out;
+}
+
 function buildCantripCard(name){
-  const known = typeof getCantripData === 'function' ? getCantripData(name) : null;
+  const known = _getEffectiveCantripData(name);
   const lv = C?.level || 1;
   const sm = getSpellMod();
   const pb = getPB();
@@ -5678,6 +5721,11 @@ function buildCantripCard(name){
     const base = _extractFirstDamageFormulaFromEntries(entries);
     if (base) dmgFormula = _scaleCantripFormula(base, lv);
   }
+  // dmgBonusPerBeam: set by cantrip data modifier (e.g. Agonizing Blast → 'cha')
+  if (known?.dmgBonusPerBeam && dmgFormula) {
+    const bonus = cantripDice(lv) * getMod(getFinal(known.dmgBonusPerBeam));
+    dmgFormula += bonus >= 0 ? `+${bonus}` : `${bonus}`;
+  }
   const dmgLabel = dmgFormula ? `${dmgFormula} ${dmgType}`.trim() : 'Damage ?';
   const icon = known?.icon || 'sparkles';
   const badgeType  = toHit ? 'atk' : hasSave ? 'save' : 'util';
@@ -5685,6 +5733,7 @@ function buildCantripCard(name){
   const hitStr = toHit ? fbonus(atkBonus) : hasSave ? `CD ${saveDC}` : '';
   const notes = known?.notes || '';
   const lv5note = dmgFormula ? 'x5/11/17' : '';
+
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr">
       <span class="action-card-icon">${luci(icon)}</span>
@@ -5703,6 +5752,61 @@ function buildCantripCard(name){
       <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
       ${lv5note ? `<div class="action-dmg-pill">${luci('trending-up')} ${lv5note}</div>` : ''}
       ${notes ? `<div class="action-dmg-pill" style="color:var(--text3)">${esc(notes)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function buildSpellActionCard(name) {
+  const snap = (C?.spellSnapshots || []).find(s =>
+    String(s?.name || '').toLowerCase() === name.toLowerCase()
+  );
+  const full = Array.isArray(sheetSpellDb)
+    ? sheetSpellDb.find(s => String(s?.name || '').toLowerCase() === name.toLowerCase())
+    : null;
+  if (!full && !snap) return '';
+
+  const entries  = snap?.entries || full?.entries || [];
+  const spellLevel = Number(snap?.level ?? full?.level ?? 0);
+  const school   = SCHOOL_LABELS[snap?.school || full?.school || ''] || '';
+  const spellMod = getSpellMod();
+  const pb       = getPB();
+  const spellAtk = spellMod + pb;
+  const saveDC   = 8 + pb + spellMod;
+  const hasAttack = !!(full?.spellAttack?.length);
+  const hasSave   = !!(full?.savingThrow?.length);
+  const dmgFormula = _extractFirstDamageFormulaFromEntries(entries);
+  const range = full?.range?.distance?.amount != null
+    ? `${full.range.distance.amount} ${full.range.distance.type || ''}`.trim()
+    : (full?.range?.type || snap?.range?.type || '');
+  const castTime  = full?.time?.[0] || snap?.time?.[0];
+  const castUnit  = castTime?.unit || 'action';
+  const isConc    = snap?.concentration ?? full?.concentration;
+  const levelLabel = ['Cantrip','1st','2nd','3rd','4th','5th','6th','7th','8th','9th'][spellLevel] || `${spellLevel}th`;
+  const tagCls   = {action:'util', bonus:'bonus', reaction:'react'}[castUnit] || 'util';
+  const catLabel  = {action:'ACTION', bonus:'BONUS', reaction:'REACT.'}[castUnit] || 'ACTION';
+  const atkTag   = hasAttack ? 'atk' : 'save';
+  const atkLabel  = hasAttack ? 'ATK' : 'SAV';
+  const safeName = _jsEsc(name);
+  const id = 'ac_' + Math.random().toString(36).slice(2);
+
+  return `<div class="action-card" id="${id}">
+    <div class="action-card-hdr">
+      <div style="flex:1;min-width:0">
+        <div class="action-card-name">${esc(name)}<span class="sub">${esc(levelLabel)} | ${esc(school)}${range ? ' | ' + esc(range) : ''}</span></div>
+      </div>
+      <div class="action-card-tags">
+        <span class="action-tag ${atkTag}">${atkLabel}</span>
+        <span class="action-tag ${tagCls}">${catLabel}</span>
+        ${isConc ? `<span class="action-tag util">C</span>` : ''}
+      </div>
+      ${hasAttack ? `<div class="action-stat">${fbonus(spellAtk)}</div>` : `<div class="action-stat">CD ${saveDC}</div>`}
+    </div>
+    <div class="action-card-bar">
+      ${hasAttack ? `<button class="roll-btn" onclick="rollD20(${spellAtk},'ATK: ${safeName}')">${luci('dice-5')} Attack ${fbonus(spellAtk)}</button>` : ''}
+      ${dmgFormula ? `<button class="roll-btn dmg" onclick="rollDamage('${_jsEsc(dmgFormula)}','${safeName}')">${luci('flame')} ${esc(dmgFormula)}</button>` : ''}
+      ${hasSave ? `<div class="action-dmg-pill">${luci('dice-5')} CD: <b>${saveDC}</b></div>` : ''}
+      ${range ? `<div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>` : ''}
+      <div class="action-dmg-pill">${luci('sparkles')} Lv.${spellLevel}</div>
     </div>
   </div>`;
 }

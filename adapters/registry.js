@@ -671,6 +671,10 @@ const GlobalClassAdapters = [];
 const GlobalSubclassAdapters = [];
 const GlobalItemAdapters = [];
 
+// CantripDataModifiers: per-name array of fn(data, C) → data
+// Adapter sets flags (dmgBonusPerBeam, range, notes); sheet computes numeric values.
+const CantripDataModifiers = {};
+
 function registerCantripData(name, data) {
   if (!name || !data || typeof data !== "object") return;
   const key = _normAdapterKey(name);
@@ -681,6 +685,19 @@ function getCantripData(name) {
   const raw = String(name || "");
   const key = _normAdapterKey(raw);
   return _getStoreValue(CantripDataStore, raw, key) || null;
+}
+function registerCantripDataModifier(name, fn) {
+  if (!name || typeof fn !== 'function') return;
+  const raw = String(name);
+  const key = _normAdapterKey(raw);
+  const existing = (_getStoreValue(CantripDataModifiers, raw, key) || []).slice();
+  existing.push(fn);
+  _setStoreValue(CantripDataModifiers, raw, key, existing);
+}
+function getCantripDataModifiers(name) {
+  const raw = String(name || '');
+  const key = _normAdapterKey(raw);
+  return _getStoreValue(CantripDataModifiers, raw, key) || [];
 }
 
 function registerSpellData(name, data) {

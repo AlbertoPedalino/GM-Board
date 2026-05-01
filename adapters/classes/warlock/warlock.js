@@ -207,6 +207,18 @@ if (typeof registerClassAtWillSpells === 'function') {
   ]);
 }
 
+// Eldritch Blast invocation effects — adapter sets flags, sheet computes numeric values
+if (typeof registerCantripDataModifier === 'function') {
+  registerCantripDataModifier('Eldritch Blast', function (data, C) {
+    var out = Object.assign({}, data || {});
+    if (_warlockHasInvocation(C, 'Agonizing Blast')) out.dmgBonusPerBeam = 'cha';
+    if (_warlockHasInvocation(C, 'Eldritch Spear'))  out.range = '300 ft';
+    if (_warlockHasInvocation(C, 'Repelling Blast'))
+      out.notes = (out.notes ? out.notes + ' · ' : '') + 'Push 10 ft on hit';
+    return out;
+  });
+}
+
 if (typeof registerWeaponAbilityOverride === 'function') {
   registerWeaponAbilityOverride({
     key: 'pact_blade',
