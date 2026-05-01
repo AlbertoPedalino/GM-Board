@@ -4060,7 +4060,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (s.type === 'expertise') {
           _renderExpertiseList(s);
         } else if (['skill_choice', 'language_choice', 'generic_choice'].includes(s.type)) {
-          _renderChoiceList(s.key, s.from, s.count, s.type);
+          _renderChoiceList(s.key, s.from, s.count, s.type, s.descMap);
         } else if (s.type === 'spell_choice') {
           // RENDERING MAGIE: Usa la funzione esistente per i talenti
           subEl.innerHTML = _renderSpellChoiceBlock(s);
@@ -4162,12 +4162,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     // Renderer lista per skill/language choices
-    function _renderChoiceList(key, items, count, type) {
+    function _renderChoiceList(key, items, count, type, descMap) {
       const el = document.getElementById(`cb_${key}`);
       if (!el) return;
       const sel = Array.isArray(char.choices[key]) ? char.choices[key] : [];
-      const sk = key.replace(/'/g, "\\'")
-      const colorVar = type === 'language_choice' ? 'var(--teal)' : 'var(--green)';
+      const sk = key.replace(/'/g, "\\'");
       const takenElsewhere = type === 'skill_choice' ? _getAlreadyTakenSkills(key) : null;
       el.innerHTML = items.slice(0, 80).map(item => {
         const on = sel.includes(item);
@@ -4176,11 +4175,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const disabled = full || takenByOther;
         const itemClean = item.replace(/'/g, "\\'");
         const onclickStr = disabled ? '' : `toggleChoiceItem('${sk}','${itemClean}',${count})`;
+        const desc = descMap && descMap[item];
+        const infoBtn = desc ? `<span onclick="event.stopPropagation();showChoiceDesc(this.dataset.t,this.dataset.d)" data-t="${esc(item)}" data-d="${esc(desc)}" style="margin-left:6px;cursor:pointer;color:var(--purple);font-size:.9em" title="Descrizione">ⓘ</span>` : '';
         return `<div class="choice-row${on ? ' on' : ''}${takenByOther ? ' taken' : ''}"
       onclick="${onclickStr}" style="${takenByOther ? 'opacity:0.4;cursor:default' : ''}">
       <div class="choice-check${on ? ' on' : ''}">√</div>
       <span style="flex:1;min-width:0;color:${on ? 'var(--purple)' : takenByOther ? 'var(--text3)' : 'var(--text2)'}">${esc(item)}${takenByOther ? ' <em style="font-size:var(--fs-caption)">(already taken)</em>' : ''}</span>
-      <span style="font-size:var(--fs-caption);color:var(--text3);flex-shrink:0">${esc(item.split('|')[1] || '')}</span>
+      <span style="font-size:var(--fs-caption);color:var(--text3);flex-shrink:0">${esc(item.split('|')[1] || '')}${infoBtn}</span>
     </div>`;
       }).join('');
     }
@@ -4238,11 +4239,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const on = selected.includes(s.name);
         const full = !on && selected.length >= choice.count;
         const school = SCHOOL_LABELS[s.school] || s.school || '';
+        const _cSlug = s.name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        const _cSrc  = (s.source || 'xphb').toLowerCase();
         h += `<div class="spell-row${on ? ' on' : ''}" onclick="${full && !on ? '' :
           `toggleChoiceItem('${sk}','${s.name.replace(/'/g, "\\'")}',${choice.count})`}">
       <div class="spell-check${on ? ' on' : ''}">${on ? luci('check') : ''}</div>
       <div style="flex:1;min-width:0">
-        <div class="spell-name">${esc(s.name)}</div>
+        <div class="spell-name"><a href="https://5e.tools/spells/${_cSlug}-${_cSrc}.html" target="_blank" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${esc(s.name)}</a></div>
         <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
       </div>
       ${s.ritual ? `<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>` : ''}
@@ -5659,7 +5662,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         } else if (s.type === 'ability_choice') {
           _renderAbilityChoiceList(s.key, s.from, s.label);
         } else if (s.type !== 'option') {
-          _renderChoiceList(s.key, s.from, s.count, s.type);
+          _renderChoiceList(s.key, s.from, s.count, s.type, s.descMap);
         }
       });
     }
@@ -7465,6 +7468,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     }
 
     let activeSpellLevel = 0;
+    let spellSearchQuery = '';
 
     function renderSpellPanel() {
       const tab = char.activeClassTab || 0;
@@ -7571,12 +7575,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const selCount = lv === 0 ? char.selectedCantrips.length : (char.selectedSpells[lv] || []).length;
         h += `<button class="spell-tab${isActive ? ' on' : selCount > 0 ? ' has' : ''}" onclick="setSpellTab(${lv})">${SPELL_LEVEL_LABELS[lv]}${selCount > 0 ? ` (${selCount})` : ''}</button>`;
       }
-      h += `</div><div id="spell-list-body"></div>`;
+      h += `</div>
+      <input id="spell-search" class="search-box" placeholder="Search spells…" autocomplete="off"
+        oninput="spellSearchQuery=this.value;renderSpellList(_lastClassSpells,_lastMaxLv,_lastCounts,_lastWizardCtx)"
+        style="width:100%;margin:.5rem 0 .4rem">
+      <div id="spell-list-body"></div>`;
 
       body.innerHTML = h;
+      document.getElementById('spell-search').value = spellSearchQuery;
+      _lastClassSpells = classSpells; _lastMaxLv = maxLv; _lastCounts = counts; _lastWizardCtx = wizardCtx;
       renderSpellList(classSpells, maxLv, counts, wizardCtx);
     }
-    function setSpellTab(lv) { activeSpellLevel = lv; renderSpellPanel(); }
+    let _lastClassSpells = [], _lastMaxLv = 0, _lastCounts = {}, _lastWizardCtx = null;
+    function setSpellTab(lv) { activeSpellLevel = lv; spellSearchQuery = ''; renderSpellPanel(); }
 
     function _calcSpellCountsFor(clsName, clsObj, lv, scName) {
       if (!_clsCasterProg(clsName, clsObj, scName)) return null;
@@ -7663,12 +7674,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         const full = !on && (isCantrip ? ec.selectedCantrips.length>=counts.cantrips : selCount>=counts.spells);
         const school = SCHOOL_LABELS[s.school]||s.school||'';
         const click  = isAuto?'':(full&&!on?'':`toggleSpell(${lv},'${s.name.replace(/'/g,"\\'")}')`);
+        const _slug = s.name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        const _src  = (s.source||'xphb').toLowerCase();
         h+=`<div class="spell-row${on?' on':''}${isAuto?' auto-granted':''}"
               onclick="${click}"
               style="${isAuto?'cursor:default;border-color:var(--teal);background:var(--tealbg)':''}">
           <div class="spell-check${on?' on':''}" style="${isAuto?'background:var(--teal);border-color:var(--teal)':''}">${on?luci('check'):''}</div>
           <div style="flex:1;min-width:0">
-            <div class="spell-name">${esc(s.name)}</div>
+            <div class="spell-name"><a href="https://5e.tools/spells/${_slug}-${_src}.html" target="_blank" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${esc(s.name)}</a></div>
             <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
           </div>
           ${s.ritual?`<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>`:''}
@@ -7703,7 +7716,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       // Ordina alfabeticamente
       mergedList.sort((a, b) => a.name.localeCompare(b.name));
 
-      if (!mergedList.length) { el.innerHTML = '<div class="phmsg">No spells available.</div>'; return; }
+      // Filtra per ricerca
+      const _q = (spellSearchQuery || '').trim().toLowerCase();
+      const filteredList = _q ? mergedList.filter(s => s.name.toLowerCase().includes(_q)) : mergedList;
+
+      if (!filteredList.length) { el.innerHTML = `<div class="phmsg">${_q ? 'No results for "' + esc(_q) + '".' : 'No spells available.'}</div>`; return; }
 
       const isCantrip = lv === 0;
       const selList = isCantrip ? char.selectedCantrips : (char.selectedSpells[lv] || []);
@@ -7712,12 +7729,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const remaining = maxSel - (isCantrip ? char.selectedCantrips.length : selCount);
 
       let h = `<div class="spell-count-bar">
-        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${mergedList.length} available</span>
+        <span style="font-size:var(--fs-ui-sm);color:var(--text3)">${_q ? filteredList.length + '/' + mergedList.length : mergedList.length} available</span>
         <span class="${remaining < 0 ? 'spell-count-over' : 'spell-count-ok'}">${isCantrip ? char.selectedCantrips.length : selCount}/${maxSel}</span>
       </div>`;
 
       h += `<div class="spell-list">`;
-      for (const s of mergedList) {
+      for (const s of filteredList) {
         const isAuto = autoSpells.find(as => as.name === s.name);
         const on = isAuto || selList.includes(s.name);
         const full = !on && (isCantrip ? char.selectedCantrips.length >= counts.cantrips : selCount >= counts.spells);
@@ -7725,13 +7742,16 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
         // Se è auto-granted, il click è disabilitato e mostriamo il badge
         const clickAction = isAuto ? '' : (full && !on ? '' : `toggleSpell(${lv},'${s.name.replace(/'/g, "\\'")}')`);
+        const spellSlug = s.name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        const spellSrc = (s.source || 'xphb').toLowerCase();
+        const spellUrl = `https://5e.tools/spells/${spellSlug}-${spellSrc}.html`;
 
-        h += `<div class="spell-row${on ? ' on' : ''}${isAuto ? ' auto-granted' : ''}" 
-                   onclick="${clickAction}" 
+        h += `<div class="spell-row${on ? ' on' : ''}${isAuto ? ' auto-granted' : ''}"
+                   onclick="${clickAction}"
                    style="${isAuto ? 'cursor:default; border-color:var(--teal); background:var(--tealbg)' : ''}">
           <div class="spell-check${on ? ' on' : ''}" style="${isAuto ? 'background:var(--teal); border-color:var(--teal)' : ''}">${on ? luci('check') : ''}</div>
           <div style="flex:1;min-width:0">
-            <div class="spell-name">${esc(s.name)}</div>
+            <div class="spell-name"><a href="${spellUrl}" target="_blank" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${esc(s.name)}</a></div>
             <div style="font-size:var(--fs-label);color:var(--text3)">${esc(school)}</div>
           </div>
           ${s.ritual ? `<span style="font-size:var(--fs-caption);color:var(--teal);flex-shrink:0">R</span>` : ''}
@@ -8317,7 +8337,28 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     loadOptionalFeatures();
     loadSpells();
     loadItems();
+
+    function showChoiceDesc(title, text) {
+      const ov = document.getElementById('choice-desc-overlay');
+      document.getElementById('choice-desc-title').textContent = title;
+      document.getElementById('choice-desc-body').innerHTML = text.replace(/\n/g, '<br>');
+      ov.style.display = 'flex';
+    }
+    function closeChoiceDesc() {
+      document.getElementById('choice-desc-overlay').style.display = 'none';
+    }
   </script>
+
+  <div id="choice-desc-overlay" onclick="if(event.target===this)closeChoiceDesc()"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;align-items:center;justify-content:center;padding:1rem">
+    <div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--rl);max-width:480px;width:100%;padding:1.25rem 1.5rem;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.7)">
+      <div style="display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.75rem">
+        <span id="choice-desc-title" style="font-size:var(--fs-ui-lg);color:var(--gold2);font-weight:600;flex:1;line-height:1.3"></span>
+        <button onclick="closeChoiceDesc()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.1rem;padding:0;line-height:1;flex-shrink:0">✕</button>
+      </div>
+      <div id="choice-desc-body" style="font-size:var(--fs-ui-md);color:var(--text2);line-height:1.6"></div>
+    </div>
+  </div>
 </body>
 
 </html>

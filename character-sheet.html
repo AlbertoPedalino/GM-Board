@@ -6257,10 +6257,14 @@ function _renderPickerList(){
     const on = lv===0 ? knownCantrips.has(s.name) : knownSpells.has(s.name);
     const blocked = !on && atMax;
     const safeName = s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const _pSlug = s.name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const _pSrc  = (s.source||'xphb').toLowerCase();
     return `<div class="spl-row${on?' on':''}${blocked?' blocked':''}"
       onclick="${blocked?'':'toggleSheetSpell(\''+safeName+'\','+s.level+')'}">
-      <span class="spl-name">${esc(s.name)}</span>
+      <span class="spl-name"><a href="https://5e.tools/spells/${_pSlug}-${_pSrc}.html" target="_blank" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${esc(s.name)}</a></span>
       <span class="spl-school">${SCHOOL_SHORT[s.school]||s.school||''}</span>
+      ${s.concentration?`<span class="spl-school" style="color:var(--purple)">C</span>`:''}
+      ${s.ritual?`<span class="spl-school" style="color:var(--teal)">R</span>`:''}
       ${on?`<span class="spl-check">${luci('check')}</span>`:blocked?`<span class="spl-school">max</span>`:''}
     </div>`;
   }).join('') || '<div class="phmsg">No spells found.</div>';

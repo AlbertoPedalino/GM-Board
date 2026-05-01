@@ -259,11 +259,12 @@
       cantripPool.forEach((sp) => {
         const on = selectedCantrips.has(sp.name);
         const safeName = escJsSingle(sp.name);
-        html += `<button onclick="toggleWizardCantrip('${safeName}', '${escJsSingle(targetKeyNorm)}')"
-          style="display:flex;align-items:center;gap:6px;width:100%;margin:.18rem 0;padding:.36rem .45rem;border-radius:6px;border:1px solid ${on ? "var(--green)" : "var(--bdr)"};background:${on ? "var(--gbg)" : "transparent"};color:${on ? "var(--green)" : "var(--text2)"};cursor:pointer;text-align:left;font-size:var(--fs-meta)">
-          <span style="width:14px;display:inline-block">${on ? "&#10003;" : ""}</span>
-          <span>${escHtml(sp.name)}</span>
-        </button>`;
+        const _wSlug = sp.name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        html += `<div onclick="toggleWizardCantrip('${safeName}', '${escJsSingle(targetKeyNorm)}')"
+          style="display:flex;align-items:center;gap:6px;width:100%;margin:.18rem 0;padding:.36rem .45rem;border-radius:6px;border:1px solid ${on ? "var(--green)" : "var(--bdr)"};background:${on ? "var(--gbg)" : "transparent"};color:${on ? "var(--green)" : "var(--text2)"};cursor:pointer;font-size:var(--fs-meta)">
+          <span style="width:14px;flex-shrink:0;display:inline-block">${on ? "&#10003;" : ""}</span>
+          <a href="https://5e.tools/spells/${_wSlug}-xphb.html" target="_blank" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${escHtml(sp.name)}</a>
+        </div>`;
       });
     } else {
       html += `<div style="font-size:var(--fs-label);color:var(--text3)">No cantrips in your spellbook with this filter.</div>`;
@@ -289,11 +290,17 @@
       rows.forEach((spell) => {
         const on = preparedSet.has(spell);
         const safeName = escJsSingle(spell);
-        html += `<button onclick="toggleWizardPreparedSpell('${safeName}', ${lv}, '${escJsSingle(targetKeyNorm)}')"
-          style="display:flex;align-items:center;gap:6px;width:100%;margin:.18rem 0;padding:.36rem .45rem;border-radius:6px;border:1px solid ${on ? "var(--green)" : "var(--bdr)"};background:${on ? "var(--gbg)" : "transparent"};color:${on ? "var(--green)" : "var(--text2)"};cursor:pointer;text-align:left;font-size:var(--fs-meta)">
-          <span style="width:14px;display:inline-block">${on ? "&#10003;" : ""}</span>
-          <span>${escHtml(spell)}</span>
-        </button>`;
+        const _wSlug = spell.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        const _wMeta = Array.isArray(sheetSpellDb) ? sheetSpellDb.find(x => String(x.name||'').toLowerCase() === spell.toLowerCase()) : null;
+        const _wConc = _wMeta?.concentration;
+        const _wRit  = _wMeta?.ritual;
+        html += `<div onclick="toggleWizardPreparedSpell('${safeName}', ${lv}, '${escJsSingle(targetKeyNorm)}')"
+          style="display:flex;align-items:center;gap:6px;width:100%;margin:.18rem 0;padding:.36rem .45rem;border-radius:6px;border:1px solid ${on ? "var(--green)" : "var(--bdr)"};background:${on ? "var(--gbg)" : "transparent"};color:${on ? "var(--green)" : "var(--text2)"};cursor:pointer;font-size:var(--fs-meta)">
+          <span style="width:14px;flex-shrink:0;display:inline-block">${on ? "&#10003;" : ""}</span>
+          <a href="https://5e.tools/spells/${_wSlug}-xphb.html" target="_blank" onclick="event.stopPropagation()" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${escHtml(spell)}</a>
+          ${_wConc ? `<span style="color:var(--purple);font-size:.75em;margin-left:auto">C</span>` : ''}
+          ${_wRit  ? `<span style="color:var(--teal);font-size:.75em${_wConc ? '' : ';margin-left:auto'}">R</span>` : ''}
+        </div>`;
       });
 
       html += `</div>`;
@@ -489,8 +496,10 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
 
       spells.slice(0, 50).forEach((s) => {
         const safe = escJsSingle(s.name);
+        const _wSlug = s.name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+        const _wSrc  = (s.source || 'xphb').toLowerCase();
         html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.22rem 0;border-bottom:1px dashed rgba(255,255,255,.06)">
-          <span style="font-size:var(--fs-meta);color:var(--text2)">${escHtml(s.name)} <span style="color:var(--text3)">(${escHtml(SCHOOL_SHORT[s.school] || s.school || "")})</span></span>
+          <span style="font-size:var(--fs-meta);color:var(--text2);display:flex;align-items:center;gap:.3rem"><a href="https://5e.tools/spells/${_wSlug}-${_wSrc}.html" target="_blank" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px">${escHtml(s.name)}</a> <span style="color:var(--text3)">(${escHtml(SCHOOL_SHORT[s.school] || s.school || "")})</span>${s.concentration ? `<span style="color:var(--purple);font-size:.75em">C</span>` : ''}${s.ritual ? `<span style="color:var(--teal);font-size:.75em">R</span>` : ''}</span>
           <button class="wiz-chip" onclick="addWizardSpellToSpellbook('${safe}', ${s.level}, '${escJsSingle(targetKeyNorm)}')">Learn</button>
         </div>`;
       });

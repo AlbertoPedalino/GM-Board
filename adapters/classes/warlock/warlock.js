@@ -1,16 +1,66 @@
-// Eldritch Invocations XPHB 2024
-const _INVOCATIONS = [
-  'Agonizing Blast', 'Armor of Shadows', 'Ascendant Step',
-  'Devil\'s Sight', 'Devouring Blade', 'Eldritch Mind', 'Eldritch Smite',
-  'Eldritch Spear', 'Fiendish Vigor', 'Gaze of Two Minds',
-  'Gift of the Depths', 'Gift of the Protectors',
-  'Investment of the Chain Master', 'Lessons of the First Ones',
-  'Lifedrinker', 'Mask of Many Faces', 'Master of Myriad Forms',
-  'Misty Visions', 'One with Shadows', 'Otherworldly Leap',
-  'Pact of the Blade', 'Pact of the Chain', 'Pact of the Tome',
-  'Repelling Blast', 'Thirsting Blade', 'Visions of Distant Realms',
-  'Whispers of the Grave', 'Witch Sight',
+// Eldritch Invocations XPHB 2024 — name, minLevel, prereqInvocation, description
+const _INV_DATA = [
+  { name: 'Agonizing Blast', minLevel: 1, prereq: null,
+    desc: 'Choose one of your known Warlock cantrips that deals damage. You can add your Charisma modifier to that spell\'s damage rolls.' },
+  { name: 'Armor of Shadows', minLevel: 1, prereq: null,
+    desc: 'You can cast Mage Armor on yourself at will, without expending a spell slot.' },
+  { name: 'Ascendant Step', minLevel: 9, prereq: null,
+    desc: 'Prerequisite: Warlock 9\n\nYou can cast Levitate on yourself at will, without expending a spell slot.' },
+  { name: 'Devil\'s Sight', minLevel: 1, prereq: null,
+    desc: 'You can see normally in Darkness—both magical and nonmagical—to a distance of 120 feet.' },
+  { name: 'Devouring Blade', minLevel: 12, prereq: 'Thirsting Blade',
+    desc: 'Prerequisite: Warlock 12, Thirsting Blade\n\nThe Extra Attack of your Thirsting Blade invocation confers two Extra Attacks rather than one. Once per turn when you hit a creature with your pact weapon, you can move up to 10 feet toward a different creature without provoking Opportunity Attacks.' },
+  { name: 'Eldritch Mind', minLevel: 1, prereq: null,
+    desc: 'You have Advantage on Constitution saving throws that you make to maintain Concentration.' },
+  { name: 'Eldritch Smite', minLevel: 5, prereq: 'Pact of the Blade',
+    desc: 'Prerequisite: Warlock 5, Pact of the Blade\n\nOnce per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, plus another 1d8 per level of the slot, and you can give the target the Prone condition if it is Huge or smaller.' },
+  { name: 'Eldritch Spear', minLevel: 1, prereq: null,
+    desc: 'Choose one of your known Warlock cantrips that deals damage and has a range of 10 feet or greater. When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.' },
+  { name: 'Fiendish Vigor', minLevel: 1, prereq: null,
+    desc: 'You can cast False Life on yourself at will, without expending a spell slot. When you cast it this way, you automatically get the highest number of Temporary Hit Points possible from the spell.' },
+  { name: 'Gaze of Two Minds', minLevel: 5, prereq: null,
+    desc: 'Prerequisite: Warlock 5\n\nYou can use a Bonus Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature is on the same plane of existence as you, you can use your action on subsequent turns to maintain this connection. While perceiving through the other creature\'s senses, you benefit from any special senses possessed by that creature, and you are Blinded and Deafened with regard to your own surroundings.' },
+  { name: 'Gift of the Depths', minLevel: 5, prereq: null,
+    desc: 'Prerequisite: Warlock 5\n\nYou can breathe underwater, and you have a Swim Speed equal to your Speed. You can also cast Water Breathing once without expending a spell slot. You regain the ability to cast it this way when you finish a Long Rest.' },
+  { name: 'Gift of the Protectors', minLevel: 9, prereq: 'Pact of the Tome',
+    desc: 'Prerequisite: Warlock 9, Pact of the Tome\n\nA new page appears in your Book of Shadows. With your permission, a creature can use its action to write its name on that page, which can contain a number of names equal to your Proficiency Bonus. When any creature whose name is on the page is reduced to 0 Hit Points but not killed outright, the creature magically drops to 1 Hit Point instead. Once this magic is triggered, no creature can benefit from it until you finish a Long Rest.' },
+  { name: 'Investment of the Chain Master', minLevel: 5, prereq: 'Pact of the Chain',
+    desc: 'Prerequisite: Warlock 5, Pact of the Chain\n\nWhen you cast Find Familiar, you infuse the summoned familiar with eldritch power, granting it: Fly or Swim Speed 40 ft; you can command it to Attack as a Bonus Action; its attacks are magical; it uses your spell save DC; when it takes damage you can use your Reaction to grant it Resistance.' },
+  { name: 'Lessons of the First Ones', minLevel: 1, prereq: null,
+    desc: 'You have received knowledge from an elder entity of the multiverse, granting you the ability to take one Origin feat of your choice. This invocation can be taken more than once.' },
+  { name: 'Lifedrinker', minLevel: 9, prereq: 'Pact of the Blade',
+    desc: 'Prerequisite: Warlock 9, Pact of the Blade\n\nOnce per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice when you take this invocation) to the creature, and you can expend one of your Hit Point Dice to roll it and regain a number of Hit Points equal to the roll plus your Constitution modifier (minimum 1).' },
+  { name: 'Mask of Many Faces', minLevel: 1, prereq: null,
+    desc: 'You can cast Disguise Self at will, without expending a spell slot.' },
+  { name: 'Master of Myriad Forms', minLevel: 5, prereq: null,
+    desc: 'Prerequisite: Warlock 5\n\nYou can cast Alter Self at will, without expending a spell slot.' },
+  { name: 'Misty Visions', minLevel: 1, prereq: null,
+    desc: 'You can cast Silent Image at will, without expending a spell slot.' },
+  { name: 'One with Shadows', minLevel: 5, prereq: null,
+    desc: 'Prerequisite: Warlock 5\n\nWhile you are in an area of Dim Light or Darkness, you can use a Magic action to give yourself the Invisible condition until you move or take an action, a Bonus Action, or a Reaction.' },
+  { name: 'Otherworldly Leap', minLevel: 5, prereq: null,
+    desc: 'Prerequisite: Warlock 5\n\nYou can cast Jump on yourself at will, without expending a spell slot.' },
+  { name: 'Pact of the Blade', minLevel: 1, prereq: null,
+    desc: 'As a Bonus Action, you can conjure a pact weapon in your hand—a Simple or Martial weapon of your choice—or create a bond with a magic weapon you touch. Until the bond ends, you have proficiency with the weapon, and you can use it as a spellcasting focus. Whenever you attack with the bonded weapon, you can use your Charisma modifier for attack and damage rolls and cause it to deal Necrotic, Psychic, or Radiant damage.' },
+  { name: 'Pact of the Chain', minLevel: 1, prereq: null,
+    desc: 'You learn the Find Familiar spell and can cast it as a Magic action without expending a spell slot. You can communicate telepathically with your familiar and perceive through its senses. When you take the Attack action, you can forgo one of your attacks to allow your familiar to make one attack with its Reaction.' },
+  { name: 'Pact of the Tome', minLevel: 1, prereq: null,
+    desc: 'Your Book of Shadows functions as a spellcasting focus for your Warlock spells. The book holds 3 cantrips from any class\'s spell list that you can cast at will; they don\'t count against your cantrips known.' },
+  { name: 'Repelling Blast', minLevel: 1, prereq: null,
+    desc: 'Choose one of your known Warlock cantrips that deals damage. When you hit a creature with that spell, you can push the creature up to 10 feet straight away from you.' },
+  { name: 'Thirsting Blade', minLevel: 5, prereq: 'Pact of the Blade',
+    desc: 'Prerequisite: Warlock 5, Pact of the Blade\n\nYou gain the Extra Attack feature for your pact weapon only. With that feature, you can attack twice with the pact weapon instead of once when you take the Attack action on your turn.' },
+  { name: 'Visions of Distant Realms', minLevel: 15, prereq: null,
+    desc: 'Prerequisite: Warlock 15\n\nYou can cast Arcane Eye at will, without expending a spell slot.' },
+  { name: 'Whispers of the Grave', minLevel: 7, prereq: null,
+    desc: 'Prerequisite: Warlock 7\n\nYou can cast Speak with Dead at will, without expending a spell slot.' },
+  { name: 'Witch Sight', minLevel: 15, prereq: null,
+    desc: 'Prerequisite: Warlock 15\n\nYou have Truesight with a range of 30 feet.' },
 ];
+
+// Quick lookup: name → description
+const _INV_DESCS = {};
+_INV_DATA.forEach(function(inv) { _INV_DESCS[inv.name] = inv.desc; });
 
 // Check if a character has a specific Eldritch Invocation chosen (works for both sheet C and charbuilder char)
 function _warlockHasInvocation(C, name) {
@@ -28,13 +78,18 @@ const _INV_LEVELS = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
 registerClassAdapter("Warlock", function (cls, lv, specs) {
   _INV_LEVELS.forEach(function (threshold, i) {
     if (lv >= threshold) {
+      // Each slot shows only invocations available at its unlock level
+      var slotInvocations = _INV_DATA
+        .filter(function(inv) { return threshold >= inv.minLevel; })
+        .map(function(inv) { return inv.name; });
       specs.push({
         key: 'warlock_invocation_' + (i + 1),
-        label: 'Eldritch Invocation ' + (i + 1),
+        label: 'Eldritch Invocation ' + (i + 1) + ' (Lv. ' + threshold + ')',
         type: 'generic_choice',
-        from: _INVOCATIONS,
+        from: slotInvocations,
         count: 1,
-        level: threshold
+        level: threshold,
+        descMap: _INV_DESCS
       });
     }
   });

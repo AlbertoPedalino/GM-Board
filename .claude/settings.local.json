@@ -64,7 +64,9 @@
       "Bash(python *)",
       "PowerShell(Set-Content *)",
       "Bash(xxd)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(Get-Item \"C:\\\\Users\\\\alber\\\\Documents\\\\DND\\\\GM-Board\\\\optionalfeatures.json\")",
+      "Bash(Select-Object Length)"
     ]
   }
 }
