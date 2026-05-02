@@ -2531,7 +2531,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
 
     const SPELL_FILES = ['spells-xphb.json', 'spells-fraif.json', 'spells-frhof.json', 'spells-efa.json'];
-    const SCHOOL_LABELS = { A: 'Abjuration', C: 'Enchantment', D: 'Divination', E: 'Evocation', I: 'Illusion', N: 'Necromancy', T: 'Transmutation', V: 'Divination' };
+    const SCHOOL_LABELS = { A: 'Abjuration', C: 'Conjuration', D: 'Divination', E: 'Enchantment', I: 'Illusion', N: 'Necromancy', T: 'Transmutation', V: 'Evocation' };
     const SPELL_LEVEL_LABELS = ['Cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
     /* ─ Skills ─ */
@@ -4102,11 +4102,24 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _renderExpertiseList(spec) {
       const el = document.getElementById(`cb_${spec.key}`);
       if (!el) return;
-      const sel = Array.isArray(char.choices[spec.key]) ? char.choices[spec.key] : [];
+      let sel = Array.isArray(char.choices[spec.key]) ? char.choices[spec.key] : [];
       const sk = spec.key.replace(/'/g, "\\'");
-      const items = spec.from && spec.from.length ? spec.from : SKILLS.map(s => s.n);
+      let items = spec.from && spec.from.length ? spec.from : SKILLS.map(s => s.n);
+      if (spec.requiresProficiency) {
+        const taken = _getAlreadyTakenSkills(spec.key);
+        items = items.filter(skill => taken.has(String(skill || '').toLowerCase().trim()));
+        const cleaned = sel.filter(skill => items.some(item => String(item).toLowerCase().trim() === String(skill).toLowerCase().trim()));
+        if (cleaned.length !== sel.length) {
+          char.choices[spec.key] = cleaned;
+          sel = cleaned;
+        }
+      }
 
       el.className = "expertise-grid";
+      if (!items.length) {
+        el.innerHTML = '<div class="phmsg">No eligible proficient skills yet.</div>';
+        return;
+      }
       el.innerHTML = items.map(skill => {
         const on = sel.includes(skill);
         const full = sel.length >= spec.count && !on;
@@ -4158,6 +4171,29 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           Object.keys(block).filter(function(k){ return k !== 'choose'; }).forEach(function(k){ taken.add(k.toLowerCase().trim()); });
         });
       }
+      const addAdapterTaken = (grants, lv, prefix = '') => {
+        (Array.isArray(grants) ? grants : []).forEach(g => {
+          if (!g || (g.type !== 'skill' && g.type !== 'expertise')) return;
+          if ((lv || 1) < Number(g.minLevel || 1)) return;
+          if (g.requiredChoice) {
+            const rc = g.requiredChoice;
+            const stored = char?.choices?.[prefix + rc.key];
+            const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+            if (!vals.includes(rc.value)) return;
+          }
+          (Array.isArray(g.values) ? g.values : [g.values]).forEach(v => {
+            if (v) taken.add(String(v).toLowerCase().trim());
+          });
+        });
+      };
+      const lv = typeof getPrimaryClassLevel === 'function' ? getPrimaryClassLevel() : (char.classLevel || char.level || 1);
+      if (typeof getClassSheetProficiencies === 'function') addAdapterTaken(getClassSheetProficiencies(char.className || ''), lv);
+      if (typeof getSubclassSheetProficiencies === 'function') addAdapterTaken(getSubclassSheetProficiencies(char.className || '', char.subclassShortName || ''), lv);
+      (char.extraClasses || []).forEach((ec, idx) => {
+        const pfx = `mc${idx}_`;
+        if (typeof getClassSheetProficiencies === 'function') addAdapterTaken(getClassSheetProficiencies(ec.name || ''), ec.level || 1, pfx);
+        if (typeof getSubclassSheetProficiencies === 'function') addAdapterTaken(getSubclassSheetProficiencies(ec.name || '', ec.subclassShortName || ''), ec.level || 1, pfx);
+      });
       return taken;
     }
 
@@ -4214,12 +4250,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _renderSpellChoiceBlock(choice) {
       // Support both choice.spellFilter (old) and direct spellLevel/classes (new)
       const filter = choice.spellFilter || choice;
-      if (filter.spellLevel == null && !filter.classes && !filter.schools && !filter.allSpells) return ''; // Safety check - no spell data
+      if (filter.spellLevel == null && !filter.spellLevels && !filter.classes && !filter.schools && !filter.allSpells) return ''; // Safety check - no spell data
       const choiceKey = choice.key || choice.storeKey; // Support both old and new structure
       let selected = Array.isArray(char.choices[choiceKey]) ? char.choices[choiceKey] : [];
       let spells = getSpellsForChoice({
         spellLevel: filter.spellLevel,
-        classes: filter.classes, schools: null
+        spellLevels: filter.spellLevels,
+        classes: filter.classes,
+        schools: filter.schools
       });
       const allowedNames = new Set(spells.map(s => String(s?.name || '').toLowerCase()));
       const cleanedSelected = selected.filter(n => allowedNames.has(String(n || '').toLowerCase()));
@@ -4405,6 +4443,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const result = [];
       const seen = new Set();
       const curLv = char.level || 1;
+      const primaryLv = getPrimaryClassLevel();
 
       for (const { grant, source, sourceType, ownerLevel } of collectSpellGrants()) {
         const grantedLv = ownerLevel || curLv;
@@ -4448,6 +4487,31 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           }
         }
       }
+      const addRuntimePrepared = (className, subclassShortName, ownerLevel, sourceLabel) => {
+        const configs = [];
+        if (typeof getClassRuntimeConfig === 'function') configs.push(getClassRuntimeConfig(className) || {});
+        if (typeof getSubclassRuntimeConfig === 'function') configs.push(getSubclassRuntimeConfig(className, subclassShortName) || {});
+        configs.forEach(cfg => {
+          [
+            { list: cfg?.spellcasting?.alwaysPreparedSpells || [], mode: 'prepared' },
+            { list: cfg?.spellcasting?.alwaysKnownSpells || [], mode: 'known' },
+          ].forEach(group => group.list.forEach(entry => {
+            const minLevel = Number(entry?.minLevel || 1);
+            if ((ownerLevel || 1) < minLevel) return;
+            const rawName = typeof entry === 'string' ? entry : entry?.name;
+            if (!rawName) return;
+            const spell = spellDb.find(x => String(x.name || '').toLowerCase() === String(rawName).toLowerCase());
+            if (spell && !seen.has(spell.name.toLowerCase())) {
+              result.push({ name: spell.name, level: spell.level, mode: group.mode, source: sourceLabel, sourceType: 'adapter' });
+              seen.add(spell.name.toLowerCase());
+            }
+          }));
+        });
+      };
+      addRuntimePrepared(char.className || '', char.subclassShortName || '', primaryLv, char.subclassShortName || char.className || 'Class');
+      (char.extraClasses || []).forEach(ec => {
+        addRuntimePrepared(ec.name || '', ec.subclassShortName || '', ec.level || 1, ec.subclassShortName || ec.name || 'Class');
+      });
       return result;
     }
 
@@ -4509,13 +4573,17 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
     // Spell del db filtrate per una scelta (usa lo stesso sistema robusto di getClassSpells)
     function getSpellsForChoice(choice) {
+      const allowedLevels = Array.isArray(choice.spellLevels)
+        ? choice.spellLevels.map(Number).filter(n => Number.isFinite(n))
+        : null;
       return spellDb.filter(s => {
-        if (choice.spellLevel !== null && s.level !== choice.spellLevel) return false;
+        if (allowedLevels && !allowedLevels.includes(Number(s.level))) return false;
+        if (!allowedLevels && choice.spellLevel !== null && choice.spellLevel !== undefined && s.level !== choice.spellLevel) return false;
         if (choice.schools) {
-          return choice.schools.some(sc => s.school === sc);
+          if (!choice.schools.some(sc => s.school === sc)) return false;
         }
         if (choice.classes) {
-          return choice.classes.some(cn => spellMatchesClassSafe(s, cn));
+          if (!choice.classes.some(cn => spellMatchesClassSafe(s, cn))) return false;
         }
         return true;
       });
@@ -6603,8 +6671,53 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return items;
     }
 
+    function _syncWizardSpellbookGrantChoices() {
+      const specs = deriveAllChoices().filter(s => s && s.spellbookGrant === 'wizard');
+      if (!specs.length) return;
+      const addSpell = (bucket, spellName) => {
+        if (!bucket || !spellName) return;
+        const spell = spellDb.find(s => String(s.name || '').toLowerCase() === String(spellName || '').toLowerCase());
+        const level = Number(spell?.level);
+        if (!Number.isFinite(level)) return;
+        if (typeof WizardSpellbookAPI !== 'undefined' && typeof WizardSpellbookAPI.addToSpellbook === 'function') {
+          WizardSpellbookAPI.addToSpellbook(bucket, spell.name, level);
+          return;
+        }
+        if (!bucket.wizardSpellbook || typeof bucket.wizardSpellbook !== 'object') bucket.wizardSpellbook = {};
+        if (!Array.isArray(bucket.wizardSpellbook[level])) bucket.wizardSpellbook[level] = [];
+        if (!bucket.wizardSpellbook[level].includes(spell.name)) bucket.wizardSpellbook[level].push(spell.name);
+      };
+      specs.forEach(spec => {
+        const vals = Array.isArray(char.choices?.[spec.key]) ? char.choices[spec.key] : [];
+        if (!vals.length) return;
+        const mc = /^mc(\d+)_/.exec(spec.key);
+        const bucket = mc ? (char.extraClasses || [])[Number(mc[1])] : char;
+        vals.forEach(v => addSpell(bucket, v));
+      });
+      const addRuntimeSpellbookGrants = (className, subclassShortName, ownerLevel, bucket) => {
+        const configs = [];
+        if (typeof getClassRuntimeConfig === 'function') configs.push(getClassRuntimeConfig(className) || {});
+        if (typeof getSubclassRuntimeConfig === 'function') configs.push(getSubclassRuntimeConfig(className, subclassShortName) || {});
+        configs.forEach(cfg => {
+          [
+            ...(cfg?.spellcasting?.alwaysKnownSpells || []),
+            ...(cfg?.spellcasting?.alwaysPreparedSpells || []),
+          ].forEach(entry => {
+            if (!entry || entry.addToSpellbook !== true) return;
+            if ((ownerLevel || 1) < Number(entry.minLevel || 1)) return;
+            addSpell(bucket, entry.name);
+          });
+        });
+      };
+      addRuntimeSpellbookGrants(char.className || '', char.subclassShortName || '', getPrimaryClassLevel(), char);
+      (char.extraClasses || []).forEach(ec => {
+        addRuntimeSpellbookGrants(ec.name || '', ec.subclassShortName || '', ec.level || 1, ec);
+      });
+    }
+
     function saveAndOpenSheet() {
       _syncCanonicalArmorerModelChoices();
+      _syncWizardSpellbookGrantChoices();
       // Applica le scelte non-descrittive prima di salvare
       const skills = getSelectedSkillProficiencies();
       const languages = getSelectedLanguages();
@@ -6897,6 +7010,39 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       };
       _addClassFixedSkills(char.cls);
       for (const ec of (char.extraClasses || [])) _addClassFixedSkills(ec.cls);
+
+      const _addAdapterSkillGrants = (grants, lv, prefix = '') => {
+        (Array.isArray(grants) ? grants : []).forEach(g => {
+          if (!g || (g.type !== 'skill' && g.type !== 'expertise')) return;
+          if ((lv || 1) < Number(g.minLevel || 1)) return;
+          if (g.requiredChoice) {
+            const rc = g.requiredChoice;
+            const stored = char?.choices?.[prefix + rc.key];
+            const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+            if (!vals.includes(rc.value)) return;
+          }
+          const vals = Array.isArray(g.values) ? g.values : [g.values];
+          vals.forEach(v => {
+            const s = _translateSkillIT(_normalizeProfName(v));
+            if (!s || !skillNames.has(_normCompare(s))) return;
+            skills.add(s);
+            if (g.type === 'expertise') expertise.add(s);
+          });
+        });
+      };
+      if (typeof getClassSheetProficiencies === 'function' || typeof getSubclassSheetProficiencies === 'function') {
+        const lv = getPrimaryClassLevel() || 1;
+        if (typeof getClassSheetProficiencies === 'function') _addAdapterSkillGrants(getClassSheetProficiencies(char.className || ''), lv);
+        if (typeof getSubclassSheetProficiencies === 'function') _addAdapterSkillGrants(getSubclassSheetProficiencies(char.className || '', char.subclassShortName || ''), lv);
+        (char.extraClasses || []).forEach((ec, idx) => {
+          const pfx = `mc${idx}_`;
+          if (typeof getClassSheetProficiencies === 'function') _addAdapterSkillGrants(getClassSheetProficiencies(ec.name || ''), ec.level || 1, pfx);
+          if (typeof getSubclassSheetProficiencies === 'function') _addAdapterSkillGrants(getSubclassSheetProficiencies(ec.name || '', ec.subclassShortName || ''), ec.level || 1, pfx);
+        });
+      }
+      if (typeof getSpeciesSheetProficiencies === 'function') {
+        _addAdapterSkillGrants(getSpeciesSheetProficiencies(char.speciesName || '', char.speciesSource || ''), char.level || 1);
+      }
 
       if (char.choices) {
         Object.entries(char.choices).forEach(([key, val]) => {

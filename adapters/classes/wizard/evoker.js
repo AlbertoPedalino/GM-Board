@@ -1,4 +1,8 @@
-registerSubclassAdapter("Wizard_Evoker", function (cls, lv, specs) {});
+registerSubclassAdapter("Wizard_Evoker", function (cls, lv, specs) {
+  if (typeof addWizardSavantSpellChoices === "function") {
+    addWizardSavantSpellChoices(specs, lv, { key: "evoker", label: "Evocation", school: "V" });
+  }
+});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Evoker", [

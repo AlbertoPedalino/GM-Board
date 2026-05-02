@@ -1,4 +1,8 @@
-registerSubclassAdapter("Wizard_Diviner", function (cls, lv, specs) {});
+registerSubclassAdapter("Wizard_Diviner", function (cls, lv, specs) {
+  if (typeof addWizardSavantSpellChoices === "function") {
+    addWizardSavantSpellChoices(specs, lv, { key: "diviner", label: "Divination", school: "D" });
+  }
+});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Diviner", [

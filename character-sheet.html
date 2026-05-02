@@ -1423,7 +1423,7 @@ const PB_TABLE = [null,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6];
 const STATS = ['str','dex','con','int','wis','cha'];
 const SLBL  = {str:'STR',dex:'DEX',con:'CON',int:'INT',wis:'WIS',cha:'CHA'};
 const FULL_LBL = {str:'Strength',dex:'Dexterity',con:'Constitution',int:'Intelligence',wis:'Wisdom',cha:'Charisma'};
-const SCHOOL_LABELS = {A:'Abjuration',C:'Enchantment',D:'Divination',E:'Evocation',I:'Illusion',N:'Necromancy',T:'Transmutation',V:'Divination'};
+const SCHOOL_LABELS = {A:'Abjuration',C:'Conjuration',D:'Divination',E:'Enchantment',I:'Illusion',N:'Necromancy',T:'Transmutation',V:'Evocation'};
 const SPELL_LEVEL_LABELS = ['Cantrip','1st Level','2nd Level','3rd Level','4th Level','5th Level','6th Level','7th Level','8th Level','9th Level'];
 const XP_TABLE = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
 
@@ -1581,6 +1581,40 @@ function ensureWizardSpellbookInitialized(){
     if(typeof WizardSpellbookAPI.syncSpellbookFromPrepared === 'function'){
       WizardSpellbookAPI.syncSpellbookFromPrepared(t.bucket);
     }
+    const prefix = t.bucket === C ? '' : `mc${(C.extraClasses || []).indexOf(t.bucket)}_`;
+    if(C?.choices){
+      for(const [key, val] of Object.entries(C.choices)){
+        if(!String(key).startsWith(prefix)) continue;
+        if(prefix ? !String(key).startsWith(`${prefix}subclass_`) : !String(key).startsWith('subclass_')) continue;
+        if(!String(key).includes('_savant_')) continue;
+        const vals = Array.isArray(val) ? val : [val];
+        vals.forEach(name => {
+          const cleanName = String(name || '').split('|')[0].trim();
+          if(!cleanName) return;
+          const snap = (C.spellSnapshots || []).find(s => String(s?.name || '').toLowerCase() === cleanName.toLowerCase());
+          const full = Array.isArray(sheetSpellDb) ? sheetSpellDb.find(s => String(s?.name || '').toLowerCase() === cleanName.toLowerCase()) : null;
+          const level = Number((snap || full)?.level);
+          if(Number.isFinite(level)) WizardSpellbookAPI.addToSpellbook(t.bucket, (snap || full).name, level);
+        });
+      }
+    }
+    const addRuntimeSpellbookGrants = (cfg) => {
+      [
+        ...(cfg?.spellcasting?.alwaysKnownSpells || []),
+        ...(cfg?.spellcasting?.alwaysPreparedSpells || []),
+      ].forEach(entry => {
+        if(!entry || entry.addToSpellbook !== true) return;
+        if((t.lv || 1) < Number(entry.minLevel || 1)) return;
+        const cleanName = String(entry.name || '').trim();
+        if(!cleanName) return;
+        const snap = (C.spellSnapshots || []).find(s => String(s?.name || '').toLowerCase() === cleanName.toLowerCase());
+        const full = Array.isArray(sheetSpellDb) ? sheetSpellDb.find(s => String(s?.name || '').toLowerCase() === cleanName.toLowerCase()) : null;
+        const level = Number((snap || full)?.level);
+        if(Number.isFinite(level)) WizardSpellbookAPI.addToSpellbook(t.bucket, (snap || full).name, level);
+      });
+    };
+    addRuntimeSpellbookGrants(_sheetGetClassRuntimeConfig(t.clsName));
+    addRuntimeSpellbookGrants(_sheetGetSubclassRuntimeConfig(t.clsName, t.subclassName));
     if(typeof WizardSpellbookAPI.validatePreparedSpells === 'function'){
       WizardSpellbookAPI.validatePreparedSpells(t.bucket, t.lv, intMod, maxPrepared);
     }
@@ -1633,6 +1667,31 @@ function _normSkill(s){
   return s.toLowerCase().replace(/[^a-z]/g,'');
 }
 
+function _collectSheetAdapterSkillGrants(){
+  const out = [];
+  const append = (grants, lv, prefix) => {
+    (Array.isArray(grants) ? grants : []).forEach(g => {
+      if(!g || (g.type !== 'skill' && g.type !== 'expertise')) return;
+      if((lv || 1) < Number(g.minLevel || 1)) return;
+      if(g.requiredChoice){
+        const rc = g.requiredChoice;
+        const stored = C?.choices?.[`${prefix || ''}${rc.key}`];
+        const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+        if(!vals.includes(rc.value)) return;
+      }
+      out.push(g);
+    });
+  };
+  const addEntity = (className, subclassShortName, lv, prefix) => {
+    if(typeof getClassSheetProficiencies === 'function') append(getClassSheetProficiencies(className), lv, prefix);
+    if(typeof getSubclassSheetProficiencies === 'function') append(getSubclassSheetProficiencies(className, subclassShortName), lv, prefix);
+  };
+  addEntity(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1, '');
+  (C?.extraClasses || []).forEach((ec, idx) => addEntity(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1, `mc${idx}_`));
+  if(typeof getSpeciesSheetProficiencies === 'function') append(getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1, '');
+  return out;
+}
+
 function getSkillProficiency(skillName){
   const nsk = _normSkill(skillName);
   // Builder saves selectedSkills as {proficient:[...], expert:[...]} or legacy array
@@ -1658,6 +1717,9 @@ function getSkillProficiency(skillName){
       }
     }
   }
+  const adapterSkillGrants = _collectSheetAdapterSkillGrants();
+  if(adapterSkillGrants.some(g => g.type === 'expertise' && (Array.isArray(g.values) ? g.values : [g.values]).some(v => _normSkill(v) === nsk))) return 'exp';
+  if(adapterSkillGrants.some(g => g.type === 'skill' && (Array.isArray(g.values) ? g.values : [g.values]).some(v => _normSkill(v) === nsk))) return 'prof';
   return null;
 }
 function getSkillBonus(sk){
@@ -1736,6 +1798,321 @@ function _resolvedInventory(){
   return raw.map(i => (i.type || i.custom) ? i : _resolveInvItem(i));
 }
 
+function _sheetCleanTaggedText(v){
+  return String(v || '')
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .replace(/\{@[a-z]+\s*/gi, '')
+    .replace(/[{}]/g, '')
+    .split('|')[0]
+    .trim();
+}
+
+function _sheetCompactKey(v){
+  return _sheetCleanTaggedText(v).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function _sheetNormalizeProfLabel(v){
+  let base = _sheetCleanTaggedText(v);
+  if (!base) return '';
+  base = base.replace(/\.$/, '').replace(/\s+/g, ' ').trim();
+  if (/^one type of /i.test(base)) return '';
+  if (/ of your choice$/i.test(base)) return '';
+  if (/^any/i.test(base)) return '';
+  if (base.includes(',')) return '';
+  const lc = base.toLowerCase();
+  const alias = {
+    "thieves' tools": "Thieves' Tools",
+    "thieves' tool": "Thieves' Tools",
+    "tinker's tools": "Tinker's Tools",
+    "tinker's tool": "Tinker's Tools",
+    "artisan's tools": "Artisan's Tools",
+    "herbalism kit": "Herbalism Kit",
+    "navigator's tools": "Navigator's Tools",
+    "poisoner's kit": "Poisoner's Kit",
+    "forgery kit": "Forgery Kit",
+    "disguise kit": "Disguise Kit",
+  };
+  if (alias[lc]) return alias[lc];
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
+function _sheetSplitAndNormalizeProfs(raw){
+  if (!raw || typeof raw !== 'string') return [];
+  return raw.split(/[;,]/).map(s => _sheetNormalizeProfLabel(s)).filter(Boolean);
+}
+
+function _sheetFixedKeysFromProfBlock(block, excluded){
+  if (!block || typeof block !== 'object' || Array.isArray(block)) return [];
+  return Object.keys(block)
+    .filter(k => !(excluded || []).includes(k) && block[k] !== false)
+    .map(_sheetNormalizeProfLabel)
+    .filter(Boolean);
+}
+
+function _sheetCollectFixedFeatureProfs(field, excluded){
+  const out = new Set();
+  if(!C) return out;
+  const buckets = [{
+    maxLv: C.classLevel || C.level || 1,
+    features: [
+      ...(C.allClassFeatures || []),
+      ...(C.subclassShortName
+        ? (C.allSubFeatures || []).filter(f => f.subclassShortName === C.subclassShortName)
+        : []),
+    ],
+  }];
+  for (const ec of (C.extraClasses || [])) {
+    if (!ec?.name) continue;
+    buckets.push({
+      maxLv: ec.level || 1,
+      features: [
+        ...(ec.allClassFeatures || []),
+        ...(ec.subclassShortName
+          ? (ec.allSubFeatures || []).filter(f => f.subclassShortName === ec.subclassShortName)
+          : []),
+      ],
+    });
+  }
+  buckets.forEach(({ maxLv, features }) => {
+    (features || [])
+      .filter(f => !f?.isReprinted && (f?.level || 0) <= maxLv)
+      .forEach(feat => {
+        (feat?.[field] || []).forEach(block => {
+          if (typeof block === 'string') {
+            const n = _sheetNormalizeProfLabel(block);
+            if (n) out.add(n);
+            return;
+          }
+          _sheetFixedKeysFromProfBlock(block, excluded).forEach(v => out.add(v));
+        });
+      });
+  });
+  return out;
+}
+
+function _sheetCollectFixedFeatProfs(field, excluded){
+  const out = new Set();
+  const selectedFeatSnapshots = Array.isArray(C?.allFeatSnapshots) ? C.allFeatSnapshots : [];
+  selectedFeatSnapshots.forEach(feat => {
+    (feat?.[field] || []).forEach(block => {
+      if (typeof block === 'string') {
+        const n = _sheetNormalizeProfLabel(block);
+        if (n) out.add(n);
+        return;
+      }
+      _sheetFixedKeysFromProfBlock(block, excluded).forEach(v => out.add(v));
+    });
+  });
+  return out;
+}
+
+function _sheetCollectAdapterProfGrants(){
+  const adapterProfGrants = [];
+  const appendAdapterGrants = (grants, lv, prefix = '') => {
+    (Array.isArray(grants) ? grants : []).forEach(g => {
+      if (!g || typeof g !== 'object') return;
+      const minLevel = Number(g.minLevel || 1);
+      if ((lv || 1) < minLevel) return;
+      if (g.requiredChoice) {
+        const rc = g.requiredChoice;
+        const stored = C?.choices?.[prefix + rc.key];
+        const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+        if (!vals.includes(rc.value)) return;
+      }
+      adapterProfGrants.push(g);
+    });
+  };
+  const collectEntityAdapterGrants = (className, subclassShortName, lv, prefix = '') => {
+    if (typeof getClassSheetProficiencies === 'function') {
+      appendAdapterGrants(getClassSheetProficiencies(className), lv, prefix);
+    }
+    if (typeof getSubclassSheetProficiencies === 'function') {
+      appendAdapterGrants(getSubclassSheetProficiencies(className, subclassShortName), lv, prefix);
+    }
+  };
+  collectEntityAdapterGrants(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1);
+  for (const [idx, ec] of (C?.extraClasses || []).entries()) {
+    collectEntityAdapterGrants(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1, `mc${idx}_`);
+  }
+  if (typeof getSpeciesSheetProficiencies === 'function') {
+    appendAdapterGrants(getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1);
+  }
+  return adapterProfGrants;
+}
+
+function _collectSheetEquipmentProficiencySets(){
+  const sp = C?.clsSnapshot?.startingProficiencies || {};
+  const armorSet = new Set();
+  const weaponSet = new Set();
+  const weaponMasterySet = new Set();
+  const addFixedProfsFromBlocks = (src, set) => {
+    const arr = Array.isArray(src) ? src : [src];
+    arr.forEach(entry => {
+      if (!entry) return;
+      if (typeof entry === 'string') {
+        _sheetSplitAndNormalizeProfs(entry).forEach(v => set.add(v));
+        return;
+      }
+      _sheetFixedKeysFromProfBlock(entry, ['choose', 'any']).forEach(v => set.add(v));
+    });
+  };
+  addFixedProfsFromBlocks(sp.armor, armorSet);
+  addFixedProfsFromBlocks(sp.weapons, weaponSet);
+  _sheetCollectFixedFeatureProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
+  _sheetCollectFixedFeatureProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
+  _sheetCollectFixedFeatProfs('armorProficiencies', ['choose', 'any']).forEach(v => armorSet.add(v));
+  _sheetCollectFixedFeatProfs('weaponProficiencies', ['choose', 'any']).forEach(v => weaponSet.add(v));
+  if (C?.choices) {
+    for (const [key, val] of Object.entries(C.choices)) {
+      if (!val) continue;
+      const lk = key.toLowerCase();
+      const vals = Array.isArray(val) ? val : [val];
+      if (lk.includes('mastery') && lk.includes('weapon')) {
+        vals.forEach(v => {
+          const nv = _sheetNormalizeProfLabel(v);
+          if (nv) weaponMasterySet.add(nv);
+        });
+        continue;
+      }
+      if (lk.includes('armor')) {
+        vals.forEach(v => {
+          const nv = _sheetNormalizeProfLabel(v);
+          if (nv) armorSet.add(nv);
+        });
+      }
+      if (lk.includes('weapon')) {
+        vals.forEach(v => {
+          const nv = _sheetNormalizeProfLabel(v);
+          if (nv) weaponSet.add(nv);
+        });
+      }
+    }
+  }
+  _sheetCollectAdapterProfGrants()
+    .filter(g => g.type === 'armor' || g.type === 'weapon')
+    .forEach(g => {
+      const vals = Array.isArray(g.values) ? g.values : [g.values];
+      vals.map(_sheetNormalizeProfLabel).filter(Boolean).forEach(v => {
+        if (g.type === 'armor') armorSet.add(v);
+        else weaponSet.add(v);
+      });
+    });
+  return { armorSet, weaponSet, weaponMasterySet };
+}
+
+const _SHEET_SIMPLE_WEAPONS = new Set([
+  'club','dagger','greatclub','handaxe','javelin','lighthammer','mace','quarterstaff','sickle','spear',
+  'dart','lightcrossbow','shortbow','sling','crossbowlight'
+]);
+const _SHEET_MARTIAL_WEAPONS = new Set([
+  'battleaxe','flail','glaive','greataxe','greatsword','halberd','lance','longsword','maul','morningstar',
+  'pike','rapier','scimitar','shortsword','trident','warpick','warhammer','whip','blowgun','handcrossbow',
+  'heavycrossbow','longbow','crossbowhand','crossbowheavy','pistol','musket'
+]);
+
+function _sheetWeaponNameKeys(item){
+  const raw = String(item?.name || '')
+    .replace(/,\s*\+\d+$/i, '')
+    .replace(/\s*\+\d+$/i, '')
+    .trim();
+  const key = _sheetCompactKey(raw);
+  const keys = new Set([key]);
+  const aliases = {
+    crossbowhand: 'handcrossbow',
+    handcrossbow: 'crossbowhand',
+    crossbowlight: 'lightcrossbow',
+    lightcrossbow: 'crossbowlight',
+    crossbowheavy: 'heavycrossbow',
+    heavycrossbow: 'crossbowheavy',
+  };
+  if (aliases[key]) keys.add(aliases[key]);
+  Array.from(keys).forEach(k => {
+    if (k.endsWith('s')) keys.add(k.slice(0, -1));
+  });
+  return keys;
+}
+
+function _sheetWeaponCategory(item){
+  const raw = item?.weaponCategory || item?.weaponType || item?.category || item?._weaponCategory || item?.weaponGroup || '';
+  const k = _sheetCompactKey(raw);
+  if (k.includes('simple')) return 'simple';
+  if (k.includes('martial')) return 'martial';
+  const nameKeys = _sheetWeaponNameKeys(item);
+  for (const nk of nameKeys) {
+    if (_SHEET_SIMPLE_WEAPONS.has(nk)) return 'simple';
+    if (_SHEET_MARTIAL_WEAPONS.has(nk)) return 'martial';
+  }
+  return '';
+}
+
+function _sheetItemHasProperty(item, props){
+  const wanted = new Set((Array.isArray(props) ? props : [props]).map(_sheetCompactKey));
+  return (item?.property || []).some(p => {
+    const raw = String(p || '');
+    const lbl = typeof WEAPON_PROP_LABELS === 'object' ? WEAPON_PROP_LABELS[raw] : '';
+    return wanted.has(_sheetCompactKey(raw)) || wanted.has(_sheetCompactKey(lbl));
+  });
+}
+
+function _sheetWeaponProficiencyInfo(item, weaponOverride){
+  if (!item || !['M','R'].includes(item.type)) return { proficient: true, source: '' };
+  if (weaponOverride?.grantsProficiency) return { proficient: true, source: weaponOverride.label || weaponOverride.key || '' };
+  const { weaponSet } = _collectSheetEquipmentProficiencySets();
+  const profKeys = Array.from(weaponSet).map(_sheetCompactKey).filter(Boolean);
+  const hasAny = (...keys) => profKeys.some(k => keys.includes(k));
+  const cat = _sheetWeaponCategory(item);
+  if (cat === 'simple' && hasAny('simple', 'simpleweapon', 'simpleweapons')) return { proficient: true, source: 'Simple Weapons' };
+  if (cat === 'martial' && hasAny('martial', 'martialweapon', 'martialweapons')) return { proficient: true, source: 'Martial Weapons' };
+  const nameKeys = _sheetWeaponNameKeys(item);
+  for (const nk of nameKeys) {
+    if (profKeys.includes(nk) || profKeys.includes(nk + 's')) return { proficient: true, source: item.name || '' };
+  }
+  const isMelee = item.type === 'M';
+  const isRanged = item.type === 'R';
+  const isHeavy = _sheetItemHasProperty(item, ['H', 'heavy']);
+  const isTwoHanded = _sheetItemHasProperty(item, ['2H', 'two-handed', 'twohanded']);
+  for (const k of profKeys) {
+    if (k === 'weapons' || k === 'allweapons') return { proficient: true, source: 'Weapons' };
+    if (isMelee && (k === 'meleeweapons' || k === 'meleeweapon')) return { proficient: true, source: 'Melee Weapons' };
+    if (isRanged && (k === 'rangedweapons' || k === 'rangedweapon')) return { proficient: true, source: 'Ranged Weapons' };
+    if (isMelee && cat === 'simple' && k.includes('simple') && k.includes('melee')) return { proficient: true, source: 'Simple Melee Weapons' };
+    if (isRanged && cat === 'simple' && k.includes('simple') && k.includes('ranged')) return { proficient: true, source: 'Simple Ranged Weapons' };
+    if (isMelee && cat === 'martial' && k.includes('martial') && k.includes('melee')) {
+      if (k.includes('withoutheavyortwohanded') || k.includes('withoutheavyortwohandedproperty')) {
+        if (!isHeavy && !isTwoHanded) return { proficient: true, source: 'Melee Martial Weapons' };
+      } else {
+        return { proficient: true, source: 'Melee Martial Weapons' };
+      }
+    }
+    if (isRanged && cat === 'martial' && k.includes('martial') && k.includes('ranged')) return { proficient: true, source: 'Martial Ranged Weapons' };
+  }
+  return { proficient: false, source: '' };
+}
+
+function _sheetArmorTrainingInfo(item){
+  if (!item || !['LA','MA','HA','S'].includes(item.type)) return { trained: true, kind: '' };
+  const { armorSet } = _collectSheetEquipmentProficiencySets();
+  const keys = Array.from(armorSet).map(_sheetCompactKey).filter(Boolean);
+  const has = (...vals) => keys.some(k => vals.includes(k));
+  if (item.type === 'LA') return { trained: has('light', 'lightarmor'), kind: 'Light Armor' };
+  if (item.type === 'MA') return { trained: has('medium', 'mediumarmor'), kind: 'Medium Armor' };
+  if (item.type === 'HA') return { trained: has('heavy', 'heavyarmor'), kind: 'Heavy Armor' };
+  if (item.type === 'S') return { trained: has('shield', 'shields'), kind: 'Shield' };
+  return { trained: true, kind: '' };
+}
+
+function _sheetArmorTrainingIssues(){
+  const inv = _resolvedInventory();
+  return inv
+    .filter(i => i.equipped && ['LA','MA','HA','S'].includes(i.type))
+    .map(item => ({ item, info: _sheetArmorTrainingInfo(item) }))
+    .filter(r => !r.info.trained);
+}
+
+function _sheetHasNonProficientArmor(){
+  return _sheetArmorTrainingIssues().some(r => ['LA','MA','HA'].includes(r.item.type));
+}
+
 function calcAC(){
   if(!C) return 10;
   const dex = getMod(getFinal('dex'));
@@ -1745,7 +2122,8 @@ function calcAC(){
   const inv = _resolvedInventory();
   const equippedArmor  = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
-  const shieldBonus = equippedShield ? (2 + (equippedShield.bonusAc ? parseInt(equippedShield.bonusAc)||0 : 0)) : 0;
+  const shieldTrained = equippedShield ? _sheetArmorTrainingInfo(equippedShield).trained : false;
+  const shieldBonus = equippedShield && shieldTrained ? (2 + (equippedShield.bonusAc ? parseInt(equippedShield.bonusAc)||0 : 0)) : 0;
   let ac;
   if(equippedArmor){
     const baseAC = equippedArmor.ac || 10;
@@ -1965,15 +2343,18 @@ function renderStatsRow(){
   const spd = C.speciesSnapshot?.speed||30;
   const spdBase = typeof spd==='number' ? spd : Object.values(spd)[0]||30;
   const spdVal = cachedEncLevel === 1 ? 5 : spdBase;
+  const armorTrainingDis = _sheetHasNonProficientArmor();
   const scoresHtml = STATS.map(s => {
     const val = getFinal(s);
     const mod = getMod(val);
     const modStr = (mod>=0?'+':'')+mod;
     const label = FULL_LBL[s]||SLBL[s];
-    return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'${label} Check')" title="Roll ${label} Check">
+    const hasForcedDis = armorTrainingDis && (s === 'str' || s === 'dex');
+    const advArg = hasForcedDis ? ',false' : '';
+    return `<div class="score-box" style="cursor:pointer" onclick="rollD20(${mod},'${label} Check'${advArg})" title="Roll ${label} Check${hasForcedDis?' | Disadvantage: untrained armor':''}">
       <div class="score-lbl">${SLBL[s]}</div>
       <div class="score-mod">${modStr}</div>
-      <div class="score-base">${val}</div>
+      <div class="score-base">${val}${hasForcedDis?` <span class="adv-badge disadv" style="font-size:6px;padding:0 2px">DIS</span>`:''}</div>
     </div>`;
   }).join('');
 
@@ -2107,20 +2488,24 @@ function rollDeathSave(){
 
 function renderSaves(){
   const el = document.getElementById('saves-body');
+  const armorTrainingDis = _sheetHasNonProficientArmor();
   el.innerHTML = STATS.map(st => {
     const bonus = getSaveBonus(st);
     const prof  = hasSaveProficiency(st);
-    return `<div class="save-row" onclick="rollSave('${st}')" title="Roll ${FULL_LBL[st]} saving throw">
+    const hasForcedDis = armorTrainingDis && (st === 'str' || st === 'dex');
+    return `<div class="save-row" onclick="rollSave('${st}')" title="Roll ${FULL_LBL[st]} saving throw${hasForcedDis?' | Disadvantage: untrained armor':''}">
       <div class="save-dot${prof?' on':''}"></div>
       <span class="save-stat">${SLBL[st]}</span>
       <span style="font-size:var(--fs-body);color:var(--text2)">${FULL_LBL[st]}</span>
+      ${hasForcedDis?`<span class="adv-badge disadv" title="Disadvantage: untrained armor">DIS</span>`:''}
       <span class="save-bonus">${fbonus(bonus)}</span>
     </div>`;
   }).join('');
 }
 function rollSave(stat){
   const bonus = getSaveBonus(stat);
-  rollD20(bonus, FULL_LBL[stat] + ' Save');
+  const armorTrainingDis = _sheetHasNonProficientArmor() && (stat === 'str' || stat === 'dex');
+  rollD20(bonus, FULL_LBL[stat] + ' Save', armorTrainingDis ? false : undefined);
 }
 
 function renderSenses(){
@@ -2256,31 +2641,31 @@ function renderProficiencies(){
     return out;
   };
   const adapterProfGrants = [];
-  const appendAdapterGrants = (grants, lv) => {
+  const appendAdapterGrants = (grants, lv, prefix = '') => {
     (Array.isArray(grants) ? grants : []).forEach(g => {
       if (!g || typeof g !== 'object') return;
       const minLevel = Number(g.minLevel || 1);
       if ((lv || 1) < minLevel) return;
       if (g.requiredChoice) {
         const rc = g.requiredChoice;
-        const stored = C?.choices?.[rc.key];
+        const stored = C?.choices?.[prefix + rc.key];
         const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
         if (!vals.includes(rc.value)) return;
       }
       adapterProfGrants.push(g);
     });
   };
-  const collectEntityAdapterGrants = (className, subclassShortName, lv) => {
+  const collectEntityAdapterGrants = (className, subclassShortName, lv, prefix = '') => {
     if (typeof getClassSheetProficiencies === 'function') {
-      appendAdapterGrants(getClassSheetProficiencies(className), lv);
+      appendAdapterGrants(getClassSheetProficiencies(className), lv, prefix);
     }
     if (typeof getSubclassSheetProficiencies === 'function') {
-      appendAdapterGrants(getSubclassSheetProficiencies(className, subclassShortName), lv);
+      appendAdapterGrants(getSubclassSheetProficiencies(className, subclassShortName), lv, prefix);
     }
   };
   collectEntityAdapterGrants(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1);
-  for (const ec of (C?.extraClasses || [])) {
-    collectEntityAdapterGrants(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1);
+  for (const [idx, ec] of (C?.extraClasses || []).entries()) {
+    collectEntityAdapterGrants(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1, `mc${idx}_`);
   }
   if (typeof getSpeciesSheetProficiencies === 'function') {
     appendAdapterGrants(getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1);
@@ -2485,7 +2870,8 @@ function renderSkills(){
   if(!el) return;
   const inv = _resolvedInventory();
   const equippedArmor = inv.find(i => i.equipped && ['LA','MA','HA'].includes(i.type));
-  const hasStealthDis = equippedArmor && (equippedArmor.type === 'HA' || (equippedArmor.property||[]).includes('S'));
+  const hasStealthDis = equippedArmor && (equippedArmor.type === 'HA' || _sheetItemHasProperty(equippedArmor, ['S', 'stealth', 'disadvantage']));
+  const armorTrainingDis = _sheetHasNonProficientArmor();
   const isJoat = _sheetClassEntities().some(ent => {
     const classMin = Number(_sheetGetClassRuntimeConfig(ent.className)?.skillRules?.jackOfAllTradesMinLevel || 0);
     const subMin = Number(_sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName)?.skillRules?.jackOfAllTradesMinLevel || 0);
@@ -2497,21 +2883,25 @@ function renderSkills(){
     const dotCls = ptype==='exp'?' exp':ptype==='prof'?' prof':(isJoat&&!ptype)?' joat':'';
     const adv = skillAdv[sk.n]||null;
     const armorDis = hasStealthDis && sk.n === 'Stealth';
+    const trainingDis = armorTrainingDis && (sk.a === 'str' || sk.a === 'dex');
+    const forcedDis = armorDis || trainingDis;
+    const effectiveAdv = forcedDis ? (adv === 'adv' ? '' : 'disadv') : (adv || '');
     const advBadge = adv==='adv'
       ? `<span class="adv-badge adv" title="Advantage">ADV</span>`
       : adv==='disadv'
       ? `<span class="adv-badge disadv" title="Disadvantage">DIS</span>`
       : '';
     const armorBadge = armorDis ? `<span class="adv-badge disadv" title="Disadvantage (Heavy Armor)">D</span>` : '';
+    const trainingBadge = trainingDis ? `<span class="adv-badge disadv" title="Disadvantage: untrained armor">DIS</span>` : '';
     const safeN = sk.n.replace(/'/g,"\\'");
     return `<div class="skill-row"
-      onclick="rollSkill('${safeN}',${bonus},'${adv||''}')"
+      onclick="rollSkill('${safeN}',${bonus},'${effectiveAdv}')"
       oncontextmenu="event.preventDefault();cycleSkillAdv('${safeN}')"
-      title="Click: roll | Right-click: advantage/disadvantage${armorDis?' | Disadvantage (Heavy Armor)':''}">
+      title="Click: roll | Right-click: advantage/disadvantage${armorDis?' | Disadvantage (Heavy Armor)':''}${trainingDis?' | Disadvantage: untrained armor':''}">
       <div class="skill-dot${dotCls}"></div>
       <span class="skill-ability">${SLBL[sk.a]}</span>
       <span class="skill-name">${esc(sk.n)}</span>
-      ${advBadge}${armorBadge}
+      ${advBadge}${armorBadge}${trainingBadge}
       <span class="skill-bonus">${fbonus(bonus)}</span>
     </div>`;
   }).join('');
@@ -2591,6 +2981,13 @@ function renderRightTop(){
     pushRules(_sheetGetSpeciesRuntimeConfig(C?.speciesName || '', C?.speciesSource || '')?.unarmoredDefense, C?.level || 1);
     labels.forEach(txt => items.push({l:txt,c:'g'}));
   }
+  _sheetArmorTrainingIssues().forEach(({ item, info }) => {
+    if (item.type === 'S') {
+      items.push({l:`Untrained Shield: no AC bonus (${item.name || info.kind})`,c:'r'});
+    } else {
+      items.push({l:`Untrained ${info.kind}: DIS STR/DEX tests, no spells (${item.name || info.kind})`,c:'r'});
+    }
+  });
   if(!items.length){ defEl.innerHTML='<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>'; }
   else { defEl.innerHTML = items.map(i=>`<div class="tag ${i.c}">${esc(i.l)}</div>`).join(''); }
   renderConditions();
@@ -3253,6 +3650,11 @@ function renderSpellsTab(){
       <div class="stat-box-lbl">Spell Ability</div>
     </div>
   </div>`;
+  if (_sheetHasNonProficientArmor()) {
+    h += `<div class="phmsg" style="border-color:var(--red);color:var(--red);margin-bottom:.75rem">
+      Untrained armor: this character can't cast spells while wearing it.
+    </div>`;
+  }
   const _AW_PLACEHOLDER = '<!--AW-->';
   h += _AW_PLACEHOLDER;
 
@@ -4172,9 +4574,12 @@ function toggleEquip(idx){
     sheetInventory.forEach((i,n)=>{ if(n!==idx&&(resolvedTypes[n]||i.type||'')==='S') i.equipped=false; });
   item.equipped = !item.equipped;
   persistInventory();
+  renderStatsRow();
+  renderSaves();
   renderSkills();
   renderInventoryList();
   renderActionsTab();
+  renderSpellsTab();
   const acEl = document.getElementById('ac-val');
   if(acEl) acEl.textContent = calcAC();
   renderRightTop();
@@ -4826,6 +5231,32 @@ function _getHdFaces(){
 /* ═══ Generic Slot Recovery Modal (Arcane Recovery, etc.) ═══ */
 let _slotRec = { budget: 0, maxLv: 5, sel: {}, title: '' };
 
+function _sheetRegularSpellSlotCaps(){
+  if(!C) return [];
+  const lv = C.level || 1;
+  const extra = C.extraClasses || [];
+  const pLvSheet = C.classLevel || lv - extra.reduce((s, ec) => s + (ec.level || 1), 0);
+  const pProfile = _sheetSpellcastingProfile(C.className || '', C.subclassShortName || '', C.clsSnapshot || {});
+  const prog = _sheetCasterProgression(pProfile?.casterProgression || C.clsSnapshot?.casterProgression);
+  if(extra.length){
+    const casterLvFor = (clsName, clsLv, scName, clsSnap) => {
+      const profile = _sheetSpellcastingProfile(clsName, scName, clsSnap || null);
+      return _sheetCasterContribution(_sheetCasterProgression(profile?.casterProgression), clsLv);
+    };
+    let cLv = casterLvFor(C.className || '', pLvSheet, C.subclassShortName || '', C.clsSnapshot || {});
+    extra.forEach(ec => {
+      cLv += casterLvFor(ec.name || '', ec.level || 1, ec.subclassShortName || '', ec.clsSnapshot || {});
+    });
+    cLv = Math.floor(cLv);
+    return cLv > 0 ? (FULL_SLOTS[Math.min(cLv, 20)] || []) : [];
+  }
+  if(prog === 'full') return FULL_SLOTS[lv] || [];
+  if(prog === '1/2' || prog === 'half') return HALF_SLOTS[lv] || [];
+  if(prog === '1/3') return THIRD_SLOTS[lv] || [];
+  if(prog === 'artificer') return FULL_SLOTS[Math.min(Math.ceil(lv / 2), 20)] || [];
+  return [];
+}
+
 function _showSlotRecoveryModal(budget, maxSlotLevel, title) {
   _slotRec = { budget, maxLv: maxSlotLevel || 5, sel: {}, title: title || 'Slot Recovery' };
   let m = document.getElementById('slot-rec-modal');
@@ -4846,28 +5277,35 @@ function _renderSlotRecoveryModal() {
   const { budget, maxLv, sel, title } = _slotRec;
   const spent = Object.entries(sel).reduce((s, [lv, c]) => s + Number(lv) * c, 0);
   const remaining = budget - spent;
+  const hasSelection = spent > 0;
+  const slotCaps = _sheetRegularSpellSlotCaps();
   let rows = '';
-  for (let lv = 1; lv <= maxLv; lv++) {
-    const used = spellSlotUsed[lv] || 0;
-    if (!used) continue;
+  for (let lv = 1; lv <= Math.min(maxLv, slotCaps.length); lv++) {
+    const total = slotCaps[lv - 1] || 0;
+    if (!total) continue;
+    const used = Math.min(spellSlotUsed[lv] || 0, total);
     const selCnt = sel[lv] || 0;
     const canAdd = remaining >= lv && selCnt < used;
     const canSub = selCnt > 0;
+    const addTitle = used
+      ? (remaining >= lv ? 'Recover one expended slot' : 'Not enough recovery budget')
+      : 'No expended slots at this level';
     rows += `<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">
       <span style="color:var(--text2);font-size:var(--fs-body);min-width:52px">Level ${lv}</span>
-      <span style="color:var(--text3);font-size:var(--fs-xs);flex:1">${used} used · costs ${lv}</span>
-      <button onclick="_slotRecAdj(${lv},-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);cursor:${canSub?'pointer':'default'};opacity:${canSub?1:.35};font-size:16px;line-height:1">−</button>
+      <span style="color:var(--text3);font-size:var(--fs-xs);flex:1">${used} used / ${total} · costs ${lv}</span>
+      <button ${canSub?'':'disabled'} onclick="_slotRecAdj(${lv},-1)" title="${canSub?'Remove one recovered slot':'Nothing selected'}" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);cursor:${canSub?'pointer':'not-allowed'};opacity:${canSub?1:.35};font-size:16px;line-height:1">−</button>
       <span style="min-width:18px;text-align:center;font-family:var(--ff-display);color:var(--gold2);font-weight:700">${selCnt}</span>
-      <button onclick="_slotRecAdj(${lv},1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);cursor:${canAdd?'pointer':'default'};opacity:${canAdd?1:.35};font-size:16px;line-height:1">+</button>
+      <button ${canAdd?'':'disabled'} onclick="_slotRecAdj(${lv},1)" title="${addTitle}" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);color:var(--text);cursor:${canAdd?'pointer':'not-allowed'};opacity:${canAdd?1:.35};font-size:16px;line-height:1">+</button>
     </div>`;
   }
-  if (!rows) rows = `<div style="color:var(--text3);font-size:var(--fs-body);text-align:center;padding:.75rem 0">No expended slots to recover.</div>`;
+  if (!rows) rows = `<div style="color:var(--text3);font-size:var(--fs-body);text-align:center;padding:.75rem 0">No recoverable spell slots for this character.</div>`;
   m.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);padding:1.5rem;max-width:320px;width:100%">
     <div style="font-family:var(--ff-display);font-size:var(--fs-ui-lg);font-weight:700;color:var(--gold);margin-bottom:.25rem">${luci('book-open')} ${esc(title)}</div>
     <div style="font-size:var(--fs-body);color:var(--text3);margin-bottom:.85rem">Budget: <b style="color:var(--gold2)">${remaining}</b> / ${budget} levels remaining</div>
     ${rows}
+    ${!hasSelection?`<div style="font-size:var(--fs-xs);color:var(--text3);margin-top:.75rem">Mark spell slots as used in the Spells tab before recovering them.</div>`:''}
     <div style="display:flex;gap:8px;margin-top:1rem">
-      <button onclick="_applySlotRecovery()" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:pointer;font-family:var(--ff-display);font-size:var(--fs-body);font-weight:700">${luci('sparkles')} Recover</button>
+      <button ${hasSelection?'':'disabled'} onclick="_applySlotRecovery()" style="flex:1;padding:8px;background:var(--bg3);border:1px solid var(--gold);border-radius:var(--r);color:var(--gold2);cursor:${hasSelection?'pointer':'not-allowed'};opacity:${hasSelection?1:.45};font-family:var(--ff-display);font-size:var(--fs-body);font-weight:700">${luci('sparkles')} Recover</button>
       <button onclick="_closeSlotRecoveryModal()" style="padding:8px 16px;background:none;border:1px solid var(--bdr);border-radius:var(--r);color:var(--text3);cursor:pointer;font-family:inherit">Cancel</button>
     </div>
   </div>`;
@@ -4876,7 +5314,8 @@ function _renderSlotRecoveryModal() {
 
 function _slotRecAdj(lv, delta) {
   const { budget, sel } = _slotRec;
-  const used = spellSlotUsed[lv] || 0;
+  const slotCaps = _sheetRegularSpellSlotCaps();
+  const used = Math.min(spellSlotUsed[lv] || 0, slotCaps[lv - 1] || 0);
   const cur = sel[lv] || 0;
   const spent = Object.entries(sel).reduce((s, [l, c]) => s + Number(l) * c, 0);
   if (delta > 0 && (budget - spent) >= lv && cur < used) {
@@ -5417,22 +5856,26 @@ function getWeaponMasteries(){
 function buildWeaponCard(item, invIdx){
   const strMod=getMod(getFinal('str')), dexMod=getMod(getFinal('dex')), pb=getPB();
   const props=item.property||[];
-  const isRanged=item.type==='R', isFinesse=props.includes('F');
+  const isRanged=item.type==='R', isFinesse=_sheetItemHasProperty(item, ['F', 'finesse']);
   const isOffHand=item.hand==='off';
-  const isVersatile=props.includes('V')&&!!item.dmg2;
+  const isVersatile=_sheetItemHasProperty(item, ['V', 'versatile'])&&!!item.dmg2;
   const isTwoHanded=isVersatile&&item.versatileHand==='2h';
   const bonus=parseInt((item.bonusWeapon||'0').replace('+',''))||0;
   const activeOverrides=_getActiveWeaponOverrides();
   const weaponOverride=item.weaponMod ? activeOverrides.find(function(o){return o.key===item.weaponMod;}) : null;
+  const profInfo = _sheetWeaponProficiencyInfo(item, weaponOverride);
+  const profBonus = profInfo.proficient ? pb : 0;
   let atkMod,dmgMod,abilityMod;
+  let attackAbility='str';
   if(weaponOverride){
-    abilityMod=getMod(getFinal(weaponOverride.ability)); atkMod=abilityMod+pb+bonus;
-  } else if(isRanged){  abilityMod=dexMod; atkMod=dexMod+pb+bonus;
-  } else if(isFinesse){ abilityMod=Math.max(strMod,dexMod); atkMod=abilityMod+pb+bonus;
-  } else{               abilityMod=strMod; atkMod=strMod+pb+bonus; }
+    attackAbility=String(weaponOverride.ability || 'str').toLowerCase();
+    abilityMod=getMod(getFinal(attackAbility)); atkMod=abilityMod+profBonus+bonus;
+  } else if(isRanged){  attackAbility='dex'; abilityMod=dexMod; atkMod=dexMod+profBonus+bonus;
+  } else if(isFinesse){ attackAbility=dexMod>strMod?'dex':'str'; abilityMod=Math.max(strMod,dexMod); atkMod=abilityMod+profBonus+bonus;
+  } else{               attackAbility='str'; abilityMod=strMod; atkMod=strMod+profBonus+bonus; }
   dmgMod = isOffHand ? Math.min(0, abilityMod)+bonus : abilityMod+bonus;
   const propStr=props.map(p=>WEAPON_PROP_LABELS[p]||p).filter(Boolean).join(', ');
-  const range=isRanged?(item.range||'varia'):'5 ft'+(props.includes('T')?' / lancio':'');
+  const range=isRanged?(item.range||'varia'):'5 ft'+(_sheetItemHasProperty(item, ['T', 'thrown'])?' / lancio':'');
   const dmgDie=(isTwoHanded?item.dmg2:item.dmg1)||'1d4', dmgType=item.dmgType||'';
   const dmgSign=dmgMod>=0?'+':'';
   const dmgFormula=`${dmgDie}${dmgSign}${dmgMod}`;
@@ -5447,13 +5890,18 @@ function buildWeaponCard(item, invIdx){
   const _dbItem = hasMastery && !item.mastery && Array.isArray(allItemsDb)
     ? allItemsDb.find(i => i.name === item.name) : null;
   const masteryProp = hasMastery ? (item.mastery || _dbItem?.mastery || '') : '';
+  const attackDis = _sheetHasNonProficientArmor() && (attackAbility === 'str' || attackAbility === 'dex');
+  const attackAdvArg = attackDis ? ',false' : '';
   const tagHtml=`<span class="action-tag atk">ATK</span>`
     +(isOffHand?`<span class="action-tag" style="border-color:var(--text3);color:var(--text3)">OFF</span>`:'')
     +(isTwoHanded?`<span class="action-tag" style="border-color:var(--text3);color:var(--text3)">2H</span>`:'')
     +(weaponOverride?`<span class="action-tag" style="border-color:var(--purple);color:var(--purple)">${esc((weaponOverride.label||weaponOverride.key).toUpperCase())}</span>`:'')
+    +(!profInfo.proficient?`<span class="action-tag" style="border-color:var(--red);color:var(--red)" title="No proficiency bonus to attack roll">NO PROF</span>`:'')
+    +(attackDis?`<span class="action-tag" style="border-color:var(--red);color:var(--red)" title="Disadvantage: untrained armor">DIS</span>`:'')
     +(hasMastery?`<span class="action-tag" style="border-color:var(--gold);color:var(--gold)">${luci('star')} ${masteryProp?esc(masteryProp):'MASTERY'}</span>`:'')
     +(rc?`<span class="action-tag" style="border-color:${rc};color:${rc}">${esc(rarity)}</span>`:'');
   const sub=[src, bonus>0?'Magica +'+bonus:'', propStr, isOffHand?'no ability mod to dmg':'', weaponOverride?weaponOverride.ability.toUpperCase()+' mod':''].filter(Boolean).join(' · ');
+  const profSub = !profInfo.proficient ? 'no PB to hit' : '';
   const idxAttr = invIdx != null ? invIdx : -1;
   const handBtn=`<button class="inv-equip-btn on" onclick="toggleWeaponHand(${idxAttr})" style="font-size:var(--fs-xs);padding:2px 7px">${isOffHand?'Off':'Main'}</button>`;
   const versBtn=isVersatile?`<button class="inv-equip-btn on" onclick="toggleVersatile(${idxAttr})" style="font-size:var(--fs-xs);padding:2px 7px">${isTwoHanded?'2H':'1H'}</button>`:'';
@@ -5461,14 +5909,14 @@ function buildWeaponCard(item, invIdx){
     <div class="action-card-hdr">
       <span class="action-card-icon">${icon}</span>
       <div style="flex:1;min-width:0">
-        <div class="action-card-name">${wName}${sub?`<span class="sub">${esc(sub)}</span>`:''}</div>
+        <div class="action-card-name">${wName}${sub?`<span class="sub">${esc(sub)}</span>`:''}${profSub?`<span class="sub">${esc(profSub)}</span>`:''}</div>
       </div>
       <div class="action-card-tags">${tagHtml}</div>
       <div style="display:flex;gap:3px;align-items:center;flex-shrink:0">${handBtn}${versBtn}</div>
       <div class="action-stat">${fbonus(atkMod)}</div>
     </div>
     <div class="action-card-bar">
-      <button class="roll-btn" onclick="rollD20(${atkMod},'Attack: ${wName}')">${luci('dice-5')} Hits ${fbonus(atkMod)}</button>
+      <button class="roll-btn" onclick="rollD20(${atkMod},'Attack: ${wName}'${attackAdvArg})">${luci('dice-5')} Hits ${fbonus(atkMod)}</button>
       <button class="roll-btn dmg" onclick="rollDamage('${dmgFormula}','Damage: ${wName}')">${luci('sword')} ${esc(dmgLabel)}</button>
       <div class="action-dmg-pill">${luci('ruler')} <b>${esc(range)}</b></div>
       ${propStr?`<div class="action-dmg-pill">${esc(propStr)}</div>`:''}
@@ -5865,6 +6313,9 @@ function buildUnarmedCard(opt){
     const ab = String(rtRule.attackAbility || '').toLowerCase();
     atkAbility = getMod(getFinal(ab));
   }
+  const unarmedAttackAbility = rtRule?.attackAbility ? String(rtRule.attackAbility || 'str').toLowerCase() : 'str';
+  const unarmedDis = _sheetHasNonProficientArmor() && (unarmedAttackAbility === 'str' || unarmedAttackAbility === 'dex');
+  const unarmedAdvArg = unarmedDis ? ',false' : '';
 
   let specialDmgFormula = '';
   let specialDmgLabel = '';
@@ -5897,12 +6348,13 @@ function buildUnarmedCard(opt){
   if(opt.cat==='attack'){
     const normalDmg = Math.max(1,1+strMod);
     barContent=`
-      <button class="roll-btn" onclick="rollD20(${atkAbility+pb},'Unarmed Strike')">${luci('dice-5')} Hits ${fbonus(atkAbility+pb)}</button>
+      <button class="roll-btn" onclick="rollD20(${atkAbility+pb},'Unarmed Strike'${unarmedAdvArg})">${luci('dice-5')} Hits ${fbonus(atkAbility+pb)}</button>
       ${specialDmgFormula
         ? `<button class="roll-btn dmg" onclick="rollDamage('${_jsEsc(specialDmgFormula)}','${_jsEsc(specialDmgLabel)}')">${luci('sword')} ${specialDmgFormula} bludg.</button>`
         : `<button class="roll-btn dmg" onclick="showDiceToast('Damage',[], ${normalDmg},${normalDmg},'1 + STR')">${luci('sword')} ${normalDmg} bludg.</button>`
       }
       <div class="action-dmg-pill">${luci('ruler')} 5 ft</div>
+      ${unarmedDis ? `<div class="action-dmg-pill" style="color:var(--red)">${luci('triangle-alert')} DIS</div>` : ''}
       ${specialBadge ? `<div class="action-dmg-pill">${luci('music')} ${esc(specialBadge)}</div>` : ''}`;
   } else if(isGrSh){
     barContent=`

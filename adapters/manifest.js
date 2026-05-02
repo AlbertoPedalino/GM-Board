@@ -38,7 +38,6 @@ const ADAPTER_MANIFEST = [
   'adapters/classes/wizard/diviner.js',
   'adapters/classes/wizard/evoker.js',
   'adapters/classes/wizard/illusionist.js',
-  'adapters/classes/wizard/transmuter.js',
   'adapters/classes/wizard/bladesinger.js',
 
   'adapters/classes/artificer/artificer.js',

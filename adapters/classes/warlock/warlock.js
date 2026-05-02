@@ -279,6 +279,7 @@ if (typeof registerWeaponAbilityOverride === 'function') {
     key: 'pact_blade',
     label: 'Patto',
     ability: 'cha',
+    grantsProficiency: true,
     weaponTypes: ['M'],
     condition: function (C) {
       if (!C) return false;

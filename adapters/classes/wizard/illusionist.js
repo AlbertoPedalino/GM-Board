@@ -1,4 +1,8 @@
-registerSubclassAdapter("Wizard_Illusionist", function (cls, lv, specs) {});
+registerSubclassAdapter("Wizard_Illusionist", function (cls, lv, specs) {
+  if (typeof addWizardSavantSpellChoices === "function") {
+    addWizardSavantSpellChoices(specs, lv, { key: "illusionist", label: "Illusion", school: "I" });
+  }
+});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Wizard_Illusionist", [
@@ -15,4 +19,17 @@ registerSubclassSheetResources("Wizard_Illusionist", [
   { key: "phantasmal_creatures", name: "Phantasmal Creatures", icon: "ghost", recharge: "LR", max: () => 2 },
   { key: "illusory_self",        name: "Illusory Self",         icon: "user",  recharge: "SR", max: () => 1 },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Wizard_Illusionist", {
+    spellcasting: {
+      alwaysKnownSpells: [
+        { name: "Minor Illusion", minLevel: 3 },
+      ],
+      alwaysPreparedSpells: [
+        { name: "Summon Beast", minLevel: 6 },
+        { name: "Summon Fey", minLevel: 6 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
