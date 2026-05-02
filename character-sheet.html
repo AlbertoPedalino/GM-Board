@@ -5739,6 +5739,28 @@ function saveResources(){
   localStorage.setItem('5e_resources', JSON.stringify(charResources));
 }
 
+function recoverResourceByKey(key, amount=1){
+  const target = String(key || '');
+  const gain = Math.max(1, Number(amount) || 1);
+  let changed = false;
+  for(const r of getAllResDefs()){
+    const rk = _getResStateKey(r);
+    if(String(r.key || '') !== target && rk !== target) continue;
+    const max = getResMax(r);
+    const cur = charResources[rk] ?? max;
+    const next = Math.min(max, cur + gain);
+    if(next !== cur){
+      charResources[rk] = next;
+      changed = true;
+    }
+  }
+  if(changed){
+    saveResources();
+    renderActionsTab();
+  }
+  return changed;
+}
+
 function spendResource(key, cost=1){
   const oldCur = charResources[key] ?? 0;
   charResources[key] = Math.max(0, oldCur - cost);

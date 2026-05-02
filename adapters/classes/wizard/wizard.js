@@ -151,6 +151,7 @@ if (typeof registerResourceSideEffect === 'function') {
     });
     if (!wizLv) return;
     const budget = Math.ceil(wizLv / 2);
+    if (typeof recoverResourceByKey === 'function') recoverResourceByKey('bladesong', 1);
     if (typeof _showSlotRecoveryModal === 'function') _showSlotRecoveryModal(budget, 5, 'Arcane Recovery');
   });
 }
