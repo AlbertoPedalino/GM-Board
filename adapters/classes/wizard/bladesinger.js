@@ -67,7 +67,12 @@ const _wizardBladesingerResources = [
   }
 ];
 const _wizardBladesingerProficiencies = [
-  { type: "weapon", values: ["Melee Martial weapons without Heavy or Two-Handed property"], minLevel: 3 }
+  {
+    type: "weapon",
+    values: ["Melee Martial weapons without Heavy or Two-Handed property"],
+    match: { type: "M", category: "martial", excludeProperties: ["H", "2H"] },
+    minLevel: 3
+  }
 ];
 registerSubclassSheetActions("Wizard_Bladesinger", _wizardBladesingerActions);
 registerSubclassSheetActions("Wizard_Bladesinging", _wizardBladesingerActions);

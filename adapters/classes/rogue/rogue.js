@@ -203,6 +203,13 @@ registerClassSheetResources("Rogue", [
   }
 ]);
 registerClassSheetProficiencies("Rogue", [
+  {
+    type: "weapon",
+    values: ["Martial weapons with Finesse or Light property"],
+    match: { category: "martial", propertiesAny: ["F", "L"] },
+    display: false,
+    minLevel: 1
+  },
   { type: "language", values: ["Thieves' Cant"], minLevel: 1 }
 ]);
 // [SheetRuntime] END

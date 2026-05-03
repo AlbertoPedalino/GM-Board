@@ -1852,6 +1852,10 @@ function _sheetNormalizeProfLabel(v){
   let base = _sheetCleanTaggedText(v);
   if (!base) return '';
   base = base.replace(/\.$/, '').replace(/\s+/g, ' ').trim();
+  if (/^martial weapons that have the finesse or light$/i.test(base)) {
+    base = 'Martial weapons that have the Finesse or Light property';
+  }
+  if (/^(?:finesse|light) property$/i.test(base)) return '';
   if (/^one type of /i.test(base)) return '';
   if (/ of your choice$/i.test(base)) return '';
   if (/^any/i.test(base)) return '';
@@ -1876,6 +1880,15 @@ function _sheetNormalizeProfLabel(v){
 function _sheetSplitAndNormalizeProfs(raw){
   if (!raw || typeof raw !== 'string') return [];
   return raw.split(/[;,]/).map(s => _sheetNormalizeProfLabel(s)).filter(Boolean);
+}
+
+function _sheetNormalizeProfDisplayList(vals){
+  const out = [];
+  (Array.isArray(vals) ? vals : Array.from(vals || [])).forEach(v => {
+    const n = _sheetNormalizeProfLabel(v);
+    if (n && !out.some(x => String(x).toLowerCase() === String(n).toLowerCase())) out.push(n);
+  });
+  return out;
 }
 
 function _sheetFixedKeysFromProfBlock(block, excluded){
@@ -1982,6 +1995,7 @@ function _collectSheetEquipmentProficiencySets(){
   const armorSet = new Set();
   const weaponSet = new Set();
   const weaponMasterySet = new Set();
+  const weaponRules = [];
   const addFixedProfsFromBlocks = (src, set) => {
     const arr = Array.isArray(src) ? src : [src];
     arr.forEach(entry => {
@@ -2029,12 +2043,15 @@ function _collectSheetEquipmentProficiencySets(){
     .filter(g => g.type === 'armor' || g.type === 'weapon')
     .forEach(g => {
       const vals = Array.isArray(g.values) ? g.values : [g.values];
-      vals.map(_sheetNormalizeProfLabel).filter(Boolean).forEach(v => {
-        if (g.type === 'armor') armorSet.add(v);
-        else weaponSet.add(v);
-      });
+      if (g.display !== false) {
+        vals.map(_sheetNormalizeProfLabel).filter(Boolean).forEach(v => {
+          if (g.type === 'armor') armorSet.add(v);
+          else weaponSet.add(v);
+        });
+      }
+      if (g.type === 'weapon' && g.match && typeof g.match === 'object') weaponRules.push(g.match);
     });
-  return { armorSet, weaponSet, weaponMasterySet };
+  return { armorSet, weaponSet, weaponMasterySet, weaponRules };
 }
 
 const _SHEET_SIMPLE_WEAPONS = new Set([
@@ -2083,18 +2100,55 @@ function _sheetWeaponCategory(item){
 }
 
 function _sheetItemHasProperty(item, props){
-  const wanted = new Set((Array.isArray(props) ? props : [props]).map(_sheetCompactKey));
+  const propAliases = {
+    f: ['f', 'finesse'],
+    finesse: ['f', 'finesse'],
+    l: ['l', 'light'],
+    light: ['l', 'light'],
+    h: ['h', 'heavy'],
+    heavy: ['h', 'heavy'],
+    v: ['v', 'versatile'],
+    versatile: ['v', 'versatile'],
+    t: ['t', 'thrown'],
+    thrown: ['t', 'thrown'],
+    '2h': ['2h', 'twohanded'],
+    twohanded: ['2h', 'twohanded'],
+    'two-handed': ['2h', 'twohanded'],
+    s: ['s', 'stealth', 'disadvantage'],
+    stealth: ['s', 'stealth', 'disadvantage'],
+    disadvantage: ['s', 'stealth', 'disadvantage'],
+  };
+  const expandPropKeys = (v) => {
+    const k = _sheetCompactKey(v);
+    return propAliases[k] || [k];
+  };
+  const wanted = new Set((Array.isArray(props) ? props : [props]).flatMap(expandPropKeys));
   return (item?.property || []).some(p => {
     const raw = String(p || '');
     const lbl = typeof WEAPON_PROP_LABELS === 'object' ? WEAPON_PROP_LABELS[raw] : '';
-    return wanted.has(_sheetCompactKey(raw)) || wanted.has(_sheetCompactKey(lbl));
+    return expandPropKeys(raw).some(k => wanted.has(k)) || expandPropKeys(lbl).some(k => wanted.has(k));
   });
+}
+
+function _sheetWeaponMatchesRule(item, rule){
+  if(!item || !rule || typeof rule !== 'object') return false;
+  if(rule.type && item.type !== rule.type) return false;
+  if(Array.isArray(rule.types) && !rule.types.includes(item.type)) return false;
+  const cat = _sheetWeaponCategory(item);
+  if(rule.category && cat !== String(rule.category).toLowerCase()) return false;
+  if(rule.melee === true && item.type !== 'M') return false;
+  if(rule.ranged === true && item.type !== 'R') return false;
+  if(Array.isArray(rule.propertiesAny) && rule.propertiesAny.length && !rule.propertiesAny.some(p => _sheetItemHasProperty(item, p))) return false;
+  if(Array.isArray(rule.propertiesAll) && rule.propertiesAll.length && !rule.propertiesAll.every(p => _sheetItemHasProperty(item, p))) return false;
+  if(Array.isArray(rule.excludeProperties) && rule.excludeProperties.some(p => _sheetItemHasProperty(item, p))) return false;
+  return true;
 }
 
 function _sheetWeaponProficiencyInfo(item, weaponOverride){
   if (!item || !['M','R'].includes(item.type)) return { proficient: true, source: '' };
   if (weaponOverride?.grantsProficiency) return { proficient: true, source: weaponOverride.label || weaponOverride.key || '' };
-  const { weaponSet } = _collectSheetEquipmentProficiencySets();
+  const { weaponSet, weaponRules } = _collectSheetEquipmentProficiencySets();
+  if (weaponRules.some(rule => _sheetWeaponMatchesRule(item, rule))) return { proficient: true, source: 'Weapon Training' };
   const profKeys = Array.from(weaponSet).map(_sheetCompactKey).filter(Boolean);
   const hasAny = (...keys) => profKeys.some(k => keys.includes(k));
   const cat = _sheetWeaponCategory(item);
@@ -2577,42 +2631,7 @@ function renderProficiencies(){
   const el = document.getElementById('profs-body');
   const sp = C.clsSnapshot?.startingProficiencies||{};
   const bsp= C.bgSnapshot||{};
-  const normalize = (v) => {
-    if (!v || typeof v !== 'string') return '';
-    let base = String(v)
-      .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-      .replace(/\{@[a-z]+\s*/gi, '')
-      .replace(/[{}]/g, '')
-      .split('|')[0]
-      .trim();
-    if (!base) return '';
-    base = base.replace(/\.$/, '').replace(/\s+/g, ' ').trim();
-
-    // Ignore placeholder descriptors (not concrete proficiencies).
-    if (/^one type of /i.test(base)) return '';
-    if (/ of your choice$/i.test(base)) return '';
-    if (/^any/i.test(base)) return '';
-
-    const lc = base.toLowerCase();
-    const alias = {
-      "thieves' tools": "Thieves' Tools",
-      "thieves' tool": "Thieves' Tools",
-      "tinker's tools": "Tinker's Tools",
-      "tinker's tool": "Tinker's Tools",
-      "artisan's tools": "Artisan's Tools",
-      "herbalism kit": "Herbalism Kit",
-      "navigator's tools": "Navigator's Tools",
-      "poisoner's kit": "Poisoner's Kit",
-      "forgery kit": "Forgery Kit",
-      "disguise kit": "Disguise Kit",
-    };
-    if (alias[lc]) return alias[lc];
-
-    // If multiple values are packed in one string, caller should split first.
-    if (base.includes(',')) return '';
-    if (!base) return '';
-    return base.charAt(0).toUpperCase() + base.slice(1);
-  };
+  const normalize = _sheetNormalizeProfLabel;
   const fixedKeysFromBlock = (block, excluded) => {
     if (!block || typeof block !== 'object' || Array.isArray(block)) return [];
     return Object.keys(block)
@@ -2758,6 +2777,7 @@ function renderProficiencies(){
   adapterProfGrants
     .filter(g => g.type === 'armor' || g.type === 'weapon')
     .forEach(g => {
+      if (g.display === false) return;
       const vals = Array.isArray(g.values) ? g.values : [g.values];
       vals.map(normalize).filter(Boolean).forEach(v => {
         if (g.type === 'armor') armorSet.add(v);
@@ -2765,7 +2785,8 @@ function renderProficiencies(){
       });
     });
   const armor   = armorSet.size ? Array.from(armorSet).join(', ') : '—';
-  const weapons = weaponSet.size ? Array.from(weaponSet).join(', ') : '—';
+  const weaponDisplay = _sheetNormalizeProfDisplayList(weaponSet);
+  const weapons = weaponDisplay.length ? weaponDisplay.join(', ') : '—';
   const weaponMasteries = weaponMasterySet.size ? Array.from(weaponMasterySet).join(', ') : '—';
 
   // Tools: class starting + bg + adapter choices (monk_tool_proficiency, subclass_bm_student_tool, etc.)
