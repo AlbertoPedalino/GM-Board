@@ -11,6 +11,63 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
     rel="stylesheet" />
+  <script>
+    (function () {
+      const scopedKeys = new Set([
+        '5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus',
+        '5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv',
+        '5e_resources','5e_builder_state','5e_inspiration'
+      ]);
+      const rawGet = Storage.prototype.getItem;
+      const rawSet = Storage.prototype.setItem;
+      const rawRemove = Storage.prototype.removeItem;
+      const params = new URLSearchParams(location.search);
+      const clean = v => String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 48);
+      let id = clean(params.get('char'));
+      if (id === 'new') {
+        id = `pc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+        history.replaceState(null, '', `${location.pathname}?char=${encodeURIComponent(id)}`);
+      }
+      if (!id) id = clean(rawGet.call(localStorage, 'gb_active_char_id')) || 'default';
+      rawSet.call(localStorage, 'gb_active_char_id', id);
+      window.GB_CHAR_ID = id;
+      window.gbScopedHref = page => `${page}?char=${encodeURIComponent(id)}`;
+      window.gbRegisterCharScope = function (label) {
+        const raw = rawGet.call(localStorage, 'gb_char_registry') || '[]';
+        let list = [];
+        try { list = JSON.parse(raw); } catch (_) {}
+        const now = Date.now();
+        const name = String(label || '').trim() || id;
+        list = [{ id, name, updatedAt: now }, ...list.filter(x => x && x.id !== id)].slice(0, 20);
+        rawSet.call(localStorage, 'gb_char_registry', JSON.stringify(list));
+      };
+      const prefix = `gb:char:${id}:`;
+      const scoped = key => scopedKeys.has(String(key || '')) ? prefix + key : key;
+      Storage.prototype.getItem = function (key) { return rawGet.call(this, scoped(key)); };
+      Storage.prototype.setItem = function (key, val) { return rawSet.call(this, scoped(key), val); };
+      Storage.prototype.removeItem = function (key) { return rawRemove.call(this, scoped(key)); };
+      const readImportPayload = function () {
+        const marker = '#gbimport=';
+        if (String(location.hash || '').startsWith(marker)) {
+          try {
+            return JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(marker.length)))));
+          } catch (_) {}
+        }
+        try { return JSON.parse(window.name || 'null'); } catch (_) { return null; }
+      };
+      try {
+        const payload = readImportPayload();
+        if (payload && payload.type === 'gb-sheet-import' && payload.data && typeof payload.data === 'object') {
+          scopedKeys.forEach(k => localStorage.removeItem(k));
+          for (const [k, v] of Object.entries(payload.data)) {
+            if (scopedKeys.has(k) && v != null) localStorage.setItem(k, v);
+          }
+          window.name = '';
+          if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+        }
+      } catch (_) {}
+    })();
+  </script>
   <style>
     :root {
       --ff-body: 'EB Garamond', Georgia, serif;
@@ -2379,7 +2436,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
           <!-- Valuta -->
           <div class="panel" id="panel-currency">
-            <div class="ph"><span class="pt">${luci('coins')} Currency</span></div>
+            <div class="ph"><span class="pt"><i data-lucide="coins" class="lucide-emoji"></i> Currency</span></div>
             <div class="pb">
               <div class="currency-grid">
                 <div class="currency-cell">
@@ -2414,7 +2471,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           <!-- Personal Inventory -->
           <div class="panel">
             <div class="ph">
-              <span class="pt">${luci('backpack')} Inventory</span>
+              <span class="pt"><i data-lucide="backpack" class="lucide-emoji"></i> Inventory</span>
               <span id="inv-weight-label" class="ph-note"></span>
             </div>
             <div class="pb">
@@ -6825,6 +6882,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           })),
       };
       localStorage.setItem('5e_current_char', JSON.stringify(saved));
+      if (typeof gbRegisterCharScope === 'function') gbRegisterCharScope(saved.name || saved.className || 'Unnamed Character');
       localStorage.setItem('5e_inventory', JSON.stringify(inventory || []));
       localStorage.setItem('5e_currency', JSON.stringify(char.currency || { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 }));
       localStorage.setItem('5e_xp', String(char.xp || 0));
@@ -6854,6 +6912,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         hpManualRolls: char.hpManualRolls||{},
         pbScores: {...char.pbScores},
         arrAssign: {...char.arrAssign},
+        manualScores: {...(char.manualScores||{})},
         dicePool: [...(char.dicePool||[])],
         diceAssign: {...char.diceAssign},
         choices: {...(char.choices||{})},
@@ -6867,7 +6926,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         currency: {...(char.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})},
         xp: char.xp||0,
       }));
-      window.location.href = 'character-sheet.html';
+      window.location.href = typeof gbScopedHref === 'function' ? gbScopedHref('character-sheet.html') : 'character-sheet.html';
     }
 
     /* ════════════════════════════════════ SCELTA PROFICIENZE ════════════════════════════════════ */
@@ -7388,6 +7447,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       char.hpManualRolls = state.hpManualRolls || {};
       char.pbScores = state.pbScores || { str:8,dex:8,con:8,int:8,wis:8,cha:8 };
       char.arrAssign = state.arrAssign || { str:null,dex:null,con:null,int:null,wis:null,cha:null };
+      char.manualScores = state.manualScores || { str:10,dex:10,con:10,int:10,wis:10,cha:10 };
       char.dicePool = state.dicePool || [];
       char.diceAssign = state.diceAssign || { str:null,dex:null,con:null,int:null,wis:null,cha:null };
       char.bgAbility = state.bgAbility || [];

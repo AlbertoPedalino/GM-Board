@@ -5,6 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GM Board</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<script>
+(function(){
+  const rawGet = Storage.prototype.getItem;
+  const rawSet = Storage.prototype.setItem;
+  const rawRemove = Storage.prototype.removeItem;
+  const params = new URLSearchParams(location.search);
+  const clean = v => String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 48);
+  let id = clean(params.get('board'));
+  if(id === 'new'){
+    id = `gm_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
+    history.replaceState(null, '', `${location.pathname}?board=${encodeURIComponent(id)}`);
+  }
+  if(!id) id = clean(rawGet.call(localStorage, 'gb_active_board_id')) || 'default';
+  rawSet.call(localStorage, 'gb_active_board_id', id);
+  window.GB_BOARD_ID = id;
+  window.gbRegisterBoardScope = function(label){
+    const raw = rawGet.call(localStorage, 'gb_board_registry') || '[]';
+    let list = [];
+    try { list = JSON.parse(raw); } catch(_){}
+    const now = Date.now();
+    const name = String(label || '').trim() || id;
+    list = [{id, name, updatedAt: now}, ...list.filter(x => x && x.id !== id)].slice(0, 20);
+    rawSet.call(localStorage, 'gb_board_registry', JSON.stringify(list));
+  };
+  const prefix = `gb:board:${id}:`;
+  const scoped = key => {
+    const k = String(key || '');
+    return k === 'gm_state' || k === 'gm_wea' || k === 'gm_ev' || k === 'gm_lo' || k === 'gm_co' || k === 'gm_env' ||
+      /^gm_(enc|trap)\d+$/.test(k) ? prefix + k : key;
+  };
+  Storage.prototype.getItem = function(key){ return rawGet.call(this, scoped(key)); };
+  Storage.prototype.setItem = function(key, val){ return rawSet.call(this, scoped(key), val); };
+  Storage.prototype.removeItem = function(key){ return rawRemove.call(this, scoped(key)); };
+})();
+</script>
 <style>
 :root{
   --bg:#080604;--surface:#130e07;--card:#1c1409;--border:#3d2a10;
@@ -257,6 +292,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 </script>
 </head>
 <body>
+<script>
+  if (typeof gbRegisterBoardScope === 'function') gbRegisterBoardScope('GM Board ' + (window.GB_BOARD_ID || 'default'));
+</script>
 <div class="container">
 
 <div class="page-header">

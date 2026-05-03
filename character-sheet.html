@@ -10,6 +10,43 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <script>
+    (function () {
+      const scopedKeys = new Set([
+        '5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus',
+        '5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv',
+        '5e_resources','5e_builder_state','5e_inspiration'
+      ]);
+      const rawGet = Storage.prototype.getItem;
+      const rawSet = Storage.prototype.setItem;
+      const rawRemove = Storage.prototype.removeItem;
+      const params = new URLSearchParams(location.search);
+      const clean = v => String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 48);
+      let id = clean(params.get('char'));
+      if (id === 'new') {
+        id = `pc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+        history.replaceState(null, '', `${location.pathname}?char=${encodeURIComponent(id)}`);
+      }
+      if (!id) id = clean(rawGet.call(localStorage, 'gb_active_char_id')) || 'default';
+      rawSet.call(localStorage, 'gb_active_char_id', id);
+      window.GB_CHAR_ID = id;
+      window.gbScopedHref = page => `${page}?char=${encodeURIComponent(id)}`;
+      window.gbRegisterCharScope = function (label) {
+        const raw = rawGet.call(localStorage, 'gb_char_registry') || '[]';
+        let list = [];
+        try { list = JSON.parse(raw); } catch (_) {}
+        const now = Date.now();
+        const name = String(label || '').trim() || id;
+        list = [{ id, name, updatedAt: now }, ...list.filter(x => x && x.id !== id)].slice(0, 20);
+        rawSet.call(localStorage, 'gb_char_registry', JSON.stringify(list));
+      };
+      const prefix = `gb:char:${id}:`;
+      const scoped = key => scopedKeys.has(String(key || '')) ? prefix + key : key;
+      Storage.prototype.getItem = function (key) { return rawGet.call(this, scoped(key)); };
+      Storage.prototype.setItem = function (key, val) { return rawSet.call(this, scoped(key), val); };
+      Storage.prototype.removeItem = function (key) { return rawRemove.call(this, scoped(key)); };
+    })();
+  </script>
   <style>
     :root {
       --ff-body: 'EB Garamond', Georgia, serif;
@@ -2318,6 +2355,7 @@ function renderTopBar(){
     clsDisplay = (C.className||'—') + sc + ' Lv.' + C.level;
   }
   document.getElementById('top-name').textContent = C.name || 'Unnamed Character';
+  if (typeof gbRegisterCharScope === 'function') gbRegisterCharScope(C.name || C.className || 'Unnamed Character');
   document.getElementById('top-meta').textContent =
     [race, clsDisplay, bg].filter(Boolean).join(' · ');
 
@@ -6825,6 +6863,7 @@ function goBackToBuilder(e) {
     const state = Object.assign({}, cur, sameChar ? {
       hpMode: existing.hpMode,
       hpManualRolls: existing.hpManualRolls,
+      manualScores: existing.manualScores,
       dicePool: existing.dicePool,
       diceAssign: existing.diceAssign,
       equipChoices: existing.equipChoices,
@@ -6835,20 +6874,36 @@ function goBackToBuilder(e) {
     state.xp = parseInt(localStorage.getItem('5e_xp') || cur.xp || 0);
     localStorage.setItem('5e_builder_state', JSON.stringify(state));
   }
-  window.location.href = 'charbuilder.html';
+  if (window.GB_DOWNLOADED_SHEET_BUILDER_URL) {
+    const keys = window.GB_DOWNLOADED_SHEET_KEYS || ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state','5e_inspiration'];
+    const data = {};
+    keys.forEach(k => { const v = localStorage.getItem(k); if (v != null) data[k] = v; });
+    const payload = { type: 'gb-sheet-import', charId: window.GB_CHAR_ID || 'default', data };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const target = new URL(window.GB_DOWNLOADED_SHEET_BUILDER_URL);
+    target.searchParams.set('char', window.GB_CHAR_ID || 'default');
+    target.hash = 'gbimport=' + encoded;
+    window.name = JSON.stringify(payload);
+    window.location.href = target.href;
+    return;
+  }
+  window.location.href = typeof gbScopedHref === 'function' ? gbScopedHref('charbuilder.html') : 'charbuilder.html';
 }
 
 /* ═══════ DOWNLOAD SCHEDA ═══════ */
 function downloadSheet() {
   try {
     // Bundle all 5e_ keys so the downloaded file is fully self-contained
-    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_hp_step','5e_death_saves','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state','5e_inspiration'];
+    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state','5e_inspiration'];
     const data = {};
     keys.forEach(k => { const v = localStorage.getItem(k); if (v != null) data[k] = v; });
     const safeJson = JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
     // Preload: clear only the known character-sheet keys (not all 5e_* — others may belong to unrelated data)
     const knownKeys = JSON.stringify(keys).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
-    const preload = '<scr'+'ipt>(function(){var d='+safeJson+';var k='+knownKeys+';k.forEach(function(x){localStorage.removeItem(x);});for(var x in d)localStorage.setItem(x,d[x]);})();<'+'/scr'+'ipt>';
+    const publicBuilderUrl = 'https://albertopedalino.github.io/GM-Board/charbuilder.html';
+    const builderUrl = JSON.stringify(publicBuilderUrl)
+      .replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
+    const preload = '<style>.back-btn{display:none!important}</style><scr'+'ipt>(function(){var d='+safeJson+';var k='+knownKeys+';k.forEach(function(x){localStorage.removeItem(x);});for(var x in d)localStorage.setItem(x,d[x]);window.GB_DOWNLOADED_SHEET=true;window.GB_DOWNLOADED_SHEET_BUILDER_URL='+builderUrl+';window.GB_DOWNLOADED_SHEET_KEYS=k;document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".back-btn").forEach(function(el){el.remove();});});})();<'+'/scr'+'ipt>';
     const out = '<!DOCTYPE html>\n' + document.documentElement.outerHTML.replace('</head>', preload + '</head>');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([out], { type: 'text/html' }));
