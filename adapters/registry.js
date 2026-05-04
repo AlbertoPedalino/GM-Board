@@ -766,15 +766,25 @@ window._MUSICAL_INSTRUMENTS = [
   'Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum',
   'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol',
 ];
-window._STD_LANGS = [
-  'Common', 'Elvish', 'Dwarvish', 'Giant', 'Gnomish', 'Goblin',
-  'Halfling', 'Orc', 'Draconic', 'Infernal', 'Celestial', 'Undercommon',
+window._GAMING_SETS = [
+  'Dice Set', 'Dragonchess Set', 'Playing Card Set', 'Three-Dragon Ante Set',
 ];
-window._EXOTIC_LANGS = ['Abyssal', 'Sylvan', 'Deep Speech', 'Primordial'];
+window._VEHICLE_TOOLS = [
+  'Vehicles (Land)', 'Vehicles (Water)',
+];
+window._STD_LANGS = [
+  'Common', 'Common Sign Language', 'Draconic', 'Dwarvish', 'Elvish',
+  'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc',
+];
+window._EXOTIC_LANGS = [
+  'Abyssal', 'Celestial', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon',
+];
 window._ALL_LANGS = [...window._STD_LANGS, ...window._EXOTIC_LANGS];
 window._ALL_TOOLS = [
   ...window._ARTISAN_TOOLS,
   ...window._MUSICAL_INSTRUMENTS,
+  ...window._GAMING_SETS,
+  ...window._VEHICLE_TOOLS,
   "Thieves' Tools", 'Disguise Kit', 'Forgery Kit',
   "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
 ];

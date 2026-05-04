@@ -15,14 +15,9 @@
       tools: Array.isArray(global._ALL_TOOLS) ? global._ALL_TOOLS.slice() : [],
       artisanTools: Array.isArray(global._ARTISAN_TOOLS) ? global._ARTISAN_TOOLS.slice() : [],
       musicalTools: Array.isArray(global._MUSICAL_INSTRUMENTS) ? global._MUSICAL_INSTRUMENTS.slice() : [],
-      stdLangs: Array.isArray(global._STD_LANGS) ? global._STD_LANGS.slice() : [
-        "Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc"
-      ],
-      allLangs: Array.isArray(global._ALL_LANGS) ? global._ALL_LANGS.slice() : [
-        "Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc",
-        "Draconic", "Infernal", "Celestial", "Undercommon", "Abyssal", "Sylvan", "Deep Speech", "Primordial"
-      ],
-      exoticLangs: ["Abyssal", "Sylvan", "Deep Speech", "Primordial"]
+      stdLangs: (global._STD_LANGS || []).slice(),
+      allLangs: (global._ALL_LANGS || []).slice(),
+      exoticLangs: (global._EXOTIC_LANGS || []).slice()
     };
   }
 

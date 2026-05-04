@@ -66,7 +66,12 @@
       "Bash(xxd)",
       "Bash(gh api *)",
       "Bash(Get-Item \"C:\\\\Users\\\\alber\\\\Documents\\\\DND\\\\GM-Board\\\\optionalfeatures.json\")",
-      "Bash(Select-Object Length)"
+      "Bash(Select-Object Length)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\alber\\\\Documents\\\\DND\\\\GM-Board\" -Recurse -Include \"*.js\", \"*.json\", \"*.html\")",
+      "Bash(Select-Object -First 20)",
+      "Bash(Format-Table -Property FullName)",
+      "Bash(grep -n \"cb_\\\\${s\\\\|cb_\\\\${spec\\\\|id=.cb_\\\\|_renderChoiceSection\\\\|renderSection\\\\|background.*section\\\\|section.*background\\\\|bg_language\\\\|language.*section\" \"C:\\\\Users\\\\alber\\\\Documents\\\\DND\\\\GM-Board\\\\charbuilder.html\")",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

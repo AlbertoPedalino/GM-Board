@@ -128,6 +128,9 @@ const ADAPTER_MANIFEST = [
   // ── Item data ───────────────────────────────────────────
   'adapters/items/core.js',
 
+  // Background adapter runtime
+  'adapters/backgrounds/core.js',
+
   // Feat adapter runtime
   'adapters/feats/core.js',
   'adapters/feats/all-feats.js',

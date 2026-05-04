@@ -1,10 +1,3 @@
-// Linguaggi standard XPHB (Thieves' Cant è automatico)
-const _ROGUE_LANGUAGES = [
-  'Common', 'Elvish', 'Dwarvish', 'Giant', 'Gnomish', 'Goblin',
-  'Halfling', 'Orc', 'Draconic', 'Infernal', 'Celestial', 'Undercommon',
-  'Abyssal', 'Sylvan', 'Deep Speech',
-];
-
 registerClassAdapter("Rogue", function (cls, lv, specs) {
   if (lv >= 1) {
     // Expertise (L1): 2 slot; uno può essere Thieves' Tools
@@ -56,7 +49,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
       key: 'rogue_thieves_cant_lang',
       label: "Bonus Language (Thieves' Cant)",
       type: 'language_choice',
-      from: _ROGUE_LANGUAGES,
+      from: window._ALL_LANGS || [],
       count: 1,
       level: 1
     });

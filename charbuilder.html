@@ -2407,6 +2407,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             <div class="ph"><span class="pt">Background Ability Bonus</span></div>
             <div class="pb" id="bg-ability-body"></div>
           </div>
+
+          <!-- Background proficiency choices (skills, tools, languages) -->
+          <div class="panel" id="panel-bg-choices" style="display:none">
+            <div class="ph"><span class="pt">Background Proficiencies</span></div>
+            <div class="pb" id="bg-choices-body"></div>
+          </div>
         </div>
 
         <!-- ── TAB 4: ABILITY SCORES ── -->
@@ -2849,8 +2855,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function _featMatchesAnyCategory(feat, categories) {
       const wanted = Array.isArray(categories) ? categories : [];
       if (!wanted.length) return true;
-      if (typeof featHasCategory === 'function') return wanted.some(cat => featHasCategory(feat, cat));
-      return wanted.some(cat => feat?.category === cat || String(feat?.category || '').startsWith(cat));
+      const featCats = typeof getFeatCategoryCodes === 'function'
+        ? getFeatCategoryCodes(feat)
+        : (Array.isArray(feat?.categories) && feat.categories.length ? feat.categories : [feat?.category].filter(Boolean));
+      const exact = wanted.some(cat => String(cat || '').startsWith('FS'));
+      return wanted.some(cat => featCats.some(fc => exact ? String(fc) === String(cat) : (String(fc) === String(cat) || String(fc).startsWith(String(cat)))));
     }
     function _featPrereqLabel(feat) {
       if (typeof formatFeatPrerequisite === 'function') return formatFeatPrerequisite(feat);
@@ -2864,6 +2873,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     function getBgOriginFeat() {
       const b = char.bgObj;
       if (!b || !b.feats) return { fixed: null };
+      if (typeof getGenericBackgroundOriginFeat === 'function') {
+        const generic = getGenericBackgroundOriginFeat(b);
+        if (generic?.fixed) {
+          const match = allFeats.find(f => normFeat(f.name) === normFeat(generic.fixed) || normFeat(f.name).startsWith(normFeat(generic.fixed)));
+          return { fixed: match ? match.name : generic.fixed, classHint: generic.classHint || null };
+        }
+      }
       const fe = b.feats[0];
       if (!fe) return { fixed: null };
       const keys = Object.keys(fe).filter(k => k !== 'choose');
@@ -2899,6 +2915,19 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         return { fixed: match ? match.name : title, classHint };
       }
       return { fixed: null };
+    }
+
+    function deriveBackgroundChoices(background) {
+      if (!background) return [];
+      if (typeof getGenericBackgroundChoiceSpecs === 'function') {
+        return getGenericBackgroundChoiceSpecs(background).map(spec => {
+          if (spec?.type !== 'feat_fixed' || !spec.fixed) return spec;
+          const match = allFeats.find(f => normFeat(f.name) === normFeat(spec.fixed) || normFeat(f.name).startsWith(normFeat(spec.fixed)));
+          return { ...spec, fixed: match ? match.name : spec.fixed };
+        });
+      }
+      const bgf = getBgOriginFeat();
+      return bgf.fixed ? [{ key: 'feat_origin', label: 'Origin Feat', type: 'feat_fixed', fixed: bgf.fixed, classHint: bgf.classHint || null, count: 1, level: 0 }] : [];
     }
 
     /* ═══════════════════════════════════ CHOICE ENGINE ═══════════════════════════════════
@@ -3047,7 +3076,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!from.length) return;
       specs.push({ ...spec, from });
     }
-    function _extractFixedKeys(block, excluded = ['choose', 'any', 'anyStandard', 'anyExotic', 'anyArtisansTool']) {
+    function _extractFixedKeys(block, excluded = ['choose', 'any', 'anyTool', 'anyStandard', 'anyExotic', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet']) {
       if (!block || typeof block !== 'object') return [];
       return Object.keys(block).filter(k => !excluded.includes(k) && block[k] !== false);
     }
@@ -3096,12 +3125,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         // toolProficiencies
         (feat.toolProficiencies || []).forEach((block, bi) => {
           const choose = block?.choose || {};
-          const count = block?.anyArtisansTool || block?.anyMusicalInstrument || block?.any || choose.count || 0;
+          const count = block?.anyTool || block?.anyArtisansTool || block?.anyMusicalInstrument || block?.anyGamingSet || block?.any || choose.count || 0;
           if (!count) return;
           let from = choose.from || [];
           if (!from.length) {
             if (block?.anyArtisansTool) from = _ARTISAN_TOOLS;
             else if (block?.anyMusicalInstrument) from = _MUSICAL_INSTRUMENTS;
+            else if (block?.anyGamingSet) from = _GAMING_SETS || [];
             else from = _ALL_TOOLS;
           }
           _specPush(out, {
@@ -3125,8 +3155,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             if (fromRaw.includes('anySkill')) from.push(...(typeof SKILLS !== 'undefined' ? SKILLS.map(s => s.n) : []));
             if (fromRaw.includes('anyTool')) from.push(..._ALL_TOOLS);
             if (fromRaw.includes('anyArtisansTool')) from.push(..._ARTISAN_TOOLS);
+            if (fromRaw.includes('anyMusicalInstrument')) from.push(..._MUSICAL_INSTRUMENTS);
+            if (fromRaw.includes('anyGamingSet')) from.push(...(_GAMING_SETS || []));
             if (fromRaw.includes('anyLanguage')) from.push(..._ALL_LANGS);
-            from.push(...fromRaw.filter(v => !['anySkill', 'anyTool', 'anyArtisansTool', 'anyLanguage'].includes(v)));
+            from.push(...fromRaw.filter(v => !['anySkill', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyLanguage'].includes(v)));
             const normFrom = _specUniq(from);
             if (!normFrom.length) return;
 
@@ -3308,12 +3340,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         toolBlocks.forEach((tb, idx) => {
           if (!tb || typeof tb !== 'object') return;
           const choose = tb.choose || {};
-          const count = choose.count || tb.any || tb.anyArtisansTool || tb.anyMusicalInstrument || 0;
+          const count = choose.count || tb.any || tb.anyTool || tb.anyArtisansTool || tb.anyMusicalInstrument || tb.anyGamingSet || 0;
           if (!count) return;
           let from = choose.from || [];
           if (!from.length) {
             if (tb.anyArtisansTool) from = _ARTISAN_TOOLS;
             else if (tb.anyMusicalInstrument) from = _MUSICAL_INSTRUMENTS;
+            else if (tb.anyGamingSet) from = _GAMING_SETS || [];
             else from = _ALL_TOOLS;
           }
           specs.push({
@@ -3327,25 +3360,25 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         });
       }
 
-      // 2. Talenti e ASI (Logica Generale)
-      const bgf = getBgOriginFeat();
-      if (bgf.fixed) {
-        char.choices.feat_origin = bgf.fixed; // always sync — feat_fixed can't be changed by user
-        // Auto-select additionalSpells entry if background specifies a class (e.g. "magic initiate; cleric")
-        if (bgf.classHint) {
-          const _bgFeat = allFeats.find(f => normFeat(f.name) === normFeat(bgf.fixed));
-          if (_bgFeat?.additionalSpells?.length > 1) {
-            const _entryIdx = _bgFeat.additionalSpells.findIndex((g, i) => {
-              const lbl = _grantEntryLabel ? _grantEntryLabel(g).toLowerCase() : '';
-              return lbl.startsWith(bgf.classHint) || lbl.includes(bgf.classHint);
-            });
-            if (_entryIdx >= 0 && char.choices['feat_origin_entry'] === undefined)
-              char.choices['feat_origin_entry'] = _entryIdx;
+      // 2. Background choices (Origin Feat, proficiencies, languages/tools)
+      for (const bgSpec of deriveBackgroundChoices(char.bgObj)) {
+        if (!bgSpec || !bgSpec.key) continue;
+        if (bgSpec.type === 'feat_fixed' && bgSpec.fixed) {
+          char.choices[bgSpec.key] = bgSpec.fixed;
+          if (bgSpec.classHint) {
+            const _bgFeat = allFeats.find(f => normFeat(f.name) === normFeat(bgSpec.fixed));
+            if (_bgFeat?.additionalSpells?.length > 1) {
+              const _entryIdx = _bgFeat.additionalSpells.findIndex((g) => {
+                const lbl = _grantEntryLabel ? _grantEntryLabel(g).toLowerCase() : '';
+                return lbl.startsWith(bgSpec.classHint) || lbl.includes(bgSpec.classHint);
+              });
+              if (_entryIdx >= 0 && char.choices[`${bgSpec.key}_entry`] === undefined)
+                char.choices[`${bgSpec.key}_entry`] = _entryIdx;
+            }
           }
         }
-        specs.push({ key: 'feat_origin', label: 'Origin Feat', type: 'feat_fixed', fixed: bgf.fixed, count: 1, level: 0 });
+        specs.push(bgSpec);
       }
-
       // 3. Logica Ibrida: ClassAdapters + SubclassAdapters (classe primaria)
       const _primaryLv = getPrimaryClassLevel();
       if (typeof ClassAdapters !== 'undefined') {
@@ -3555,6 +3588,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // REFRESH TOTALE DELLO SCHERMO
       if (typeof renderSpeciesChoicesPanel === 'function') renderSpeciesChoicesPanel();
+      if (typeof renderBgChoicesPanel === 'function') renderBgChoicesPanel();
       renderChoicesPanel();
       renderSpellPanel();
       renderPreviewSpells();
@@ -3662,7 +3696,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         return activePfx && k.startsWith(activePfx);
       });
       _renderFeatPanel(visible.filter(s => ['feat_fixed', 'feat_cat'].includes(s.type)));
-      _renderClassPanel(visible.filter(s => !['feat_fixed', 'feat_cat'].includes(s.type)));
+      _renderClassPanel(visible.filter(s => !['feat_fixed', 'feat_cat'].includes(s.type) && !s.key.startsWith('bg_')));
     }
 
     // Alias per compatibilità
@@ -3731,10 +3765,17 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const primaryLv = Number(typeof getPrimaryClassLevel === 'function' ? getPrimaryClassLevel() : 0);
       const extraLv = (char?.extraClasses || []).reduce((sum, ec) => sum + Number(ec?.level || 0), 0);
       const effectiveLv = Math.max(totalLv, primaryLv + extraLv, primaryLv, 1);
+      const isFightingStyleSlot = wantedCats.some(cat => String(cat || '').startsWith('FS'));
+      const takenFeatNames = new Set(Object.entries(getSelectedFeats())
+        .filter(([key]) => key !== slotKey)
+        .map(([, name]) => normFeat(String(name || '')))
+        .filter(Boolean));
       let list = allFeats.filter(f => {
         const minLevel = _featMinLevel(f);
         if (Number.isFinite(minLevel) && minLevel > effectiveLv) return false;
-        return _featMatchesAnyCategory(f, wantedCats);
+        if (!_featMatchesAnyCategory(f, wantedCats)) return false;
+        if (isFightingStyleSlot && takenFeatNames.has(normFeat(f.name))) return false;
+        return true;
       });
       if (q) list = list.filter(f => f.name.toLowerCase().includes(q));
       list = list.slice(0, 40);
@@ -3958,23 +3999,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let h = '';
 
       const ALL_SKILLS = SKILLS.map(s => s.n);
-      const ALL_ARTISAN_TOOLS = [
-        "Alchemist's Supplies","Brewer's Supplies","Calligrapher's Supplies",
-        "Carpenter's Tools","Cartographer's Tools","Cobbler's Tools",
-        "Cook's Utensils","Glassblower's Tools","Jeweler's Tools",
-        "Leatherworker's Tools","Mason's Tools","Painter's Supplies",
-        "Potter's Tools","Smith's Tools","Tinker's Tools",
-        "Weaver's Tools","Woodcarver's Tools",
-      ];
-      const ALL_INSTRUMENTS = [
-        'Bagpipes','Drum','Dulcimer','Flute','Hand Drum',
-        'Horn','Lute','Lyre','Pan Flute','Shawm','Viol',
-      ];
-      const ALL_TOOLS = [...ALL_ARTISAN_TOOLS, ...ALL_INSTRUMENTS, "Thieves' Tools", "Disguise Kit", "Forgery Kit", "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit"];
-      const ALL_LANGS = (typeof _ALL_LANGS !== 'undefined' && Array.isArray(_ALL_LANGS) && _ALL_LANGS.length)
-        ? _ALL_LANGS
-        : ['Common','Elvish','Dwarvish','Giant','Gnomish','Goblin','Halfling','Orc','Draconic','Infernal','Celestial','Undercommon','Abyssal','Sylvan','Deep Speech','Primordial'];
-      const EXOTIC_LANGS = ['Abyssal','Sylvan','Deep Speech','Primordial'];
+      const ALL_ARTISAN_TOOLS = _ARTISAN_TOOLS;
+      const ALL_INSTRUMENTS = _MUSICAL_INSTRUMENTS;
+      const ALL_GAMING_SETS = _GAMING_SETS;
+      const ALL_TOOLS = _ALL_TOOLS;
+      const ALL_LANGS = _ALL_LANGS;
+      const EXOTIC_LANGS = _EXOTIC_LANGS;
 
       // Helper: render a "choose N from list" picker
       function profPicker(key, label, items, count, color = 'var(--orange)') {
@@ -4013,10 +4043,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       for (const [idx, block] of (feat.toolProficiencies || []).entries()) {
-        if (block.anyArtisansTool || block.any || block.choose) {
+        if (block.anyTool || block.anyArtisansTool || block.anyMusicalInstrument || block.anyGamingSet || block.any || block.choose) {
           const key = `${slotKey}_tool_${idx}`;
-          const count = block.anyArtisansTool || block.any || block.choose?.count || 1;
-          const pool = block.anyArtisansTool ? ALL_ARTISAN_TOOLS : ALL_TOOLS;
+          const count = block.anyTool || block.anyArtisansTool || block.anyMusicalInstrument || block.anyGamingSet || block.any || block.choose?.count || 1;
+          const pool = block.anyArtisansTool ? ALL_ARTISAN_TOOLS : (block.anyMusicalInstrument ? ALL_INSTRUMENTS : (block.anyGamingSet ? ALL_GAMING_SETS : ALL_TOOLS));
           h += profPicker(key, `${feat.name} — Tool Proficiency`, pool, count, 'var(--purple)');
         }
       }
@@ -4077,6 +4107,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           let items = [];
           if (from.includes('anySkill')) items = [...items, ...ALL_SKILLS];
           if (from.includes('anyTool')) items = [...items, ...ALL_TOOLS];
+          if (from.includes('anyArtisansTool')) items = [...items, ...ALL_ARTISAN_TOOLS];
+          if (from.includes('anyMusicalInstrument')) items = [...items, ...ALL_INSTRUMENTS];
+          if (from.includes('anyGamingSet')) items = [...items, ...ALL_GAMING_SETS];
           if (from.includes('anyLanguage')) items = [...items, ...ALL_LANGS];
           if (items.length) h += profPicker(key, `${feat.name} — Proficiency`, items, count, 'var(--teal)');
         }
@@ -4284,7 +4317,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!el) return;
       let list = allOptFeats.filter(f => {
         const ft = Array.isArray(f.featureType) ? f.featureType : [f.featureType].filter(Boolean);
-        return featureTypes.some(type => ft.some(t => t === type || String(t).startsWith(type)));
+        const exact = featureTypes.some(type => String(type || '').startsWith('FS'));
+        return featureTypes.some(type => ft.some(t => exact ? String(t) === String(type) : (t === type || String(t).startsWith(type))));
       });
       if (q) list = list.filter(f => f.name.toLowerCase().includes(q.toLowerCase()));
       list = list.slice(0, 80);
@@ -4901,38 +4935,46 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       // --- 2. Aggiungi gli oggetti all'inventario ---
-      for (const item of extracted.items) {
-        const itemName = item.name || item;
-        const qty = item.qty || 1;
-
+      const addItemToInventory = (itemName, qty) => {
         const dbItem = allItemsDb.find(i => i.name.toLowerCase() === itemName.toLowerCase());
-
         if (dbItem) {
-          const existing = char.inventory.find(iv => iv.name === dbItem.name && iv.source === dbItem.source);
-          if (existing) {
-            existing.qty = (existing.qty || 1) + qty;
+          if (Array.isArray(dbItem.packContents) && dbItem.packContents.length) {
+            for (const pc of dbItem.packContents) {
+              const pcRef = typeof pc === 'string' ? pc : (pc.item || '');
+              const pcName = pcRef.split('|')[0].trim();
+              const pcQty = (typeof pc === 'object' ? (pc.quantity || 1) : 1) * qty;
+              if (pcName) addItemToInventory(pcName, pcQty);
+            }
           } else {
-            char.inventory.push({
-              name: dbItem.name, source: dbItem.source, type: dbItem.type,
-              qty: qty, weight: dbItem.weight, value: dbItem.value,
-              rarity: dbItem.rarity, dmg1: dbItem.dmg1, dmgType: dbItem.dmgType,
-              ac: dbItem.ac, bonusWeapon: dbItem.bonusWeapon, bonusAc: dbItem.bonusAc,
-              property: dbItem.property || [], entries: dbItem.entries || [],
-              equipped: false,
-            });
+            const existing = char.inventory.find(iv => iv.name === dbItem.name && iv.source === dbItem.source);
+            if (existing) {
+              existing.qty = (existing.qty || 1) + qty;
+            } else {
+              char.inventory.push({
+                name: dbItem.name, source: dbItem.source, type: dbItem.type,
+                qty, weight: dbItem.weight, value: dbItem.value,
+                rarity: dbItem.rarity, dmg1: dbItem.dmg1, dmgType: dbItem.dmgType,
+                ac: dbItem.ac, bonusWeapon: dbItem.bonusWeapon, bonusAc: dbItem.bonusAc,
+                property: dbItem.property || [], entries: dbItem.entries || [],
+                equipped: false,
+              });
+            }
           }
         } else {
-          // Fallback: se l'oggetto non esiste nel DB, lo aggiunge comunque come oggetto generico ("Altro")
           const existing = char.inventory.find(iv => iv.name === itemName);
           if (existing) {
             existing.qty = (existing.qty || 1) + qty;
           } else {
             char.inventory.push({
               name: itemName, source: prefix === 'bg' ? 'Background' : 'Classe',
-              type: 'OTH', qty: qty, weight: 0, value: 0, rarity: 'none', equipped: false,
+              type: 'OTH', qty, weight: 0, value: 0, rarity: 'none', equipped: false,
             });
           }
         }
+      };
+
+      for (const item of extracted.items) {
+        addItemToInventory(item.name || item, item.qty || 1);
       }
     }
 
@@ -5113,7 +5155,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       updateTotalLevel();
 
       renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderMCTabBar(); renderSlotsPanel();
-      ['panel-level', 'panel-xp', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
+      ['panel-level', 'panel-xp', 'panel-species', 'panel-species-choices', 'panel-bg', 'panel-bg-ability', 'panel-bg-choices', 'panel-scores', 'panel-class-choices', 'panel-feats', 'panel-spells', 'panel-equip'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
       document.getElementById('btn-next').disabled = false;
       char.choices = {};
       char.selectedCantrips = [];
@@ -5944,12 +5986,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (species.toolProficiencies) {
         species.toolProficiencies.forEach((tp, idx) => {
           if (!tp || typeof tp !== 'object') return;
-          if (tp.choose || tp.any || tp.anyArtisansTool || tp.anyMusicalInstrument) {
-            const count = tp.choose?.count || tp.any || tp.anyArtisansTool || tp.anyMusicalInstrument || 1;
+          if (tp.choose || tp.any || tp.anyTool || tp.anyArtisansTool || tp.anyMusicalInstrument || tp.anyGamingSet) {
+            const count = tp.choose?.count || tp.any || tp.anyTool || tp.anyArtisansTool || tp.anyMusicalInstrument || tp.anyGamingSet || 1;
             let from;
             if (tp.choose?.from) from = tp.choose.from.map(s => s.charAt(0).toUpperCase() + s.slice(1));
             else if (tp.anyArtisansTool) from = _ARTISAN_TOOLS.slice();
             else if (tp.anyMusicalInstrument) from = _MUSICAL_INSTRUMENTS.slice();
+            else if (tp.anyGamingSet) from = (_GAMING_SETS || []).slice();
             else from = _ALL_TOOLS.slice();
             specs.push({ key: `species_tool_${idx}`, label: 'Choose Tool Proficiency', type: 'generic_choice', from, count, level: 1 });
           }
@@ -5959,10 +6002,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         species.languageProficiencies.forEach((lp, idx) => {
           if (lp.choose || lp.anyStandard || lp.anyExotic) {
             const count = lp.anyStandard || lp.anyExotic || (lp.choose?.count) || 1;
-            const from = lp.choose?.from
-              || (lp.anyExotic
-                ? ["Abyssal", "Sylvan", "Deep Speech", "Primordial"]
-                : ["Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Draconic", "Infernal", "Celestial", "Undercommon"]);
+            const from = lp.choose?.from || (lp.anyExotic ? _EXOTIC_LANGS : _STD_LANGS);
             specs.push({ key: `species_language_${idx}`, label: `Lingua Bonus`, type: 'language_choice', from: from, count: count, level: 1 });
           }
         });
@@ -5972,10 +6012,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           if (!lp || typeof lp !== 'object') return;
           if (lp.choose || lp.anyStandard || lp.anyExotic) {
             const count = lp.anyStandard || lp.anyExotic || (lp.choose?.count) || 1;
-            const from = lp.choose?.from
-              || (lp.anyExotic
-                ? ["Abyssal", "Sylvan", "Deep Speech", "Primordial"]
-                : ["Common", "Elvish", "Dwarvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Draconic", "Infernal", "Celestial", "Undercommon"]);
+            const from = lp.choose?.from || (lp.anyExotic ? _EXOTIC_LANGS : _STD_LANGS);
             specs.push({ key: `species_languages_alt_${idx}`, label: `Lingua Bonus`, type: 'language_choice', from, count, level: 1 });
           }
         });
@@ -6053,9 +6090,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       // Reset choices (new origin feat will be auto-selected by deriveAllChoices)
       if (!char.choices) char.choices = {};
-      delete char.choices.feat_origin;
+      Object.keys(char.choices).forEach(k => {
+        if (/^bg_/i.test(k) || /^feat_origin(?:_|$)/i.test(k)) delete char.choices[k];
+      });
 
-      renderBgList(); renderBgCard(); renderBgAbilityPanel(); renderChoicesPanel(); renderEquipPanel(); renderPreview(); renderScoreUI(); updateSteps();
+      renderBgList(); renderBgCard(); renderBgAbilityPanel(); renderBgChoicesPanel(); renderChoicesPanel(); renderEquipPanel(); renderPreview(); renderScoreUI(); updateSteps();
     }
 
     function getBgPool(b) {
@@ -6084,7 +6123,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const b = char.bgObj, el = document.getElementById('bg-card');
       if (!b) { el.innerHTML = ''; return; }
       const sk = (b.skillProficiencies || []).flatMap(sp => Object.keys(sp).filter(k => k !== 'choose')).join(', ');
-      const tl = (b.toolProficiencies || []).flatMap(tp => Object.keys(tp).filter(k => !['choose', 'anyArtisansTool'].includes(k))).join(', ');
+      const tl = (b.toolProficiencies || []).flatMap(tp => Object.keys(tp).filter(k => !['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet'].includes(k))).join(', ');
       const lg = (b.languageProficiencies || []).map(lp => lp.anyStandard ? `${lp.anyStandard} lingua a scelta` : Object.keys(lp).join(', ')).join(', ');
       el.innerHTML = `<div class="info-card">
     <div class="info-card-name">${esc(b.name)}</div>
@@ -6150,6 +6189,42 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
     </div>`;
       }
       document.getElementById('bg-ability-body').innerHTML = h;
+    }
+
+    function renderBgChoicesPanel() {
+      const panel = document.getElementById('panel-bg-choices');
+      const body = document.getElementById('bg-choices-body');
+      if (!panel || !body) return;
+      if (!char.bgObj || typeof getGenericBackgroundChoiceSpecs !== 'function') {
+        panel.style.display = 'none';
+        body.innerHTML = '';
+        return;
+      }
+      const specs = getGenericBackgroundChoiceSpecs(char.bgObj)
+        .filter(s => s && s.key && !['feat_fixed', 'feat_cat'].includes(s.type));
+      if (!specs.length) {
+        panel.style.display = 'none';
+        body.innerHTML = '';
+        return;
+      }
+      panel.style.display = 'block';
+      let h = '';
+      for (const spec of specs) {
+        h += `<div class="choice-block">
+          <div class="choice-block-hdr">
+            <span>${esc(spec.label)}</span>
+            <span class="choice-count">Choose ${spec.count || 1}</span>
+          </div>
+          <div id="cb_${spec.key}" class="choice-grid"></div>
+          <div id="cb_sub_${spec.key}"></div>
+        </div>`;
+      }
+      body.innerHTML = h;
+      specs.forEach(s => {
+        if (['skill_choice', 'language_choice', 'generic_choice'].includes(s.type)) {
+          _renderChoiceList(s.key, s.from, s.count, s.type, s.descMap);
+        }
+      });
     }
 
     function setBgPattern(idx) {
@@ -6837,6 +6912,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           skillProficiencies: char.bgObj?.skillProficiencies || [],
           languageProficiencies: char.bgObj?.languageProficiencies || [],
           toolProficiencies: char.bgObj?.toolProficiencies || [],
+          feats: char.bgObj?.feats || [],
           startingEquipment: char.bgObj?.startingEquipment || null,
           entries: char.bgObj?.entries || [],
         },
@@ -7235,7 +7311,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             if (nt) tools.add(nt);
             return;
           }
-          _fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+          _fixedKeysFromBlock(t, ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(v => tools.add(v));
         });
       };
       _addClassFixedTools(char.cls);
@@ -7264,11 +7340,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         _addAdapterToolGrants(getSpeciesSheetProficiencies(char.speciesName || '', char.speciesSource || ''), char.level || 1);
       }
 
-      _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
-      _collectFixedFromBlocks(char.speciesObj?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
-      _collectFixedFeatureProficiencies('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+      _collectFixedFromBlocks(char.bgObj?.toolProficiencies, ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(v => tools.add(v));
+      _collectFixedFromBlocks(char.speciesObj?.toolProficiencies, ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(v => tools.add(v));
+      _collectFixedFeatureProficiencies('toolProficiencies', ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(v => tools.add(v));
       _getSelectedFeatObjects().forEach(feat => {
-        _collectFixedFromBlocks(feat?.toolProficiencies, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(v => tools.add(v));
+        _collectFixedFromBlocks(feat?.toolProficiencies, ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(v => tools.add(v));
       });
 
       if (char.choices) {
@@ -7517,11 +7593,11 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 
       updateTotalLevel();
       renderClassChips(); renderClassCard(); renderLevelGrid(); renderSubclassPanel(); renderMCTabBar(); renderSlotsPanel();
-      ['panel-level','panel-xp','panel-species','panel-species-choices','panel-bg','panel-bg-ability','panel-scores','panel-class-choices','panel-feats','panel-spells','panel-equip'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='block';});
+      ['panel-level','panel-xp','panel-species','panel-species-choices','panel-bg','panel-bg-ability','panel-bg-choices','panel-scores','panel-class-choices','panel-feats','panel-spells','panel-equip'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='block';});
       const btnNext = document.getElementById('btn-next');
       if (btnNext) btnNext.disabled = false;
       renderScoreUI(); renderSpeciesList(); renderSpeciesCard(); renderSpeciesChoicesPanel();
-      renderBgList(); renderBgCard(); renderBgAbilityPanel();
+      renderBgList(); renderBgCard(); renderBgAbilityPanel(); renderBgChoicesPanel();
       renderChoicesPanel(); renderEquipPanel(); renderSpellPanel(); renderPreview(); updateSteps();
       renderXPPanel(); renderInventoryList();
 
@@ -8346,10 +8422,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         // Per baseitem, includi oggetti che:
         // 1. Hanno source in ALLOWED (XPHB/XDMG/etc)
         // 2. O hanno reprintedAs con XPHB/XDMG (versione 2024)
+        // 3. O sono pack items con packContents (necessari per espansione automatica)
         baseItems = (d1.baseitem || [])
           .filter(i => {
             if (ITEM_SOURCES.includes(i.source)) return true;
             if (i.reprintedAs && Array.isArray(i.reprintedAs) && i.reprintedAs.some(r => typeof r === 'string' && (r.includes('XPHB') || r.includes('XDMG')))) return true;
+            if (Array.isArray(i.packContents) && i.packContents.length) return true;
             return false;
           })
           .map(normalizeItemType);

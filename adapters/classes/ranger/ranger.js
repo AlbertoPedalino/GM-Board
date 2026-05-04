@@ -35,7 +35,7 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
       key: 'ranger_fighting_style',
       label: 'Fighting Style',
       type: 'feat_cat',
-      categories: ['FS'],
+      categories: ['FS', 'FS:R'],
       count: 1,
       level: 2
     });

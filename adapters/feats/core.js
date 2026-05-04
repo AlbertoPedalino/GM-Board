@@ -264,7 +264,7 @@
     const wanted = String(category || "").trim();
     if (!wanted) return true;
     return getFeatCategoryCodes(feat).some(function (cat) {
-      return cat === wanted || String(cat).startsWith(wanted);
+      return cat === wanted;
     });
   }
 

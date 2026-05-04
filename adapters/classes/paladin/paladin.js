@@ -4,7 +4,7 @@ registerClassAdapter("Paladin", function (cls, lv, specs) {
       key: 'paladin_fighting_style',
       label: 'Fighting Style',
       type: 'feat_cat',
-      categories: ['FS'],
+      categories: ['FS', 'FS:P'],
       count: 1,
       level: 2
     });

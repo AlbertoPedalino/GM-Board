@@ -2800,11 +2800,11 @@ function renderProficiencies(){
       addTool(t);
       return;
     }
-    fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
+    fixedKeysFromBlock(t, ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(addTool);
   });
-  (bsp.toolProficiencies||[]).forEach(t => fixedKeysFromBlock(t, ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool));
-  collectFixedFeatureProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
-  collectFixedFeatProfs('toolProficiencies', ['choose', 'anyArtisansTool', 'anyMusicalInstrument', 'any']).forEach(addTool);
+  (bsp.toolProficiencies||[]).forEach(t => fixedKeysFromBlock(t, ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(addTool));
+  collectFixedFeatureProfs('toolProficiencies', ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(addTool);
+  collectFixedFeatProfs('toolProficiencies', ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any']).forEach(addTool);
   (C.selectedTools || []).forEach(t => {
     addTool(t);
   });
@@ -5028,6 +5028,7 @@ function renderFeaturesTab(){
     for (const [choiceKey, choiceVal] of Object.entries(C.choices || {})) {
       if (!choiceVal) continue;
       if (choiceKey.endsWith('_entry')) continue;
+      if (/^feat_origin$/i.test(choiceKey)) continue;
 
       let k = choiceKey;
       let scope = '';
@@ -5178,11 +5179,34 @@ function renderBackgroundTab(){
   const skills = (snap.skillProficiencies||[]).flatMap(sp=>Object.keys(sp).filter(k=>k!=='choose'));
   if(skills.length) h+=`<p class="bg-text"><strong>Skills:</strong> ${skills.join(', ')}</p>`;
 
-  const tools = (snap.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>k!=='choose'&&k!=='anyArtisansTool'));
+  const tools = (snap.toolProficiencies||[]).flatMap(t=>Object.keys(t).filter(k=>!['choose','any','anyTool','anyArtisansTool','anyMusicalInstrument','anyGamingSet'].includes(k)));
   if(tools.length) h+=`<p class="bg-text"><strong>Tools:</strong> ${tools.join(', ')}</p>`;
 
   const langs = (snap.languageProficiencies||[]).map(lp=>lp.anyStandard?`${lp.anyStandard} language of your choice`:Object.keys(lp).filter(k=>lp[k]===true).join(', ')).filter(Boolean);
   if(langs.length) h+=`<p class="bg-text"><strong>Languages:</strong> ${langs.join(', ')}</p>`;
+
+  const bgMeta = typeof getGenericBackgroundChoiceMeta === 'function' ? getGenericBackgroundChoiceMeta() : null;
+  const bgChoiceRows = [];
+  if (bgMeta && C?.choices) {
+    for (const [choiceKey, choiceVal] of Object.entries(C.choices)) {
+      if (!choiceVal || choiceKey.endsWith('_entry')) continue;
+      if (typeof bgMeta.isChoiceKey !== 'function' || !bgMeta.isChoiceKey(choiceKey, { character:C })) continue;
+      const vals = (Array.isArray(choiceVal) ? choiceVal : [choiceVal])
+        .map(v => typeof bgMeta.normalizeChoiceValue === 'function' ? bgMeta.normalizeChoiceValue(v, choiceKey, { character:C }) : v)
+        .map(v => String(v || '').trim())
+        .filter(Boolean);
+      if (!vals.length) continue;
+      const label = typeof bgMeta.getLabel === 'function' ? bgMeta.getLabel(choiceKey, { character:C }) : choiceKey.replace(/^bg_/i, '').replace(/_+/g, ' ');
+      bgChoiceRows.push({ label, vals });
+    }
+  }
+  if (bgChoiceRows.length) {
+    h += `<div style="margin-top:.65rem">`;
+    for (const row of bgChoiceRows) {
+      h += `<p class="bg-text"><strong>${esc(row.label)}:</strong> ${esc(row.vals.join(', '))}</p>`;
+    }
+    h += `</div>`;
+  }
 
   h+=`</div>`;
 
