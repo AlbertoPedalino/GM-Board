@@ -1815,12 +1815,20 @@ function calcMaxHP(){
       total += (Math.floor(faces/2)+1+conMod)*(pLv-1);
     }
   }
-  for(const ec of (C.extraClasses||[])){
-    const ecHd = ec.clsSnapshot?.hd;
-    let ecFaces = 8;
-    if(ecHd){ if(ecHd.faces) ecFaces=ecHd.faces; else if(Array.isArray(ecHd)&&ecHd[0]?.faces) ecFaces=ecHd[0].faces; }
-    total += (Math.floor(ecFaces/2)+1+conMod)*(ec.level||1);
-  }
+   (C.extraClasses||[]).forEach((ec, ecIdx) => {
+     const ecHd = ec.clsSnapshot?.hd;
+     let ecFaces = 8;
+     if(ecHd){ if(ecHd.faces) ecFaces=ecHd.faces; else if(Array.isArray(ecHd)&&ecHd[0]?.faces) ecFaces=ecHd[0].faces; }
+     const keyPrefix = 'extra_' + ecIdx + '_';
+     if(C.hpMode === 'rolled'){
+       for(let i=1; i<=(ec.level||1); i++){
+         const val = parseInt((C.hpManualRolls||{})[keyPrefix + i]);
+         total += (isNaN(val) ? Math.floor(ecFaces/2)+1 : val) + conMod;
+       }
+     } else {
+       total += (Math.floor(ecFaces/2)+1+conMod)*(ec.level||1);
+     }
+   });
   const lv = C.level;
   const hpBonusPerLv = C.hpBonusPerLv != null
     ? C.hpBonusPerLv

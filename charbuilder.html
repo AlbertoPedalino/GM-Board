@@ -5214,12 +5214,21 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         }
       }
 
-      // Classi extra: media dado + CON per ogni livello
-      for (const ec of (char.extraClasses||[])) {
-        if (!ec.cls) continue;
-        const ecFaces = getHdFaces(ec.cls);
-        totalHP += (Math.floor(ecFaces / 2) + 1 + conMod) * (ec.level||1);
-      }
+      // Classi extra: media o manuale per ogni livello
+       (char.extraClasses||[]).forEach((ec, ecIdx) => {
+         if (!ec.cls) return;
+         const ecFaces = getHdFaces(ec.cls);
+         const keyPrefix = 'extra_' + ecIdx + '_';
+         if (char.hpMode === 'rolled') {
+           for (let i = 1; i <= (ec.level||1); i++) {
+             const val = parseInt(char.hpManualRolls?.[keyPrefix + i]);
+             const roll = isNaN(val) ? (Math.floor(ecFaces / 2) + 1) : val;
+             totalHP += roll + conMod;
+           }
+         } else {
+           totalHP += (Math.floor(ecFaces / 2) + 1 + conMod) * (ec.level||1);
+         }
+       });
 
       const lv = char.level;
 
@@ -5284,18 +5293,18 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       `;
 
       if (char.hpMode === 'rolled' && pLv > 1) {
-        hpHtml += `<div style="display:flex; flex-wrap:wrap; gap:6px;">`;
-        for (let i = 2; i <= pLv; i++) {
-          const val = char.hpManualRolls[i] || "";
-          hpHtml += `
-          <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r); padding:4px; text-align:center; width:45px;">
-            <div style="font-size:var(--fs-caption); color:var(--text3); font-family:var(--ff-display);">Lv.${i}</div>
-            <input type="number" min="1" max="${faces}" value="${val}" oninput="updateHpRoll(${i}, this.value)" 
-              style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--bdr2); color:var(--gold2); font-family:var(--ff-display); font-size:var(--fs-ui-lg); font-weight:bold; text-align:center; outline:none; padding:2px 0;">
-          </div>`;
-        }
-        hpHtml += `</div>`;
-      }
+         hpHtml += `<div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+         for (let i = 2; i <= pLv; i++) {
+           const val = char.hpManualRolls[i] || "";
+           hpHtml += `
+           <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r); padding:4px; text-align:center; width:45px;">
+             <div style="font-size:var(--fs-caption); color:var(--text3); font-family:var(--ff-display);">Lv.${i}</div>
+             <input type="number" min="1" max="${faces}" value="${val}" oninput="updateHpRoll(${i}, this.value)"
+               style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--bdr2); color:var(--gold2); font-family:var(--ff-display); font-size:var(--fs-ui-lg); font-weight:bold; text-align:center; outline:none; padding:2px 0;">
+           </div>`;
+         }
+         hpHtml += `</div>`;
+       }
       hpHtml += `</div>`;
 
       // Inseriamo l'UI degli HP prima dei contatori finali
@@ -5318,8 +5327,23 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const faces = char.cls?.hd?.faces || 8;
       let n = parseInt(val);
       if (isNaN(n)) n = 0;
-      if (n > faces) n = faces; // Evita valori impossibili (es. rollare 12 su un d8)
+      if (n > faces) n = faces;
       char.hpManualRolls[lv] = n;
+
+      const hp = calcMaxHP();
+      const hpBox = document.getElementById('hp-stat-box');
+      if (hpBox) hpBox.textContent = hp;
+      renderPreviewHeader();
+    }
+
+    function updateExtraHpRoll(ecIdx, lv, val) {
+      const ec = (char.extraClasses||[])[ecIdx];
+      const faces = ec ? (getHdFaces(ec.cls) || 8) : 8;
+      let n = parseInt(val);
+      if (isNaN(n)) n = 0;
+      if (n > faces) n = faces;
+      const key = 'extra_' + ecIdx + '_' + lv;
+      char.hpManualRolls[key] = n;
 
       const hp = calcMaxHP();
       const hpBox = document.getElementById('hp-stat-box');
@@ -5536,8 +5560,27 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       const caster = _clsCasterProg(ec.name, ec.cls, ec.subclassShortName);
       const cLbl = caster==='full'?'Full':(caster==='1/2'||caster==='half')?'½':caster==='artificer'?'Artif.':caster==='pact'?'Patto':'';
       const faces = ec.cls?.hd?.faces || '?';
-      document.getElementById('lvl-stats').innerHTML = `
+      let extraHpHtml = '';
+      if (char.hpMode === 'rolled' && (ec.level||1) > 0) {
+        const keyPrefix = 'extra_' + i + '_';
+        extraHpHtml = `<div style="width:100%; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--bdr);">
+          <div style="font-size:var(--fs-caption); color:var(--text3); margin-bottom:6px;">Tiri Manuali (${ec.name || ec.cls?.name || 'Classe'}):</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+        for (let n = 1; n <= (ec.level||1); n++) {
+          const val = char.hpManualRolls?.[keyPrefix + n] || "";
+          extraHpHtml += `
+          <div style="background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r); padding:4px; text-align:center; width:45px;">
+            <div style="font-size:var(--fs-caption); color:var(--text3); font-family:var(--ff-display);">Lv.${n}</div>
+            <input type="number" min="1" max="${faces}" value="${val}" oninput="updateExtraHpRoll(${i}, ${n}, this.value)"
+              style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--bdr2); color:var(--gold2); font-family:var(--ff-display); font-size:var(--fs-ui-lg); font-weight:bold; text-align:center; outline:none; padding:2px 0;">
+          </div>`;
+        }
+        extraHpHtml += `</div></div>`;
+      }
+      const hp = calcMaxHP();
+      document.getElementById('lvl-stats').innerHTML = extraHpHtml + `
         <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Level</div></div>
+        <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Punti Ferita</div></div>
         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
         ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}
       `;
