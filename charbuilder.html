@@ -4966,7 +4966,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
             existing.qty = (existing.qty || 1) + qty;
           } else {
             char.inventory.push({
-              name: itemName, source: prefix === 'bg' ? 'Background' : 'Classe',
+              name: itemName, source: prefix === 'bg' ? 'Background' : 'Class',
               type: 'OTH', qty, weight: 0, value: 0, rarity: 'none', equipped: false,
             });
           }
@@ -5186,10 +5186,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       el.innerHTML = `<div class="info-card">
     <div class="info-card-name">${esc(c.name)}</div>
     <div class="info-tags">
-      <span class="info-tag g">d${c.hd?.faces || '?'} Dado Vita</span>
-      <span class="info-tag gr">${(c.proficiency || []).map(s => s.toUpperCase()).join(', ')} Tiri Salvezza</span>
+      <span class="info-tag g">d${c.hd?.faces || '?'} Hit Die</span>
+      <span class="info-tag gr">${(c.proficiency || []).map(s => s.toUpperCase()).join(', ')} Saving Throws</span>
     </div>
-    <div class="info-row"><strong>Competenze:</strong> ${esc(sk)}</div>
+    <div class="info-row"><strong>Proficiencies:</strong> ${esc(sk)}</div>
   </div>`;
     }
     function calcMaxHP() {
@@ -5286,8 +5286,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       let hpHtml = `
       <div style="width:100%; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--bdr);">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-          <span class="pt" style="font-size:var(--fs-caption)">Metodo Punti Ferita:</span>
-          <button class="chip ${char.hpMode === 'average' || !char.hpMode ? 'on' : ''}" onclick="setHPMode('average')">Media</button>
+          <span class="pt" style="font-size:var(--fs-caption)">HP Method:</span>
+          <button class="chip ${char.hpMode === 'average' || !char.hpMode ? 'on' : ''}" onclick="setHPMode('average')">Average</button>
           <button class="chip ${char.hpMode === 'rolled' ? 'on' : ''}" onclick="setHPMode('rolled')">Manual</button>
         </div>
       `;
@@ -5307,14 +5307,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
        }
       hpHtml += `</div>`;
 
-      // Inseriamo l'UI degli HP prima dei contatori finali
-      document.getElementById('lvl-stats').innerHTML = hpHtml + `
-        <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Level</div></div>
-        <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Punti Ferita</div></div>
-        <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Bonus Comp.</div></div>
-        <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
-        ${cLbl ? `<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>` : ''}
-      `;
+       // Inseriamo l'UI degli HP prima dei contatori finali
+       document.getElementById('lvl-stats').innerHTML = hpHtml + `
+         <div class="lvl-stat"><div class="lvl-stat-v">${char.level}</div><div class="lvl-stat-l">Level</div></div>
+         <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Hit Points</div></div>
+         <div class="lvl-stat"><div class="lvl-stat-v">+${PB[char.level]}</div><div class="lvl-stat-l">Prof. Bonus</div></div>
+         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Hit Die</div></div>
+         ${cLbl ? `<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magic</div></div>` : ''}
+       `;
     }
 
     function setHPMode(mode) {
@@ -5396,8 +5396,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if ((char.classLevel||char.level||1) < scLv) { if(p) p.style.display = 'none'; return; }
       if (!p) return;
       p.style.display = 'block';
-      document.getElementById('sc-title').textContent = char.cls.subclassTitle || 'Sottoclasse';
-      document.getElementById('sc-unlock-note').textContent = 'Liv. ' + scLv;
+      document.getElementById('sc-title').textContent = char.cls.subclassTitle || 'Subclass';
+      document.getElementById('sc-unlock-note').textContent = 'Lv. ' + scLv;
       document.getElementById('sc-grid').innerHTML = char.subclasses.map(sc =>
         `<button class="sc-btn${char.subclassShortName === sc.shortName ? ' on' : ''}" onclick="selSC('${(sc.shortName || sc.name).replace(/'/g, "\\'")}')">
       ${esc(sc.name || sc.shortName)}<span class="sc-src">${esc(sc.source || '')}</span>
@@ -5471,7 +5471,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (!el) return;
       if (!char.cls) { el.innerHTML = ''; return; }
       const tab = char.activeClassTab || 0;
-      const pName = char.className || 'Classe';
+      const pName = char.className || 'Class';
       const pLv   = char.classLevel || 1;
       let h = `<button class="mc-tab${tab===0?' active':''}" onclick="switchMCTab(0)">${esc(pName)} ${pLv}</button>`;
       (char.extraClasses||[]).forEach((ec, i) => {
@@ -5564,7 +5564,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if (char.hpMode === 'rolled' && (ec.level||1) > 0) {
         const keyPrefix = 'extra_' + i + '_';
         extraHpHtml = `<div style="width:100%; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--bdr);">
-          <div style="font-size:var(--fs-caption); color:var(--text3); margin-bottom:6px;">Tiri Manuali (${ec.name || ec.cls?.name || 'Classe'}):</div>
+          <div style="font-size:var(--fs-caption); color:var(--text3); margin-bottom:6px;">Manual Rolls (${ec.name || ec.cls?.name || 'Class'}):</div>
           <div style="display:flex; flex-wrap:wrap; gap:6px;">`;
         for (let n = 1; n <= (ec.level||1); n++) {
           const val = char.hpManualRolls?.[keyPrefix + n] || "";
@@ -5578,12 +5578,12 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         extraHpHtml += `</div></div>`;
       }
       const hp = calcMaxHP();
-      document.getElementById('lvl-stats').innerHTML = extraHpHtml + `
-        <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Level</div></div>
-        <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Punti Ferita</div></div>
-        <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Dado Vita</div></div>
-        ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magia</div></div>`:''}
-      `;
+       document.getElementById('lvl-stats').innerHTML = extraHpHtml + `
+         <div class="lvl-stat"><div class="lvl-stat-v">${ec.level||1}</div><div class="lvl-stat-l">Level</div></div>
+         <div class="lvl-stat"><div class="lvl-stat-v" id="hp-stat-box" style="color:var(--green)">${hp > 0 ? hp : '—'}</div><div class="lvl-stat-l" style="color:var(--green)">Hit Points</div></div>
+         <div class="lvl-stat"><div class="lvl-stat-v">d${faces}</div><div class="lvl-stat-l">Hit Die</div></div>
+         ${cLbl?`<div class="lvl-stat"><div class="lvl-stat-v" style="font-size:var(--fs-ui-lg)">${cLbl}</div><div class="lvl-stat-l">Magic</div></div>`:''}
+       `;
     }
     function renderExtraSubclassInPanel(i) {
       const p = document.getElementById('panel-subclass');
@@ -5593,8 +5593,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       if ((ec.level||1) < scLv) { if(p) p.style.display='none'; return; }
       if (!p) return;
       p.style.display = 'block';
-      document.getElementById('sc-title').textContent = ec.cls.subclassTitle || 'Sottoclasse';
-      document.getElementById('sc-unlock-note').textContent = 'Liv. ' + scLv;
+      document.getElementById('sc-title').textContent = ec.cls.subclassTitle || 'Subclass';
+      document.getElementById('sc-unlock-note').textContent = 'Lv. ' + scLv;
       document.getElementById('sc-grid').innerHTML = ec.subclasses.map(sc => {
         const sel = ec.subclassShortName === (sc.shortName||sc.name);
         return `<button class="sc-btn${sel?' on':''}" onclick="selExtraSC(${i},'${(sc.shortName||sc.name).replace(/'/g,"\\'")}')">
