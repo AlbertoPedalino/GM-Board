@@ -2435,6 +2435,11 @@ function renderAll(){
 
   // Load inventory & currency from localStorage (builder saves these separately too)
   try { sheetInventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(C.inventory||[])); } catch(e){ sheetInventory = C.inventory||[]; }
+  // Hydrate from snapshot if localStorage ended up empty but snapshot has items
+  if (Array.isArray(sheetInventory) && !sheetInventory.length && Array.isArray(C?.inventory) && C.inventory.length) {
+    sheetInventory = JSON.parse(JSON.stringify(C.inventory));
+    try { localStorage.setItem('5e_inventory', JSON.stringify(sheetInventory)); } catch(_){}
+  }
   // Migrate legacy weaponMod → item flag (e.g. pact_blade → pactWeapon)
   let _migDirty = false;
   const _migMap = { pact_blade: 'pactWeapon' };
@@ -4706,6 +4711,7 @@ async function loadItems(){
       .map(i => typeof adaptItemRecord === 'function' ? adaptItemRecord(i) : i)
       .sort((a,b)=>a.name.localeCompare(b.name));
     invLoadingState='done';
+    if(typeof _expandStoredPacks === 'function') _expandStoredPacks();
     renderItemSearch();
     if(typeof renderActionsTab === 'function') renderActionsTab();
     if(typeof renderInventoryList === 'function') renderInventoryList();
@@ -4760,28 +4766,121 @@ function renderItemSearch(){
   }).join('');
 }
 
+function _findInvDbItem(name, source){
+  if(!name) return null;
+  const lc = String(name).toLowerCase();
+  const sc = source ? String(source).toLowerCase() : null;
+  return (sc && allItemsDb.find(i => i.name === name && String(i.source||'').toLowerCase() === sc))
+      || (sc && allItemsDb.find(i => i.name.toLowerCase() === lc && String(i.source||'').toLowerCase() === sc))
+      || allItemsDb.find(i => i.name === name)
+      || allItemsDb.find(i => i.name.toLowerCase() === lc)
+      || null;
+}
+
+function _isAmmoBundle(db){
+  if(!db) return false;
+  const t = String(db.type||'').split('|')[0];
+  return t === 'A' || t === 'AF' || t === 'AT';
+}
+
+function _addStoredInvItem(stored){
+  if(!stored || !stored.name) return null;
+  const existing = sheetInventory.find(i => i.name === stored.name && i.source === stored.source);
+  if(existing){
+    existing.qty = (existing.qty || 1) + (stored.qty || 1);
+    return existing;
+  }
+  sheetInventory.push(stored);
+  return stored;
+}
+
+function _storedFromDb(db, qty){
+  return {
+    name: db.name, source: db.source || '',
+    qty: qty || 1, equipped: false, custom: false,
+    type: db.type ?? null,
+    ac: db.ac ?? null,
+    weight: db.weight ?? null,
+    value: db.value ?? null,
+    rarity: db.rarity ?? null,
+    property: Array.isArray(db.property) ? db.property.slice() : null,
+    dmg1: db.dmg1 ?? null,
+    dmgType: db.dmgType ?? null,
+    bonusWeapon: db.bonusWeapon || null,
+    bonusAc: db.bonusAc || null,
+  };
+}
+
+function _expandPackInto(dbPack, qty){
+  if(!dbPack || !Array.isArray(dbPack.packContents) || !dbPack.packContents.length) return false;
+  for(const pc of dbPack.packContents){
+    const ref = typeof pc === 'string' ? pc : (pc && pc.item) || '';
+    const parts = ref.split('|');
+    const pcName = (parts[0] || '').trim();
+    const pcSrc  = (parts[1] || '').trim();
+    if(!pcName) continue;
+    const pcQty = (typeof pc === 'object' ? (pc.quantity || 1) : 1) * (qty || 1);
+    const pcDb = _findInvDbItem(pcName, pcSrc);
+    if(pcDb && Array.isArray(pcDb.packContents) && pcDb.packContents.length && !_isAmmoBundle(pcDb)){
+      _expandPackInto(pcDb, pcQty);
+    } else if(pcDb){
+      _addStoredInvItem(_storedFromDb(pcDb, pcQty));
+    } else {
+      _addStoredInvItem({
+        name: pcName, source: '',
+        qty: pcQty, equipped: false, custom: false,
+        type: 'OTH', weight: 0, value: 0, rarity: 'none',
+      });
+    }
+  }
+  return true;
+}
+
 function addItemToInventory(jsonStr){
   let item;
   try{ item = JSON.parse(jsonStr); } catch(e){ return; }
-  const existing = sheetInventory.find(i=>i.name===item.name&&i.source===item.source);
-  if(existing){ existing.qty=(existing.qty||1)+1; }
-  else{
-    const db = allItemsDb.find(i=>i.name===item.name&&i.source===item.source)
-             || allItemsDb.find(i=>i.name===item.name)
-             || {};
-    sheetInventory.push({
-      name:item.name, source:item.source||'',
-      qty:1, equipped:false, custom:false,
-      type:     item.type     ?? db.type     ?? null,
-      ac:       item.ac       ?? db.ac       ?? null,
-      weight:   item.weight   ?? db.weight   ?? null,
-      property: item.property ?? db.property ?? null,
-      bonusWeapon:item.bonusWeapon||db.bonusWeapon||null,
-      bonusAc:item.bonusAc||db.bonusAc||null,
+  const db = _findInvDbItem(item.name, item.source);
+  if(db && Array.isArray(db.packContents) && db.packContents.length && !_isAmmoBundle(db)){
+    _expandPackInto(db, 1);
+  } else {
+    const ref = db || {};
+    _addStoredInvItem({
+      name: item.name, source: item.source || '',
+      qty: 1, equipped: false, custom: false,
+      type:     item.type     ?? ref.type     ?? null,
+      ac:       item.ac       ?? ref.ac       ?? null,
+      weight:   item.weight   ?? ref.weight   ?? null,
+      value:    item.value    ?? ref.value    ?? null,
+      rarity:   item.rarity   ?? ref.rarity   ?? null,
+      property: item.property ?? (Array.isArray(ref.property) ? ref.property.slice() : null),
+      dmg1:     item.dmg1     ?? ref.dmg1     ?? null,
+      dmgType:  item.dmgType  ?? ref.dmgType  ?? null,
+      bonusWeapon: item.bonusWeapon || ref.bonusWeapon || null,
+      bonusAc:     item.bonusAc     || ref.bonusAc     || null,
     });
   }
   persistInventory();
   renderInventoryList();
+}
+
+function _expandStoredPacks(){
+  if(!allItemsDb.length || !Array.isArray(sheetInventory) || !sheetInventory.length) return;
+  let dirty = false;
+  for(let i = sheetInventory.length - 1; i >= 0; i--){
+    const stored = sheetInventory[i];
+    if(!stored || stored.custom) continue;
+    if(_isAmmoBundle(stored)) continue;
+    const db = _findInvDbItem(stored.name, stored.source);
+    if(db && Array.isArray(db.packContents) && db.packContents.length && !_isAmmoBundle(db)){
+      _expandPackInto(db, stored.qty || 1);
+      sheetInventory.splice(i, 1);
+      dirty = true;
+    }
+  }
+  if(dirty){
+    persistInventory();
+    renderInventoryList();
+  }
 }
 
 function addCustomItemSheet(){
@@ -4907,10 +5006,7 @@ function renderCurrency(){
 
 function _resolveInvItem(stored) {
   if (stored.custom) return { ...stored, flags: Array.isArray(stored.flags) ? stored.flags.slice() : [] };
-  const db = allItemsDb.length
-    ? (allItemsDb.find(i => i.name === stored.name && i.source === stored.source)
-       || allItemsDb.find(i => i.name === stored.name))
-    : null;
+  const db = allItemsDb.length ? _findInvDbItem(stored.name, stored.source) : null;
   if (!db) return { ...stored, flags: Array.isArray(stored.flags) ? stored.flags.slice() : [] };
   return {
     ...db,
@@ -5123,6 +5219,7 @@ function renderInventoryList(){
     if(!inGroup.length) continue;
     h+=`<div class="inv-section-hdr">${label}</div>`;
     for(const {item,idx} of inGroup){
+    try {
       const rarity = item.rarity&&item.rarity!=='none'?item.rarity:null;
       const rc = ITEM_RARITY_COLOR[rarity]||'var(--text3)';
       const typeLabel = ITEM_TYPE_LABELS[item.type]||item.type||'';
@@ -5141,7 +5238,7 @@ function renderInventoryList(){
       const acStr  = acParts.join(' ') || '';
       const propStr = (item.property||[]).map(p=>WEAPON_PROP_LABELS[p]||p).filter(Boolean).join(', ');
       const meta = [item.weight?item.weight+'lb':null, dmgStr||null, acStr||null, propStr||null].filter(Boolean).join(' · ');
-      const entryText = item.entries ? clean(rE(item.entries)).slice(0,200) : '';
+      const entryText = item.entries ? clean(rE(item.entries)) : '';
       const iid = 'inv_'+idx;
       const _itemUrl = (item.source && !item.custom)
         ? `https://5e.tools/items.html#${item.name.toLowerCase()}_${(item.source||'').toLowerCase()}`
@@ -5168,7 +5265,11 @@ function renderInventoryList(){
         </div>
         <button class="inv-qty-btn del" onclick="changeSheetInvQty(${idx},-(${item.qty||1}))" title="Remove">${luci('trash-2')}</button>
       </div>
-      ${entryText?`<div id="${iid}" class="inv-entry-body">${entryText}…</div>`:''}`;
+      ${entryText?`<div id="${iid}" class="inv-entry-body">${entryText}</div>`:''}`;
+    } catch(err) {
+      console.warn('[inv] render failed for item', item?.name, err);
+      h += `<div class="inv-row" style="color:var(--red2)">⚠ ${esc(item?.name||'Unknown')} (render error)</div>`;
+    }
     }
   }
   el.innerHTML = h;

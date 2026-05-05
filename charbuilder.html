@@ -4943,10 +4943,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
 
       // --- 2. Aggiungi gli oggetti all'inventario ---
+      const _isAmmoBundleType = (t) => {
+        const x = String(t || '').split('|')[0];
+        return x === 'A' || x === 'AF' || x === 'AT';
+      };
       const addItemToInventory = (itemName, qty) => {
         const dbItem = allItemsDb.find(i => i.name.toLowerCase() === itemName.toLowerCase());
         if (dbItem) {
-          if (Array.isArray(dbItem.packContents) && dbItem.packContents.length) {
+          if (Array.isArray(dbItem.packContents) && dbItem.packContents.length && !_isAmmoBundleType(dbItem.type)) {
             for (const pc of dbItem.packContents) {
               const pcRef = typeof pc === 'string' ? pc : (pc.item || '');
               const pcName = pcRef.split('|')[0].trim();
