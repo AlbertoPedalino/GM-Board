@@ -6318,7 +6318,75 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       else if (char.scoreMethod === 'standard') { const v = char.arrAssign[stat]; base = v !== null ? v : 8; }
       else if (char.scoreMethod === 'manual') { const v = char.manualScores?.[stat]; base = v != null ? v : 8; }
       else { const v = char.diceAssign[stat]; base = v !== null ? v : 8; }
-      return base + bgBonus(stat) + getAsiFeatBonus(stat);
+      return base + bgBonus(stat) + getAsiFeatBonus(stat) + _builderStatBonus(stat);
+    }
+
+    /* ── Builder Sheet-Effects mirror ── */
+    function _bldEffNorm(v){ return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+    function _bldEntities(){
+      const out = [];
+      out.push({ kind:'class', name: char.className||'', sub: char.subclassShortName||'', lv: char.classLevel||char.level||1, prefix:'' });
+      (char.extraClasses||[]).forEach((ec,i) => out.push({ kind:'class', name: ec.name||'', sub: ec.subclassShortName||'', lv: ec.level||1, prefix:`mc${i}_` }));
+      const sp = char.speciesObj || {};
+      out.push({ kind:'species', name: sp.name || char.speciesName || '', src: sp.source || char.speciesSource || '', lv: char.level||1, prefix:'' });
+      const featNames = new Set();
+      Object.values(char.choices||{}).forEach(v => { if (typeof v === 'string') featNames.add(v); });
+      (typeof allFeats !== 'undefined' && Array.isArray(allFeats) ? allFeats : []).forEach(f => {
+        if (featNames.has(f.name)) out.push({ kind:'feat', name: f.name, lv: char.level||1, prefix:'' });
+      });
+      return out;
+    }
+    function _bldEffMatchChoice(rc, prefix){
+      if (!rc) return true;
+      const stored = char.choices?.[(prefix||'') + rc.key];
+      const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+      if (!vals.length) return false;
+      const targets = Array.isArray(rc.value) ? rc.value : [rc.value];
+      return vals.some(v => targets.some(t => _bldEffNorm(v) === _bldEffNorm(t)));
+    }
+    function _bldCollectEntityEffects(ent){
+      let arr = [];
+      if (ent.kind === 'class') {
+        if (typeof getClassSheetEffects === 'function') arr = arr.concat(getClassSheetEffects(ent.name) || []);
+        if (ent.sub && typeof getSubclassSheetEffects === 'function') arr = arr.concat(getSubclassSheetEffects(ent.name, ent.sub) || []);
+      } else if (ent.kind === 'species') {
+        if (typeof getSpeciesSheetEffects === 'function') arr = arr.concat(getSpeciesSheetEffects(ent.name, ent.src) || []);
+      } else if (ent.kind === 'feat') {
+        if (typeof getFeatSheetEffects === 'function') arr = arr.concat(getFeatSheetEffects(ent.name) || []);
+      }
+      return arr.filter(e => {
+        if (!e || typeof e !== 'object') return false;
+        if (Number(e.minLevel||1) > Number(ent.lv||1)) return false;
+        if (e.requiredChoice && !_bldEffMatchChoice(e.requiredChoice, ent.prefix)) return false;
+        return true;
+      });
+    }
+    function _collectBuilderEffects(){
+      const out = [];
+      _bldEntities().forEach(ent => _bldCollectEntityEffects(ent).forEach(e => out.push({ ...e, _ent: ent })));
+      return out;
+    }
+    function _bldEffValue(eff){
+      const v = eff.value;
+      if (typeof v === 'function') {
+        try { return Number(v({ character: char, level: eff._ent?.lv||char.level||1, choices: char.choices||{}, prefix: eff._ent?.prefix||'' })) || 0; } catch(_) { return 0; }
+      }
+      return Number(v) || 0;
+    }
+    function _builderStatBonus(stat){
+      let b = 0;
+      _collectBuilderEffects().forEach(e => { if (e.type === 'stat' && e.stat === stat) b += _bldEffValue(e); });
+      return b;
+    }
+    function _builderSpeedBonus(speedType){
+      const t = String(speedType||'walk').toLowerCase();
+      let b = 0;
+      _collectBuilderEffects().forEach(e => {
+        if (e.type !== 'speed') return;
+        const st = String(e.speedType||'walk').toLowerCase();
+        if (st === t || st === 'all') b += _bldEffValue(e);
+      });
+      return b;
     }
     function fmod(v) { const m = Math.floor((v - 10) / 2); return (m >= 0 ? '+' : '') + m; }
 

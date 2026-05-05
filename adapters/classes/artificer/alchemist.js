@@ -70,4 +70,9 @@ registerSubclassSheetResources("Artificer_Alchemist", [
 registerSubclassSheetProficiencies("Artificer_Alchemist", [
   { type: "tool", values: ["Alchemist's Supplies", "Herbalism Kit"], minLevel: 3 }
 ]);
+registerSubclassSheetEffects("Artificer_Alchemist", [
+  { type: "resist", damageType: "Acid", minLevel: 15 },
+  { type: "resist", damageType: "Poison", minLevel: 15 },
+  { type: "condImmune", condition: "Poisoned", minLevel: 15 }
+]);
 // [SheetRuntime] END

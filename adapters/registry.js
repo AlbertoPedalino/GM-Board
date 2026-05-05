@@ -650,6 +650,62 @@ function getFeatSheetActions(name) {
   return FeatSheetActions[raw] || FeatSheetActions[k] || [];
 }
 
+// ── Sheet Effects (stat/speed/adv/disadv/resist/immune/sense/ac/reach/size/tempHp) ──
+// Each effect: {
+//   type: 'stat'|'speed'|'advantage'|'disadvantage'|'resist'|'immune'|'condImmune'|'sense'|'ac'|'reach'|'size'|'tempHp'|'hpPerLevel'|'initiative',
+//   stat: 'str'|'dex'|'con'|'int'|'wis'|'cha',           // for stat
+//   value: number | function(ctx)→number,                 // numeric payload (function for dynamic, e.g. half level)
+//   speedType: 'walk'|'fly'|'swim'|'climb'|'burrow'|'all',// for speed (default 'walk')
+//   target: 'save'|'check'|'attack'|'skill'|'initiative', // for adv/disadv
+//   ability: 'str'|'dex'|'con'|'int'|'wis'|'cha'|'all',   // narrow target (default 'all')
+//   skill: string,                                         // for skill target
+//   damageType: string,                                    // for resist/immune
+//   condition: string,                                     // for condImmune
+//   senseType: 'darkvision'|'blindsight'|'tremorsense'|'truesight',
+//   range: number,                                         // for sense
+//   size: 'M'|'L'|'H',                                     // for size
+//   note: string,                                          // optional human-readable hint
+//   minLevel: number,
+//   requiredChoice: { key, value },                        // value can be string or array; matched normalize-insensitive
+//   requiredFeatureActive: string,                         // toggle on sheet (resource-like)
+// }
+const ClassSheetEffects = {};
+const SubclassSheetEffects = {};
+const SpeciesSheetEffects = {};
+const FeatSheetEffects = {};
+
+function registerClassSheetEffects(name, effects) {
+  _setStoreValue(ClassSheetEffects, name, _toClassCanonicalKey(name), Array.isArray(effects) ? effects : []);
+}
+function registerSubclassSheetEffects(key, effects) {
+  _setStoreValue(SubclassSheetEffects, key, _toSubclassCanonicalKeyFromRaw(key), Array.isArray(effects) ? effects : []);
+}
+function registerSpeciesSheetEffects(key, effects) {
+  _setStoreValue(SpeciesSheetEffects, key, _toSpeciesCanonicalKeyFromRaw(key), Array.isArray(effects) ? effects : []);
+}
+function registerFeatSheetEffects(name, effects) {
+  const k = _normAdapterKey(name);
+  const arr = Array.isArray(effects) ? effects : [];
+  FeatSheetEffects[String(name)] = arr;
+  if (k) FeatSheetEffects[k] = arr;
+}
+function getClassSheetEffects(name) {
+  return _getStoreValue(ClassSheetEffects, name, _toClassCanonicalKey(name)) || [];
+}
+function getSubclassSheetEffects(className, subclassShortName) {
+  const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
+  return _getStoreValue(SubclassSheetEffects, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
+}
+function getSpeciesSheetEffects(speciesName, speciesSource) {
+  const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : speciesName || "";
+  return _getStoreValue(SpeciesSheetEffects, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
+}
+function getFeatSheetEffects(name) {
+  const raw = String(name || "");
+  const k = _normAdapterKey(raw);
+  return FeatSheetEffects[raw] || FeatSheetEffects[k] || [];
+}
+
 const SubclassChoiceDetailDataProviders = {};
 function registerSubclassChoiceDetailDataProvider(className, subclassShortName, fn) {
   if (typeof fn !== "function") return;

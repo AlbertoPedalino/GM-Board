@@ -194,6 +194,11 @@ registerSubclassSheetProficiencies("Artificer_Armorer", [
   { type: "tool", values: ["Smith's Tools"], minLevel: 3 },
   { type: "armor", values: ["Heavy"], minLevel: 3 }
 ]);
+registerSubclassSheetEffects("Artificer_Armorer", [
+  // Infiltrator model
+  { type: "speed", speedType: "walk", value: 5, minLevel: 3, requiredChoice: { key: "armorer_model", value: ["Infiltrator", "infiltrator"] }, note: "Powered Steps" },
+  { type: "advantage", target: "skill", skill: "Stealth", minLevel: 3, requiredChoice: { key: "armorer_model", value: ["Infiltrator", "infiltrator"] }, note: "Dampening Field" },
+]);
 registerSubclassSheetFeatureFilter("Artificer_Armorer", (ctx, features) => {
   const prefix = String(ctx?.choicePrefix || "");
   const choiceKey = prefix + "armorer_model";
