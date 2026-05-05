@@ -13,11 +13,12 @@
     rel="stylesheet" />
   <script>
     (function () {
-      const scopedKeys = new Set([
+      window.GB_SHEET_KEYS = [
         '5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus',
         '5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv',
         '5e_resources','5e_builder_state','5e_inspiration'
-      ]);
+      ];
+      const scopedKeys = new Set(window.GB_SHEET_KEYS);
       const rawGet = Storage.prototype.getItem;
       const rawSet = Storage.prototype.setItem;
       const rawRemove = Storage.prototype.removeItem;
@@ -2247,6 +2248,13 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 </head>
 
 <body>
+  <div id="import-sheet-fab" style="position:fixed;top:14px;right:14px;z-index:4000;display:flex;gap:8px;align-items:center">
+    <span id="import-sheet-msg" style="font-size:var(--fs-ui-sm);color:var(--text3);background:rgba(12,16,26,.78);padding:4px 8px;border-radius:6px;display:none"></span>
+    <input type="file" id="import-sheet-file" accept=".html,.htm,text/html,application/json,.json" style="display:none" onchange="importSheetFromFile(this.files&&this.files[0])"/>
+    <button class="btn-sec" type="button" onclick="document.getElementById('import-sheet-file').click()" title="Load a downloaded sheet into this builder">
+      <i data-lucide="upload" class="lucide-emoji" aria-hidden="true"></i> Load Sheet
+    </button>
+  </div>
   <div class="app">
     <header>
       <h1>Character Builder</h1>
@@ -7046,6 +7054,64 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         xp: char.xp||0,
       }));
       window.location.href = typeof gbScopedHref === 'function' ? gbScopedHref('character-sheet.html') : 'character-sheet.html';
+    }
+
+    /* ════════════════════════════════════ IMPORT SCHEDA SCARICATA ════════════════════════════════════ */
+    function _extractSheetData(txt) {
+      // 1) Modern downloads: <script type="application/json" id="gb-sheet-payload">
+      try {
+        const doc = new DOMParser().parseFromString(txt, 'text/html');
+        const tag = doc.getElementById('gb-sheet-payload');
+        if (tag && tag.textContent) {
+          const p = JSON.parse(tag.textContent);
+          if (p && p.type === 'gb-sheet-import' && p.data) return p.data;
+        }
+      } catch (_) {}
+      // 2) Legacy downloads: preload script with `var d={...};var k=`
+      const m = txt.match(/var\s+d\s*=\s*(\{[\s\S]+\})\s*;\s*var\s+k\s*=/);
+      if (m) { try { return JSON.parse(m[1]); } catch (_) {} }
+      // 3) Plain JSON file
+      try { const j = JSON.parse(txt); if (j && typeof j === 'object') return j.data || j; } catch (_) {}
+      return null;
+    }
+
+    async function importSheetFromFile(file) {
+      const msg = document.getElementById('import-sheet-msg');
+      const setMsg = (txt, color) => {
+        if (!msg) return;
+        msg.textContent = txt;
+        msg.style.color = color || 'var(--text3)';
+        msg.style.display = txt ? 'inline-block' : 'none';
+      };
+      if (!file) { setMsg(''); return; }
+      try {
+        const txt = await file.text();
+        const data = _extractSheetData(txt);
+        if (!data || typeof data !== 'object') throw new Error('Formato file non riconosciuto');
+        const allowed = new Set(window.GB_SHEET_KEYS || []);
+        const hasExisting = allowed.has('5e_builder_state') && localStorage.getItem('5e_builder_state') != null;
+        if (hasExisting && !confirm('Esiste già un personaggio in questo slot. Sovrascrivere con la scheda importata?')) {
+          setMsg('Import annullato.');
+          return;
+        }
+        let n = 0;
+        allowed.forEach(k => localStorage.removeItem(k));
+        for (const [k, v] of Object.entries(data)) {
+          if (allowed.has(k) && v != null && typeof v === 'string') { localStorage.setItem(k, v); n++; }
+        }
+        if (!n) throw new Error('Nessun dato valido trovato');
+        try {
+          const cc = JSON.parse(localStorage.getItem('5e_current_char') || 'null');
+          if (cc && typeof gbRegisterCharScope === 'function') gbRegisterCharScope(cc.name || cc.className || 'Imported Character');
+        } catch (_) {}
+        setMsg('Scheda importata. Ricarico…', 'var(--gold2)');
+        setTimeout(() => location.reload(), 350);
+      } catch (e) {
+        setMsg('Errore: ' + (e?.message || 'sconosciuto'), 'var(--red, #e74c3c)');
+      } finally {
+        const inp = document.getElementById('import-sheet-file');
+        if (inp) inp.value = '';
+      }
     }
 
     /* ════════════════════════════════════ SCELTA PROFICIENZE ════════════════════════════════════ */

@@ -8,6 +8,51 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>D&D 5e — Encounter Builder</title>
+  <script>
+    (function () {
+      const scopedKeys = new Set(['5e_saved_fights', '5e_party_data', '5e_saved_encounters']);
+      const rawGet = Storage.prototype.getItem;
+      const rawSet = Storage.prototype.setItem;
+      const rawRemove = Storage.prototype.removeItem;
+      const params = new URLSearchParams(location.search);
+      const clean = v => String(v || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 48);
+      let id = clean(params.get('enc'));
+      if (id === 'new') {
+        id = `enc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+        history.replaceState(null, '', `${location.pathname}?enc=${encodeURIComponent(id)}`);
+      }
+      if (!id) id = clean(rawGet.call(localStorage, 'gb_active_encounter_id')) || 'default';
+      rawSet.call(localStorage, 'gb_active_encounter_id', id);
+      window.GB_ENCOUNTER_ID = id;
+      window.gbRegisterEncounterScope = function (label) {
+        const raw = rawGet.call(localStorage, 'gb_encounter_registry') || '[]';
+        let list = [];
+        try { list = JSON.parse(raw); } catch (_) {}
+        const now = Date.now();
+        const name = String(label || '').trim() || id;
+        list = [{ id, name, updatedAt: now }, ...list.filter(x => x && x.id !== id)].slice(0, 20);
+        rawSet.call(localStorage, 'gb_encounter_registry', JSON.stringify(list));
+      };
+      const prefix = `gb:enc:${id}:`;
+      const scoped = key => scopedKeys.has(String(key || '')) ? prefix + key : key;
+      Storage.prototype.getItem = function (key) { return rawGet.call(this, scoped(key)); };
+      Storage.prototype.setItem = function (key, val) { return rawSet.call(this, scoped(key), val); };
+      Storage.prototype.removeItem = function (key) { return rawRemove.call(this, scoped(key)); };
+      // One-time migration: copy legacy unscoped keys to the "default" instance
+      try {
+        const migFlag = 'gb_enc_migrated_v1';
+        if (!rawGet.call(localStorage, migFlag)) {
+          const defPrefix = 'gb:enc:default:';
+          scopedKeys.forEach(k => {
+            const legacy = rawGet.call(localStorage, k);
+            const already = rawGet.call(localStorage, defPrefix + k);
+            if (legacy != null && already == null) rawSet.call(localStorage, defPrefix + k, legacy);
+          });
+          rawSet.call(localStorage, migFlag, '1');
+        }
+      } catch (_) {}
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -1940,6 +1985,9 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
 </head>
 
 <body>
+  <script>
+    if (typeof gbRegisterEncounterScope === 'function') gbRegisterEncounterScope('Encounter ' + (window.GB_ENCOUNTER_ID || 'default'));
+  </script>
   <div class="app">
 
     <header>
@@ -3393,6 +3441,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       list.unshift(entry); // più recente in cima
       localStorage.setItem(LIB_KEY, JSON.stringify(list));
       _currentEncounterId = entry.id;
+      if (typeof gbRegisterEncounterScope === 'function') gbRegisterEncounterScope(name);
 
       nameInput.value = '';
       const confirm = document.getElementById('save-confirm');

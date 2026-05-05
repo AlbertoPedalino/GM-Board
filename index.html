@@ -96,7 +96,7 @@
     }
     .recent-wrap{
       display:grid;
-      grid-template-columns:repeat(2,1fr);
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
       gap:.75rem;
     }
     .recent-panel{
@@ -239,7 +239,7 @@
       <div class="card-label">GM Board</div>
       <div class="card-desc">Initiative tracker, conditions, notes</div>
     </a>
-    <a class="card encounter" href="encounter-builder.html">
+    <a class="card encounter" href="encounter-builder.html?enc=new">
       <div class="card-icon"><i data-lucide="swords"></i></div>
       <div class="card-label">Encounter Builder</div>
       <div class="card-desc">Build and balance combat encounters</div>
@@ -256,6 +256,10 @@
         <div class="recent-title">GM Board</div>
         <div class="recent-list" id="recent-boards"></div>
       </div>
+      <div class="recent-panel" id="recent-encounters-panel" hidden>
+        <div class="recent-title">Encounter Builder</div>
+        <div class="recent-list" id="recent-encounters"></div>
+      </div>
     </div>
   </div>
 
@@ -271,16 +275,20 @@
         catch(_) { return []; }
       };
       const esc = v => String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const REGISTRY_META = {
+        'gb_board_registry':     { label: 'GM Board',   prefix: id => `gb:board:${id}:`, activeKey: 'gb_active_board_id' },
+        'gb_char_registry':      { label: 'personaggio', prefix: id => `gb:char:${id}:`,  activeKey: 'gb_active_char_id' },
+        'gb_encounter_registry': { label: 'Encounter',   prefix: id => `gb:enc:${id}:`,   activeKey: 'gb_active_encounter_id' },
+      };
       window.gbDeleteRecent = (key, id) => {
-        const isBoard = key === 'gb_board_registry';
-        const label = isBoard ? 'GM Board' : 'personaggio';
-        if (!confirm(`Eliminare questo salvataggio ${label} e tutti i suoi dati locali?`)) return;
-        const prefix = isBoard ? `gb:board:${id}:` : `gb:char:${id}:`;
+        const meta = REGISTRY_META[key];
+        if (!meta) return;
+        if (!confirm(`Eliminare questo salvataggio ${meta.label} e tutti i suoi dati locali?`)) return;
+        const prefix = meta.prefix(id);
         Object.keys(localStorage)
           .filter(k => k.startsWith(prefix))
           .forEach(k => localStorage.removeItem(k));
-        const activeKey = isBoard ? 'gb_active_board_id' : 'gb_active_char_id';
-        if (localStorage.getItem(activeKey) === id) localStorage.removeItem(activeKey);
+        if (localStorage.getItem(meta.activeKey) === id) localStorage.removeItem(meta.activeKey);
         const list = readList(key).filter(x => x.id !== id);
         localStorage.setItem(key, JSON.stringify(list));
         renderAllRecent();
@@ -315,8 +323,9 @@
       function renderAllRecent(){
         const anySheet = renderRecent('gb_char_registry','recent-chars','recent-chars-panel','character-sheet.html','char');
         const anyBoard = renderRecent('gb_board_registry','recent-boards','recent-boards-panel','gmboard.html','board', { rename: true });
+        const anyEnc   = renderRecent('gb_encounter_registry','recent-encounters','recent-encounters-panel','encounter-builder.html','enc', { rename: true });
         const section = document.getElementById('continue-section');
-        if(section) section.hidden = !(anySheet || anyBoard);
+        if(section) section.hidden = !(anySheet || anyBoard || anyEnc);
         if(window.lucide) lucide.createIcons({attrs:{'stroke-width':1.5}});
       }
       renderAllRecent();

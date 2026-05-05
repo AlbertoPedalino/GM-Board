@@ -12,11 +12,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <script>
     (function () {
-      const scopedKeys = new Set([
+      window.GB_SHEET_KEYS = [
         '5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus',
         '5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv',
         '5e_resources','5e_builder_state','5e_inspiration'
-      ]);
+      ];
+      const scopedKeys = new Set(window.GB_SHEET_KEYS);
       const rawGet = Storage.prototype.getItem;
       const rawSet = Storage.prototype.setItem;
       const rawRemove = Storage.prototype.removeItem;
@@ -6947,16 +6948,20 @@ function goBackToBuilder(e) {
 function downloadSheet() {
   try {
     // Bundle all 5e_ keys so the downloaded file is fully self-contained
-    const keys = ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state','5e_inspiration'];
+    const keys = (window.GB_SHEET_KEYS && Array.isArray(window.GB_SHEET_KEYS))
+      ? window.GB_SHEET_KEYS.slice()
+      : ['5e_current_char','5e_inventory','5e_currency','5e_xp','5e_hp_current','5e_hp_temp','5e_hp_max_bonus','5e_death_saves','5e_conditions_active','5e_hd_used','5e_slots_used','5e_notes','5e_skill_adv','5e_resources','5e_builder_state','5e_inspiration'];
     const data = {};
     keys.forEach(k => { const v = localStorage.getItem(k); if (v != null) data[k] = v; });
-    const safeJson = JSON.stringify(data).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
-    // Preload: clear only the known character-sheet keys (not all 5e_* — others may belong to unrelated data)
-    const knownKeys = JSON.stringify(keys).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
+    const safeEsc = s => String(s).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
+    const payload = { type: 'gb-sheet-import', version: 1, keys, data };
+    // Embed raw payload as JSON script — robust import path
+    const payloadTag = '<scr'+'ipt type="application/json" id="gb-sheet-payload">'+safeEsc(JSON.stringify(payload))+'</scr'+'ipt>';
+    const safeJson = safeEsc(JSON.stringify(data));
+    const knownKeys = safeEsc(JSON.stringify(keys));
     const publicBuilderUrl = 'https://albertopedalino.github.io/GM-Board/charbuilder.html';
-    const builderUrl = JSON.stringify(publicBuilderUrl)
-      .replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
-    const preload = '<style>.back-btn{display:none!important}</style><scr'+'ipt>(function(){var d='+safeJson+';var k='+knownKeys+';k.forEach(function(x){localStorage.removeItem(x);});for(var x in d)localStorage.setItem(x,d[x]);window.GB_DOWNLOADED_SHEET=true;window.GB_DOWNLOADED_SHEET_BUILDER_URL='+builderUrl+';window.GB_DOWNLOADED_SHEET_KEYS=k;document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".back-btn").forEach(function(el){el.remove();});});})();<'+'/scr'+'ipt>';
+    const builderUrl = safeEsc(JSON.stringify(publicBuilderUrl));
+    const preload = '<style>.back-btn{display:none!important}</style>'+payloadTag+'<scr'+'ipt>(function(){var d='+safeJson+';var k='+knownKeys+';k.forEach(function(x){localStorage.removeItem(x);});for(var x in d)localStorage.setItem(x,d[x]);window.GB_DOWNLOADED_SHEET=true;window.GB_DOWNLOADED_SHEET_BUILDER_URL='+builderUrl+';window.GB_DOWNLOADED_SHEET_KEYS=k;document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll(".back-btn").forEach(function(el){el.remove();});});})();<'+'/scr'+'ipt>';
     const out = '<!DOCTYPE html>\n' + document.documentElement.outerHTML.replace('</head>', preload + '</head>');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([out], { type: 'text/html' }));
