@@ -650,6 +650,26 @@ function getFeatSheetActions(name) {
   return FeatSheetActions[raw] || FeatSheetActions[k] || [];
 }
 
+// ── Item Flag Definitions (pactWeapon, arcaneArmor, ...) ──
+// Each def: {
+//   key: 'arcaneArmor',
+//   label: 'Arcane Armor',
+//   icon: 'shield',                                // lucide icon
+//   types: ['LA','MA','HA'],                       // eligible item types (from inventory)
+//   maxCount: 1,                                   // max items with this flag (0 = unlimited)
+//   requireClass: 'Artificer',                     // must have this class
+//   requireSubclass: 'Armorer',                    // must have this subclass (optional)
+//   requireInvocation: 'Pact of the Blade',        // must have this invocation (optional)
+//   requireMinLevel: 3,                            // class min level
+// }
+const ItemFlagDefs = {};
+function registerItemFlagDef(key, def) {
+  if (!key || !def || typeof def !== 'object') return;
+  ItemFlagDefs[String(key)] = { key: String(key), ...def };
+}
+function getItemFlagDef(key) { return ItemFlagDefs[String(key)] || null; }
+function getAllItemFlagDefs() { return Object.values(ItemFlagDefs); }
+
 // ── Sheet Effects (stat/speed/adv/disadv/resist/immune/sense/ac/reach/size/tempHp) ──
 // Each effect: {
 //   type: 'stat'|'speed'|'advantage'|'disadvantage'|'resist'|'immune'|'condImmune'|'sense'|'ac'|'reach'|'size'|'tempHp'|'hpPerLevel'|'initiative',

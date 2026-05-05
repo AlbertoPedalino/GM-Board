@@ -32,7 +32,17 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "action",
     "uses": "At will",
     "minLevel": 3,
-    "desc": "Magic action (Smith's Tools in hand): turn worn armor into Arcane Armor. Benefits: no Strength requirement, don/doff as Utilize action (can't be removed against will), use as spellcasting focus. Change armor model on Short or Long Rest (Smith's Tools required)."
+    "desc": "Magic action (Smith's Tools in hand): turn worn armor into Arcane Armor. Benefits: no Strength requirement, don/doff as Utilize action (can't be removed against will), use as spellcasting focus. Change armor model on Short or Long Rest (Smith's Tools required).",
+    "extraBodyHtml": function (C) {
+      if (typeof _sheetChoicePickerHtml !== 'function') return '';
+      const keys = Object.keys((C && C.choices) || {});
+      const key = keys.find(k => k === 'armorer_model' || /^mc\d+_armorer_model$/.test(k)) || 'armorer_model';
+      return _sheetChoicePickerHtml(key, [
+        { value: 'Dreadnaught', label: 'Dreadnought (Force, Reach, Giant Stature)' },
+        { value: 'Guardian', label: 'Guardian (Thunder, Defensive Field)' },
+        { value: 'Infiltrator', label: 'Infiltrator (Lightning, +5 Speed, Stealth ADV)' }
+      ], { label: 'Arcane Armor Model' });
+    }
   },
   {
     "name": "Thunder Pulse",
@@ -194,10 +204,25 @@ registerSubclassSheetProficiencies("Artificer_Armorer", [
   { type: "tool", values: ["Smith's Tools"], minLevel: 3 },
   { type: "armor", values: ["Heavy"], minLevel: 3 }
 ]);
+if (typeof registerItemFlagDef === 'function') {
+  registerItemFlagDef("arcaneArmor", {
+    label: "Arcane Armor",
+    icon: "shield",
+    types: ['LA','MA','HA'],
+    maxCount: 1,
+    requireClass: "Artificer",
+    requireSubclass: "Armorer",
+    requireMinLevel: 3,
+  });
+}
 registerSubclassSheetEffects("Artificer_Armorer", [
-  // Infiltrator model
-  { type: "speed", speedType: "walk", value: 5, minLevel: 3, requiredChoice: { key: "armorer_model", value: ["Infiltrator", "infiltrator"] }, note: "Powered Steps" },
-  { type: "advantage", target: "skill", skill: "Stealth", minLevel: 3, requiredChoice: { key: "armorer_model", value: ["Infiltrator", "infiltrator"] }, note: "Dampening Field" },
+  // Infiltrator model — gated on Arcane Armor flag + model choice
+  { type: "speed", speedType: "walk", value: 5, minLevel: 3,
+    requiredChoice: { key: "armorer_model", value: ["Infiltrator", "infiltrator"] },
+    requiredItemFlag: "arcaneArmor", note: "Powered Steps" },
+  { type: "advantage", target: "skill", skill: "Stealth", minLevel: 3,
+    requiredChoice: { key: "armorer_model", value: ["Infiltrator", "infiltrator"] },
+    requiredItemFlag: "arcaneArmor", note: "Dampening Field" },
 ]);
 registerSubclassSheetFeatureFilter("Artificer_Armorer", (ctx, features) => {
   const prefix = String(ctx?.choicePrefix || "");

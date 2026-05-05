@@ -1569,7 +1569,15 @@ function loadChar(){
   try {
     const raw = localStorage.getItem('5e_current_char');
     if(!raw) return null;
-    return JSON.parse(raw);
+    const ch = JSON.parse(raw);
+    // Merge sheet-side choice overrides (e.g. Arcane Armor model toggled at runtime per RAW)
+    try {
+      const ov = JSON.parse(localStorage.getItem('5e_choice_overrides') || '{}');
+      if (ov && typeof ov === 'object' && Object.keys(ov).length) {
+        ch.choices = { ...(ch.choices || {}), ...ov };
+      }
+    } catch(_) {}
+    return ch;
   } catch(e){ return null; }
 }
 
@@ -1742,6 +1750,14 @@ function _sheetCollectEntityEffects(ent){
     if (Number(e.minLevel||1) > Number(ent.lv||1)) return false;
     if (e.requiredChoice && !_sheetEffMatchChoice(e.requiredChoice, ent.prefix)) return false;
     if (e.requiredFeatureActive && !_sheetEffActiveFeature(e.requiredFeatureActive)) return false;
+    if (typeof e.condition === 'function') {
+      try { if (!e.condition(C, { entity: ent })) return false; } catch(_) { return false; }
+    }
+    if (e.requiredItemFlag) {
+      const flags = _sheetCollectEquippedFlags();
+      const reqs = Array.isArray(e.requiredItemFlag) ? e.requiredItemFlag : [e.requiredItemFlag];
+      if (!reqs.every(f => flags.has(f))) return false;
+    }
     return true;
   });
 }
@@ -2419,6 +2435,19 @@ function renderAll(){
 
   // Load inventory & currency from localStorage (builder saves these separately too)
   try { sheetInventory = JSON.parse(localStorage.getItem('5e_inventory') || JSON.stringify(C.inventory||[])); } catch(e){ sheetInventory = C.inventory||[]; }
+  // Migrate legacy weaponMod → item flag (e.g. pact_blade → pactWeapon)
+  let _migDirty = false;
+  const _migMap = { pact_blade: 'pactWeapon' };
+  (sheetInventory||[]).forEach(it => {
+    if (it && it.weaponMod && _migMap[it.weaponMod]) {
+      const flag = _migMap[it.weaponMod];
+      if (!Array.isArray(it.flags)) it.flags = [];
+      if (!it.flags.includes(flag)) it.flags.push(flag);
+      delete it.weaponMod;
+      _migDirty = true;
+    }
+  });
+  if (_migDirty) persistInventory();
   try { sheetCurrency = JSON.parse(localStorage.getItem('5e_currency') || JSON.stringify(C.currency||{cp:0,sp:0,ep:0,gp:10,pp:0})); } catch(e){ sheetCurrency = {cp:0,sp:0,ep:0,gp:10,pp:0}; }
   sheetInspiration = localStorage.getItem('5e_inspiration') === 'true' || C?.inspiration || false;
   loadConditionsState();
@@ -4877,12 +4906,12 @@ function renderCurrency(){
 }
 
 function _resolveInvItem(stored) {
-  if (stored.custom) return stored;
+  if (stored.custom) return { ...stored, flags: Array.isArray(stored.flags) ? stored.flags.slice() : [] };
   const db = allItemsDb.length
     ? (allItemsDb.find(i => i.name === stored.name && i.source === stored.source)
        || allItemsDb.find(i => i.name === stored.name))
     : null;
-  if (!db) return stored;
+  if (!db) return { ...stored, flags: Array.isArray(stored.flags) ? stored.flags.slice() : [] };
   return {
     ...db,
     qty: stored.qty ?? 1,
@@ -4892,8 +4921,156 @@ function _resolveInvItem(stored) {
     hand: stored.hand || null,
     weaponMod: stored.weaponMod || null,
     versatileHand: stored.versatileHand || null,
+    flags: Array.isArray(stored.flags) ? stored.flags.slice() : [],
     custom: false,
   };
+}
+
+/* ─── Item Flags (pactWeapon, arcaneArmor, ...) ─── */
+function _sheetCharHasInvocation(name){
+  if (!C || !name) return false;
+  const target = String(name).toLowerCase().replace(/[^a-z0-9]/g,'');
+  for (const v of Object.values(C.choices||{})) {
+    const vals = Array.isArray(v) ? v : [v];
+    for (const x of vals) {
+      if (typeof x === 'string' && x.toLowerCase().replace(/[^a-z0-9]/g,'') === target) return true;
+    }
+  }
+  return false;
+}
+function _sheetClassEntitiesAll(){
+  const out = [];
+  if (!C) return out;
+  out.push({ name: C.className||'', sub: C.subclassShortName||'', lv: C.classLevel||C.level||1 });
+  (C.extraClasses||[]).forEach(ec => out.push({ name: ec.name||'', sub: ec.subclassShortName||'', lv: ec.level||1 }));
+  return out;
+}
+function _sheetCharSatisfiesFlagDef(def){
+  if (!def) return false;
+  const ents = _sheetClassEntitiesAll();
+  if (def.requireClass) {
+    const ent = ents.find(e => _sheetEffNorm(e.name) === _sheetEffNorm(def.requireClass));
+    if (!ent) return false;
+    if (def.requireSubclass && _sheetEffNorm(ent.sub) !== _sheetEffNorm(def.requireSubclass)) return false;
+    if (def.requireMinLevel && ent.lv < Number(def.requireMinLevel)) return false;
+  }
+  if (def.requireInvocation && !_sheetCharHasInvocation(def.requireInvocation)) return false;
+  return true;
+}
+function _sheetGetEligibleFlagsFor(resolvedItem){
+  const defs = (typeof getAllItemFlagDefs === 'function') ? getAllItemFlagDefs() : [];
+  return defs.filter(def => {
+    if (!_sheetCharSatisfiesFlagDef(def)) return false;
+    const types = Array.isArray(def.types) ? def.types : null;
+    if (types && !types.includes(resolvedItem.type)) return false;
+    return true;
+  });
+}
+function _sheetItemHasFlag(item, key){
+  return Array.isArray(item?.flags) && item.flags.includes(key);
+}
+function _sheetCollectEquippedFlags(){
+  const set = new Set();
+  (sheetInventory||[]).forEach(stored => {
+    if (!stored.equipped) return;
+    const flags = Array.isArray(stored.flags) ? stored.flags : [];
+    flags.forEach(f => set.add(f));
+  });
+  return set;
+}
+function _sheetChoiceSet(choiceKey, value){
+  if (!C || !choiceKey) return;
+  if (!C.choices) C.choices = {};
+  C.choices[choiceKey] = value;
+  try {
+    const ov = JSON.parse(localStorage.getItem('5e_choice_overrides') || '{}');
+    ov[choiceKey] = value;
+    localStorage.setItem('5e_choice_overrides', JSON.stringify(ov));
+  } catch(_) {}
+  renderStatsRow();
+  renderSaves();
+  renderSkills();
+  renderSenses();
+  renderRightTop();
+  renderActionsTab();
+  if (typeof renderFeaturesTab === 'function') renderFeaturesTab();
+}
+
+function _sheetChoicePickerHtml(choiceKey, options, opts){
+  if (!C || !choiceKey || !Array.isArray(options) || !options.length) return '';
+  const label = opts?.label || choiceKey;
+  const cur = C.choices?.[choiceKey];
+  const norm = v => String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const buttons = options.map(o => {
+    const v = typeof o === 'string' ? o : (o.value);
+    const lbl = typeof o === 'string' ? o : (o.label || o.value);
+    const on = norm(cur) === norm(v);
+    const safeKey = String(choiceKey).replace(/'/g,"\\'");
+    const safeVal = String(v).replace(/'/g,"\\'");
+    return `<button class="inv-equip-btn${on?' on':''}" style="${on?'background:var(--purple);border-color:var(--purple);color:#fff':'border-color:var(--purple);color:var(--purple)'}" onclick="event.stopPropagation();_sheetChoiceSet('${safeKey}','${safeVal}')">${on?luci('check')+' ':''}${esc(lbl)}</button>`;
+  }).join('');
+  return `<div style="margin-top:.6rem;display:flex;flex-direction:column;gap:.3rem">
+    <div style="font-size:var(--fs-label);color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">${esc(label)}</div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">${buttons}</div>
+  </div>`;
+}
+
+function _sheetItemFlagPickerHtml(flagKey, opts){
+  const def = (typeof getItemFlagDef === 'function') ? getItemFlagDef(flagKey) : null;
+  if (!def) return '';
+  const onlyEquipped = opts?.onlyEquipped !== false;
+  const types = Array.isArray(def.types) ? def.types : null;
+  const cands = [];
+  (sheetInventory || []).forEach((stored, idx) => {
+    const item = _resolveInvItem(stored);
+    if (onlyEquipped && !item.equipped) return;
+    if (types && !types.includes(item.type)) return;
+    cands.push({ idx, item });
+  });
+  if (!cands.length) {
+    return `<div style="margin-top:.6rem;padding:.4rem .6rem;border:1px dashed var(--bdr2);border-radius:var(--r);font-size:var(--fs-label);color:var(--text3)">${esc(def.label||flagKey)}: no eligible ${onlyEquipped?'equipped ':''}item</div>`;
+  }
+  const rows = cands.map(({idx,item}) => {
+    const on = Array.isArray(item.flags) && item.flags.includes(flagKey);
+    return `<button class="inv-equip-btn${on?' on':''}" style="${on?'background:var(--purple);border-color:var(--purple);color:#fff':'border-color:var(--purple);color:var(--purple)'}" onclick="event.stopPropagation();toggleItemFlag(${idx},'${flagKey}')">${on?luci('check')+' ':''}${esc(item.name)}</button>`;
+  }).join('');
+  return `<div style="margin-top:.6rem;display:flex;flex-direction:column;gap:.3rem">
+    <div style="font-size:var(--fs-label);color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em">${esc(def.label||flagKey)} — pick item</div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">${rows}</div>
+  </div>`;
+}
+
+function toggleItemFlag(idx, key){
+  if (!sheetInventory[idx] || !key) return;
+  const def = (typeof getItemFlagDef === 'function') ? getItemFlagDef(key) : null;
+  const item = sheetInventory[idx];
+  if (!Array.isArray(item.flags)) item.flags = [];
+  const has = item.flags.includes(key);
+  if (has) {
+    item.flags = item.flags.filter(f => f !== key);
+  } else {
+    item.flags.push(key);
+    const maxCount = def ? Number(def.maxCount || 0) : 0;
+    if (maxCount > 0) {
+      let count = 0;
+      for (let i = sheetInventory.length - 1; i >= 0; i--) {
+        if (i === idx) { count++; continue; }
+        const other = sheetInventory[i];
+        if (Array.isArray(other.flags) && other.flags.includes(key)) {
+          if (count >= maxCount) other.flags = other.flags.filter(f => f !== key);
+          else count++;
+        }
+      }
+    }
+  }
+  persistInventory();
+  renderStatsRow();
+  renderSaves();
+  renderSkills();
+  renderSenses();
+  renderRightTop();
+  renderInventoryList();
+  renderActionsTab();
 }
 
 function renderInventoryList(){
@@ -4982,7 +5159,8 @@ function renderInventoryList(){
           ${meta?`<div style="font-size:var(--fs-label);color:var(--text3);margin-top:1px">${esc(meta)}</div>`:''}
         </div>
         ${canEquip?`<button class="inv-equip-btn${item.equipped?' on':''}" onclick="toggleEquip(${idx})">${item.equipped?`${luci('check')} Equip.`:'Equip'}</button>`:''}
-        ${(()=>{ if(!item.equipped) return ''; const ovr=_getActiveWeaponOverrides().filter(function(o){return !o.weaponTypes||o.weaponTypes.includes(item.type);}); return ovr.map(function(o){return `<button class="inv-equip-btn${item.weaponMod===o.key?' on':''}" onclick="setWeaponOverride(${idx},'${o.key}')" title="Usa ${o.ability.toUpperCase()} per attacco e danno">${esc(o.label)}</button>`;}).join(''); })()}
+        ${(()=>{ const elig=_sheetGetEligibleFlagsFor(item); if(!elig.length) return ''; return elig.map(function(def){const on=_sheetItemHasFlag(item,def.key); return `<button class="inv-equip-btn${on?' on':''}" style="${on?'background:var(--purple);border-color:var(--purple);color:#fff':'border-color:var(--purple);color:var(--purple)'}" onclick="toggleItemFlag(${idx},'${def.key}')" title="${esc(def.label||def.key)}">${def.icon?luci(def.icon)+' ':''}${esc(def.label||def.key)}</button>`;}).join(''); })()}
+        ${(()=>{ if(!item.equipped) return ''; const ovr=_getActiveWeaponOverrides().filter(function(o){return (!o.weaponTypes||o.weaponTypes.includes(item.type)) && !o.itemFlag;}); return ovr.map(function(o){return `<button class="inv-equip-btn${item.weaponMod===o.key?' on':''}" onclick="setWeaponOverride(${idx},'${o.key}')" title="Usa ${o.ability.toUpperCase()} per attacco e danno">${esc(o.label)}</button>`;}).join(''); })()}
         <div class="inv-qty-wrap">
           <button class="inv-qty-btn" onclick="changeSheetInvQty(${idx},-1)">−</button>
           <div class="inv-qty-val">${item.qty||1}</div>
@@ -6167,7 +6345,9 @@ function buildWeaponCard(item, invIdx){
   const isTwoHanded=isVersatile&&item.versatileHand==='2h';
   const bonus=parseInt((item.bonusWeapon||'0').replace('+',''))||0;
   const activeOverrides=_getActiveWeaponOverrides();
-  const weaponOverride=item.weaponMod ? activeOverrides.find(function(o){return o.key===item.weaponMod;}) : null;
+  const _flagOverride = activeOverrides.find(function(o){return o.itemFlag && Array.isArray(item.flags) && item.flags.includes(o.itemFlag);});
+  const weaponOverride = _flagOverride
+    || (item.weaponMod ? activeOverrides.find(function(o){return o.key===item.weaponMod;}) : null);
   const profInfo = _sheetWeaponProficiencyInfo(item, weaponOverride);
   const profBonus = profInfo.proficient ? pb : 0;
   let atkMod,dmgMod,abilityMod;
@@ -6588,6 +6768,11 @@ function buildClassActionCard(a){
   const genericRollRow = _buildGenericActionRollButtons(a);
   const barHtml = (resInline || inlinePills || genericRollRow) ? (resInline + inlinePills + genericRollRow) : '';
 
+  let _extra = '';
+  if (typeof a.extraBodyHtml === 'function') {
+    try { _extra = String(a.extraBodyHtml(_ctx) || ''); } catch(_) { _extra = ''; }
+  }
+
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
       <span class="action-card-icon">${a.icon?luci(a.icon):''}</span>
@@ -6602,6 +6787,7 @@ function buildClassActionCard(a){
     ${barHtml ? `<div class="action-card-bar">${barHtml}</div>` : ''}
     <div class="action-card-body">
       <div class="action-desc">${esc(_stripSheetTags(_desc))}</div>
+      ${_extra}
     </div>
   </div>`;
 }

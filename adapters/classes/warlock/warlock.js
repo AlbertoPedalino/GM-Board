@@ -248,6 +248,31 @@ registerClassSheetActions("Warlock", [
 ]);
 // [SheetRuntime] END
 
+// Pact Weapon: unified via `pactWeapon` item flag. Weapon override `pact_blade` binds to it.
+if (typeof registerItemFlagDef === 'function') {
+  registerItemFlagDef("pactWeapon", {
+    label: "Pact Weapon",
+    icon: "swords",
+    types: ['M', 'R'],
+    maxCount: 1,
+    requireClass: "Warlock",
+    requireInvocation: "Pact of the Blade",
+  });
+}
+
+// Sheet effects driven by Eldritch Invocations (free-form choice keys → use condition fn)
+registerClassSheetEffects("Warlock", [
+  { type: "sense", senseType: "truesight", value: 30, minLevel: 15,
+    note: "Witch Sight",
+    condition: function(C){ return _warlockHasInvocation(C, "Witch Sight"); } },
+  { type: "sense", senseType: "darkvision", value: 120, minLevel: 1,
+    note: "Devil's Sight (sees through magical darkness)",
+    condition: function(C){ return _warlockHasInvocation(C, "Devil's Sight"); } },
+  { type: "advantage", target: "save", ability: "con", minLevel: 1,
+    note: "Eldritch Mind (Concentration saves)",
+    condition: function(C){ return _warlockHasInvocation(C, "Eldritch Mind"); } },
+]);
+
 if (typeof registerClassAtWillSpells === 'function') {
   registerClassAtWillSpells('Warlock', [
     { invocation: 'Armor of Shadows',          spell: 'Mage Armor',      minLevel: 1  },
@@ -277,10 +302,11 @@ if (typeof registerCantripDataModifier === 'function') {
 if (typeof registerWeaponAbilityOverride === 'function') {
   registerWeaponAbilityOverride({
     key: 'pact_blade',
-    label: 'Patto',
+    label: 'Pact Weapon',
     ability: 'cha',
     grantsProficiency: true,
-    weaponTypes: ['M'],
+    weaponTypes: ['M', 'R'],
+    itemFlag: 'pactWeapon',
     condition: function (C) {
       if (!C) return false;
       const isWarlock = C.className === 'Warlock' ||

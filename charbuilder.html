@@ -6358,6 +6358,10 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (!e || typeof e !== 'object') return false;
         if (Number(e.minLevel||1) > Number(ent.lv||1)) return false;
         if (e.requiredChoice && !_bldEffMatchChoice(e.requiredChoice, ent.prefix)) return false;
+        if (typeof e.condition === 'function') {
+          try { if (!e.condition(char, { entity: ent })) return false; } catch(_) { return false; }
+        }
+        if (e.requiredItemFlag) return false; // builder design-time: item flags evaluated only on play sheet
         return true;
       });
     }
