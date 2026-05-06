@@ -37,7 +37,8 @@
         let list = [];
         try { list = JSON.parse(raw); } catch (_) {}
         const now = Date.now();
-        const name = String(label || '').trim() || id;
+        const existing = list.find(x => x && x.id === id);
+        const name = (existing && existing.name) || String(label || '').trim() || id;
         list = [{ id, name, updatedAt: now }, ...list.filter(x => x && x.id !== id)].slice(0, 20);
         rawSet.call(localStorage, 'gb_char_registry', JSON.stringify(list));
       };

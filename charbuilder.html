@@ -33,12 +33,14 @@
       rawSet.call(localStorage, 'gb_active_char_id', id);
       window.GB_CHAR_ID = id;
       window.gbScopedHref = page => `${page}?char=${encodeURIComponent(id)}`;
-      window.gbRegisterCharScope = function (label) {
+      window.gbRegisterCharScope = function (label, opts) {
         const raw = rawGet.call(localStorage, 'gb_char_registry') || '[]';
         let list = [];
         try { list = JSON.parse(raw); } catch (_) {}
         const now = Date.now();
-        const name = String(label || '').trim() || id;
+        const existing = list.find(x => x && x.id === id);
+        const force = !!(opts && opts.force);
+        const name = (!force && existing && existing.name) ? existing.name : (String(label || '').trim() || id);
         list = [{ id, name, updatedAt: now }, ...list.filter(x => x && x.id !== id)].slice(0, 20);
         rawSet.call(localStorage, 'gb_char_registry', JSON.stringify(list));
       };
@@ -7085,7 +7087,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
           })),
       };
       localStorage.setItem('5e_current_char', JSON.stringify(saved));
-      if (typeof gbRegisterCharScope === 'function') gbRegisterCharScope(saved.name || saved.className || 'Unnamed Character');
+      if (typeof gbRegisterCharScope === 'function') gbRegisterCharScope(saved.name || saved.className || 'Unnamed Character', {force: true});
       localStorage.setItem('5e_inventory', JSON.stringify(inventory || []));
       localStorage.setItem('5e_currency', JSON.stringify(char.currency || { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 }));
       localStorage.setItem('5e_xp', String(char.xp || 0));
@@ -7178,7 +7180,7 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
         if (!n) throw new Error('Nessun dato valido trovato');
         try {
           const cc = JSON.parse(localStorage.getItem('5e_current_char') || 'null');
-          if (cc && typeof gbRegisterCharScope === 'function') gbRegisterCharScope(cc.name || cc.className || 'Imported Character');
+          if (cc && typeof gbRegisterCharScope === 'function') gbRegisterCharScope(cc.name || cc.className || 'Imported Character', {force: true});
         } catch (_) {}
         setMsg('Scheda importata. Ricarico…', 'var(--gold2)');
         setTimeout(() => location.reload(), 350);
