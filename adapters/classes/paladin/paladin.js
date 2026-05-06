@@ -37,17 +37,6 @@ registerClassSheetActions("Paladin", [
     "desc": "Touch a creature to restore HP from your pool (1 HP per point spent), or spend 5 points to remove the Poisoned condition. Pool = 5 × Paladin level. Recharge: Long Rest."
   },
   {
-    "name": "Divine Smite",
-    "icon": "",
-    "cat": "reaction",
-    "uses": "Spell slot",
-    "minLevel": 1,
-    "damagePromptDefault": "2d8",
-    "damagePromptLabel": "Smite ?",
-    "rollLabelPrefix": "Divine Smite",
-    "desc": "Reaction when you hit with a Melee weapon. Expend a spell slot: deal 2d8 Radiant damage (+1d8 per slot level above 1st, max 6d8). Critical hit: extra 1d8. Once per turn."
-  },
-  {
     "name": "Channel Divinity",
     "icon": "",
     "cat": "action",

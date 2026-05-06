@@ -5292,7 +5292,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       document.getElementById('level-grid').innerHTML = h;
 
       const caster = char.cls ? _clsCasterProg(char.cls.name, char.cls, char.subclassShortName) : null;
-      const cLbl = caster === 'full' ? 'Full' : (caster === '1/2' || caster === 'half') ? '½' : caster === 'artificer' ? 'Artif.' : caster === 'pact' ? 'Patto' : '';
+      const casterMap = { full: 'Full', half: 'Half', artificer: 'Artif.', pact: 'Pact' };
+      const cLbl = casterMap[caster] || '';
       const faces = char.cls?.hd?.faces || char.cls?.hd?.[0]?.faces || '?';
       const hp = calcMaxHP();
 
@@ -5444,13 +5445,14 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       return 8;
     }
     function _clsCasterProg(clsName, clsObj, scName) {
+      if (typeof getClassRuntimeConfig === 'function') {
+        const p = getClassRuntimeConfig(clsName)?.spellcasting?.casterProgression;
+        if (p) return p;
+      }
       if (clsObj?.casterProgression) return clsObj.casterProgression;
       if (typeof getSpellcastingProfile === 'function') {
         const p = getSpellcastingProfile(clsName, scName || '', clsObj || null);
         if (p?.casterProgression) return p.casterProgression;
-      }
-      if (typeof getClassRuntimeConfig === 'function') {
-        return getClassRuntimeConfig(clsName)?.spellcasting?.casterProgression || null;
       }
       return null;
     }
@@ -5572,7 +5574,8 @@ document.addEventListener('DOMContentLoaded', refreshIcons);
       }
       document.getElementById('level-grid').innerHTML = h;
       const caster = _clsCasterProg(ec.name, ec.cls, ec.subclassShortName);
-      const cLbl = caster==='full'?'Full':(caster==='1/2'||caster==='half')?'½':caster==='artificer'?'Artif.':caster==='pact'?'Patto':'';
+      const casterMap = { full: 'Full', '1/2': 'Half', half: 'Half', artificer: 'Artif.', pact: 'Patto' };
+      const cLbl = casterMap[caster] || '';
       const faces = ec.cls?.hd?.faces || '?';
       let extraHpHtml = '';
       if (char.hpMode === 'rolled' && (ec.level||1) > 0) {

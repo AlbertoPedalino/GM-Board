@@ -27,7 +27,7 @@
 
   regClass("Barbarian", {
     multiclassPrerequisites: [{ str: 13 }],
-    unarmoredDefense: [{ base: 10, abilities: ["dex", "con"], allowShield: true, minLevel: 1 }],
+    unarmoredDefense: [{ name: "Unarmored Defense", base: 10, abilities: ["dex", "con"], allowShield: true, minLevel: 1 }],
   });
   regClass("Bard", {
     multiclassPrerequisites: [{ cha: 13 }],
@@ -84,7 +84,7 @@
   });
   regClass("Monk", {
     multiclassPrerequisites: [{ dex: 13, wis: 13 }],
-    unarmoredDefense: [{ base: 10, abilities: ["dex", "wis"], allowShield: false, minLevel: 1 }],
+    unarmoredDefense: [{ name: "Unarmored Defense", base: 10, abilities: ["dex", "wis"], allowShield: false, minLevel: 1 }],
   });
   regClass("Paladin", {
     multiclassPrerequisites: [{ str: 13, cha: 13 }],
@@ -168,7 +168,7 @@
   });
 
   regSubclass("Bard_Dance", {
-    unarmoredDefense: [{ base: 10, abilities: ["dex", "cha"], allowShield: false, minLevel: 3 }],
+    unarmoredDefense: [{ name: "Dance of the Wind", base: 10, abilities: ["dex", "cha"], allowShield: false, minLevel: 3 }],
     unarmedStrike: {
       minLevel: 3,
       requiresNoArmor: true,
@@ -194,6 +194,9 @@
         subclass_ek_cantrip_2: { label: "Eldritch Knight", ability: "int" },
       },
     },
+  });
+  regSubclass("Paladin_Noble Genies", {
+    unarmoredDefense: [{ name: "Genie's Splendor", base: 10, abilities: ["dex", "cha"], allowShield: true, minLevel: 3 }],
   });
   regSubclass("Rogue_Arcane Trickster", {
     spellcasting: {

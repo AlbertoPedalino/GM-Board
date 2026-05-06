@@ -3264,7 +3264,7 @@ function renderRightTop(){
         if (!rule.allowShield && hasShield) return;
         const abilities = Array.isArray(rule.abilities) ? rule.abilities : [];
         if (!abilities.length) return;
-        const txt = `Unarmored Defense (${abilities.map(a => String(a || '').toUpperCase()).join('+')})`;
+        const txt = `${rule.name || 'Unarmored Defense'} (${abilities.map(a => String(a || '').toUpperCase()).join('+')})`;
         labels.add(txt);
       });
     };
@@ -6875,6 +6875,32 @@ function buildClassActionCard(a){
     try { _extra = String(a.extraBodyHtml(_ctx) || ''); } catch(_) { _extra = ''; }
   }
 
+  // Sub-options: nested expandable cards with optional roll buttons
+  let _subOpts = '';
+  const subOpts = Array.isArray(a.subOptions) ? a.subOptions : [];
+  if (subOpts.length) {
+    _subOpts = `<div style="margin-top:.6rem;border-top:1px solid var(--bdr2);padding-top:.5rem;display:flex;flex-direction:column;gap:.35rem">` +
+      subOpts.map(o => {
+        const sid = 'so_'+Math.random().toString(36).slice(2);
+        const oDmg = typeof o.damageFormula === 'string' ? o.damageFormula : '';
+        const oDmgBtnLbl = typeof o.damageButtonLabel === 'function'
+          ? (function(){ try { return String(o.damageButtonLabel({formula: oDmg||''})); } catch(_){ return oDmg; } })()
+          : (typeof o.damageButtonLabel === 'string' ? o.damageButtonLabel : oDmg);
+        const oRoll = oDmg
+          ? `<div style="display:flex;gap:.3rem;margin-top:.3rem;flex-wrap:wrap">
+              <button class="roll-btn dmg" onclick="event.stopPropagation();rollDamage('${_jsEsc(oDmg)}','${_jsEsc(o.name)}')">${luci('flame')} ${esc(oDmgBtnLbl)}</button>
+            </div>`
+          : '';
+        return `<div class="action-card" id="${sid}" style="border:1px solid var(--bdr2)">
+          <div class="action-card-hdr" style="padding:.35rem .5rem" onclick="event.stopPropagation();toggleCard('${sid}')">
+            <span class="action-card-icon" style="font-size:var(--fs-icon-sm)">${luci(o.icon||'circle')}</span>
+            <div style="flex:1;min-width:0"><div class="action-card-name" style="font-size:var(--fs-body)">${esc(o.name)}</div></div>
+          </div>
+          <div class="action-card-body"><div class="action-desc" style="font-size:var(--fs-body)">${esc(o.desc||'')}</div>${oRoll}</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
+
   return `<div class="action-card" id="${id}">
     <div class="action-card-hdr" onclick="toggleCard('${id}')">
       <span class="action-card-icon">${a.icon?luci(a.icon):''}</span>
@@ -6889,7 +6915,7 @@ function buildClassActionCard(a){
     ${barHtml ? `<div class="action-card-bar">${barHtml}</div>` : ''}
     <div class="action-card-body">
       <div class="action-desc">${esc(_stripSheetTags(_desc))}</div>
-      ${_extra}
+      ${_extra}${_subOpts}
     </div>
   </div>`;
 }

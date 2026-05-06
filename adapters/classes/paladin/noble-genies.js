@@ -23,12 +23,18 @@ registerSubclassSheetActions("Paladin_Noble Genies", [
   },
   {
     "name": "Channel: Elemental Smite",
-    "icon": "",
+    "icon": "flame",
     "cat": "action",
     "uses": "1 Channel",
     "resKey": "paladin_channel_div",
     "minLevel": 3,
-    "desc": "Immediately after you deal Divine Smite damage, expend one use of Channel Divinity to choose one effect: Dao's Crush — the target is Grappled (escape DC = spell save DC) and Restrained while Grappled. Djinni's Escape — you teleport up to 30 ft to an unoccupied space you can see; until end of your next turn you are semi-incorporeal (Resistance to Bludgeoning/Piercing/Slashing; immune to Grappled/Prone/Restrained). Efreeti's Fury — deal an extra 2d4 Fire damage to the target, and deal 2d4 Fire damage to one creature of your choice within 30 ft of the target. Marid's Surge — each creature within a 10-ft Emanation of the target must succeed on a STR saving throw (spell save DC) or be pushed up to 15 ft from the target and knocked Prone."
+    "desc": "Immediately after you deal Divine Smite damage, expend one use of Channel Divinity to choose one elemental effect.",
+    "subOptions": [
+      { "name": "Dao's Crush", "icon": "hand", "desc": "The target is Grappled (escape DC = spell save DC) and Restrained while Grappled." },
+      { "name": "Djinni's Escape", "icon": "move", "desc": "Teleport up to 30 ft to an unoccupied space you can see. Until end of your next turn you are semi-incorporeal (Resistance to Bludgeoning/Piercing/Slashing; immune to Grappled/Prone/Restrained)." },
+      { "name": "Efreeti's Fury", "icon": "flame", "desc": "Deal an extra 2d4 Fire damage to the target, and deal 2d4 Fire damage to one creature of your choice within 30 ft of the target.", "damageFormula": "2d4", "damageButtonLabel": "2d4 fire" },
+      { "name": "Marid's Surge", "icon": "waves", "desc": "Each creature within a 10-ft Emanation of the target must succeed on a STR saving throw (spell save DC) or be pushed up to 15 ft from the target and knocked Prone." }
+    ]
   },
   {
     "name": "Aura of Elemental Shielding",
