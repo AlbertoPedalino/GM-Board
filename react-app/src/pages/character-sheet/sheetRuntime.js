@@ -195,8 +195,12 @@ function readIntLs(key, fallback = 0) {
   return Number.isFinite(v) ? v : fallback;
 }
 
-function getHitDieFaces() {
-  const hd = window.C?.clsSnapshot?.hd;
+function readActiveCharacter() {
+  return readJsonLs('5e_current_char', null);
+}
+
+function getHitDieFaces(character) {
+  const hd = character?.clsSnapshot?.hd;
   if (!hd) return 8;
   if (hd.faces) return hd.faces;
   if (Array.isArray(hd) && hd[0]?.faces) return hd[0].faces;
@@ -204,7 +208,8 @@ function getHitDieFaces() {
 }
 
 export function computeVitals() {
-  const { calcMaxHP, C } = window;
+  const { calcMaxHP } = window;
+  const character = readActiveCharacter();
 
   const currentHP = readIntLs('5e_hp_current', 0);
   const tempHP = readIntLs('5e_hp_temp', 0);
@@ -216,10 +221,10 @@ export function computeVitals() {
   const deathSuccess = Math.max(0, Math.min(3, Number(ds.success) || 0));
   const deathFail = Math.max(0, Math.min(3, Number(ds.fail) || 0));
 
-  const total = Number(C?.level) || 0;
+  const total = Number(character?.level) || 0;
   const usedHD = readIntLs('5e_hd_used', 0);
   const remainingHD = Math.max(0, total - usedHD);
-  const faces = getHitDieFaces();
+  const faces = getHitDieFaces(character);
 
   const pips = [];
   for (let i = 0; i < total; i += 1) {
@@ -255,7 +260,6 @@ export function computeVitals() {
 
 export function computeScores() {
   const {
-    C,
     getFinal,
     getMod,
     getPB,
@@ -263,8 +267,9 @@ export function computeScores() {
     _sheetSpeedBonus,
     _sheetHasNonProficientArmor,
     _sheetAdvFor,
-    cachedEncLevel,
   } = window;
+  const character = readActiveCharacter();
+  const cachedEncLevel = Number(window.cachedEncLevel) || 0;
 
   if (typeof getFinal !== 'function' || typeof getMod !== 'function' || typeof getPB !== 'function') {
     return { ready: false, scores: [], pb: '', speed: null };
@@ -302,7 +307,7 @@ export function computeScores() {
     };
   });
 
-  const speciesSpeed = C?.speciesSnapshot?.speed ?? 30;
+  const speciesSpeed = character?.speciesSnapshot?.speed ?? 30;
   const spdMap = typeof speciesSpeed === 'object' ? speciesSpeed : { walk: speciesSpeed };
   const baseWalk = Number(spdMap.walk ?? (typeof speciesSpeed === 'number' ? speciesSpeed : 30));
   const setWalk = typeof _sheetSpeedSet === 'function' ? _sheetSpeedSet('walk') : 0;
@@ -337,7 +342,6 @@ export function computeScores() {
 
 function computeDefenses() {
   const {
-    C,
     _sheetExtraResists,
     _sheetExtraImmunes,
     _sheetExtraCondImmunes,
@@ -348,6 +352,7 @@ function computeDefenses() {
     _sheetGetSpeciesRuntimeConfig,
     _sheetArmorTrainingIssues,
   } = window;
+  const C = readActiveCharacter();
 
   const items = [];
 
@@ -550,11 +555,12 @@ export function rollAbilityCheck(stat, mod, advFlag) {
 }
 
 export function computeSenses() {
-  const { getSkillBonus, _sheetExtraSenses, C } = window;
+  const { getSkillBonus, _sheetExtraSenses } = window;
   if (typeof getSkillBonus !== 'function') return [];
 
+  const character = readActiveCharacter();
   const extra = typeof _sheetExtraSenses === 'function' ? _sheetExtraSenses() : {};
-  const speciesDarkvision = C?.speciesSnapshot?.darkvision || 0;
+  const speciesDarkvision = character?.speciesSnapshot?.darkvision || 0;
   const dv = Math.max(speciesDarkvision, extra?.darkvision || 0);
 
   const rows = [
