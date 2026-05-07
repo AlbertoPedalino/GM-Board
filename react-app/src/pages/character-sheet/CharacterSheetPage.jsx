@@ -84,15 +84,38 @@ if (typeof renderAll === 'function') renderAll();
 if (typeof loadItems === 'function') {
   Promise.resolve(loadItems()).then(function(){
     try {
-      if (Array.isArray(sheetInventory) && typeof _resolveInvItem === 'function') {
+      if (Array.isArray(sheetInventory)) {
         var dirty = false;
+        var inferType = function(it){
+          if (!it) return '';
+          if (it.dmg1) {
+            var props = Array.isArray(it.property) ? it.property : [];
+            if (props.indexOf('A') >= 0 || props.indexOf('ammo') >= 0 || props.indexOf('R') >= 0 || props.indexOf('range') >= 0) return 'R';
+            return 'M';
+          }
+          if (it.ac != null && it.ac !== '') {
+            var ac = Number(it.ac) || 0;
+            var nm = String(it.name || '').toLowerCase();
+            if (nm.indexOf('shield') >= 0) return 'S';
+            if (ac >= 16) return 'HA';
+            if (ac >= 13) return 'MA';
+            return 'LA';
+          }
+          return '';
+        };
         sheetInventory.forEach(function(it){
           if (!it || it.custom || it.type) return;
-          var enriched = _resolveInvItem(it);
-          if (enriched && enriched.type) { it.type = enriched.type; dirty = true; }
-          if (enriched && enriched.dmg1 && !it.dmg1) { it.dmg1 = enriched.dmg1; dirty = true; }
-          if (enriched && enriched.ac != null && it.ac == null) { it.ac = enriched.ac; dirty = true; }
-          if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.slice(); dirty = true; }
+          if (typeof _resolveInvItem === 'function') {
+            var enriched = _resolveInvItem(it);
+            if (enriched && enriched.type) { it.type = enriched.type; dirty = true; }
+            if (enriched && enriched.dmg1 && !it.dmg1) { it.dmg1 = enriched.dmg1; dirty = true; }
+            if (enriched && enriched.ac != null && it.ac == null) { it.ac = enriched.ac; dirty = true; }
+            if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.slice(); dirty = true; }
+          }
+          if (!it.type) {
+            var inferred = inferType(it);
+            if (inferred) { it.type = inferred; dirty = true; }
+          }
         });
         if (dirty && typeof persistInventory === 'function') persistInventory();
       }
