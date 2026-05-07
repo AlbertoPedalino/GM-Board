@@ -183,9 +183,3 @@ export function writeSheetXp(nextXp) {
   localStorage.setItem('5e_xp', String(xp));
   return xp;
 }
-
-export function readCharacterSheetTabs() {
-  return {
-    spellsHtml: document.getElementById('spells-wrap')?.innerHTML || '',
-  };
-}

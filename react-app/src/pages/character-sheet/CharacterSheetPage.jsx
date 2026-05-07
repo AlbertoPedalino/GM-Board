@@ -3,7 +3,6 @@ import CharacterSheetLayout from './CharacterSheetLayout.jsx';
 import {
   configureCharacterSheetScope,
   readCharacterSheetHeader,
-  readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
 import {
@@ -16,6 +15,7 @@ import {
   computeScores,
   computeSenses,
   computeSkills,
+  computeSpells,
   computeSummary,
   computeVitals,
 } from './sheetRuntime.js';
@@ -267,11 +267,11 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetVitals, setSheetVitals] = useState(() => computeVitals());
   const [sheetScores, setSheetScores] = useState(() => computeScores());
   const [sheetProficiencies, setSheetProficiencies] = useState(() => computeProficiencies());
-  const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
   const [sheetActions, setSheetActions] = useState(() => computeActions());
   const [sheetBackground, setSheetBackground] = useState(() => computeBackground());
   const [sheetFeatures, setSheetFeatures] = useState(() => computeFeatures());
   const [sheetInventory, setSheetInventory] = useState(() => computeInventory());
+  const [sheetSpells, setSheetSpells] = useState(() => computeSpells());
   const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
   const [sheetSenses, setSheetSenses] = useState(() => computeSenses());
   const [sheetSkillsRows, setSheetSkillsRows] = useState(() => computeSkills());
@@ -326,11 +326,11 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetVitals(computeVitals());
       setSheetScores(computeScores());
       setSheetProficiencies(computeProficiencies());
-      setSheetTabs(readCharacterSheetTabs());
       setSheetActions(computeActions());
       setSheetBackground(computeBackground());
       setSheetFeatures(computeFeatures());
       setSheetInventory(computeInventory());
+      setSheetSpells(computeSpells());
       setSheetSaves(computeSaves());
       setSheetSenses(computeSenses());
       setSheetSkillsRows(computeSkills());
@@ -347,11 +347,11 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetVitals(computeVitals());
         setSheetScores(computeScores());
         setSheetProficiencies(computeProficiencies());
-        setSheetTabs(readCharacterSheetTabs());
         setSheetActions(computeActions());
         setSheetBackground(computeBackground());
         setSheetFeatures(computeFeatures());
         setSheetInventory(computeInventory());
+        setSheetSpells(computeSpells());
         setSheetSaves(computeSaves());
         setSheetSenses(computeSenses());
         setSheetSkillsRows(computeSkills());
@@ -372,11 +372,11 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetVitals(computeVitals());
     setSheetScores(computeScores());
     setSheetProficiencies(computeProficiencies());
-    setSheetTabs(readCharacterSheetTabs());
     setSheetActions(computeActions());
     setSheetBackground(computeBackground());
     setSheetFeatures(computeFeatures());
     setSheetInventory(computeInventory());
+    setSheetSpells(computeSpells());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
@@ -410,11 +410,11 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetVitals(computeVitals());
     setSheetScores(computeScores());
     setSheetProficiencies(computeProficiencies());
-    setSheetTabs(readCharacterSheetTabs());
     setSheetActions(computeActions());
     setSheetBackground(computeBackground());
     setSheetFeatures(computeFeatures());
     setSheetInventory(computeInventory());
+    setSheetSpells(computeSpells());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
@@ -477,11 +477,11 @@ export default function CharacterSheetPage({ active, title }) {
             vitals={sheetVitals}
             scores={sheetScores}
             proficiencies={sheetProficiencies}
-            tabs={sheetTabs}
             actions={sheetActions}
             background={sheetBackground}
             features={sheetFeatures}
             inventory={sheetInventory}
+            spells={sheetSpells}
             saves={sheetSaves}
             senses={sheetSenses}
             skills={sheetSkillsRows}

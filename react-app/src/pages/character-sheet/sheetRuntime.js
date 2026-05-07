@@ -102,6 +102,30 @@ const WEAPON_PROP_LABELS = {
   REACH: 'Reach',
 };
 
+const SCHOOL_LABELS = {
+  A: 'Abjuration',
+  C: 'Conjuration',
+  D: 'Divination',
+  E: 'Enchantment',
+  I: 'Illusion',
+  N: 'Necromancy',
+  T: 'Transmutation',
+  V: 'Evocation',
+};
+
+const SPELL_LEVEL_LABELS = [
+  'Cantrip',
+  '1st Level',
+  '2nd Level',
+  '3rd Level',
+  '4th Level',
+  '5th Level',
+  '6th Level',
+  '7th Level',
+  '8th Level',
+  '9th Level',
+];
+
 export const INVENTORY_FILTERS = [
   { key: 'all', label: 'All', icon: '' },
   { key: 'weapon', label: 'Weapons', icon: 'swords' },
@@ -1654,6 +1678,47 @@ function normalizeDiceFormula(formula) {
   return String(formula || '').replace(/\s+/g, '').replace(/\u2212/g, '-');
 }
 
+function parseFormula(formula) {
+  const match = normalizeDiceFormula(formula).match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!match) return null;
+  return {
+    count: Number(match[1]),
+    faces: Number(match[2]),
+    mod: Number(match[3] || 0),
+  };
+}
+
+function cantripDice(level) {
+  return level >= 17 ? 4 : level >= 11 ? 3 : level >= 5 ? 2 : 1;
+}
+
+function extractFirstDamageFormulaFromEntries(entries) {
+  const text = JSON.stringify(entries || []);
+  if (!text || text === '[]') return '';
+
+  const tagMatch = text.match(/\{@(?:damage|scaledamage)\s+([^}|]+)[^}]*\}/i);
+  if (tagMatch) {
+    const formula = normalizeDiceFormula(tagMatch[1]);
+    const parsed = parseFormula(formula);
+    if (parsed && !(parsed.faces === 20 && parsed.count <= 2)) return formula;
+  }
+
+  const plain = text.match(/\b(?:takes?|deal(?:s|ing)?|damage)\b[^.]{0,220}?\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
+  if (plain) {
+    const formula = normalizeDiceFormula(plain[1]);
+    const parsed = parseFormula(formula);
+    if (parsed && !(parsed.faces === 20 && parsed.count <= 2)) return formula;
+  }
+
+  return '';
+}
+
+function scaleCantripFormula(baseFormula, level) {
+  const parsed = parseFormula(baseFormula);
+  if (!parsed) return normalizeDiceFormula(baseFormula);
+  return `${parsed.count * cantripDice(level || 1)}d${parsed.faces}${parsed.mod ? (parsed.mod >= 0 ? '+' : '') + parsed.mod : ''}`;
+}
+
 function extractActionDamageFormula(action, character) {
   const ctx = { character, action, ownerLevel: getActionOwnerLevel(action, character) };
   const candidates = [
@@ -1978,4 +2043,236 @@ export function toggleWeaponHand(index) {
 
 export function toggleVersatile(index) {
   if (typeof window.toggleVersatile === 'function') window.toggleVersatile(index);
+}
+
+function getSpellLevelByName(character, name) {
+  const lower = String(name || '').toLowerCase();
+  const snap = (character?.spellSnapshots || []).find((spell) => String(spell?.name || '').toLowerCase() === lower);
+  return typeof snap?.level === 'number' ? snap.level : null;
+}
+
+function getSpellSnapshot(character, name) {
+  const lower = String(name || '').toLowerCase();
+  return (character?.spellSnapshots || []).find((spell) => String(spell?.name || '').toLowerCase() === lower) || null;
+}
+
+function mergeSelectedSpells(character) {
+  const merged = {};
+  const merge = (source) => {
+    Object.entries(source || {}).forEach(([level, names]) => {
+      if (!merged[level]) merged[level] = [];
+      merged[level] = [...new Set([...merged[level], ...(Array.isArray(names) ? names : [])])];
+    });
+  };
+  merge(character?.selectedSpells || {});
+  (character?.extraClasses || []).forEach((extraClass) => merge(extraClass?.selectedSpells || {}));
+  return merged;
+}
+
+function getSpellSlots(character) {
+  const fullSlots = window.FULL_SLOTS || [];
+  const halfSlots = window.HALF_SLOTS || [];
+  const thirdSlots = window.THIRD_SLOTS || [];
+  const level = Number(character?.level || 1);
+  const extra = character?.extraClasses || [];
+  const primaryLevel = Number(character?.classLevel || (level - extra.reduce((sum, entry) => sum + (Number(entry?.level) || 1), 0)) || level);
+  const profile = typeof window._sheetSpellcastingProfile === 'function'
+    ? window._sheetSpellcastingProfile(character?.className || '', character?.subclassShortName || '', character?.clsSnapshot || {})
+    : {};
+  const progression = typeof window._sheetCasterProgression === 'function'
+    ? window._sheetCasterProgression(profile?.casterProgression || character?.clsSnapshot?.casterProgression)
+    : (profile?.casterProgression || character?.clsSnapshot?.casterProgression || '');
+
+  const casterContribution = (className, classLevel, subclassName, classSnapshot) => {
+    if (typeof window._sheetSpellcastingProfile !== 'function' || typeof window._sheetCasterProgression !== 'function' || typeof window._sheetCasterContribution !== 'function') {
+      return 0;
+    }
+    const p = window._sheetSpellcastingProfile(className || '', subclassName || '', classSnapshot || {});
+    const t = window._sheetCasterProgression(p?.casterProgression || classSnapshot?.casterProgression);
+    return window._sheetCasterContribution(t, classLevel);
+  };
+
+  let regular = [];
+  let warlockLevel = progression === 'pact' ? primaryLevel : 0;
+
+  if (extra.length) {
+    let casterLevel = casterContribution(character?.className || '', primaryLevel, character?.subclassShortName || '', character?.clsSnapshot || {});
+    extra.forEach((extraClass) => {
+      const extraProfile = typeof window._sheetSpellcastingProfile === 'function'
+        ? window._sheetSpellcastingProfile(extraClass?.name || '', extraClass?.subclassShortName || '', extraClass?.clsSnapshot || {})
+        : {};
+      const extraProgression = typeof window._sheetCasterProgression === 'function'
+        ? window._sheetCasterProgression(extraProfile?.casterProgression || extraClass?.clsSnapshot?.casterProgression)
+        : '';
+      casterLevel += casterContribution(extraClass?.name || '', Number(extraClass?.level || 1), extraClass?.subclassShortName || '', extraClass?.clsSnapshot || {});
+      if (extraProgression === 'pact') warlockLevel += Number(extraClass?.level || 1);
+    });
+    casterLevel = Math.floor(casterLevel);
+    regular = casterLevel > 0 ? (fullSlots[Math.min(casterLevel, 20)] || []) : [];
+  } else if (progression === 'full') regular = fullSlots[level] || [];
+  else if (progression === '1/2' || progression === 'half') regular = halfSlots[level] || [];
+  else if (progression === '1/3') regular = thirdSlots[level] || [];
+  else if (progression === 'artificer') regular = fullSlots[Math.min(Math.ceil(level / 2), 20)] || [];
+
+  const pactSlots = window.PACT_SLOTS || [];
+  const pact = warlockLevel > 0 ? (pactSlots[Math.min(warlockLevel, 20)] || null) : null;
+
+  return {
+    regular: regular.map((total, index) => ({ level: index + 1, total: Number(total) || 0 })).filter((slot) => slot.total > 0),
+    pact: pact && pact.n > 0 ? { level: pact.l, total: pact.n, warlockLevel } : null,
+  };
+}
+
+export function computeSpells() {
+  const character = readActiveCharacter();
+  if (!character) return { hasSpells: false, emptyMessage: 'This character is not a spellcaster.' };
+
+  const selectedCantrips = [
+    ...(character.selectedCantrips || []),
+    ...(character.extraClasses || []).flatMap((extraClass) => extraClass?.selectedCantrips || []),
+  ];
+  const selectedSpells = mergeSelectedSpells(character);
+  const autoSpells = character.autoGrantedSpells || [];
+  const choiceSpellNames = [];
+  if (character.choices) {
+    Object.values(character.choices).forEach((rawValue) => {
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      values.forEach((value) => {
+        if (typeof value !== 'string') return;
+        const name = value.split('|')[0].trim();
+        const level = getSpellLevelByName(character, name);
+        if (level === 0 || (typeof level === 'number' && level >= 1 && level <= 9)) choiceSpellNames.push(name);
+      });
+    });
+  }
+
+  const cantrips = [...new Set([
+    ...selectedCantrips,
+    ...choiceSpellNames.filter((name) => getSpellLevelByName(character, name) === 0),
+    ...autoSpells.filter((spell) => spell.level === 0).map((spell) => spell.name),
+  ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
+  const leveledNames = new Set([
+    ...Object.values(selectedSpells).flat(),
+    ...choiceSpellNames.filter((name) => {
+      const level = getSpellLevelByName(character, name);
+      return typeof level === 'number' && level >= 1;
+    }),
+    ...autoSpells.filter((spell) => typeof spell.level === 'number' && spell.level >= 1).map((spell) => spell.name),
+  ].filter(Boolean));
+
+  const spellSlots = getSpellSlots(character);
+  const slotsUsed = readJsonLs('5e_slots_used', {}) || {};
+  const stats = {
+    dc: typeof window.getSpellSaveDC === 'function' ? window.getSpellSaveDC() : 0,
+    attack: typeof window.getSpellAttackBonus === 'function' ? fbonus(window.getSpellAttackBonus()) : '+0',
+    ability: typeof window.getSpellAbility === 'function' ? SLBL[window.getSpellAbility()] || String(window.getSpellAbility()).toUpperCase() : '',
+    armorBlocked: typeof window._sheetHasNonProficientArmor === 'function' && window._sheetHasNonProficientArmor(),
+  };
+
+  const makeSpellRow = (name, castLevel = null) => {
+    const snap = getSpellSnapshot(character, name);
+    const baseLevel = typeof snap?.level === 'number' ? snap.level : getSpellLevelByName(character, name);
+    const entries = snap?.entries || [];
+    const damageBase = extractFirstDamageFormulaFromEntries(entries);
+    const damageFormula = baseLevel === 0 && damageBase ? scaleCantripFormula(damageBase, Number(character.level || 1)) : damageBase;
+    const lowerEntries = JSON.stringify(entries || []).toLowerCase();
+    const hasAttack = !!(snap?.spellAttack?.length || /\{@atk\s+/i.test(JSON.stringify(entries || [])) || /\bspell attack\b/.test(lowerEntries));
+    const hasSave = !!(snap?.savingThrow?.length || /\{@dc\s+/i.test(JSON.stringify(entries || [])) || /\bsaving throw\b/.test(lowerEntries));
+    const school = SCHOOL_LABELS[snap?.school] || snap?.school || '';
+    const range = snap?.range?.distance?.amount != null
+      ? `${snap.range.distance.amount} ${snap.range.distance.type || ''}`.trim()
+      : (snap?.range?.type || '');
+    const time = snap?.time?.[0] ? `${snap.time[0].number || 1} ${snap.time[0].unit || 'action'}` : '';
+    const components = snap?.components
+      ? [snap.components.v ? 'V' : null, snap.components.s ? 'S' : null, snap.components.m ? 'M' : null].filter(Boolean).join(', ')
+      : '';
+    const duration = snap?.duration?.[0]?.type || '';
+
+    return {
+      key: `${name}-${castLevel || baseLevel || 0}`,
+      name,
+      level: baseLevel,
+      castLevel,
+      school,
+      range,
+      time,
+      components,
+      duration,
+      concentration: !!snap?.concentration,
+      ritual: !!snap?.ritual,
+      entries,
+      meta: [time, range, components, duration].filter(Boolean),
+      hasAttack,
+      hasSave,
+      attackBonus: typeof window.getSpellAttackBonus === 'function' ? window.getSpellAttackBonus() : 0,
+      saveDc: stats.dc,
+      damageFormula,
+      spellUrl: snap?.source ? `https://5e.tools/spells.html#${encodeURIComponent(`${name}_${snap.source}`.toLowerCase())}` : '',
+    };
+  };
+
+  const sections = [];
+  if (cantrips.length) {
+    sections.push({
+      key: 'cantrip',
+      level: 0,
+      label: SPELL_LEVEL_LABELS[0],
+      spells: cantrips.map((name) => makeSpellRow(name, 0)),
+    });
+  }
+
+  for (let level = 1; level <= 9; level += 1) {
+    const names = [...leveledNames]
+      .filter((name) => getSpellLevelByName(character, name) === level)
+      .sort((a, b) => a.localeCompare(b));
+    if (!names.length) continue;
+    sections.push({
+      key: `level-${level}`,
+      level,
+      label: SPELL_LEVEL_LABELS[level],
+      spells: names.map((name) => makeSpellRow(name, level)),
+    });
+  }
+
+  const hasCaster = !!(
+    character.clsSnapshot?.casterProgression ||
+    (character.selectedCantrips || []).length ||
+    Object.values(character.selectedSpells || {}).flat().length ||
+    (character.extraClasses || []).some((extraClass) => (
+      extraClass?.clsSnapshot?.casterProgression ||
+      (extraClass?.selectedCantrips || []).length ||
+      Object.values(extraClass?.selectedSpells || {}).flat().length
+    ))
+  );
+
+  return {
+    hasSpells: hasCaster || cantrips.length > 0 || leveledNames.size > 0 || autoSpells.length > 0,
+    stats,
+    slots: {
+      regular: spellSlots.regular.map((slot) => ({
+        ...slot,
+        used: Math.min(Number(slotsUsed[slot.level]) || 0, slot.total),
+      })),
+      pact: spellSlots.pact ? {
+        ...spellSlots.pact,
+        used: Math.min(Number(slotsUsed[spellSlots.pact.level]) || 0, spellSlots.pact.total),
+      } : null,
+    },
+    sections,
+    emptyMessage: 'This character is not a spellcaster.',
+    noSpellsMessage: 'No spells selected.',
+  };
+}
+
+export function toggleSpellSlot(level, index) {
+  if (typeof window.toggleSlot === 'function') window.toggleSlot(level, index);
+}
+
+export function togglePactSpellSlot(level, total, index) {
+  if (typeof window.togglePactSlot === 'function') window.togglePactSlot(level, total, index);
+}
+
+export function openSpellPicker() {
+  if (typeof window.openSpellPicker === 'function') window.openSpellPicker();
 }

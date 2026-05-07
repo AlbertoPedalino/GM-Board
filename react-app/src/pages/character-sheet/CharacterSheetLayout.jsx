@@ -15,10 +15,13 @@ import {
   rollInitiative,
   rollSave,
   rollSkill,
+  openSpellPicker,
   readSheetNotes,
   setInventoryWeaponOverride,
   toggleInventoryEquip,
   toggleInventoryFlag,
+  togglePactSpellSlot,
+  toggleSpellSlot,
   toggleVersatile,
   toggleWeaponHand,
   writeSheetNotes,
@@ -992,16 +995,6 @@ function NotesTextarea() {
   );
 }
 
-function HtmlBlock({ html, className, style }) {
-  return (
-    <div
-      className={className}
-      style={style}
-      dangerouslySetInnerHTML={{ __html: html || '' }}
-    />
-  );
-}
-
 function EntryText({ text }) {
   const raw = String(text || '').replace(/\{[^}]+\}/g, '');
   const tagPattern = /\{@([a-z]+)\s+([^}]+)\}/gi;
@@ -1741,6 +1734,177 @@ function ActionsTab({ actions, activeFilter, onFilterChange, onRuntimeRefresh })
   );
 }
 
+function SpellSlotPips({ slot, pact, onAfterChange }) {
+  return (
+    <div>
+      <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-micro)', color: 'var(--text3)', textAlign: 'center', marginBottom: 3 }}>
+        {slot.level}
+      </div>
+      <div className="slot-pips">
+        {Array.from({ length: slot.total }, (_, index) => (
+          <div
+            key={index}
+            className={`slot-pip${index < slot.used ? ' used' : ''}`}
+            onClick={() => {
+              if (pact) togglePactSpellSlot(slot.level, slot.total, index);
+              else toggleSpellSlot(slot.level, index);
+              window.setTimeout(onAfterChange, 0);
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SpellEntry({ spell }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div>
+      <div className="spell-entry" onClick={() => setOpen((value) => !value)}>
+        {spell.spellUrl ? (
+          <a
+            href={spell.spellUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            style={{ color: 'inherit', textDecoration: 'underline dotted', textUnderlineOffset: 2 }}
+          >
+            {spell.name}
+          </a>
+        ) : (
+          <span>{spell.name}</span>
+        )}
+        {spell.castLevel > spell.level && (
+          <span className="spell-badge" style={{ border: '1px solid var(--blue)', color: 'var(--blue)', background: 'var(--bg3)' }}>
+            {spell.castLevel} slot
+          </span>
+        )}
+        {spell.hasAttack && (
+          <button
+            className="roll-btn"
+            type="button"
+            style={spellMiniButtonStyle}
+            onClick={(event) => {
+              event.stopPropagation();
+              callLegacy('rollD20', spell.attackBonus, `ATK: ${spell.name}`);
+            }}
+          >
+            <Icon name="dice-5" /> {spell.attackBonus >= 0 ? '+' : ''}{spell.attackBonus}
+          </button>
+        )}
+        {spell.damageFormula && (
+          <button
+            className="roll-btn dmg"
+            type="button"
+            style={spellMiniButtonStyle}
+            onClick={(event) => {
+              event.stopPropagation();
+              rollDamage(spell.damageFormula, spell.name);
+            }}
+          >
+            <Icon name="flame" /> {spell.damageFormula}
+          </button>
+        )}
+        <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+          {spell.school && <span className="spell-badge" style={spellNeutralBadgeStyle}>{spell.school}</span>}
+          {spell.hasSave && <span className="spell-badge" style={spellNeutralBadgeStyle}>DC {spell.saveDc}</span>}
+          {spell.concentration && <span className="spell-badge conc">C</span>}
+          {spell.ritual && <span className="spell-badge rit">R</span>}
+        </span>
+      </div>
+      {open && (
+        <div className="spell-entry-body open">
+          {spell.meta.length > 0 && (
+            <div style={{ fontSize: 'var(--fs-label)', color: 'var(--text3)', marginBottom: 5 }}>
+              {spell.meta.join(' · ')}
+            </div>
+          )}
+          <EntryContent entry={spell.entries} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SpellsTab({ spells, onRuntimeRefresh }) {
+  const data = spells || {};
+  if (!data.hasSpells) {
+    return (
+      <>
+        <div className="phmsg">{data.emptyMessage || 'This character is not a spellcaster.'}</div>
+        <button className="spl-add-btn" type="button" onClick={openSpellPicker}>+ Add Spell</button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '.75rem', flexWrap: 'wrap' }}>
+        <div className="stat-box" style={{ minWidth: 80 }}>
+          <div className="stat-box-val" style={{ fontSize: 'var(--fs-value-sm)' }}>{data.stats?.dc}</div>
+          <div className="stat-box-lbl">Spell DC</div>
+        </div>
+        <div className="stat-box" style={{ minWidth: 80 }}>
+          <div className="stat-box-val" style={{ fontSize: 'var(--fs-value-sm)' }}>{data.stats?.attack}</div>
+          <div className="stat-box-lbl">Spell Attack</div>
+        </div>
+        <div className="stat-box" style={{ minWidth: 80 }}>
+          <div className="stat-box-val" style={{ fontSize: 'var(--fs-value-sm)' }}>{data.stats?.ability}</div>
+          <div className="stat-box-lbl">Spell Ability</div>
+        </div>
+      </div>
+
+      {data.stats?.armorBlocked && (
+        <div className="phmsg" style={{ borderColor: 'var(--red)', color: 'var(--red)', marginBottom: '.75rem' }}>
+          Untrained armor: this character can't cast spells while wearing it.
+        </div>
+      )}
+
+      {(data.slots?.regular?.length > 0 || data.slots?.pact) && (
+        <div style={{ marginBottom: '.75rem' }}>
+          <div className="spell-level-hdr" style={{ color: 'var(--gold)', borderBottomColor: 'var(--gdim)' }}>Spell Slots</div>
+          <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap', marginTop: '.4rem' }}>
+            {(data.slots.regular || []).map((slot) => (
+              <SpellSlotPips key={`slot-${slot.level}`} slot={slot} onAfterChange={onRuntimeRefresh} />
+            ))}
+            {data.slots.pact && (
+              <SpellSlotPips key="pact" slot={data.slots.pact} pact onAfterChange={onRuntimeRefresh} />
+            )}
+          </div>
+        </div>
+      )}
+
+      {(data.sections || []).length === 0 && <div className="phmsg">{data.noSpellsMessage || 'No spells selected.'}</div>}
+      {(data.sections || []).map((section) => (
+        <div key={section.key} className="spell-level-section">
+          <div className="spell-level-hdr">{section.label}</div>
+          {section.spells.map((spell) => (
+            <SpellEntry key={spell.key} spell={spell} />
+          ))}
+        </div>
+      ))}
+
+      <div style={{ marginTop: '.75rem' }}>
+        <button className="spl-add-btn" type="button" onClick={openSpellPicker}>+ Add / Remove Spell</button>
+      </div>
+    </>
+  );
+}
+
+const spellMiniButtonStyle = {
+  fontSize: 'var(--fs-xs)',
+  padding: '2px 5px',
+  marginLeft: 3,
+};
+
+const spellNeutralBadgeStyle = {
+  border: '1px solid var(--bdr2)',
+  color: 'var(--text3)',
+  background: 'transparent',
+};
+
 const entryTableHeaderStyle = {
   fontFamily: 'var(--ff-display)',
   fontSize: 'var(--fs-xs)',
@@ -1763,8 +1927,7 @@ const entryInsetStyle = {
   fontStyle: 'italic',
 };
 
-function SheetTabsPanel({ tabs, actions, background, features, inventory, activeTab, onTabChange, onRuntimeRefresh }) {
-  const t = tabs || {};
+function SheetTabsPanel({ actions, background, features, inventory, spells, activeTab, onTabChange, onRuntimeRefresh }) {
   const isActive = (name) => (activeTab === name ? ' active' : '');
   const [activeActionFilter, setActiveActionFilter] = useState('all');
 
@@ -1789,7 +1952,7 @@ function SheetTabsPanel({ tabs, actions, background, features, inventory, active
       </div>
 
       <div className={`tab-content${isActive('spells')}`}>
-        <HtmlBlock html={t.spellsHtml} />
+        <SpellsTab spells={spells} onRuntimeRefresh={onRuntimeRefresh} />
       </div>
 
       <div className={`tab-content${isActive('inventory')}`}>
@@ -1851,11 +2014,11 @@ const addItemButtonStyle = {
 function SheetRightColumn({
   summary,
   onSummaryRefresh,
-  tabs,
   actions,
   background,
   features,
   inventory,
+  spells,
   activeTab,
   onTabChange,
   onRuntimeRefresh,
@@ -1864,11 +2027,11 @@ function SheetRightColumn({
     <div className="main-col-right">
       <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
       <SheetTabsPanel
-        tabs={tabs}
         actions={actions}
         background={background}
         features={features}
         inventory={inventory}
+        spells={spells}
         activeTab={activeTab}
         onTabChange={onTabChange}
         onRuntimeRefresh={onRuntimeRefresh}
@@ -1884,11 +2047,11 @@ export default function CharacterSheetLayout({
   scores,
   proficiencies,
   skills,
-  tabs,
   actions,
   background,
   features,
   inventory,
+  spells,
   saves,
   senses,
   activeTab,
@@ -1924,11 +2087,11 @@ export default function CharacterSheetLayout({
         <SheetRightColumn
           summary={summary}
           onSummaryRefresh={onSummaryRefresh}
-          tabs={tabs}
           actions={actions}
           background={background}
           features={features}
           inventory={inventory}
+          spells={spells}
           activeTab={activeTab}
           onTabChange={onTabChange}
           onRuntimeRefresh={onRuntimeRefresh}
