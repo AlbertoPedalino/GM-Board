@@ -22,8 +22,9 @@ Dev server predefinito: `http://127.0.0.1:5173/`.
 - `src/legacy/LegacyFrame.jsx`: bridge per caricare una pagina HTML legacy.
 - `src/pages/character-sheet/CharacterSheetPage.jsx`: bootstrap della scheda,
   ancora compatibile con CSS e runtime legacy.
-- `src/pages/character-sheet/CharacterSheetLayout.jsx`: layout della scheda diviso
-  in sezioni grandi di pagina.
+- `src/pages/character-sheet/CharacterSheetLayout.jsx`: layout statico della scheda
+  in JSX, diviso in sezioni grandi di pagina. Gli script legacy riempiono ancora i
+  contenitori dinamici tramite gli stessi `id`.
 - `public/legacy/`: snapshot delle pagine HTML e degli adapter usati dagli script.
 
 ## Prossimo passo consigliato

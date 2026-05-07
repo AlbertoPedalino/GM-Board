@@ -152,29 +152,7 @@ function parseLegacySheet(html) {
 
   return {
     headResources,
-    sections: parseCharacterSheetSections(doc),
     scripts,
-  };
-}
-
-function requireNode(doc, selector) {
-  const node = doc.querySelector(selector);
-  if (!node) throw new Error(`Missing legacy section: ${selector}`);
-  return node;
-}
-
-function parseCharacterSheetSections(doc) {
-  const mainGrid = requireNode(doc, '.main-grid');
-  const rightColumn = requireNode(mainGrid, '.main-col-right');
-
-  return {
-    header: requireNode(doc, '.topbar').outerHTML,
-    scores: requireNode(doc, '#scores-row').outerHTML,
-    stats: requireNode(doc, '#stats-row').outerHTML,
-    leftColumn: requireNode(mainGrid, '.main-col-left').innerHTML,
-    skillsColumn: requireNode(mainGrid, '.main-col-middle').innerHTML,
-    rightSummary: requireNode(rightColumn, '.right-top-row').outerHTML,
-    tabsPanel: requireNode(rightColumn, '.panel').outerHTML,
   };
 }
 
@@ -348,7 +326,7 @@ export default function CharacterSheetPage({ active, title }) {
   }, []);
 
   useEffect(() => {
-    if (!legacyDoc?.sections || hasRunScriptsRef.current) return;
+    if (!legacyDoc || hasRunScriptsRef.current) return;
 
     hasRunScriptsRef.current = true;
     setRuntimeReady(false);
@@ -394,7 +372,7 @@ export default function CharacterSheetPage({ active, title }) {
 
       {legacyDoc && (
         <div className={`character-sheet-runtime ${runtimeReady ? 'ready' : 'pending'}`}>
-          <CharacterSheetLayout sections={legacyDoc.sections} />
+          <CharacterSheetLayout />
         </div>
       )}
     </section>
