@@ -188,22 +188,67 @@ function SheetHpBlock({
   );
 }
 
+function SheetScoresRow({ scores, onScoreClick }) {
+  if (!scores?.hasContent) {
+    return <div className="scores-row react-scores-row" />;
+  }
+
+  return (
+    <div className="scores-row react-scores-row">
+      <div className="scores-left">
+        {scores.scores.map((score, index) => (
+          <div
+            key={`${score.label}-${index}`}
+            className="score-box"
+            style={{ cursor: score.onclick ? 'pointer' : 'default' }}
+            title={score.title}
+            onClick={() => onScoreClick(score.onclick)}
+          >
+            <div className="score-lbl">{score.label}</div>
+            <div className="score-mod">{score.mod}</div>
+            <div
+              className="score-base"
+              dangerouslySetInnerHTML={{ __html: score.baseHtml }}
+            />
+          </div>
+        ))}
+        <div className="stat-box green">
+          <div className="stat-box-val">{scores.pb}</div>
+          <div className="stat-box-lbl">Prof. Bonus</div>
+        </div>
+        {scores.speed && (
+          <div
+            className="stat-box"
+            title={scores.speed.title}
+            dangerouslySetInnerHTML={{ __html: scores.speed.html }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SheetScoreStrip({
+  scores,
   vitals,
+  onScoreClick,
   onHpAdjust,
   onHpQuickAction,
   onDeathSaveAction,
 }) {
   return (
     <div className="react-scores-strip">
-      <div className="scores-row" id="scores-row" />
-      <div className="stats-row" id="stats-row" />
+      <SheetScoresRow scores={scores} onScoreClick={onScoreClick} />
       <SheetHpBlock
         hp={vitals.hp}
         onHpAdjust={onHpAdjust}
         onHpQuickAction={onHpQuickAction}
         onDeathSaveAction={onDeathSaveAction}
       />
+      <div className="legacy-scores-mirror" aria-hidden="true">
+        <div className="scores-row" id="scores-row" />
+        <div className="stats-row" id="stats-row" />
+      </div>
     </div>
   );
 }
@@ -548,6 +593,7 @@ export default function CharacterSheetLayout({
   header,
   summary,
   vitals,
+  scores,
   onHeaderXpChange,
   onSummaryRefresh,
   onRuntimeRefresh,
@@ -555,12 +601,15 @@ export default function CharacterSheetLayout({
   onHpQuickAction,
   onDeathSaveAction,
   onHitDieToggle,
+  onScoreClick,
 }) {
   return (
     <div className="character-sheet-root">
       <SheetHeader header={header} onXpChange={onHeaderXpChange} onAfterRest={onRuntimeRefresh} />
       <SheetScoreStrip
+        scores={scores}
         vitals={vitals}
+        onScoreClick={onScoreClick}
         onHpAdjust={onHpAdjust}
         onHpQuickAction={onHpQuickAction}
         onDeathSaveAction={onDeathSaveAction}

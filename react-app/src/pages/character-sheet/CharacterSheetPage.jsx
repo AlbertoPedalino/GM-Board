@@ -3,6 +3,7 @@ import CharacterSheetLayout from './CharacterSheetLayout.jsx';
 import {
   configureCharacterSheetScope,
   readCharacterSheetHeader,
+  readCharacterSheetScores,
   writeSheetXp,
 } from './characterSheetStorage.js';
 
@@ -261,6 +262,7 @@ function installSnapshotRefreshHooks() {
     'toggleHD',
     '_applyLongRest',
     '_applyShortRest',
+    'renderStatsRow',
   ].forEach((name) => {
     const original = window[name];
     if (typeof original !== 'function') return;
@@ -284,6 +286,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
   const [sheetSummary, setSheetSummary] = useState(() => readCharacterSheetSummary());
   const [sheetVitals, setSheetVitals] = useState(() => readCharacterSheetVitals());
+  const [sheetScores, setSheetScores] = useState(() => readCharacterSheetScores());
   const [error, setError] = useState('');
 
   const className = useMemo(
@@ -332,6 +335,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetHeader(readCharacterSheetHeader());
       setSheetSummary(readCharacterSheetSummary());
       setSheetVitals(readCharacterSheetVitals());
+      setSheetScores(readCharacterSheetScores());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -343,6 +347,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(readCharacterSheetSummary());
         setSheetVitals(readCharacterSheetVitals());
+        setSheetScores(readCharacterSheetScores());
         runtimeReadyRef.current = true;
         setRuntimeReady(true);
       })
@@ -358,6 +363,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(readCharacterSheetSummary());
     setSheetVitals(readCharacterSheetVitals());
+    setSheetScores(readCharacterSheetScores());
     setRuntimeReady(true);
   }, [active]);
 
@@ -386,6 +392,12 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(readCharacterSheetSummary());
     setSheetVitals(readCharacterSheetVitals());
+    setSheetScores(readCharacterSheetScores());
+  }
+
+  function handleScoreClick(onclickSource) {
+    if (!onclickSource) return;
+    runLegacySheetScript(onclickSource);
   }
 
   function handleHpAdjust(direction, amount) {
@@ -438,6 +450,7 @@ export default function CharacterSheetPage({ active, title }) {
             header={sheetHeader}
             summary={sheetSummary}
             vitals={sheetVitals}
+            scores={sheetScores}
             onHeaderXpChange={handleHeaderXpChange}
             onSummaryRefresh={refreshSheetSummary}
             onRuntimeRefresh={refreshDynamicSnapshots}
@@ -445,6 +458,7 @@ export default function CharacterSheetPage({ active, title }) {
             onHpQuickAction={handleHpQuickAction}
             onDeathSaveAction={handleDeathSaveAction}
             onHitDieToggle={handleHitDieToggle}
+            onScoreClick={handleScoreClick}
           />
         </div>
       )}
