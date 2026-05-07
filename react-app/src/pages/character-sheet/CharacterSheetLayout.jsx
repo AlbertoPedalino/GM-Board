@@ -370,15 +370,32 @@ function SheetSavesPanel({ saves }) {
   );
 }
 
-function SheetLeftColumn({ vitals, leftPanels, saves, onHitDieToggle }) {
-  const panels = leftPanels || { sensesHtml: '', profsHtml: '' };
+function SheetSensesPanel({ senses }) {
+  const rows = Array.isArray(senses) ? senses : [];
+
+  return (
+    <Panel icon="eye" title="Senses">
+      <div className="panel-body">
+        {rows.map((row) => (
+          <div key={row.key} className="sense-row">
+            <div className="sense-val" style={row.tealValue ? { color: 'var(--teal)' } : undefined}>
+              {row.value}
+            </div>
+            <div className="sense-lbl">{row.label}</div>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function SheetLeftColumn({ vitals, leftPanels, saves, senses, onHitDieToggle }) {
+  const panels = leftPanels || { profsHtml: '' };
 
   return (
     <div className="main-col-left">
       <SheetSavesPanel saves={saves} />
-      <Panel icon="eye" title="Senses">
-        <HtmlPanelBody html={panels.sensesHtml} />
-      </Panel>
+      <SheetSensesPanel senses={senses} />
       <Panel icon="scroll-text" title="Proficiencies">
         <HtmlPanelBody html={panels.profsHtml} />
       </Panel>
@@ -703,6 +720,7 @@ export default function CharacterSheetLayout({
   skills,
   tabs,
   saves,
+  senses,
   activeTab,
   onTabChange,
   onHeaderXpChange,
@@ -731,6 +749,7 @@ export default function CharacterSheetLayout({
           vitals={vitals}
           leftPanels={leftPanels}
           saves={saves}
+          senses={senses}
           onHitDieToggle={onHitDieToggle}
         />
         <SheetSkillsColumn skills={skills} />

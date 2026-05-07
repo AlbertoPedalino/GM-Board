@@ -9,7 +9,7 @@ import {
   readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
-import { computeSaves } from './sheetRuntime.js';
+import { computeSaves, computeSenses } from './sheetRuntime.js';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
 const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
@@ -307,6 +307,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetSkills, setSheetSkills] = useState(() => readCharacterSheetSkills());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
   const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
+  const [sheetSenses, setSheetSenses] = useState(() => computeSenses());
   const [activeTab, setActiveTab] = useState('actions');
   const [error, setError] = useState('');
 
@@ -361,6 +362,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetSkills(readCharacterSheetSkills());
       setSheetTabs(readCharacterSheetTabs());
       setSheetSaves(computeSaves());
+      setSheetSenses(computeSenses());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -377,6 +379,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetSkills(readCharacterSheetSkills());
         setSheetTabs(readCharacterSheetTabs());
         setSheetSaves(computeSaves());
+      setSheetSenses(computeSenses());
         runtimeReadyRef.current = true;
         setRuntimeReady(true);
       })
@@ -398,6 +401,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetSkills(readCharacterSheetSkills());
     setSheetTabs(readCharacterSheetTabs());
     setSheetSaves(computeSaves());
+    setSheetSenses(computeSenses());
     setRuntimeReady(true);
   }, [active]);
 
@@ -431,6 +435,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetSkills(readCharacterSheetSkills());
     setSheetTabs(readCharacterSheetTabs());
     setSheetSaves(computeSaves());
+    setSheetSenses(computeSenses());
   }
 
   function handleScoreClick(onclickSource) {
@@ -493,6 +498,7 @@ export default function CharacterSheetPage({ active, title }) {
             skills={sheetSkills}
             tabs={sheetTabs}
             saves={sheetSaves}
+            senses={sheetSenses}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             onHeaderXpChange={handleHeaderXpChange}
