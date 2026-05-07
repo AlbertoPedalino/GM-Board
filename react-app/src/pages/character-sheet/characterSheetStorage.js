@@ -194,6 +194,5 @@ export function readCharacterSheetTabs() {
     invListHtml: document.getElementById('inv-list')?.innerHTML || '',
     invSearchResultsHtml: document.getElementById('inv-search-results')?.innerHTML || '',
     invCount: document.getElementById('inv-count')?.textContent || '0',
-    featuresHtml: document.getElementById('features-wrap')?.innerHTML || '',
   };
 }

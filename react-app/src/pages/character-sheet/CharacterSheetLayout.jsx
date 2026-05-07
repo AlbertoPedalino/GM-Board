@@ -921,8 +921,10 @@ function FragmentWithBreak({ showBreak, children }) {
   );
 }
 
-function BackgroundFeature({ item }) {
+function CollapsibleFeatureItem({ item }) {
   const [open, setOpen] = useState(false);
+  const source = item.source || {};
+  const hasContent = !!item.entries || Array.isArray(item.values);
 
   return (
     <div className={`feature-item${open ? ' open' : ''}`}>
@@ -938,13 +940,81 @@ function BackgroundFeature({ item }) {
           }
         }}
       >
-        <div className="feature-name" style={{ color: 'var(--text2)' }}>{item.name}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="feature-name" style={{ color: item.nameColor || 'var(--text2)' }}>
+            {item.badge && (
+              <span style={{ fontSize: 'var(--fs-xs)', marginRight: 5, opacity: '.7' }}>
+                {item.badge}
+              </span>
+            )}
+            {item.name}
+          </div>
+          {source.label && (
+            <div style={{ fontSize: 'var(--fs-xs)', color: source.color || 'var(--text3)', marginTop: 1 }}>
+              {source.icon && <Icon name={source.icon} />} {source.label}
+            </div>
+          )}
+        </div>
         <span className="feature-arrow"><Icon name="chevron-right" /></span>
       </div>
       <div className="feature-body">
-        <EntryContent entry={item.entries} />{!item.entries && '-'}
+        {Array.isArray(item.values) ? (
+          <ul style={{ margin: 0, paddingLeft: 18 }}>
+            {item.values.map((value, index) => (
+              <li key={index}>{value}</li>
+            ))}
+          </ul>
+        ) : (
+          <EntryContent entry={item.entries} />
+        )}
+        {!hasContent && <i style={{ color: 'var(--text3)' }}>{item.emptyText || 'No description.'}</i>}
       </div>
     </div>
+  );
+}
+
+function FeatureSectionTitle({ section }) {
+  return (
+    <div style={featureSectionTitleStyle(section.color)}>
+      {section.icon && <Icon name={section.icon} />} {section.title}
+    </div>
+  );
+}
+
+function FeaturesTab({ features }) {
+  const sections = Array.isArray(features?.sections) ? features.sections : [];
+
+  if (!sections.length) {
+    return <div className="phmsg">{features?.emptyMessage || 'No features available.'}</div>;
+  }
+
+  return (
+    <>
+      {sections.map((section, sectionIndex) => (
+        <div key={section.key || section.title}>
+          <FeatureSectionTitle section={section} />
+          {(section.items || []).map((item) => (
+            <CollapsibleFeatureItem key={item.key} item={item} />
+          ))}
+          {(section.choices || []).map((choice) => (
+            <CollapsibleFeatureItem
+              key={choice.key}
+              item={{
+                key: choice.key,
+                name: choice.label,
+                values: choice.values,
+                nameColor: section.color,
+                source: {
+                  label: `${choice.values.length} selected`,
+                  color: section.color,
+                },
+              }}
+            />
+          ))}
+          {sectionIndex < sections.length - 1 && <div style={{ height: 6 }} />}
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -976,11 +1046,21 @@ function BackgroundTab({ background }) {
         )}
       </div>
       {(data.entries || []).map((entry) => (
-        <BackgroundFeature key={entry.key} item={entry} />
+        <CollapsibleFeatureItem key={entry.key} item={{ ...entry, source: {}, nameColor: 'var(--text2)', emptyText: '-' }} />
       ))}
     </>
   );
 }
+
+const featureSectionTitleStyle = (color) => ({
+  fontFamily: 'var(--ff-display)',
+  fontSize: 'var(--fs-label)',
+  fontWeight: 700,
+  letterSpacing: '.1em',
+  textTransform: 'uppercase',
+  color: color || 'var(--gold)',
+  margin: '.75rem 0 .5rem',
+});
 
 const entryTableHeaderStyle = {
   fontFamily: 'var(--ff-display)',
@@ -1004,7 +1084,7 @@ const entryInsetStyle = {
   fontStyle: 'italic',
 };
 
-function SheetTabsPanel({ tabs, background, activeTab, onTabChange }) {
+function SheetTabsPanel({ tabs, background, features, activeTab, onTabChange }) {
   const t = tabs || {};
   const isActive = (name) => (activeTab === name ? ' active' : '');
 
@@ -1102,7 +1182,7 @@ function SheetTabsPanel({ tabs, background, activeTab, onTabChange }) {
       </div>
 
       <div className={`tab-content${isActive('features')}`}>
-        <HtmlBlock html={t.featuresHtml} />
+        <FeaturesTab features={features} />
       </div>
 
       <div className={`tab-content${isActive('background')}`}>
@@ -1153,11 +1233,17 @@ const addItemButtonStyle = {
   transition: 'all .12s',
 };
 
-function SheetRightColumn({ summary, onSummaryRefresh, tabs, background, activeTab, onTabChange }) {
+function SheetRightColumn({ summary, onSummaryRefresh, tabs, background, features, activeTab, onTabChange }) {
   return (
     <div className="main-col-right">
       <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
-      <SheetTabsPanel tabs={tabs} background={background} activeTab={activeTab} onTabChange={onTabChange} />
+      <SheetTabsPanel
+        tabs={tabs}
+        background={background}
+        features={features}
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+      />
     </div>
   );
 }
@@ -1171,6 +1257,7 @@ export default function CharacterSheetLayout({
   skills,
   tabs,
   background,
+  features,
   saves,
   senses,
   activeTab,
@@ -1208,6 +1295,7 @@ export default function CharacterSheetLayout({
           onSummaryRefresh={onSummaryRefresh}
           tabs={tabs}
           background={background}
+          features={features}
           activeTab={activeTab}
           onTabChange={onTabChange}
         />

@@ -989,6 +989,362 @@ export function computeBackground() {
         key: `${entry.name}-${index}`,
         name: entry.name,
         entries: entry.entries || '',
-      })),
+    })),
   };
+}
+
+function applyClassFeatureFilters(className, subclassShortName, features, ctx) {
+  if (typeof window._applySheetFeatureFilters === 'function') {
+    return window._applySheetFeatureFilters(className, subclassShortName, features, ctx);
+  }
+  return Array.isArray(features) ? features : [];
+}
+
+function applySpeciesFeatureFilters(speciesName, speciesSource, features, ctx) {
+  if (typeof window._applySpeciesSheetFeatureFilters === 'function') {
+    return window._applySpeciesSheetFeatureFilters(speciesName, speciesSource, features, ctx);
+  }
+  return Array.isArray(features) ? features : [];
+}
+
+function getFeatSlot(character, featName) {
+  if (!character?.choices) return 'Feat';
+  const slotMeta = character?.featSlotMeta && typeof character.featSlotMeta === 'object'
+    ? character.featSlotMeta
+    : {};
+
+  for (const [key, rawValue] of Object.entries(character.choices)) {
+    const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+    if (!values.includes(featName)) continue;
+
+    const metaLabel = String(slotMeta?.[key]?.label || '').trim();
+    if (metaLabel) return metaLabel;
+    if (/^species_.*feat/i.test(key)) return 'Origin (Species)';
+    if (/^feat_origin/i.test(key) || /^bg_feat/i.test(key)) return 'Origin (Background)';
+    const levelMatch = key.match(/lv(\d+)/i);
+    if (levelMatch) return `Feat Lv.${levelMatch[1]}`;
+    return 'Feat';
+  }
+
+  return 'Feat';
+}
+
+function featureItem(feature, source, overrides = {}) {
+  return {
+    key: `${source.label}-${feature?.name || 'feature'}-${feature?.level || 0}-${overrides.index || 0}`,
+    name: cleanTaggedText(feature?.name || ''),
+    entries: feature?.entries || '',
+    source,
+    nameColor: overrides.nameColor || '',
+    badge: overrides.badge || '',
+    emptyText: overrides.emptyText || 'No description.',
+  };
+}
+
+function buildClassFeatureSection(character, classEntity, options = {}) {
+  const className = classEntity?.name || classEntity?.className || '';
+  if (!className) return null;
+
+  const level = options.primary
+    ? (character.classLevel || character.level || 1)
+    : (classEntity.level || 1);
+  const subclassShortName = classEntity.subclassShortName || '';
+  const prefix = options.choicePrefix || '';
+  const allClassFeatures = (classEntity.allClassFeatures || [])
+    .filter((feature) => (feature?.level || 0) <= level && !feature?.isReprinted);
+  const rawSubFeatures = subclassShortName
+    ? (classEntity.allSubFeatures || [])
+      .filter((feature) => (
+        feature?.subclassShortName === subclassShortName &&
+        (feature?.level || 0) <= level &&
+        !feature?.isReprinted
+      ))
+    : [];
+  const allSubFeatures = applyClassFeatureFilters(className, subclassShortName, rawSubFeatures, {
+    character,
+    choices: character?.choices || {},
+    choicePrefix: prefix,
+    classLevel: level,
+  });
+
+  const byLevel = new Map();
+  allClassFeatures.forEach((feature) => {
+    const lv = Number(feature?.level || 0);
+    if (!byLevel.has(lv)) byLevel.set(lv, []);
+    byLevel.get(lv).push({ ...feature, _type: 'class' });
+  });
+  allSubFeatures.forEach((feature) => {
+    const lv = Number(feature?.level || 0);
+    if (!byLevel.has(lv)) byLevel.set(lv, []);
+    byLevel.get(lv).push({ ...feature, _type: 'subclass' });
+  });
+
+  const items = [];
+  [...byLevel.keys()].sort((a, b) => a - b).forEach((lv) => {
+    byLevel.get(lv).forEach((feature, index) => {
+      const isSubclass = feature._type === 'subclass';
+      items.push(featureItem(feature, {
+        label: isSubclass
+          ? `${subclassShortName || 'Subclass'} · Lv.${lv}`
+          : `${className} · Lv.${lv}`,
+        color: isSubclass ? 'var(--purple)' : 'var(--text3)',
+        icon: isSubclass ? 'diamond' : '',
+      }, {
+        index,
+        nameColor: isSubclass ? 'var(--purple)' : '',
+      }));
+    });
+  });
+
+  if (!items.length) return null;
+
+  const subclassLabel = !options.primary && subclassShortName ? ` (${subclassShortName})` : '';
+  return {
+    key: options.primary ? 'primary-class' : `extra-class-${options.index}`,
+    title: `${className}${subclassLabel}`,
+    icon: 'swords',
+    color: 'var(--gold)',
+    items,
+  };
+}
+
+function getChoiceMeta(kind, args) {
+  if (kind === 'class' && typeof window._sheetGetClassChoiceMeta === 'function') {
+    return window._sheetGetClassChoiceMeta(args.className) || {};
+  }
+  if (kind === 'subclass' && typeof window._sheetGetSubclassChoiceMeta === 'function') {
+    return window._sheetGetSubclassChoiceMeta(args.className, args.subclassShortName) || {};
+  }
+  if (kind === 'species' && typeof window._sheetGetSpeciesChoiceMeta === 'function') {
+    return window._sheetGetSpeciesChoiceMeta(args.speciesName, args.speciesSource) || {};
+  }
+  return {};
+}
+
+function getSpeciesAdapterKey(speciesName, speciesSource) {
+  if (typeof window._sheetGetSpeciesAdapterKey === 'function') {
+    return window._sheetGetSpeciesAdapterKey(speciesName, speciesSource);
+  }
+  const name = String(speciesName || '').trim();
+  const source = String(speciesSource || '').trim();
+  return name && source ? `${name}_${source}` : '';
+}
+
+function normalizeChoiceValues(rawValue, choiceKey, ctx, normalizers) {
+  return (Array.isArray(rawValue) ? rawValue : [rawValue])
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .map((value) => {
+      let out = value;
+      normalizers.forEach((normalizer) => {
+        out = normalizer(out, choiceKey, ctx);
+      });
+      return String(out || '').trim();
+    })
+    .filter(Boolean);
+}
+
+function computeClassChoiceSection(character) {
+  const rows = [];
+  const choices = character?.choices || {};
+
+  for (const [choiceKey, choiceValue] of Object.entries(choices)) {
+    if (!choiceValue || choiceKey.endsWith('_entry') || /^feat_origin$/i.test(choiceKey)) continue;
+
+    let key = choiceKey;
+    let scope = '';
+    let ownerClass = character.className || '';
+    let ownerSubclass = character.subclassShortName || '';
+    let ownerLevel = character.classLevel || character.level || 1;
+    let ownerPrefix = '';
+
+    const multiclassMatch = /^mc(\d+)_/.exec(choiceKey);
+    if (multiclassMatch) {
+      key = choiceKey.replace(/^mc\d+_/, '');
+      const index = parseInt(multiclassMatch[1], 10);
+      const extraClass = character.extraClasses?.[index];
+      if (extraClass?.name) scope = `[${extraClass.name}] `;
+      ownerClass = extraClass?.name || '';
+      ownerSubclass = extraClass?.subclassShortName || '';
+      ownerLevel = extraClass?.level || 1;
+      ownerPrefix = `mc${index}_`;
+    }
+
+    const classMeta = getChoiceMeta('class', { className: ownerClass });
+    const subclassMeta = getChoiceMeta('subclass', {
+      className: ownerClass,
+      subclassShortName: ownerSubclass,
+    });
+    const ctx = {
+      choiceKey: key,
+      ownerClass,
+      ownerSubclass,
+      ownerLevel,
+      choicePrefix: ownerPrefix,
+    };
+    const isChoice = [classMeta.isChoiceKey, subclassMeta.isChoiceKey]
+      .some((fn) => typeof fn === 'function' && fn(key, ctx));
+    if (!isChoice) continue;
+
+    const normalizers = [classMeta.normalizeChoiceValue, subclassMeta.normalizeChoiceValue]
+      .filter((fn) => typeof fn === 'function');
+    const values = normalizeChoiceValues(choiceValue, key, ctx, normalizers);
+    if (!values.length) continue;
+
+    const labels = { ...(classMeta.labels || {}), ...(subclassMeta.labels || {}) };
+    let label = labels[key] || '';
+    if (!label) {
+      for (const fn of [classMeta.getLabel, subclassMeta.getLabel]) {
+        if (typeof fn !== 'function') continue;
+        label = fn(key, ctx) || '';
+        if (label) break;
+      }
+    }
+    if (!label) label = key.replace(/^.*?_/, '').replace(/_/g, ' ');
+
+    rows.push({
+      key: choiceKey,
+      label: `${scope}${label}`,
+      values,
+      sectionTitle: subclassMeta.sectionTitle || classMeta.sectionTitle || 'Class Choices',
+    });
+  }
+
+  if (!rows.length) return null;
+  return {
+    key: 'class-choices',
+    title: rows[0].sectionTitle || 'Class Choices',
+    icon: 'wrench',
+    color: 'var(--teal)',
+    choices: rows,
+  };
+}
+
+function computeSpeciesChoiceSection(character) {
+  if (!character?.speciesName) return null;
+
+  const speciesMeta = getChoiceMeta('species', {
+    speciesName: character.speciesName,
+    speciesSource: character.speciesSource || '',
+  });
+  const rows = [];
+
+  for (const [choiceKey, choiceValue] of Object.entries(character.choices || {})) {
+    if (!choiceValue || choiceKey.endsWith('_entry') || choiceKey.startsWith('mc')) continue;
+    const ctx = {
+      choiceKey,
+      speciesName: character.speciesName,
+      speciesSource: character.speciesSource || '',
+    };
+    if (typeof speciesMeta.isChoiceKey !== 'function' || !speciesMeta.isChoiceKey(choiceKey, ctx)) continue;
+
+    const normalizers = typeof speciesMeta.normalizeChoiceValue === 'function'
+      ? [speciesMeta.normalizeChoiceValue]
+      : [];
+    const values = normalizeChoiceValues(choiceValue, choiceKey, ctx, normalizers);
+    if (!values.length) continue;
+
+    let label = speciesMeta.labels?.[choiceKey] || '';
+    if (!label && typeof speciesMeta.getLabel === 'function') label = speciesMeta.getLabel(choiceKey, ctx) || '';
+    if (!label) label = String(choiceKey || '').replace(/^species_/i, '').replace(/_+/g, ' ').trim();
+    if (!label) continue;
+
+    rows.push({ key: choiceKey, label, values });
+  }
+
+  if (!rows.length) return null;
+  return {
+    key: 'species-choices',
+    title: speciesMeta.sectionTitle || 'Species Choices',
+    icon: 'sparkles',
+    color: 'var(--teal)',
+    choices: rows,
+  };
+}
+
+export function computeFeatures() {
+  const character = readActiveCharacter();
+  if (!character) {
+    return { sections: [], emptyMessage: 'No features available.' };
+  }
+
+  const sections = [];
+  const primarySection = buildClassFeatureSection(character, {
+    name: character.className,
+    subclassShortName: character.subclassShortName,
+    allClassFeatures: character.allClassFeatures || [],
+    allSubFeatures: character.allSubFeatures || [],
+  }, { primary: true, choicePrefix: '' });
+  if (primarySection) sections.push(primarySection);
+
+  (character.extraClasses || []).forEach((extraClass, index) => {
+    const section = buildClassFeatureSection(character, extraClass, {
+      primary: false,
+      index,
+      choicePrefix: `mc${index}_`,
+    });
+    if (section) sections.push(section);
+  });
+
+  if (character.speciesName) {
+    const rawEntries = character.speciesSnapshot?.entries || [];
+    const speciesEntries = applySpeciesFeatureFilters(
+      character.speciesName,
+      character.speciesSource || '',
+      rawEntries,
+      {
+        character,
+        choices: character.choices || {},
+        speciesKey: getSpeciesAdapterKey(character.speciesName, character.speciesSource || ''),
+      },
+    );
+    const items = (speciesEntries || [])
+      .filter((entry) => entry && typeof entry === 'object' && entry.name)
+      .map((entry, index) => featureItem(entry, {
+        label: character.speciesName,
+        color: 'var(--teal)',
+        icon: 'sparkles',
+      }, { index }));
+
+    if (items.length) {
+      sections.push({
+        key: 'species',
+        title: character.speciesName,
+        icon: 'sparkles',
+        color: 'var(--teal)',
+        items,
+      });
+    }
+  }
+
+  const feats = Array.isArray(character.allFeatSnapshots) ? character.allFeatSnapshots : [];
+  if (feats.length) {
+    sections.push({
+      key: 'feats',
+      title: 'Feats',
+      icon: 'star',
+      color: 'var(--orange)',
+      items: feats.map((feat, index) => {
+        const slot = getFeatSlot(character, feat.name);
+        const categoryLabel = feat.category ? ` · Cat. ${feat.category}` : '';
+        return featureItem(feat, {
+          label: `${slot || 'Feat'}${categoryLabel}`,
+          color: 'var(--orange)',
+          icon: 'star',
+        }, {
+          index,
+          nameColor: 'var(--orange)',
+          emptyText: '-',
+        });
+      }),
+    });
+  }
+
+  const classChoices = computeClassChoiceSection(character);
+  if (classChoices) sections.push(classChoices);
+
+  const speciesChoices = computeSpeciesChoiceSection(character);
+  if (speciesChoices) sections.push(speciesChoices);
+
+  return { sections, emptyMessage: 'No features available.' };
 }
