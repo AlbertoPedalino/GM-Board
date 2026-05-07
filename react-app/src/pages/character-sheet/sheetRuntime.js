@@ -918,3 +918,77 @@ export function computeSenses() {
 
   return rows;
 }
+
+export function computeBackground() {
+  const character = readActiveCharacter();
+  if (!character?.bgName) {
+    return {
+      hasBackground: false,
+      emptyMessage: 'No background selected.',
+      name: '',
+      summaryRows: [],
+      choiceRows: [],
+      entries: [],
+    };
+  }
+
+  const snap = character.bgSnapshot || {};
+  const skillNames = (snap.skillProficiencies || [])
+    .flatMap((skillBlock) => Object.keys(skillBlock || {}).filter((key) => key !== 'choose'));
+  const toolNames = (snap.toolProficiencies || [])
+    .flatMap((toolBlock) => Object.keys(toolBlock || {}).filter((key) => (
+      !['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet'].includes(key)
+    )));
+  const languageNames = (snap.languageProficiencies || [])
+    .map((languageBlock) => {
+      if (!languageBlock || typeof languageBlock !== 'object') return '';
+      if (languageBlock.anyStandard) return `${languageBlock.anyStandard} language of your choice`;
+      return Object.keys(languageBlock).filter((key) => languageBlock[key] === true).join(', ');
+    })
+    .filter(Boolean);
+
+  const bgMeta = typeof window.getGenericBackgroundChoiceMeta === 'function'
+    ? window.getGenericBackgroundChoiceMeta()
+    : null;
+  const choiceRows = [];
+
+  if (bgMeta && character.choices) {
+    for (const [choiceKey, choiceValue] of Object.entries(character.choices)) {
+      if (!choiceValue || choiceKey.endsWith('_entry')) continue;
+      if (typeof bgMeta.isChoiceKey !== 'function' || !bgMeta.isChoiceKey(choiceKey, { character })) continue;
+      const values = (Array.isArray(choiceValue) ? choiceValue : [choiceValue])
+        .map((value) => (
+          typeof bgMeta.normalizeChoiceValue === 'function'
+            ? bgMeta.normalizeChoiceValue(value, choiceKey, { character })
+            : value
+        ))
+        .map((value) => String(value || '').trim())
+        .filter(Boolean);
+      if (!values.length) continue;
+
+      const fallbackLabel = choiceKey.replace(/^bg_/i, '').replace(/_+/g, ' ');
+      const label = typeof bgMeta.getLabel === 'function'
+        ? bgMeta.getLabel(choiceKey, { character })
+        : fallbackLabel;
+      choiceRows.push({ key: choiceKey, label, values });
+    }
+  }
+
+  return {
+    hasBackground: true,
+    name: character.bgName,
+    summaryRows: [
+      { key: 'skills', label: 'Skills', values: skillNames },
+      { key: 'tools', label: 'Tools', values: toolNames },
+      { key: 'languages', label: 'Languages', values: languageNames },
+    ].filter((row) => row.values.length > 0),
+    choiceRows,
+    entries: (snap.entries || [])
+      .filter((entry) => entry && typeof entry === 'object' && entry.name)
+      .map((entry, index) => ({
+        key: `${entry.name}-${index}`,
+        name: entry.name,
+        entries: entry.entries || '',
+      })),
+  };
+}

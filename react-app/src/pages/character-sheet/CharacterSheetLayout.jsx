@@ -791,7 +791,220 @@ function HtmlBlock({ html, className, style }) {
   );
 }
 
-function SheetTabsPanel({ tabs, activeTab, onTabChange }) {
+function EntryText({ text }) {
+  const raw = String(text || '').replace(/\{[^}]+\}/g, '');
+  const tagPattern = /\{@([a-z]+)\s+([^}]+)\}/gi;
+  const nodes = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = tagPattern.exec(String(text || ''))) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(String(text || '').slice(lastIndex, match.index).replace(/\{[^}]+\}/g, ''));
+    }
+
+    const tag = match[1].toLowerCase();
+    const content = match[2];
+    const value = content.split('|')[0];
+    const key = `${match.index}-${tag}`;
+
+    if (tag === 'hit') {
+      const numeric = Number(value);
+      nodes.push(<b key={key}>{Number.isFinite(numeric) && numeric >= 0 ? `+${numeric}` : value}</b>);
+    } else if (tag === 'damage' || tag === 'condition' || tag === 'action' || tag === 'b') {
+      nodes.push(<b key={key}>{value}</b>);
+    } else if (tag === 'spell' || tag === 'i') {
+      nodes.push(<i key={key}>{value}</i>);
+    } else if (tag === 'dc') {
+      nodes.push(<span key={key}>DC {value}</span>);
+    } else {
+      nodes.push(value);
+    }
+
+    lastIndex = tagPattern.lastIndex;
+  }
+
+  if (lastIndex === 0) return raw;
+  if (lastIndex < String(text || '').length) {
+    nodes.push(String(text || '').slice(lastIndex).replace(/\{[^}]+\}/g, ''));
+  }
+
+  return nodes;
+}
+
+function EntryContent({ entry }) {
+  if (!entry) return null;
+  if (typeof entry === 'string' || typeof entry === 'number') {
+    return <EntryText text={entry} />;
+  }
+  if (Array.isArray(entry)) {
+    return entry.map((item, index) => (
+      <FragmentWithBreak key={index} showBreak={index > 0}>
+        <EntryContent entry={item} />
+      </FragmentWithBreak>
+    ));
+  }
+  if (typeof entry !== 'object') return null;
+
+  if (entry.type === 'list') {
+    return (
+      <ul style={{ margin: '.3rem 0 .3rem 1.2rem' }}>
+        {(entry.items || []).map((item, index) => (
+          <li key={index}><EntryContent entry={item} /></li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (entry.type === 'table') {
+    return (
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-body)', margin: '.4rem 0' }}>
+        {entry.colLabels && (
+          <thead>
+            <tr>
+              {entry.colLabels.map((label, index) => (
+                <th key={index} style={entryTableHeaderStyle}><EntryText text={label} /></th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {(entry.rows || []).map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {(row || []).map((cell, cellIndex) => (
+                <td key={cellIndex} style={entryTableCellStyle}><EntryContent entry={cell} /></td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
+
+  if (entry.type === 'entries' || entry.type === 'section') {
+    return (
+      <div style={{ marginBottom: 5 }}>
+        {entry.name && <><b><EntryText text={`${entry.name}.`} /></b> </>}
+        <EntryContent entry={entry.entries} />
+      </div>
+    );
+  }
+
+  if (entry.type === 'inset') {
+    return (
+      <div style={entryInsetStyle}>
+        <EntryContent entry={entry.entries} />
+      </div>
+    );
+  }
+
+  if (entry.name && entry.entries) {
+    return (
+      <div style={{ marginBottom: 5 }}>
+        <b><i><EntryText text={`${entry.name}.`} /></i></b>{' '}
+        <EntryContent entry={entry.entries} />
+      </div>
+    );
+  }
+
+  if (entry.entries) return <EntryContent entry={entry.entries} />;
+  if (entry.entry) return <EntryContent entry={entry.entry} />;
+  return null;
+}
+
+function FragmentWithBreak({ showBreak, children }) {
+  return (
+    <>
+      {showBreak && <br />}
+      {children}
+    </>
+  );
+}
+
+function BackgroundFeature({ item }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className={`feature-item${open ? ' open' : ''}`}>
+      <div
+        className="feature-hdr"
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen((value) => !value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setOpen((value) => !value);
+          }
+        }}
+      >
+        <div className="feature-name" style={{ color: 'var(--text2)' }}>{item.name}</div>
+        <span className="feature-arrow"><Icon name="chevron-right" /></span>
+      </div>
+      <div className="feature-body">
+        <EntryContent entry={item.entries} />{!item.entries && '-'}
+      </div>
+    </div>
+  );
+}
+
+function BackgroundTab({ background }) {
+  const data = background || {};
+  if (!data.hasBackground) {
+    return <div className="phmsg">{data.emptyMessage || 'No background selected.'}</div>;
+  }
+
+  return (
+    <>
+      <div className="bg-section">
+        <div className="bg-section-title">
+          <Icon name="scroll-text" /> {data.name}
+        </div>
+        {(data.summaryRows || []).map((row) => (
+          <p key={row.key} className="bg-text">
+            <strong>{row.label}:</strong> {row.values.join(', ')}
+          </p>
+        ))}
+        {(data.choiceRows || []).length > 0 && (
+          <div style={{ marginTop: '.65rem' }}>
+            {data.choiceRows.map((row) => (
+              <p key={row.key} className="bg-text">
+                <strong>{row.label}:</strong> {row.values.join(', ')}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+      {(data.entries || []).map((entry) => (
+        <BackgroundFeature key={entry.key} item={entry} />
+      ))}
+    </>
+  );
+}
+
+const entryTableHeaderStyle = {
+  fontFamily: 'var(--ff-display)',
+  fontSize: 'var(--fs-xs)',
+  letterSpacing: '.08em',
+  color: 'var(--text3)',
+  padding: '3px 6px',
+  borderBottom: '1px solid var(--bdr)',
+};
+
+const entryTableCellStyle = {
+  padding: '2px 6px',
+  color: 'var(--text2)',
+  borderBottom: '1px solid var(--bdr)',
+};
+
+const entryInsetStyle = {
+  borderLeft: '2px solid var(--bdr2)',
+  padding: '5px 10px',
+  margin: '5px 0',
+  fontStyle: 'italic',
+};
+
+function SheetTabsPanel({ tabs, background, activeTab, onTabChange }) {
   const t = tabs || {};
   const isActive = (name) => (activeTab === name ? ' active' : '');
 
@@ -893,7 +1106,7 @@ function SheetTabsPanel({ tabs, activeTab, onTabChange }) {
       </div>
 
       <div className={`tab-content${isActive('background')}`}>
-        <HtmlBlock html={t.backgroundHtml} />
+        <BackgroundTab background={background} />
       </div>
 
       <div className={`tab-content${isActive('notes')}`}>
@@ -940,11 +1153,11 @@ const addItemButtonStyle = {
   transition: 'all .12s',
 };
 
-function SheetRightColumn({ summary, onSummaryRefresh, tabs, activeTab, onTabChange }) {
+function SheetRightColumn({ summary, onSummaryRefresh, tabs, background, activeTab, onTabChange }) {
   return (
     <div className="main-col-right">
       <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
-      <SheetTabsPanel tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
+      <SheetTabsPanel tabs={tabs} background={background} activeTab={activeTab} onTabChange={onTabChange} />
     </div>
   );
 }
@@ -957,6 +1170,7 @@ export default function CharacterSheetLayout({
   proficiencies,
   skills,
   tabs,
+  background,
   saves,
   senses,
   activeTab,
@@ -993,6 +1207,7 @@ export default function CharacterSheetLayout({
           summary={summary}
           onSummaryRefresh={onSummaryRefresh}
           tabs={tabs}
+          background={background}
           activeTab={activeTab}
           onTabChange={onTabChange}
         />

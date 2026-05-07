@@ -7,6 +7,7 @@ import {
   writeSheetXp,
 } from './characterSheetStorage.js';
 import {
+  computeBackground,
   computeProficiencies,
   computeSaves,
   computeScores,
@@ -264,6 +265,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetScores, setSheetScores] = useState(() => computeScores());
   const [sheetProficiencies, setSheetProficiencies] = useState(() => computeProficiencies());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
+  const [sheetBackground, setSheetBackground] = useState(() => computeBackground());
   const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
   const [sheetSenses, setSheetSenses] = useState(() => computeSenses());
   const [sheetSkillsRows, setSheetSkillsRows] = useState(() => computeSkills());
@@ -319,6 +321,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetScores(computeScores());
       setSheetProficiencies(computeProficiencies());
       setSheetTabs(readCharacterSheetTabs());
+      setSheetBackground(computeBackground());
       setSheetSaves(computeSaves());
       setSheetSenses(computeSenses());
       setSheetSkillsRows(computeSkills());
@@ -336,6 +339,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetScores(computeScores());
         setSheetProficiencies(computeProficiencies());
         setSheetTabs(readCharacterSheetTabs());
+        setSheetBackground(computeBackground());
         setSheetSaves(computeSaves());
         setSheetSenses(computeSenses());
         setSheetSkillsRows(computeSkills());
@@ -357,6 +361,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetScores(computeScores());
     setSheetProficiencies(computeProficiencies());
     setSheetTabs(readCharacterSheetTabs());
+    setSheetBackground(computeBackground());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
@@ -391,6 +396,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetScores(computeScores());
     setSheetProficiencies(computeProficiencies());
     setSheetTabs(readCharacterSheetTabs());
+    setSheetBackground(computeBackground());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
@@ -454,6 +460,7 @@ export default function CharacterSheetPage({ active, title }) {
             scores={sheetScores}
             proficiencies={sheetProficiencies}
             tabs={sheetTabs}
+            background={sheetBackground}
             saves={sheetSaves}
             senses={sheetSenses}
             skills={sheetSkillsRows}
