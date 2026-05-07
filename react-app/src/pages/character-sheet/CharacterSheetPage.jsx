@@ -7,7 +7,13 @@ import {
   readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
-import { computeSaves, computeScores, computeSenses, computeSkills } from './sheetRuntime.js';
+import {
+  computeSaves,
+  computeScores,
+  computeSenses,
+  computeSkills,
+  computeSummary,
+} from './sheetRuntime.js';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
 const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
@@ -203,22 +209,6 @@ function refreshLegacySheetRuntime() {
   script.remove();
 }
 
-function readCharacterSheetSummary() {
-  const inspirationBlock = document.getElementById('inspiration-block');
-  const inspirationLabel = document.getElementById('insp-label');
-  const defenses = document.getElementById('def-content');
-  const conditions = document.getElementById('conditions-content');
-
-  return {
-    initiative: document.getElementById('init-val')?.textContent || '+0',
-    ac: document.getElementById('ac-val')?.textContent || '10',
-    inspirationActive: inspirationBlock?.classList.contains('active') || false,
-    inspirationLabel: inspirationLabel?.textContent || 'No Insp.',
-    defensesHtml: defenses?.innerHTML || '<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>',
-    conditionsHtml: conditions?.innerHTML || '<span class="condition-tag">- None</span>',
-  };
-}
-
 function readCharacterSheetVitals() {
   const scoresMirror = document.querySelector('.legacy-scores-mirror');
   const hpDeath = scoresMirror?.querySelector('.hp-death') || null;
@@ -300,7 +290,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [legacyDoc, setLegacyDoc] = useState(null);
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
-  const [sheetSummary, setSheetSummary] = useState(() => readCharacterSheetSummary());
+  const [sheetSummary, setSheetSummary] = useState(() => computeSummary());
   const [sheetVitals, setSheetVitals] = useState(() => readCharacterSheetVitals());
   const [sheetScores, setSheetScores] = useState(() => computeScores());
   const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
@@ -355,7 +345,7 @@ export default function CharacterSheetPage({ active, title }) {
       refreshLegacySheetRuntime();
       installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
-      setSheetSummary(readCharacterSheetSummary());
+      setSheetSummary(computeSummary());
       setSheetVitals(readCharacterSheetVitals());
       setSheetScores(computeScores());
       setSheetLeftPanels(readCharacterSheetLeftPanels());
@@ -372,7 +362,7 @@ export default function CharacterSheetPage({ active, title }) {
       .then(() => {
         installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
-        setSheetSummary(readCharacterSheetSummary());
+        setSheetSummary(computeSummary());
         setSheetVitals(readCharacterSheetVitals());
         setSheetScores(computeScores());
         setSheetLeftPanels(readCharacterSheetLeftPanels());
@@ -393,7 +383,7 @@ export default function CharacterSheetPage({ active, title }) {
     refreshLegacySheetRuntime();
     installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
-    setSheetSummary(readCharacterSheetSummary());
+    setSheetSummary(computeSummary());
     setSheetVitals(readCharacterSheetVitals());
     setSheetScores(computeScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
@@ -422,12 +412,12 @@ export default function CharacterSheetPage({ active, title }) {
   }
 
   function refreshSheetSummary() {
-    setSheetSummary(readCharacterSheetSummary());
+    setSheetSummary(computeSummary());
   }
 
   function refreshDynamicSnapshots() {
     setSheetHeader(readCharacterSheetHeader());
-    setSheetSummary(readCharacterSheetSummary());
+    setSheetSummary(computeSummary());
     setSheetVitals(readCharacterSheetVitals());
     setSheetScores(computeScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());

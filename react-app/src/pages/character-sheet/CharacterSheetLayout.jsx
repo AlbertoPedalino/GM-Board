@@ -2,8 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   cycleSkillAdv,
   rollAbilityCheck,
+  rollInitiative,
   rollSave,
   rollSkill,
+  toggleInspiration,
 } from './sheetRuntime.js';
 
 function callLegacy(name, ...args) {
@@ -547,7 +549,7 @@ function SheetRightSummary({ summary, onRefresh }) {
         <div
           className="inspiration-block"
           onClick={() => {
-            callLegacy('rollInitiative');
+            rollInitiative();
             window.setTimeout(onRefresh, 0);
           }}
           title="Roll Initiative"
@@ -562,7 +564,7 @@ function SheetRightSummary({ summary, onRefresh }) {
         <div
           className={`inspiration-block${summary.inspirationActive ? ' active' : ''}`}
           onClick={() => {
-            callLegacy('toggleInspirationSheet');
+            toggleInspiration();
             window.setTimeout(onRefresh, 0);
           }}
           title="Toggle Inspiration"

@@ -229,6 +229,45 @@ export function computeScores() {
   };
 }
 
+export function computeSummary() {
+  const { getMod, getFinal, calcAC, _getInitiativeBonus } = window;
+
+  const initMod = (typeof getMod === 'function' && typeof getFinal === 'function')
+    ? getMod(getFinal('dex')) + (typeof _getInitiativeBonus === 'function' ? _getInitiativeBonus() : 0)
+    : 0;
+
+  const ac = typeof calcAC === 'function' ? calcAC() : 10;
+
+  const inspirationActive = readJsonRaw('5e_inspiration') === 'true';
+
+  return {
+    initiative: fbonus(initMod),
+    ac,
+    inspirationActive,
+    inspirationLabel: inspirationActive ? 'Inspired!' : 'No Insp.',
+    defensesHtml: document.getElementById('def-content')?.innerHTML
+      || '<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>',
+    conditionsHtml: document.getElementById('conditions-content')?.innerHTML
+      || '<span class="condition-tag">- None</span>',
+  };
+}
+
+function readJsonRaw(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function rollInitiative() {
+  if (typeof window.rollInitiative === 'function') window.rollInitiative();
+}
+
+export function toggleInspiration() {
+  if (typeof window.toggleInspirationSheet === 'function') window.toggleInspirationSheet();
+}
+
 export function rollAbilityCheck(stat, mod, advFlag) {
   if (typeof window.rollD20 === 'function') {
     const label = `${FULL_LBL[stat] || SLBL[stat] || stat} Check`;
