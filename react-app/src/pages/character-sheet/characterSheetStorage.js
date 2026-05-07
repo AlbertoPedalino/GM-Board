@@ -183,3 +183,32 @@ export function writeSheetXp(nextXp) {
   localStorage.setItem('5e_xp', String(xp));
   return xp;
 }
+
+export function writeSheetConditionsToggle(key, validKeys) {
+  const valid = validKeys instanceof Set ? validKeys : new Set(validKeys || []);
+  let list = readJsonStorage('5e_conditions_active', []);
+  if (!Array.isArray(list)) list = [];
+  list = list.filter((k) => valid.has(k));
+  const idx = list.indexOf(key);
+  if (idx >= 0) list.splice(idx, 1);
+  else if (valid.has(key)) list.push(key);
+  localStorage.setItem('5e_conditions_active', JSON.stringify(list));
+  return list;
+}
+
+export function writeSheetConditionsClear() {
+  localStorage.setItem('5e_conditions_active', JSON.stringify([]));
+}
+
+export function writeSheetCurrency(coin, value) {
+  const stored = readJsonStorage('5e_currency', null) || { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
+  const next = { ...stored, [coin]: parseInt(value, 10) || 0 };
+  localStorage.setItem('5e_currency', JSON.stringify(next));
+  return next;
+}
+
+export function writeSheetNotes(text) {
+  const value = String(text == null ? '' : text);
+  localStorage.setItem('5e_notes', value);
+  return value;
+}

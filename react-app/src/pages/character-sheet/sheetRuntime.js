@@ -1,4 +1,13 @@
 import { lookupSheetSpell } from './sheetSpellDb.js';
+import {
+  writeSheetConditionsClear,
+  writeSheetConditionsToggle,
+  writeSheetCurrency,
+} from './characterSheetStorage.js';
+
+function dispatchSheetSnapshotChange() {
+  window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
+}
 
 export const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 export const SLBL = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
@@ -961,11 +970,14 @@ export function computeSummary() {
 }
 
 export function toggleCondition(key) {
-  if (typeof window.toggleCondition === 'function') window.toggleCondition(key);
+  const validKeys = new Set(CONDITION_OPTIONS.map((c) => c.key));
+  writeSheetConditionsToggle(key, validKeys);
+  dispatchSheetSnapshotChange();
 }
 
 export function clearConditions() {
-  if (typeof window.clearConditions === 'function') window.clearConditions();
+  writeSheetConditionsClear();
+  dispatchSheetSnapshotChange();
 }
 
 function readJsonRaw(key) {
@@ -989,7 +1001,8 @@ export function goBackToBuilder(event) {
 }
 
 export function saveNotes() {
-  if (typeof window.saveNotes === 'function') window.saveNotes();
+  const el = document.getElementById('notes-area');
+  writeSheetNotes(el ? el.value : '');
 }
 
 export function readSheetNotes() {
@@ -1605,7 +1618,8 @@ export function computeInventory() {
 }
 
 export function updateCurrency(coin, value) {
-  if (typeof window.updateCurrencySheet === 'function') window.updateCurrencySheet(coin, value);
+  writeSheetCurrency(coin, value);
+  dispatchSheetSnapshotChange();
 }
 
 export function addCustomItem() {
