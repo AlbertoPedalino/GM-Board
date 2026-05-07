@@ -390,7 +390,6 @@ export default function CharacterSheetPage({ active, title }) {
 
   useEffect(() => {
     if (!active || !runtimeReadyRef.current) return;
-    installSheetRuntimeBridge();
     refreshLegacySheetRuntime();
     installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
