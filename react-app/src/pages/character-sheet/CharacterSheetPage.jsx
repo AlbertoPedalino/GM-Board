@@ -82,6 +82,7 @@ if (typeof window.__gbInstallReactSheetRendererShims === 'function') {
 C = loadChar();
 if (typeof renderAll === 'function') renderAll();
 if (typeof loadItems === 'function') loadItems();
+window.adjustHpBy = function(amt, dir){ hpAdjustAmt = amt; adjustHP(dir); };
 if (typeof _loadSheetSpells === 'function') {
   _loadSheetSpells().then(()=>{ if(C && typeof renderSpellsTab === 'function') renderSpellsTab(); });
 }`,
@@ -213,6 +214,7 @@ function refreshLegacySheetRuntime() {
         C = loadChar();
         renderAll();
         if (typeof loadItems === 'function') loadItems();
+        window.adjustHpBy = function(amt, dir){ hpAdjustAmt = amt; adjustHP(dir); };
         if (typeof _loadSheetSpells === 'function') {
           _loadSheetSpells().then(function(){
             if (C && typeof renderSpellsTab === 'function') renderSpellsTab();
@@ -492,7 +494,7 @@ export default function CharacterSheetPage({ active, title }) {
   function handleHpAdjust(direction, amount) {
     const safeDirection = direction > 0 ? 1 : -1;
     const safeAmount = Math.max(1, parseInt(amount, 10) || 1);
-    runLegacySheetScript(`hpAdjustAmt = ${safeAmount}; adjustHP(${safeDirection});`);
+    if (typeof window.adjustHpBy === 'function') window.adjustHpBy(safeAmount, safeDirection);
     refreshDynamicSnapshots();
   }
 
@@ -570,16 +572,3 @@ export default function CharacterSheetPage({ active, title }) {
   );
 }
 
-function runLegacySheetScript(source) {
-  const script = document.createElement('script');
-  script.dataset.gmBoardLegacySheetCall = 'true';
-  script.textContent = `
-    try {
-      ${source}
-    } catch (err) {
-      console.error('Legacy sheet script failed', err);
-    }
-  `;
-  document.body.appendChild(script);
-  script.remove();
-}
