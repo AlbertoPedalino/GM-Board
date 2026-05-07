@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import CharacterSheetLayout from './CharacterSheetLayout.jsx';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
 const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
@@ -38,13 +39,31 @@ function parseLegacySheet(html) {
     };
   });
 
-  const body = doc.body.cloneNode(true);
-  body.querySelectorAll('script').forEach((script) => script.remove());
+  return {
+    headResources,
+    sections: parseCharacterSheetSections(doc),
+    scripts,
+  };
+}
+
+function requireNode(doc, selector) {
+  const node = doc.querySelector(selector);
+  if (!node) throw new Error(`Missing legacy section: ${selector}`);
+  return node;
+}
+
+function parseCharacterSheetSections(doc) {
+  const mainGrid = requireNode(doc, '.main-grid');
+  const rightColumn = requireNode(mainGrid, '.main-col-right');
 
   return {
-    bodyHtml: body.innerHTML,
-    headResources,
-    scripts,
+    header: requireNode(doc, '.topbar').outerHTML,
+    scores: requireNode(doc, '#scores-row').outerHTML,
+    stats: requireNode(doc, '#stats-row').outerHTML,
+    leftColumn: requireNode(mainGrid, '.main-col-left').innerHTML,
+    skillsColumn: requireNode(mainGrid, '.main-col-middle').innerHTML,
+    rightSummary: requireNode(rightColumn, '.right-top-row').outerHTML,
+    tabsPanel: requireNode(rightColumn, '.panel').outerHTML,
   };
 }
 
@@ -103,7 +122,6 @@ async function runLegacyScripts(scripts) {
 }
 
 export default function CharacterSheetPage({ active, title }) {
-  const rootRef = useRef(null);
   const hasRunScriptsRef = useRef(false);
   const [legacyDoc, setLegacyDoc] = useState(null);
   const [error, setError] = useState('');
@@ -139,7 +157,7 @@ export default function CharacterSheetPage({ active, title }) {
   }, []);
 
   useEffect(() => {
-    if (!legacyDoc?.bodyHtml || hasRunScriptsRef.current) return;
+    if (!legacyDoc?.sections || hasRunScriptsRef.current) return;
 
     hasRunScriptsRef.current = true;
     runLegacyScripts(legacyDoc.scripts).catch((err) => {
@@ -157,13 +175,7 @@ export default function CharacterSheetPage({ active, title }) {
 
       {!legacyDoc && !error && <div className="loading-strip">Caricamento scheda</div>}
 
-      {legacyDoc && (
-        <div
-          ref={rootRef}
-          className="character-sheet-root"
-          dangerouslySetInnerHTML={{ __html: legacyDoc.bodyHtml }}
-        />
-      )}
+      {legacyDoc && <CharacterSheetLayout sections={legacyDoc.sections} />}
     </section>
   );
 }

@@ -20,8 +20,10 @@ Dev server predefinito: `http://127.0.0.1:5173/`.
 
 - `src/App.jsx`: shell React e routing leggero.
 - `src/legacy/LegacyFrame.jsx`: bridge per caricare una pagina HTML legacy.
-- `src/pages/character-sheet/CharacterSheetPage.jsx`: prima pagina React dedicata
-  alla scheda personaggio, ancora compatibile con il runtime legacy.
+- `src/pages/character-sheet/CharacterSheetPage.jsx`: bootstrap della scheda,
+  ancora compatibile con CSS e runtime legacy.
+- `src/pages/character-sheet/CharacterSheetLayout.jsx`: layout della scheda diviso
+  in sezioni grandi di pagina.
 - `public/legacy/`: snapshot delle pagine HTML e degli adapter usati dagli script.
 
 ## Prossimo passo consigliato
