@@ -8,6 +8,7 @@ import {
 } from './characterSheetStorage.js';
 import {
   computeBackground,
+  computeActions,
   computeFeatures,
   computeInventory,
   computeProficiencies,
@@ -267,6 +268,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetScores, setSheetScores] = useState(() => computeScores());
   const [sheetProficiencies, setSheetProficiencies] = useState(() => computeProficiencies());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
+  const [sheetActions, setSheetActions] = useState(() => computeActions());
   const [sheetBackground, setSheetBackground] = useState(() => computeBackground());
   const [sheetFeatures, setSheetFeatures] = useState(() => computeFeatures());
   const [sheetInventory, setSheetInventory] = useState(() => computeInventory());
@@ -325,6 +327,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetScores(computeScores());
       setSheetProficiencies(computeProficiencies());
       setSheetTabs(readCharacterSheetTabs());
+      setSheetActions(computeActions());
       setSheetBackground(computeBackground());
       setSheetFeatures(computeFeatures());
       setSheetInventory(computeInventory());
@@ -345,6 +348,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetScores(computeScores());
         setSheetProficiencies(computeProficiencies());
         setSheetTabs(readCharacterSheetTabs());
+        setSheetActions(computeActions());
         setSheetBackground(computeBackground());
         setSheetFeatures(computeFeatures());
         setSheetInventory(computeInventory());
@@ -369,6 +373,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetScores(computeScores());
     setSheetProficiencies(computeProficiencies());
     setSheetTabs(readCharacterSheetTabs());
+    setSheetActions(computeActions());
     setSheetBackground(computeBackground());
     setSheetFeatures(computeFeatures());
     setSheetInventory(computeInventory());
@@ -406,6 +411,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetScores(computeScores());
     setSheetProficiencies(computeProficiencies());
     setSheetTabs(readCharacterSheetTabs());
+    setSheetActions(computeActions());
     setSheetBackground(computeBackground());
     setSheetFeatures(computeFeatures());
     setSheetInventory(computeInventory());
@@ -472,6 +478,7 @@ export default function CharacterSheetPage({ active, title }) {
             scores={sheetScores}
             proficiencies={sheetProficiencies}
             tabs={sheetTabs}
+            actions={sheetActions}
             background={sheetBackground}
             features={sheetFeatures}
             inventory={sheetInventory}

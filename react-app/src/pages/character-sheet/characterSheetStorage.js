@@ -186,8 +186,6 @@ export function writeSheetXp(nextXp) {
 
 export function readCharacterSheetTabs() {
   return {
-    attacksTableHtml: document.getElementById('attacks-table-wrap')?.innerHTML || '',
-    combatActionsHtml: document.getElementById('combat-actions-wrap')?.innerHTML || '',
     spellsHtml: document.getElementById('spells-wrap')?.innerHTML || '',
   };
 }

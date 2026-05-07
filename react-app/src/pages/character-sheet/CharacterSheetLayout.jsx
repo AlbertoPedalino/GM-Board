@@ -10,6 +10,8 @@ import {
   goBackToBuilder,
   INVENTORY_FILTERS,
   rollAbilityCheck,
+  rollDamage,
+  rollFlatDamage,
   rollInitiative,
   rollSave,
   rollSkill,
@@ -17,6 +19,8 @@ import {
   setInventoryWeaponOverride,
   toggleInventoryEquip,
   toggleInventoryFlag,
+  toggleVersatile,
+  toggleWeaponHand,
   writeSheetNotes,
   toggleCondition,
   toggleInspiration,
@@ -735,12 +739,12 @@ function TabButton({ name, active, onSelect, children }) {
   );
 }
 
-function ActionFilter({ filter, active, children }) {
+function ActionFilter({ filter, active, children, onSelect }) {
   return (
     <button
       className={`af-btn${active ? ' on' : ''}`}
       type="button"
-      onClick={(event) => callLegacy('filterActions', filter, event.currentTarget)}
+      onClick={() => onSelect(filter)}
     >
       {children}
     </button>
@@ -1563,6 +1567,180 @@ const purpleButtonOffStyle = {
   color: 'var(--purple)',
 };
 
+function ActionTag({ tag }) {
+  return (
+    <span className={`action-tag ${tag.cls || 'util'}`} style={tag.color ? { borderColor: tag.color, color: tag.color } : undefined}>
+      {tag.label}
+    </span>
+  );
+}
+
+function ActionCard({ item, onRuntimeRefresh }) {
+  const [open, setOpen] = useState(false);
+
+  function handleHeaderKey(event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setOpen((value) => !value);
+    }
+  }
+
+  function refreshSoon(action) {
+    action();
+    window.setTimeout(onRuntimeRefresh, 0);
+  }
+
+  const hasBody = !!item.desc;
+  const isWeapon = item.kind === 'weapon';
+  const isUnarmed = item.kind === 'unarmed';
+
+  return (
+    <div className={`action-card${open ? ' open' : ''}`}>
+      <div
+        className="action-card-hdr"
+        role={hasBody ? 'button' : undefined}
+        tabIndex={hasBody ? 0 : undefined}
+        onClick={() => hasBody && setOpen((value) => !value)}
+        onKeyDown={hasBody ? handleHeaderKey : undefined}
+      >
+        <span className="action-card-icon">{item.icon && <Icon name={item.icon} />}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="action-card-name">
+            {item.name}
+            {item.sub?.length > 0 && <span className="sub">{item.sub.join(' · ')}</span>}
+            {item.uses && <span className="sub">{item.uses}</span>}
+          </div>
+        </div>
+        <div className="action-card-tags">
+          {(item.tags || []).map((tag, index) => <ActionTag key={`${tag.label}-${index}`} tag={tag} />)}
+        </div>
+        {isWeapon && (
+          <div style={{ display: 'flex', gap: 3, alignItems: 'center', flexShrink: 0 }}>
+            <button
+              className="inv-equip-btn on"
+              type="button"
+              style={{ fontSize: 'var(--fs-xs)', padding: '2px 7px' }}
+              onClick={(event) => {
+                event.stopPropagation();
+                refreshSoon(() => toggleWeaponHand(item.index));
+              }}
+            >
+              {item.isOffHand ? 'Off' : 'Main'}
+            </button>
+            {item.isVersatile && (
+              <button
+                className="inv-equip-btn on"
+                type="button"
+                style={{ fontSize: 'var(--fs-xs)', padding: '2px 7px' }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  refreshSoon(() => toggleVersatile(item.index));
+                }}
+              >
+                {item.isTwoHanded ? '2H' : '1H'}
+              </button>
+            )}
+          </div>
+        )}
+        {item.stat && <div className="action-stat">{item.stat}</div>}
+      </div>
+
+      {(item.attackBonus !== null && item.attackBonus !== undefined) || item.damageFormula || item.flatDamage ? (
+        <div className="action-card-bar">
+          {item.attackBonus !== null && item.attackBonus !== undefined && (
+            <button
+              className="roll-btn"
+              type="button"
+              onClick={() => callLegacy('rollD20', item.attackBonus, item.attackLabel || item.name, item.attackAdv)}
+            >
+              <Icon name="dice-5" /> Attack {item.stat || ''}
+            </button>
+          )}
+          {item.damageFormula && (
+            <button
+              className="roll-btn dmg"
+              type="button"
+              onClick={() => rollDamage(item.damageFormula, item.damageLabel ? `Damage: ${item.name}` : item.name)}
+            >
+              <Icon name="flame" /> {item.damageLabel || item.damageFormula}
+            </button>
+          )}
+          {item.flatDamage && (
+            <button
+              className="roll-btn dmg"
+              type="button"
+              onClick={() => rollFlatDamage(item.name, item.flatDamage, '1 + STR')}
+            >
+              <Icon name="sword" /> {item.damageLabel}
+            </button>
+          )}
+          {item.range && <div className="action-dmg-pill"><Icon name="ruler" /> <b>{item.range}</b></div>}
+          {item.propText && <div className="action-dmg-pill">{item.propText}</div>}
+          {item.bonus > 0 && <div className="action-dmg-pill" style={{ color: 'var(--gold)' }}><Icon name="sparkles" /> +{item.bonus}</div>}
+          {item.hasMastery && <div className="action-dmg-pill" style={{ color: 'var(--gold)' }}><Icon name="star" /> Mastery</div>}
+        </div>
+      ) : null}
+
+      {hasBody && (
+        <div className="action-card-body">
+          <div className="action-desc">{item.desc}</div>
+          {isUnarmed && (
+            <div style={{ marginTop: '.6rem', borderTop: '1px solid var(--bdr2)', paddingTop: '.5rem', display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
+              <div style={{ fontSize: 'var(--fs-label)', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                Replace an attack with:
+              </div>
+              <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600, fontSize: 'var(--fs-body)' }}><Icon name="users-round" /> Grapple</span>
+                <span className="action-dmg-pill">STR or DEX save</span>
+              </div>
+              <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600, fontSize: 'var(--fs-body)' }}><Icon name="arrow-right" /> Shove</span>
+                <span className="action-dmg-pill">STR or DEX save</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ActionsTab({ actions, activeFilter, onFilterChange, onRuntimeRefresh }) {
+  const sections = Array.isArray(actions?.sections) ? actions.sections : [];
+  const visible = activeFilter === 'all'
+    ? sections
+    : sections.filter((section) => section.key === activeFilter);
+
+  return (
+    <>
+      <div className="action-filters">
+        <ActionFilter filter="all" active={activeFilter === 'all'} onSelect={onFilterChange}>All</ActionFilter>
+        <ActionFilter filter="attack" active={activeFilter === 'attack'} onSelect={onFilterChange}>Attack</ActionFilter>
+        <ActionFilter filter="action" active={activeFilter === 'action'} onSelect={onFilterChange}>Action</ActionFilter>
+        <ActionFilter filter="bonus" active={activeFilter === 'bonus'} onSelect={onFilterChange}>Bonus Action</ActionFilter>
+        <ActionFilter filter="reaction" active={activeFilter === 'reaction'} onSelect={onFilterChange}>Reaction</ActionFilter>
+      </div>
+
+      {visible.map((section) => (
+        <div key={section.key}>
+          {activeFilter === 'all' && (
+            <div className="action-section-hdr">
+              {section.icon && <Icon name={section.icon} />} {section.label}
+            </div>
+          )}
+          {section.items.length === 0 && section.emptyHint ? (
+            <div style={{ fontSize: 'var(--fs-body)', color: 'var(--text3)', fontStyle: 'italic', padding: '.3rem 0' }}>
+              {section.emptyHint}
+            </div>
+          ) : section.items.map((item) => (
+            <ActionCard key={item.key} item={item} onRuntimeRefresh={onRuntimeRefresh} />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
 const entryTableHeaderStyle = {
   fontFamily: 'var(--ff-display)',
   fontSize: 'var(--fs-xs)',
@@ -1585,9 +1763,10 @@ const entryInsetStyle = {
   fontStyle: 'italic',
 };
 
-function SheetTabsPanel({ tabs, background, features, inventory, activeTab, onTabChange, onRuntimeRefresh }) {
+function SheetTabsPanel({ tabs, actions, background, features, inventory, activeTab, onTabChange, onRuntimeRefresh }) {
   const t = tabs || {};
   const isActive = (name) => (activeTab === name ? ' active' : '');
+  const [activeActionFilter, setActiveActionFilter] = useState('all');
 
   return (
     <div className="panel" style={{ marginBottom: 0 }}>
@@ -1601,15 +1780,12 @@ function SheetTabsPanel({ tabs, background, features, inventory, activeTab, onTa
       </div>
 
       <div className={`tab-content${isActive('actions')}`}>
-        <div className="action-filters">
-          <ActionFilter filter="all" active>All</ActionFilter>
-          <ActionFilter filter="attack">Attack</ActionFilter>
-          <ActionFilter filter="action">Action</ActionFilter>
-          <ActionFilter filter="bonus">Bonus Action</ActionFilter>
-          <ActionFilter filter="reaction">Reaction</ActionFilter>
-        </div>
-        <HtmlBlock html={t.attacksTableHtml} />
-        <HtmlBlock html={t.combatActionsHtml} style={{ marginTop: '.75rem' }} />
+        <ActionsTab
+          actions={actions}
+          activeFilter={activeActionFilter}
+          onFilterChange={setActiveActionFilter}
+          onRuntimeRefresh={onRuntimeRefresh}
+        />
       </div>
 
       <div className={`tab-content${isActive('spells')}`}>
@@ -1676,6 +1852,7 @@ function SheetRightColumn({
   summary,
   onSummaryRefresh,
   tabs,
+  actions,
   background,
   features,
   inventory,
@@ -1688,6 +1865,7 @@ function SheetRightColumn({
       <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
       <SheetTabsPanel
         tabs={tabs}
+        actions={actions}
         background={background}
         features={features}
         inventory={inventory}
@@ -1707,6 +1885,7 @@ export default function CharacterSheetLayout({
   proficiencies,
   skills,
   tabs,
+  actions,
   background,
   features,
   inventory,
@@ -1746,6 +1925,7 @@ export default function CharacterSheetLayout({
           summary={summary}
           onSummaryRefresh={onSummaryRefresh}
           tabs={tabs}
+          actions={actions}
           background={background}
           features={features}
           inventory={inventory}

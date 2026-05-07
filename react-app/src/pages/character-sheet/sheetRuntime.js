@@ -110,6 +110,30 @@ export const INVENTORY_FILTERS = [
   { key: 'magic', label: 'Magic', icon: 'sparkles' },
 ];
 
+const STANDARD_ACTIONS = [
+  { name: 'Attack', icon: 'swords', cat: 'action', universal: true, desc: 'Make one weapon attack. With Extra Attack (Lv.5+) you can attack multiple times. Any attack can be replaced with a Grapple or Shove special attack.' },
+  { name: 'Dash', icon: 'move-right', cat: 'action', universal: true, desc: 'Your maximum Speed doubles for the turn.' },
+  { name: 'Disengage', icon: 'wind', cat: 'action', universal: true, desc: "Your movement doesn't provoke Opportunity Attacks for the rest of the turn." },
+  { name: 'Dodge', icon: 'shield', cat: 'action', universal: true, desc: 'Until the start of your next turn: attack rolls against you have Disadvantage, and you make Dexterity saving throws with Advantage.' },
+  { name: 'Help', icon: 'handshake', cat: 'action', universal: true, desc: 'Give an ally Advantage on a check you can assist with, or on their next attack roll against a target within 5 ft of you.' },
+  { name: 'Hide', icon: 'eye', cat: 'action', universal: true, desc: 'Make a Dexterity (Stealth) check to gain the Hidden condition when cover or concealment allows it.' },
+  { name: 'Influence', icon: 'drama', cat: 'action', universal: true, desc: 'Attempt to sway a creature using Charisma or Wisdom social checks. The DM determines the DC.' },
+  { name: 'Search', icon: 'search', cat: 'action', universal: true, desc: 'Make a Wisdom (Perception) or Intelligence (Investigation) check to locate hidden objects, creatures, or clues.' },
+  { name: 'Study', icon: 'book-open', cat: 'action', universal: true, desc: 'Make an Intelligence check to recall lore or examine an object.' },
+  { name: 'Ready', icon: 'timer', cat: 'action', universal: true, desc: 'Describe a trigger and choose a reaction. When the trigger occurs before your next turn, you use your Reaction to execute it.' },
+  { name: 'Utilize', icon: 'backpack', cat: 'action', universal: true, desc: 'Activate a non-magical item that requires an action, or interact with a second object on your turn.' },
+  { name: 'Cast a Spell', icon: 'sparkles', cat: 'action', casterOnly: true, desc: 'Cast a spell with a casting time of 1 Action.' },
+  { name: 'Spell (Reaction)', icon: 'sparkles', cat: 'reaction', casterOnly: true, desc: 'Some spells use your Reaction in response to a trigger.' },
+  { name: 'Opportunity Attack', icon: 'zap', cat: 'reaction', universal: true, desc: 'When a hostile creature you can see voluntarily leaves your reach, use your Reaction to make one melee attack.' },
+];
+
+const UNARMED_ACTION = {
+  name: 'Unarmed Strike',
+  icon: 'hand',
+  cat: 'attack',
+  desc: 'Attack with a punch, kick, or headbutt. Replaces one attack in the Attack action.',
+};
+
 export const SKILLS_LIST = [
   { n: 'Acrobatics', a: 'dex' },
   { n: 'Animal Handling', a: 'wis' },
@@ -1599,4 +1623,401 @@ export function toggleInventoryFlag(index, key) {
 
 export function setInventoryWeaponOverride(index, key) {
   if (typeof window.setWeaponOverride === 'function') window.setWeaponOverride(index, key);
+}
+
+function getWeaponMasteries(character) {
+  const out = new Set();
+  if (!character?.choices) return out;
+  for (const [key, rawValue] of Object.entries(character.choices)) {
+    if (!rawValue) continue;
+    const lowerKey = key.toLowerCase();
+    if (!(lowerKey.includes('mastery') && lowerKey.includes('weapon'))) continue;
+    const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+    values.forEach((value) => {
+      const normalized = String(value || '')
+        .split('|')[0]
+        .replace(/\{@\w+\s*/g, '')
+        .replace(/[{}]/g, '')
+        .trim()
+        .toLowerCase();
+      if (normalized) out.add(normalized);
+    });
+  }
+  return out;
+}
+
+function getActionOwnerLevel(action, character) {
+  if (Number.isFinite(Number(action?._ownerLevel))) return Number(action._ownerLevel);
+  if (Number.isFinite(Number(action?.level))) return Number(action.level);
+  if (action?._cls && action._cls !== 'Feat' && action._cls !== character?.speciesName) {
+    const extra = (character?.extraClasses || []).find((entry) => entry?.name === action._cls);
+    if (extra) return Number(extra.level || 1);
+  }
+  return Number(character?.classLevel || character?.level || 1);
+}
+
+function resolveActionValue(value, ctx, fallback = '') {
+  if (typeof value === 'function') {
+    try {
+      return value(ctx);
+    } catch {
+      return fallback;
+    }
+  }
+  return value ?? fallback;
+}
+
+function normalizeDiceFormula(formula) {
+  return String(formula || '').replace(/\s+/g, '').replace(/\u2212/g, '-');
+}
+
+function extractActionDamageFormula(action, character) {
+  const ctx = { character, action, ownerLevel: getActionOwnerLevel(action, character) };
+  const candidates = [
+    action?.healFormula,
+    action?.damageFormula,
+    action?.rollDamage,
+    action?.damage,
+  ];
+
+  for (const candidate of candidates) {
+    const value = resolveActionValue(candidate, ctx, '');
+    if (typeof value === 'string' && /\d+d\d+/i.test(value)) return normalizeDiceFormula(value);
+  }
+
+  if (Array.isArray(action?.damageRolls)) {
+    const first = action.damageRolls.find((roll) => (
+      typeof roll === 'string' || typeof roll?.formula === 'string'
+    ));
+    const value = typeof first === 'string' ? first : first?.formula;
+    if (value && /\d+d\d+/i.test(value)) return normalizeDiceFormula(value);
+  }
+
+  const desc = String(resolveActionValue(action?.desc, ctx, ''));
+  const match = desc.match(/\b(\d+d\d+(?:\s*[+-]\s*\d+)?)\b/i);
+  return match ? normalizeDiceFormula(match[1]) : '';
+}
+
+function inferActionAttackBonus(action) {
+  const { getPB, getMod, getFinal, getSpellAttackBonus } = window;
+  if (typeof action?.attackBonus === 'number') return action.attackBonus;
+  if (typeof getPB !== 'function' || typeof getMod !== 'function' || typeof getFinal !== 'function') return 0;
+
+  if (typeof action?.attackAbility === 'string' && STATS.includes(action.attackAbility.toLowerCase())) {
+    return getMod(getFinal(action.attackAbility.toLowerCase())) + getPB() + Number(action?.attackBonusExtra || 0);
+  }
+
+  const text = `${action?.name || ''} ${action?.desc || ''}`.toLowerCase();
+  if ((action?.attackRoll === 'spell' || /\bspell\b|\bcantrip\b|\bmagic\b/.test(text)) && typeof getSpellAttackBonus === 'function') {
+    return getSpellAttackBonus();
+  }
+  if (/\branged\b/.test(text)) return getMod(getFinal('dex')) + getPB();
+  return Math.max(getMod(getFinal('str')), getMod(getFinal('dex'))) + getPB();
+}
+
+function computeWeaponAction(item, index, character) {
+  const {
+    getFinal,
+    getMod,
+    getPB,
+    _sheetItemHasProperty,
+    _getActiveWeaponOverrides,
+    _sheetWeaponProficiencyInfo,
+    _sheetHasNonProficientArmor,
+  } = window;
+
+  if (
+    typeof getFinal !== 'function' ||
+    typeof getMod !== 'function' ||
+    typeof getPB !== 'function'
+  ) return null;
+
+  const props = item?.property || [];
+  const isRanged = item?.type === 'R';
+  const itemHasProperty = typeof _sheetItemHasProperty === 'function'
+    ? (values) => _sheetItemHasProperty(item, values)
+    : (values) => props.some((prop) => values.includes(prop));
+  const isFinesse = itemHasProperty(['F', 'finesse']);
+  const isOffHand = item?.hand === 'off';
+  const isVersatile = itemHasProperty(['V', 'versatile']) && !!item?.dmg2;
+  const isTwoHanded = isVersatile && item?.versatileHand === '2h';
+  const bonus = parseInt(String(item?.bonusWeapon || '0').replace('+', ''), 10) || 0;
+
+  const strMod = getMod(getFinal('str'));
+  const dexMod = getMod(getFinal('dex'));
+  const pb = getPB();
+  const activeOverrides = typeof _getActiveWeaponOverrides === 'function' ? _getActiveWeaponOverrides() : [];
+  const flagOverride = activeOverrides.find((override) => (
+    override.itemFlag && Array.isArray(item?.flags) && item.flags.includes(override.itemFlag)
+  ));
+  const weaponOverride = flagOverride || (
+    item?.weaponMod ? activeOverrides.find((override) => override.key === item.weaponMod) : null
+  );
+  const profInfo = typeof _sheetWeaponProficiencyInfo === 'function'
+    ? _sheetWeaponProficiencyInfo(item, weaponOverride)
+    : { proficient: true, source: '' };
+  const profBonus = profInfo.proficient ? pb : 0;
+
+  let attackAbility = 'str';
+  let abilityMod = strMod;
+  if (weaponOverride) {
+    attackAbility = String(weaponOverride.ability || 'str').toLowerCase();
+    abilityMod = getMod(getFinal(attackAbility));
+  } else if (isRanged) {
+    attackAbility = 'dex';
+    abilityMod = dexMod;
+  } else if (isFinesse) {
+    attackAbility = dexMod > strMod ? 'dex' : 'str';
+    abilityMod = Math.max(strMod, dexMod);
+  }
+
+  const attackBonus = abilityMod + profBonus + bonus;
+  const damageMod = (isOffHand ? Math.min(0, abilityMod) : abilityMod) + bonus;
+  const damageDie = (isTwoHanded ? item?.dmg2 : item?.dmg1) || '1d4';
+  const damageFormula = `${damageDie}${damageMod >= 0 ? '+' : ''}${damageMod}`;
+  const damageType = item?.dmgType || '';
+  const propText = props.map((prop) => WEAPON_PROP_LABELS[prop] || prop).filter(Boolean).join(', ');
+  const masterySet = getWeaponMasteries(character);
+  const hasMastery = masterySet.has(String(item?.name || '').toLowerCase());
+  const attackDis = typeof _sheetHasNonProficientArmor === 'function' &&
+    _sheetHasNonProficientArmor() &&
+    (attackAbility === 'str' || attackAbility === 'dex');
+  const rarity = item?.rarity && item.rarity !== 'none' ? item.rarity : null;
+
+  return {
+    kind: 'weapon',
+    key: `weapon-${index}-${item?.name || ''}`,
+    category: isOffHand ? 'bonus' : 'attack',
+    icon: isRanged ? 'crosshair' : 'swords',
+    name: item?.name || 'Weapon',
+    sub: [
+      SOURCE_LABELS[item?.source] || item?.source || '',
+      bonus > 0 ? `Magic +${bonus}` : '',
+      propText,
+      isOffHand ? 'no ability mod to damage' : '',
+      weaponOverride ? `${String(weaponOverride.ability || '').toUpperCase()} mod` : '',
+      !profInfo.proficient ? 'no PB to hit' : '',
+    ].filter(Boolean),
+    tags: [
+      { label: 'ATK', cls: 'atk' },
+      isOffHand ? { label: 'OFF', cls: 'util' } : null,
+      isTwoHanded ? { label: '2H', cls: 'util' } : null,
+      weaponOverride ? { label: String(weaponOverride.label || weaponOverride.key).toUpperCase(), cls: 'cls' } : null,
+      !profInfo.proficient ? { label: 'NO PROF', cls: 'save' } : null,
+      attackDis ? { label: 'DIS', cls: 'save' } : null,
+      hasMastery ? { label: 'MASTERY', cls: 'util' } : null,
+      rarity ? { label: rarity, cls: 'util', color: ITEM_RARITY_COLOR[rarity] } : null,
+    ].filter(Boolean),
+    stat: fbonus(attackBonus),
+    attackBonus,
+    attackLabel: `Attack: ${item?.name || 'Weapon'}`,
+    attackAdv: attackDis ? false : undefined,
+    damageFormula,
+    damageLabel: `${damageDie}${damageMod >= 0 ? '+' : ''}${damageMod} ${damageType}`.trim(),
+    range: isRanged ? (item?.range || 'varies') : `5 ft${itemHasProperty(['T', 'thrown']) ? ' / thrown' : ''}`,
+    propText,
+    bonus,
+    hasMastery,
+    index,
+    isVersatile,
+    isTwoHanded,
+    isOffHand,
+  };
+}
+
+export function computeActions() {
+  const character = readActiveCharacter();
+  if (!character) return { sections: [] };
+
+  const rows = resolveInventoryRows();
+  const equippedWeapons = rows
+    .filter(({ item }) => item?.equipped && ['M', 'R'].includes(item.type) && item.hand !== 'off')
+    .map(({ item, index }) => computeWeaponAction(item, index, character))
+    .filter(Boolean);
+  const offHandWeapons = rows
+    .filter(({ item }) => item?.equipped && ['M', 'R'].includes(item.type) && item.hand === 'off')
+    .map(({ item, index }) => computeWeaponAction(item, index, character))
+    .filter(Boolean);
+
+  const className = character.className || '';
+  const level = Number(character.level || 1);
+  const primaryLevel = Number(character.classLevel || level);
+  const classActions = typeof window.getSheetClassActions === 'function'
+    ? window.getSheetClassActions(className, primaryLevel)
+    : [];
+  const subKey = `${className}_${character.subclassShortName || ''}`;
+  const subActions = typeof window.getSheetSubclassActions === 'function'
+    ? window.getSheetSubclassActions(subKey, primaryLevel)
+    : [];
+  const extraActions = [];
+
+  (character.extraClasses || []).forEach((extraClass, index) => {
+    if (!extraClass?.name) return;
+    const extraLevel = Number(extraClass.level || 1);
+    const extraSubKey = `${extraClass.name}_${extraClass.subclassShortName || ''}`;
+    const extraPrefix = `mc${index}_`;
+    if (typeof window.getSheetClassActions === 'function') {
+      extraActions.push(...window.getSheetClassActions(extraClass.name, extraLevel).map((action) => ({
+        ...action,
+        _cls: extraClass.name,
+        _ownerLevel: extraLevel,
+      })));
+    }
+    if (typeof window.getSheetSubclassActions === 'function') {
+      extraActions.push(...window.getSheetSubclassActions(extraSubKey, extraLevel, extraPrefix).map((action) => ({
+        ...action,
+        _cls: extraClass.name,
+        _ownerLevel: extraLevel,
+      })));
+    }
+  });
+
+  const speciesActions = typeof window.getSheetSpeciesActions === 'function'
+    ? window.getSheetSpeciesActions(character.speciesName || '', character.speciesSource || '', level)
+      .map((action) => ({ ...action, _cls: character.speciesName || 'Species', _ownerLevel: level }))
+    : [];
+  const featActions = [];
+  (character.allFeatSnapshots || []).forEach((feat) => {
+    if (!feat?.name || typeof window.getFeatSheetActions !== 'function') return;
+    window.getFeatSheetActions(feat.name).forEach((action) => {
+      featActions.push({ ...action, _cls: 'Feat', _ownerLevel: level });
+    });
+  });
+
+  const allClassActions = [
+    ...classActions.map((action) => ({ ...action, _cls: className, _ownerLevel: primaryLevel })),
+    ...subActions.map((action) => ({ ...action, _cls: character.subclassShortName || className, _ownerLevel: primaryLevel })),
+    ...extraActions,
+    ...speciesActions,
+    ...featActions,
+  ].map((action, index) => {
+    const ctx = { character, action, ownerLevel: getActionOwnerLevel(action, character) };
+    const name = String(resolveActionValue(action.name, ctx, 'Action') || 'Action');
+    const desc = String(resolveActionValue(action.desc, ctx, '') || '');
+    const uses = String(resolveActionValue(action.uses, ctx, '') || '');
+    const damageFormula = extractActionDamageFormula(action, character);
+    const hasAttack = action?.attackRoll !== undefined ||
+      action?.attackAbility !== undefined ||
+      typeof action?.attackBonus === 'number';
+
+    return {
+      kind: 'class',
+      key: `class-action-${index}-${name}`,
+      category: action.cat === 'react' ? 'reaction' : (action.cat || 'action'),
+      icon: action.icon || 'circle',
+      name,
+      uses,
+      desc: cleanTaggedText(desc),
+      tags: [
+        { label: action.cat === 'bonus' ? 'BONUS' : action.cat === 'attack' ? 'ATK' : action.cat === 'reaction' || action.cat === 'react' ? 'REACT.' : 'ACTION', cls: action.cat === 'bonus' ? 'bonus' : action.cat === 'attack' ? 'atk' : action.cat === 'reaction' || action.cat === 'react' ? 'react' : 'util' },
+        { label: String(action._cls || 'Class').toUpperCase(), cls: 'cls' },
+      ],
+      attackBonus: hasAttack ? inferActionAttackBonus(action) : null,
+      attackLabel: `Attack: ${name}`,
+      damageFormula,
+      damageLabel: damageFormula,
+    };
+  });
+
+  const isCaster = !!(
+    character.clsSnapshot?.casterProgression ||
+    (character.selectedCantrips || []).length > 0 ||
+    Object.values(character.selectedSpells || {}).flat().length > 0 ||
+    (character.extraClasses || []).some((extraClass) => (
+      extraClass.clsSnapshot?.casterProgression ||
+      (extraClass.selectedCantrips || []).length > 0 ||
+      Object.values(extraClass.selectedSpells || {}).flat().length > 0
+    ))
+  );
+  const stdActions = STANDARD_ACTIONS
+    .filter((action) => action.universal || (action.casterOnly && isCaster))
+    .map((action) => ({
+      kind: 'standard',
+      key: `standard-${action.name}`,
+      category: action.cat === 'react' ? 'reaction' : action.cat,
+      icon: action.icon,
+      name: action.name,
+      desc: action.desc,
+      tags: [{ label: action.cat === 'bonus' ? 'BONUS' : action.cat === 'reaction' ? 'REACT.' : 'ACTION', cls: action.cat === 'bonus' ? 'bonus' : action.cat === 'reaction' ? 'react' : 'util' }],
+    }));
+
+  const unarmedAttackBonus = typeof window.getPB === 'function' && typeof window.getMod === 'function' && typeof window.getFinal === 'function'
+    ? window.getPB() + window.getMod(window.getFinal('str'))
+    : 0;
+  const unarmedDamage = typeof window.getMod === 'function' && typeof window.getFinal === 'function'
+    ? Math.max(1, 1 + window.getMod(window.getFinal('str')))
+    : 1;
+  const unarmed = {
+    ...UNARMED_ACTION,
+    kind: 'unarmed',
+    key: 'unarmed-strike',
+    category: 'attack',
+    tags: [{ label: 'ATK', cls: 'atk' }],
+    stat: fbonus(unarmedAttackBonus),
+    attackBonus: unarmedAttackBonus,
+    attackLabel: 'Unarmed Strike',
+    flatDamage: unarmedDamage,
+    damageLabel: `${unarmedDamage} bludgeoning`,
+  };
+
+  return {
+    sections: [
+      {
+        key: 'attack',
+        label: 'Attacks',
+        icon: 'swords',
+        items: [...equippedWeapons, unarmed, ...allClassActions.filter((action) => action.category === 'attack')],
+        emptyHint: 'Go to Inventory, find a weapon and press Equip to see it here.',
+      },
+      {
+        key: 'action',
+        label: 'Actions',
+        icon: 'target',
+        items: [
+          ...allClassActions.filter((action) => action.category === 'action' && action.uses !== 'Passive'),
+          ...stdActions.filter((action) => action.category === 'action'),
+        ],
+      },
+      {
+        key: 'bonus',
+        label: 'Bonus Actions',
+        icon: 'zap',
+        items: [
+          ...offHandWeapons,
+          ...allClassActions.filter((action) => action.category === 'bonus'),
+          ...stdActions.filter((action) => action.category === 'bonus'),
+        ],
+        emptyHint: `No bonus actions specific to ${className || 'this class'}.`,
+      },
+      {
+        key: 'reaction',
+        label: 'Reactions',
+        icon: 'rotate-ccw',
+        items: [
+          ...allClassActions.filter((action) => action.category === 'reaction'),
+          ...stdActions.filter((action) => action.category === 'reaction'),
+        ],
+      },
+    ],
+  };
+}
+
+export function rollDamage(formula, label) {
+  if (typeof window.rollDamage === 'function') window.rollDamage(formula, label);
+}
+
+export function rollFlatDamage(label, total, formulaLabel) {
+  if (typeof window.showDiceToast === 'function') {
+    window.showDiceToast('Damage', [], total, total, formulaLabel);
+  } else if (typeof window.rollDamage === 'function') {
+    window.rollDamage(String(total), label);
+  }
+}
+
+export function toggleWeaponHand(index) {
+  if (typeof window.toggleWeaponHand === 'function') window.toggleWeaponHand(index);
+}
+
+export function toggleVersatile(index) {
+  if (typeof window.toggleVersatile === 'function') window.toggleVersatile(index);
 }
