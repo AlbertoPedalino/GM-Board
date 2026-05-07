@@ -43,6 +43,73 @@ const DMGTYPE_LABELS = {
   slashing: 'Slashing',
 };
 
+const ITEM_TYPE_LABELS = {
+  M: 'Melee Weapon',
+  R: 'Ranged Weapon',
+  LA: 'Light Armor',
+  MA: 'Medium Armor',
+  HA: 'Heavy Armor',
+  S: 'Shield',
+  G: 'Gear',
+  AT: 'Tools',
+  GS: 'Gaming Set',
+  INS: 'Instrument',
+  MNT: 'Mount',
+  VEH: 'Vehicle',
+  SCF: 'Spellcasting Focus',
+  WD: 'Wand',
+  RG: 'Ring',
+  RD: 'Rod',
+  ST: 'Staff',
+  WI: 'Wondrous Item',
+  P: 'Potion',
+  SC: 'Scroll',
+  $: 'Currency',
+  OTH: 'Other',
+  GV: 'Magic Variant',
+};
+
+const ITEM_RARITY_COLOR = {
+  none: 'var(--text3)',
+  common: 'var(--text2)',
+  uncommon: 'var(--green)',
+  rare: 'var(--blue)',
+  'very rare': 'var(--purple)',
+  legendary: 'var(--gold)',
+  artifact: 'var(--red2)',
+};
+
+const SOURCE_LABELS = {
+  XPHB: 'XPHB',
+  XDMG: 'XDMG',
+  FRAiF: 'FRAiF',
+  FRHoF: 'FRHoF',
+  EFA: 'EFA',
+  DMG: 'DMG',
+  PHB: 'PHB',
+  XGE: 'XGE',
+  TCE: 'TCE',
+};
+
+const WEAPON_PROP_LABELS = {
+  F: 'Finesse',
+  L: 'Light',
+  H: 'Heavy',
+  T: 'Thrown',
+  '2H': 'Two-Handed',
+  V: 'Versatile',
+  A: 'Ammo.',
+  REACH: 'Reach',
+};
+
+export const INVENTORY_FILTERS = [
+  { key: 'all', label: 'All', icon: '' },
+  { key: 'weapon', label: 'Weapons', icon: 'swords' },
+  { key: 'armor', label: 'Armor', icon: 'shield' },
+  { key: 'gear', label: 'Gear', icon: 'backpack' },
+  { key: 'magic', label: 'Magic', icon: 'sparkles' },
+];
+
 export const SKILLS_LIST = [
   { n: 'Acrobatics', a: 'dex' },
   { n: 'Animal Handling', a: 'wis' },
@@ -197,6 +264,45 @@ function readIntLs(key, fallback = 0) {
 
 function readActiveCharacter() {
   return readJsonLs('5e_current_char', null);
+}
+
+function itemTypeGroup(item) {
+  if (['M', 'R'].includes(item?.type)) return 'weapon';
+  if (['LA', 'MA', 'HA', 'S'].includes(item?.type)) return 'armor';
+  if (item?.rarity && item.rarity !== 'none') return 'magic';
+  return 'gear';
+}
+
+function readInventoryStorage() {
+  return readJsonLs('5e_inventory', []);
+}
+
+function readCurrencyStorage() {
+  return readJsonLs('5e_currency', { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 }) || {};
+}
+
+function resolveInventoryRows() {
+  const stored = readInventoryStorage();
+  if (typeof window._resolvedInventory === 'function') {
+    try {
+      const resolved = window._resolvedInventory();
+      if (Array.isArray(resolved)) {
+        return resolved.map((item, index) => ({
+          stored: stored[index] || item,
+          item,
+          index,
+        }));
+      }
+    } catch {
+      // fall through to stored records
+    }
+  }
+
+  return (Array.isArray(stored) ? stored : []).map((item, index) => ({
+    stored: item,
+    item,
+    index,
+  }));
 }
 
 function cleanTaggedText(value) {
@@ -1347,4 +1453,150 @@ export function computeFeatures() {
   if (speciesChoices) sections.push(speciesChoices);
 
   return { sections, emptyMessage: 'No features available.' };
+}
+
+export function computeInventory() {
+  const character = readActiveCharacter();
+  const rows = resolveInventoryRows();
+  const totalItems = rows.reduce((sum, { item }) => sum + (Number(item?.qty) || 1), 0);
+  const totalWeightNumber = rows.reduce((sum, { item }) => (
+    sum + (Number(item?.weight) || 0) * (Number(item?.qty) || 1)
+  ), 0);
+  const totalValueNumber = rows.reduce((sum, { item }) => (
+    sum + ((Number(item?.value) || 0) / 100) * (Number(item?.qty) || 1)
+  ), 0);
+
+  const strScore = typeof window.getFinal === 'function'
+    ? Number(window.getFinal('str')) || 0
+    : Number(character?.abilities?.str || character?.stats?.str || 10) || 10;
+  const maxCarry = strScore * 15;
+  const pct = maxCarry > 0 ? Math.min(100, (totalWeightNumber / maxCarry) * 100) : 0;
+  const isOver = totalWeightNumber > maxCarry;
+
+  const groups = INVENTORY_FILTERS
+    .filter((filter) => filter.key !== 'all')
+    .map((filter) => ({
+      ...filter,
+      items: rows
+        .filter(({ item }) => itemTypeGroup(item) === filter.key)
+        .map(({ item, stored, index }) => {
+          const rarity = item?.rarity && item.rarity !== 'none' ? item.rarity : null;
+          const typeLabel = ITEM_TYPE_LABELS[item?.type] || item?.type || '';
+          const sourceLabel = SOURCE_LABELS[item?.source] || item?.source || '';
+          const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI'].includes(item?.type);
+          const magicBonus = parseInt(String(item?.bonusWeapon || item?.bonusAc || '0').replace('+', ''), 10) || 0;
+          const damageParts = [];
+          if (item?.dmg1) damageParts.push(`${item.dmg1}${item.dmgType ? ` ${item.dmgType}` : ''}`);
+          if (item?.bonusWeapon) damageParts.push(`${item.bonusWeapon} magic`);
+          const acParts = [];
+          if (item?.ac) acParts.push(`AC ${item.ac}`);
+          if (item?.bonusAc) acParts.push(`${item.bonusAc} magic`);
+          const propStr = (item?.property || []).map((prop) => WEAPON_PROP_LABELS[prop] || prop).filter(Boolean).join(', ');
+          const meta = [
+            item?.weight ? `${item.weight}lb` : null,
+            damageParts.join(' ') || null,
+            acParts.join(' ') || null,
+            propStr || null,
+          ].filter(Boolean);
+
+          const eligibleFlags = typeof window._sheetGetEligibleFlagsFor === 'function'
+            ? window._sheetGetEligibleFlagsFor(item)
+            : [];
+          const activeWeaponOverrides = item?.equipped && typeof window._getActiveWeaponOverrides === 'function'
+            ? window._getActiveWeaponOverrides().filter((override) => (
+              (!override.weaponTypes || override.weaponTypes.includes(item?.type)) && !override.itemFlag
+            ))
+            : [];
+
+          return {
+            key: `${item?.name || 'item'}-${index}`,
+            index,
+            name: item?.name || 'Unknown',
+            source: item?.source || '',
+            sourceLabel,
+            itemUrl: item?.source && !item?.custom
+              ? `https://5e.tools/items.html#${String(item.name || '').toLowerCase()}_${String(item.source || '').toLowerCase()}`
+              : '',
+            custom: !!item?.custom,
+            equipped: !!item?.equipped,
+            type: item?.type || '',
+            typeLabel,
+            rarity,
+            rarityLabel: rarity || typeLabel,
+            rarityColor: ITEM_RARITY_COLOR[rarity] || 'var(--text3)',
+            magicBonus,
+            qty: Number(item?.qty) || 1,
+            meta,
+            entries: item?.entries || '',
+            canEquip,
+            eligibleFlags: eligibleFlags.map((flag) => ({
+              key: flag.key,
+              label: flag.label || flag.key,
+              icon: flag.icon || '',
+              active: Array.isArray(stored?.flags) && stored.flags.includes(flag.key),
+            })),
+            weaponOverrides: activeWeaponOverrides.map((override) => ({
+              key: override.key,
+              label: override.label || override.key,
+              title: override.ability ? `Use ${String(override.ability).toUpperCase()} for attack and damage` : '',
+              active: item?.weaponMod === override.key,
+            })),
+          };
+        }),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  return {
+    currency: {
+      cp: Number(readCurrencyStorage().cp) || 0,
+      sp: Number(readCurrencyStorage().sp) || 0,
+      ep: Number(readCurrencyStorage().ep) || 0,
+      gp: Number(readCurrencyStorage().gp) || 0,
+      pp: Number(readCurrencyStorage().pp) || 0,
+    },
+    stats: {
+      totalItems,
+      totalWeight: totalWeightNumber.toFixed(1),
+      totalValue: totalValueNumber.toFixed(1),
+      maxCarry,
+      pct,
+      isOver,
+      statusText: isOver ? 'Over Capacity' : 'OK',
+      statusColor: isOver ? 'var(--red2)' : 'var(--green)',
+      statusBg: isOver ? 'var(--redbg)' : 'var(--gbg)',
+      barColor: isOver ? 'var(--red2)' : 'var(--green)',
+    },
+    groups,
+    isEmpty: rows.length === 0,
+  };
+}
+
+export function updateCurrency(coin, value) {
+  if (typeof window.updateCurrencySheet === 'function') window.updateCurrencySheet(coin, value);
+}
+
+export function addCustomItem() {
+  if (typeof window.addCustomItemSheet === 'function') window.addCustomItemSheet();
+}
+
+export function addInventoryItem(payload) {
+  if (typeof window.addItemToInventory === 'function') {
+    window.addItemToInventory(JSON.stringify(payload || {}));
+  }
+}
+
+export function changeInventoryQty(index, delta) {
+  if (typeof window.changeSheetInvQty === 'function') window.changeSheetInvQty(index, delta);
+}
+
+export function toggleInventoryEquip(index) {
+  if (typeof window.toggleEquip === 'function') window.toggleEquip(index);
+}
+
+export function toggleInventoryFlag(index, key) {
+  if (typeof window.toggleItemFlag === 'function') window.toggleItemFlag(index, key);
+}
+
+export function setInventoryWeaponOverride(index, key) {
+  if (typeof window.setWeaponOverride === 'function') window.setWeaponOverride(index, key);
 }

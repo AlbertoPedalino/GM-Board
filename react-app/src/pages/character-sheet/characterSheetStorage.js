@@ -189,10 +189,5 @@ export function readCharacterSheetTabs() {
     attacksTableHtml: document.getElementById('attacks-table-wrap')?.innerHTML || '',
     combatActionsHtml: document.getElementById('combat-actions-wrap')?.innerHTML || '',
     spellsHtml: document.getElementById('spells-wrap')?.innerHTML || '',
-    currencyHtml: document.getElementById('currency-row')?.innerHTML || '',
-    invStatsHtml: document.getElementById('inv-stats-row')?.innerHTML || '',
-    invListHtml: document.getElementById('inv-list')?.innerHTML || '',
-    invSearchResultsHtml: document.getElementById('inv-search-results')?.innerHTML || '',
-    invCount: document.getElementById('inv-count')?.textContent || '0',
   };
 }

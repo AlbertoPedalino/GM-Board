@@ -1,18 +1,26 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  addCustomItem,
+  addInventoryItem,
   clearConditions,
   cycleSkillAdv,
+  changeInventoryQty,
   doRest,
   downloadSheet,
   goBackToBuilder,
+  INVENTORY_FILTERS,
   rollAbilityCheck,
   rollInitiative,
   rollSave,
   rollSkill,
   readSheetNotes,
+  setInventoryWeaponOverride,
+  toggleInventoryEquip,
+  toggleInventoryFlag,
   writeSheetNotes,
   toggleCondition,
   toggleInspiration,
+  updateCurrency,
 } from './sheetRuntime.js';
 
 function callLegacy(name, ...args) {
@@ -739,16 +747,109 @@ function ActionFilter({ filter, active, children }) {
   );
 }
 
-function InventoryFilter({ filter, active, icon, children }) {
+function InventoryFilter({ filter, active, icon, children, onSelect }) {
   return (
     <button
       className={`inv-chip${active ? ' on' : ''}`}
       type="button"
-      onClick={(event) => callLegacy('setInvFilter', filter, event.currentTarget)}
+      onClick={() => onSelect(filter)}
     >
       {icon && <Icon name={icon} />} {children}
     </button>
   );
+}
+
+const ITEM_SEARCH_URLS = [
+  'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json',
+  'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items.json',
+];
+
+const ITEM_TYPE_LABELS = {
+  M: 'Melee Weapon',
+  R: 'Ranged Weapon',
+  LA: 'Light Armor',
+  MA: 'Medium Armor',
+  HA: 'Heavy Armor',
+  S: 'Shield',
+  G: 'Gear',
+  AT: 'Tools',
+  GS: 'Gaming Set',
+  INS: 'Instrument',
+  MNT: 'Mount',
+  VEH: 'Vehicle',
+  SCF: 'Spellcasting Focus',
+  WD: 'Wand',
+  RG: 'Ring',
+  RD: 'Rod',
+  ST: 'Staff',
+  WI: 'Wondrous Item',
+  P: 'Potion',
+  SC: 'Scroll',
+  OTH: 'Other',
+  GV: 'Magic Variant',
+};
+
+const ITEM_RARITY_COLOR = {
+  none: 'var(--text3)',
+  common: 'var(--text2)',
+  uncommon: 'var(--green)',
+  rare: 'var(--blue)',
+  'very rare': 'var(--purple)',
+  legendary: 'var(--gold)',
+  artifact: 'var(--red2)',
+};
+
+function itemTypeGroup(item) {
+  if (['M', 'R'].includes(item?.type)) return 'weapon';
+  if (['LA', 'MA', 'HA', 'S'].includes(item?.type)) return 'armor';
+  if (item?.rarity && item.rarity !== 'none') return 'magic';
+  return 'gear';
+}
+
+function useItemSearchDb() {
+  const [state, setState] = useState({ status: 'idle', items: [] });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadItems() {
+      setState({ status: 'loading', items: [] });
+      try {
+        const responses = await Promise.all(ITEM_SEARCH_URLS.map((url) => fetch(url)));
+        const payloads = await Promise.all(responses.map((response) => (
+          response.ok ? response.json() : {}
+        )));
+        const combined = [
+          ...(payloads[0]?.baseitem || []),
+          ...(payloads[1]?.item || []),
+        ]
+          .filter((item) => item?.name)
+          .filter((item) => ['XPHB', 'XDMG', 'FRAiF', 'FRHoF', 'EFA'].includes(item.source))
+          .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+
+        const seen = new Set();
+        const items = combined
+          .filter((item) => {
+            const key = `${item.name}|${item.source || ''}`.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          })
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        if (!cancelled) setState({ status: 'ready', items });
+      } catch {
+        if (!cancelled) setState({ status: 'error', items: [] });
+      }
+    }
+
+    loadItems();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return state;
 }
 
 function NotesTextarea() {
@@ -1062,6 +1163,300 @@ const featureSectionTitleStyle = (color) => ({
   margin: '.75rem 0 .5rem',
 });
 
+function CurrencyRow({ currency, onAfterChange }) {
+  const coins = [
+    { key: 'cp', label: 'Copper', color: '#b87333' },
+    { key: 'sp', label: 'Silver', color: '#aaa' },
+    { key: 'ep', label: 'Electrum', color: '#888' },
+    { key: 'gp', label: 'Gold', color: 'var(--gold)' },
+    { key: 'pp', label: 'Platinum', color: '#e0e0ff' },
+  ];
+
+  return (
+    <div className="currency-row">
+      {coins.map((coin) => (
+        <div key={coin.key} className="currency-cell">
+          <div className="currency-lbl" style={{ color: coin.color }}>{coin.label}</div>
+          <input
+            type="number"
+            className="currency-inp"
+            min="0"
+            value={currency?.[coin.key] ?? 0}
+            onChange={(event) => {
+              updateCurrency(coin.key, event.currentTarget.value);
+              window.setTimeout(onAfterChange, 0);
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InventoryStats({ stats }) {
+  const s = stats || {};
+  return (
+    <div className="inv-stat-row">
+      <div className="inv-stat-pill">Weight: <b>{s.totalWeight || '0.0'} / {s.maxCarry || 0} lb</b></div>
+      <div className="inv-stat-pill">Value: <b>{s.totalValue || '0.0'} GP</b></div>
+      <div style={{ width: '100%', marginTop: '.3rem' }}>
+        <div className="inv-weight-track">
+          <div className="inv-weight-fill" style={{ width: `${s.pct || 0}%`, background: s.barColor || 'var(--green)' }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--fs-label)' }}>
+          <span style={{ color: 'var(--text3)', fontFamily: 'var(--ff-display)' }}>
+            {s.totalWeight || '0.0'} / {s.maxCarry || 0} lb
+          </span>
+          <span className="inv-enc-badge" style={{ background: s.statusBg, color: s.statusColor }}>
+            {s.statusText || 'OK'}
+          </span>
+        </div>
+        {s.isOver && (
+          <div style={{ marginTop: 3, fontSize: 'var(--fs-label)', color: s.statusColor, lineHeight: 1.4 }}>
+            Speed 5 ft
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InventorySearchList({ items, filter, query, status, onAdd }) {
+  if (status === 'loading') {
+    return <div className="inv-search-list"><div className="phmsg" style={{ fontSize: 'var(--fs-body)' }}>Loading...</div></div>;
+  }
+  if (status === 'error') {
+    return <div className="inv-search-list"><div className="phmsg" style={{ color: 'var(--red2)', fontSize: 'var(--fs-body)' }}>Error loading items.</div></div>;
+  }
+
+  const q = query.toLowerCase().trim();
+  let list = items;
+  if (filter !== 'all') list = list.filter((item) => itemTypeGroup(item) === filter);
+  if (q) list = list.filter((item) => String(item.name || '').toLowerCase().includes(q));
+  list = list.slice(0, 60);
+
+  if (!list.length) {
+    return <div className="inv-search-list"><div className="phmsg" style={{ fontSize: 'var(--fs-body)' }}>No items found.</div></div>;
+  }
+
+  return (
+    <div className="inv-search-list">
+      {list.map((item) => {
+        const typeLabel = ITEM_TYPE_LABELS[item.type] || item.type || '-';
+        const rarity = item.rarity && item.rarity !== 'none' ? item.rarity : null;
+        const rc = ITEM_RARITY_COLOR[rarity] || 'var(--text3)';
+        const valueGp = item.value ? `${(item.value / 100).toFixed(item.value % 100 === 0 ? 0 : 2)} GP` : '-';
+        const dmg = item.dmg1 ? ` · ${item.dmg1}${item.dmgType ? ` ${item.dmgType}` : ''}` : '';
+        const bonus = item.bonusWeapon ? ` · ${item.bonusWeapon}` : (item.bonusAc ? ` · AC${item.bonusAc}` : '');
+        const ac = item.ac ? ` · AC ${item.ac}` : '';
+
+        return (
+          <div
+            key={`${item.name}-${item.source || ''}`}
+            className="inv-search-row"
+            onClick={() => onAdd({
+              name: item.name,
+              source: item.source,
+              type: item.type || null,
+              weight: item.weight ?? null,
+              ac: item.ac ?? null,
+              value: item.value ?? null,
+              rarity: item.rarity ?? null,
+              property: item.property ?? null,
+              dmg1: item.dmg1 ?? null,
+              dmgType: item.dmgType ?? null,
+              bonusWeapon: item.bonusWeapon || null,
+              bonusAc: item.bonusAc || null,
+            })}
+          >
+            <div className="inv-search-name">{item.name}</div>
+            <div className="inv-search-meta" style={{ color: rc }}>{rarity || typeLabel}{dmg}{bonus}{ac}</div>
+            <div className="inv-search-price" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+              <span>{valueGp}</span>
+              <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text3)' }}>{item.source || ''}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function InventoryItemRow({ row, onAfterChange }) {
+  const [open, setOpen] = useState(false);
+
+  function refreshAfter(action) {
+    action();
+    window.setTimeout(onAfterChange, 0);
+  }
+
+  return (
+    <>
+      <div className={`inv-row${row.equipped ? ' equipped' : ''}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, minWidth: 52 }}>
+          <div className="inv-badge" style={{ color: row.rarityColor, borderColor: row.rarityColor }}>
+            {row.rarityLabel}
+          </div>
+          {row.magicBonus > 0 && (
+            <div className="inv-badge" style={{ color: 'var(--gold)', borderColor: 'var(--gold)', fontWeight: 700 }}>
+              <Icon name="sparkles" /> +{row.magicBonus}
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1, minWidth: 0, cursor: row.entries ? 'pointer' : 'default' }} onClick={() => row.entries && setOpen((value) => !value)}>
+          <div className="inv-row-name">
+            {row.itemUrl ? (
+              <a href={row.itemUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} style={{ color: 'inherit', textDecoration: 'underline dotted', textUnderlineOffset: 2 }}>
+                {row.name}
+              </a>
+            ) : row.name}
+            {row.custom && <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text3)' }}> [custom]</span>}
+          </div>
+          {row.meta.length > 0 && (
+            <div style={{ fontSize: 'var(--fs-label)', color: 'var(--text3)', marginTop: 1 }}>
+              {row.meta.join(' · ')}
+            </div>
+          )}
+        </div>
+        {row.canEquip && (
+          <button className={`inv-equip-btn${row.equipped ? ' on' : ''}`} type="button" onClick={() => refreshAfter(() => toggleInventoryEquip(row.index))}>
+            {row.equipped && <Icon name="check" />} {row.equipped ? 'Equip.' : 'Equip'}
+          </button>
+        )}
+        {row.eligibleFlags.map((flag) => (
+          <button
+            key={flag.key}
+            className={`inv-equip-btn${flag.active ? ' on' : ''}`}
+            type="button"
+            style={flag.active ? purpleButtonOnStyle : purpleButtonOffStyle}
+            title={flag.label}
+            onClick={() => refreshAfter(() => toggleInventoryFlag(row.index, flag.key))}
+          >
+            {flag.active && <Icon name="check" />} {flag.icon && <Icon name={flag.icon} />} {flag.label}
+          </button>
+        ))}
+        {row.weaponOverrides.map((override) => (
+          <button key={override.key} className={`inv-equip-btn${override.active ? ' on' : ''}`} type="button" title={override.title} onClick={() => refreshAfter(() => setInventoryWeaponOverride(row.index, override.key))}>
+            {override.label}
+          </button>
+        ))}
+        <div className="inv-qty-wrap">
+          <button className="inv-qty-btn" type="button" onClick={() => refreshAfter(() => changeInventoryQty(row.index, -1))}>-</button>
+          <div className="inv-qty-val">{row.qty}</div>
+          <button className="inv-qty-btn" type="button" onClick={() => refreshAfter(() => changeInventoryQty(row.index, 1))}>+</button>
+        </div>
+        <button className="inv-qty-btn del" type="button" title="Remove" onClick={() => refreshAfter(() => changeInventoryQty(row.index, -row.qty))}>
+          <Icon name="trash-2" />
+        </button>
+      </div>
+      {row.entries && (
+        <div className={`inv-entry-body${open ? ' open' : ''}`}>
+          <EntryContent entry={row.entries} />
+        </div>
+      )}
+    </>
+  );
+}
+
+function InventoryList({ groups, isEmpty, onAfterChange }) {
+  if (isEmpty) return <div className="phmsg">Inventory empty.</div>;
+
+  return (
+    <>
+      {(groups || []).map((group) => (
+        <div key={group.key}>
+          <div className="inv-section-hdr">
+            {group.icon && <Icon name={group.icon} />} {group.label}
+          </div>
+          {group.items.map((row) => (
+            <InventoryItemRow key={row.key} row={row} onAfterChange={onAfterChange} />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function InventoryTab({ inventory, onAfterChange }) {
+  const searchDb = useItemSearchDb();
+  const [filter, setFilter] = useState('all');
+  const [query, setQuery] = useState('');
+
+  function refreshSoon() {
+    window.setTimeout(onAfterChange, 0);
+  }
+
+  function handleCustomKeyDown(event) {
+    if (event.key !== 'Enter') return;
+    addCustomItem();
+    refreshSoon();
+  }
+
+  return (
+    <>
+      <CurrencyRow currency={inventory?.currency} onAfterChange={onAfterChange} />
+      <InventoryStats stats={inventory?.stats} />
+      <input
+        className="inv-search-box"
+        id="inv-search"
+        placeholder="Search items to add (e.g. Sword, Potion, Torch...)"
+        value={query}
+        onChange={(event) => setQuery(event.currentTarget.value)}
+        autoComplete="off"
+      />
+      <div className="inv-filter-row">
+        {INVENTORY_FILTERS.map((option) => (
+          <InventoryFilter key={option.key} filter={option.key} icon={option.icon} active={filter === option.key} onSelect={setFilter}>
+            {option.label}
+          </InventoryFilter>
+        ))}
+      </div>
+      <InventorySearchList
+        items={searchDb.items}
+        filter={filter}
+        query={query}
+        status={searchDb.status}
+        onAdd={(payload) => {
+          addInventoryItem(payload);
+          refreshSoon();
+        }}
+      />
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: '.75rem', flexWrap: 'wrap' }}>
+        <input className="inv-search-box" id="inv-custom-name" placeholder="Add custom item..." style={{ marginBottom: 0, flex: 1, minWidth: 120 }} onKeyDown={handleCustomKeyDown} />
+        <input type="number" id="inv-custom-weight" placeholder="lb" min="0" step="0.1" style={compactNumberInputStyle} onKeyDown={handleCustomKeyDown} />
+        <input type="number" id="inv-custom-value" placeholder="gp" min="0" step="0.01" style={{ ...compactNumberInputStyle, width: 62 }} onKeyDown={handleCustomKeyDown} />
+        <button
+          type="button"
+          onClick={() => {
+            addCustomItem();
+            refreshSoon();
+          }}
+          style={addItemButtonStyle}
+        >
+          + Add
+        </button>
+      </div>
+
+      <div className="inv-section-hdr">
+        <Icon name="package" /> Inventory ({inventory?.stats?.totalItems || 0} items)
+      </div>
+      <InventoryList groups={inventory?.groups} isEmpty={inventory?.isEmpty} onAfterChange={onAfterChange} />
+    </>
+  );
+}
+
+const purpleButtonOnStyle = {
+  background: 'var(--purple)',
+  borderColor: 'var(--purple)',
+  color: '#fff',
+};
+
+const purpleButtonOffStyle = {
+  borderColor: 'var(--purple)',
+  color: 'var(--purple)',
+};
+
 const entryTableHeaderStyle = {
   fontFamily: 'var(--ff-display)',
   fontSize: 'var(--fs-xs)',
@@ -1084,7 +1479,7 @@ const entryInsetStyle = {
   fontStyle: 'italic',
 };
 
-function SheetTabsPanel({ tabs, background, features, activeTab, onTabChange }) {
+function SheetTabsPanel({ tabs, background, features, inventory, activeTab, onTabChange, onRuntimeRefresh }) {
   const t = tabs || {};
   const isActive = (name) => (activeTab === name ? ' active' : '');
 
@@ -1116,69 +1511,7 @@ function SheetTabsPanel({ tabs, background, features, activeTab, onTabChange }) 
       </div>
 
       <div className={`tab-content${isActive('inventory')}`}>
-        <HtmlBlock className="currency-row" html={t.currencyHtml} />
-        <HtmlBlock className="inv-stat-row" html={t.invStatsHtml} />
-        <input
-          className="inv-search-box"
-          id="inv-search"
-          placeholder="Search items to add (e.g. Sword, Potion, Torch...)"
-          onInput={() => callLegacy('renderItemSearch')}
-          autoComplete="off"
-        />
-        <div className="inv-filter-row">
-          <InventoryFilter filter="all" active>All</InventoryFilter>
-          <InventoryFilter filter="weapon" icon="swords">Weapons</InventoryFilter>
-          <InventoryFilter filter="armor" icon="shield">Armor</InventoryFilter>
-          <InventoryFilter filter="gear" icon="backpack">Gear</InventoryFilter>
-          <InventoryFilter filter="magic" icon="sparkles">Magic</InventoryFilter>
-        </div>
-        <HtmlBlock className="inv-search-list" html={t.invSearchResultsHtml} />
-
-        <div style={{ display: 'flex', gap: 6, marginBottom: '.75rem', flexWrap: 'wrap' }}>
-          <input
-            className="inv-search-box"
-            id="inv-custom-name"
-            placeholder="Add custom item..."
-            style={{ marginBottom: 0, flex: 1, minWidth: 120 }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') callLegacy('addCustomItemSheet');
-            }}
-          />
-          <input
-            type="number"
-            id="inv-custom-weight"
-            placeholder="lb"
-            min="0"
-            step="0.1"
-            style={compactNumberInputStyle}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') callLegacy('addCustomItemSheet');
-            }}
-          />
-          <input
-            type="number"
-            id="inv-custom-value"
-            placeholder="gp"
-            min="0"
-            step="0.01"
-            style={{ ...compactNumberInputStyle, width: 62 }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') callLegacy('addCustomItemSheet');
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => callLegacy('addCustomItemSheet')}
-            style={addItemButtonStyle}
-          >
-            + Add
-          </button>
-        </div>
-
-        <div className="inv-section-hdr">
-          <Icon name="package" /> Inventory ({t.invCount || '0'} items)
-        </div>
-        <HtmlBlock html={t.invListHtml} />
+        <InventoryTab inventory={inventory} onAfterChange={onRuntimeRefresh} />
       </div>
 
       <div className={`tab-content${isActive('features')}`}>
@@ -1233,7 +1566,17 @@ const addItemButtonStyle = {
   transition: 'all .12s',
 };
 
-function SheetRightColumn({ summary, onSummaryRefresh, tabs, background, features, activeTab, onTabChange }) {
+function SheetRightColumn({
+  summary,
+  onSummaryRefresh,
+  tabs,
+  background,
+  features,
+  inventory,
+  activeTab,
+  onTabChange,
+  onRuntimeRefresh,
+}) {
   return (
     <div className="main-col-right">
       <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
@@ -1241,8 +1584,10 @@ function SheetRightColumn({ summary, onSummaryRefresh, tabs, background, feature
         tabs={tabs}
         background={background}
         features={features}
+        inventory={inventory}
         activeTab={activeTab}
         onTabChange={onTabChange}
+        onRuntimeRefresh={onRuntimeRefresh}
       />
     </div>
   );
@@ -1258,6 +1603,7 @@ export default function CharacterSheetLayout({
   tabs,
   background,
   features,
+  inventory,
   saves,
   senses,
   activeTab,
@@ -1296,8 +1642,10 @@ export default function CharacterSheetLayout({
           tabs={tabs}
           background={background}
           features={features}
+          inventory={inventory}
           activeTab={activeTab}
           onTabChange={onTabChange}
+          onRuntimeRefresh={onRuntimeRefresh}
         />
       </div>
     </div>

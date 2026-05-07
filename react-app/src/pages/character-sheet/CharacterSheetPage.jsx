@@ -9,6 +9,7 @@ import {
 import {
   computeBackground,
   computeFeatures,
+  computeInventory,
   computeProficiencies,
   computeSaves,
   computeScores,
@@ -268,6 +269,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
   const [sheetBackground, setSheetBackground] = useState(() => computeBackground());
   const [sheetFeatures, setSheetFeatures] = useState(() => computeFeatures());
+  const [sheetInventory, setSheetInventory] = useState(() => computeInventory());
   const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
   const [sheetSenses, setSheetSenses] = useState(() => computeSenses());
   const [sheetSkillsRows, setSheetSkillsRows] = useState(() => computeSkills());
@@ -325,6 +327,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetTabs(readCharacterSheetTabs());
       setSheetBackground(computeBackground());
       setSheetFeatures(computeFeatures());
+      setSheetInventory(computeInventory());
       setSheetSaves(computeSaves());
       setSheetSenses(computeSenses());
       setSheetSkillsRows(computeSkills());
@@ -344,6 +347,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetTabs(readCharacterSheetTabs());
         setSheetBackground(computeBackground());
         setSheetFeatures(computeFeatures());
+        setSheetInventory(computeInventory());
         setSheetSaves(computeSaves());
         setSheetSenses(computeSenses());
         setSheetSkillsRows(computeSkills());
@@ -367,6 +371,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetTabs(readCharacterSheetTabs());
     setSheetBackground(computeBackground());
     setSheetFeatures(computeFeatures());
+    setSheetInventory(computeInventory());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
@@ -403,6 +408,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetTabs(readCharacterSheetTabs());
     setSheetBackground(computeBackground());
     setSheetFeatures(computeFeatures());
+    setSheetInventory(computeInventory());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
@@ -468,6 +474,7 @@ export default function CharacterSheetPage({ active, title }) {
             tabs={sheetTabs}
             background={sheetBackground}
             features={sheetFeatures}
+            inventory={sheetInventory}
             saves={sheetSaves}
             senses={sheetSenses}
             skills={sheetSkillsRows}
