@@ -762,6 +762,7 @@ function InventoryFilter({ filter, active, icon, children, onSelect }) {
 const ITEM_SEARCH_URLS = [
   'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json',
   'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items.json',
+  'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/magicvariants.json',
 ];
 
 const ITEM_TYPE_LABELS = {
@@ -806,6 +807,104 @@ function itemTypeGroup(item) {
   return 'gear';
 }
 
+function itemMatchesRequires(item, requires) {
+  if (!requires || !requires.length) return false;
+  return requires.some((req) => {
+    if (req.weapon && item.weapon) return true;
+    if (req.sword && item.sword) return true;
+    if (req.axe && item.axe) return true;
+    if (req.bow && item.bow) return true;
+    if (req.crossbow && item.crossbow) return true;
+    if (req.hammer && item.hammer) return true;
+    if (req.spear && item.spear) return true;
+    if (req.staff && item.staff) return true;
+    if (req.dagger && item.dagger) return true;
+    if (req.armor && item.armor) return true;
+    if (req.shield && item.type === 'S') return true;
+    if (req.type && item.type === req.type) return true;
+    return false;
+  });
+}
+
+function expandMagicVariants(variants, baseItems) {
+  const allowed = new Set(['XPHB', 'FRAiF', 'FRHoF', 'EFA', 'XDMG', 'DMG', 'GV']);
+  const expanded = [];
+
+  (variants || []).forEach((variant) => {
+    if (!allowed.has(variant?.source)) return;
+    const inherits = variant.inherits || {};
+    const requires = variant.requires || [];
+
+    if (!requires.length) {
+      expanded.push({
+        name: variant.name,
+        source: variant.source,
+        type: inherits.type || variant.type || 'WI',
+        rarity: inherits.rarity || variant.rarity || 'none',
+        weight: inherits.weight || variant.weight || 0,
+        value: inherits.value || variant.value || 0,
+        bonusWeapon: inherits.bonusWeapon || null,
+        bonusAc: inherits.bonusAc || null,
+        ac: inherits.ac || null,
+        entries: inherits.entries || variant.entries || [],
+        _variant: true,
+      });
+      return;
+    }
+
+    baseItems.forEach((base) => {
+      if (!itemMatchesRequires(base, requires)) return;
+      expanded.push({
+        name: `${inherits.namePrefix || ''}${base.name}${inherits.nameSuffix || ''}`,
+        source: variant.source,
+        type: base.type || inherits.type || 'WI',
+        rarity: inherits.rarity || variant.rarity || 'none',
+        weight: inherits.weight ?? base.weight ?? 0,
+        value: inherits.value ?? base.value ?? 0,
+        dmg1: inherits.dmg1 || base.dmg1 || null,
+        dmgType: base.dmgType || null,
+        bonusWeapon: inherits.bonusWeapon || null,
+        bonusAc: inherits.bonusAc || null,
+        ac: inherits.ac ?? base.ac ?? null,
+        property: base.property || [],
+        entries: inherits.entries || variant.entries || [],
+        _variant: true,
+      });
+    });
+  });
+
+  if (expanded.length === 0 && baseItems.length > 0) {
+    const rarityByBonus = { 1: 'uncommon', 2: 'rare', 3: 'very rare' };
+    baseItems.forEach((base) => {
+      const isWeapon = ['M', 'R'].includes(base.type) || base.weapon;
+      const isArmor = ['LA', 'MA', 'HA'].includes(base.type) || base.armor;
+      const isShield = base.type === 'S' || base.shield;
+      if (!isWeapon && !isArmor && !isShield) return;
+
+      [1, 2, 3].forEach((bonus) => {
+        expanded.push({
+          name: `${base.name}, +${bonus}`,
+          source: 'XDMG',
+          type: base.type,
+          rarity: rarityByBonus[bonus] || 'rare',
+          weight: base.weight || 0,
+          value: (base.value || 0) + bonus * 500,
+          dmg1: base.dmg1 || null,
+          dmgType: base.dmgType || null,
+          bonusWeapon: isWeapon ? `+${bonus}` : null,
+          bonusAc: (isArmor || isShield) ? `+${bonus}` : null,
+          ac: base.ac ?? null,
+          property: base.property || [],
+          entries: [`You have a +${bonus} bonus to attack and damage rolls made with this magic weapon.`],
+          _variant: true,
+        });
+      });
+    });
+  }
+
+  return expanded;
+}
+
 function useItemSearchDb() {
   const [state, setState] = useState({ status: 'idle', items: [] });
 
@@ -819,13 +918,20 @@ function useItemSearchDb() {
         const payloads = await Promise.all(responses.map((response) => (
           response.ok ? response.json() : {}
         )));
-        const combined = [
-          ...(payloads[0]?.baseitem || []),
-          ...(payloads[1]?.item || []),
-        ]
-          .filter((item) => item?.name)
+        const baseItems = (payloads[0]?.baseitem || [])
+          .filter((item) => ['XPHB', 'FRAiF', 'FRHoF', 'EFA'].includes(item.source))
+          .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+        const magicItems = (payloads[1]?.item || [])
           .filter((item) => ['XPHB', 'XDMG', 'FRAiF', 'FRHoF', 'EFA'].includes(item.source))
           .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+        const variants = expandMagicVariants(payloads[2]?.magicvariant || [], baseItems)
+          .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+        const combined = [
+          ...baseItems,
+          ...magicItems,
+          ...variants,
+        ]
+          .filter((item) => item?.name)
 
         const seen = new Set();
         const items = combined
