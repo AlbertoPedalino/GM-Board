@@ -2093,25 +2093,64 @@ export function toggleVersatile(index) {
   if (typeof window.toggleVersatile === 'function') window.toggleVersatile(index);
 }
 
+function readResources() {
+  return readJsonLs('5e_resources', {}) || {};
+}
+
+function writeResources(state) {
+  try {
+    localStorage.setItem('5e_resources', JSON.stringify(state || {}));
+  } catch {
+    // ignore
+  }
+  if (typeof window.loadResources === 'function') {
+    try { window.loadResources(); } catch { /* ignore */ }
+  }
+  dispatchSheetSnapshotChange();
+}
+
 export function spendActionResource(key, cost = 1) {
-  if (typeof window.spendResource === 'function') window.spendResource(key, cost);
+  const state = readResources();
+  const cur = Number(state[key] != null ? state[key] : 0);
+  const next = Math.max(0, cur - (Number(cost) || 1));
+  state[key] = next;
+  writeResources(state);
+  if (typeof window.getResourceSideEffect === 'function') {
+    try {
+      const fn = window.getResourceSideEffect(key);
+      if (typeof fn === 'function') fn();
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function recoverActionResource(key, max) {
-  if (typeof window.recoverResourceByKey === 'function') {
-    window.recoverResourceByKey(key, 1);
-    return;
-  }
-  if (typeof window.charResources === 'object' && window.charResources && typeof window.saveResources === 'function') {
-    const cur = Number(window.charResources[key] || 0);
-    window.charResources[key] = Math.min(Number(max) || cur + 1, cur + 1);
-    window.saveResources();
-    window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
-  }
+  const state = readResources();
+  const cur = Number(state[key] != null ? state[key] : 0);
+  const cap = Number(max) || cur + 1;
+  state[key] = Math.min(cap, cur + 1);
+  writeResources(state);
 }
 
 export function setActionResourcePip(key, idx, max) {
-  if (typeof window.setResourcePip === 'function') window.setResourcePip(key, idx, max);
+  const m = Number(max) || 0;
+  if (!m) return;
+  const state = readResources();
+  const cur = Number(state[key] != null ? state[key] : m);
+  const consumed = m - cur;
+  // Clicking a consumed pip restores; clicking available consumes
+  const next = idx < consumed ? m - idx : m - idx - 1;
+  state[key] = Math.max(0, Math.min(m, next));
+  writeResources(state);
+  if (state[key] < cur && typeof window.getResourceSideEffect === 'function') {
+    try {
+      const fn = window.getResourceSideEffect(key);
+      if (typeof fn === 'function') fn();
+    } catch {
+      // ignore
+    }
+  }
 }
 
 function getSpellLevelByName(character, name) {
