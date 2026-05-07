@@ -305,7 +305,13 @@ function readIntLs(key, fallback = 0) {
 }
 
 function readActiveCharacter() {
-  return readJsonLs('5e_current_char', null);
+  const character = readJsonLs('5e_current_char', null);
+  if (!character) return character;
+  const overrides = readJsonLs('5e_choice_overrides', {}) || {};
+  if (overrides && typeof overrides === 'object' && Object.keys(overrides).length) {
+    character.choices = { ...(character.choices || {}), ...overrides };
+  }
+  return character;
 }
 
 function itemTypeGroup(item) {
@@ -1990,10 +1996,24 @@ export function computeActions() {
     const name = String(resolveActionValue(action.name, ctx, 'Action') || 'Action');
     const desc = String(resolveActionValue(action.desc, ctx, '') || '');
     const uses = String(resolveActionValue(action.uses, ctx, '') || '');
-    const damageFormula = extractActionDamageFormula(action, character);
+    let damageFormula = extractActionDamageFormula(action, character);
     const hasAttack = action?.attackRoll !== undefined ||
       action?.attackAbility !== undefined ||
       typeof action?.attackBonus === 'number';
+    const computedAttackBonus = hasAttack ? inferActionAttackBonus(action) : null;
+    if (
+      damageFormula
+      && typeof action?.attackAbility === 'string'
+      && STATS.includes(action.attackAbility.toLowerCase())
+      && !/[+-]\s*\d+\s*$/.test(damageFormula)
+      && typeof window.getMod === 'function'
+      && typeof window.getFinal === 'function'
+    ) {
+      const abMod = window.getMod(window.getFinal(action.attackAbility.toLowerCase())) || 0;
+      if (abMod !== 0) {
+        damageFormula = `${damageFormula}${abMod >= 0 ? '+' : ''}${abMod}`;
+      }
+    }
 
     let extraBodyHtml = '';
     let choicePicker = null;
@@ -2034,8 +2054,9 @@ export function computeActions() {
         { label: action.cat === 'bonus' ? 'BONUS' : action.cat === 'attack' ? 'ATK' : action.cat === 'reaction' || action.cat === 'react' ? 'REACT.' : 'ACTION', cls: action.cat === 'bonus' ? 'bonus' : action.cat === 'attack' ? 'atk' : action.cat === 'reaction' || action.cat === 'react' ? 'react' : 'util' },
         { label: String(action._cls || 'Class').toUpperCase(), cls: 'cls' },
       ],
-      attackBonus: hasAttack ? inferActionAttackBonus(action) : null,
+      attackBonus: computedAttackBonus,
       attackLabel: `Attack: ${name}`,
+      stat: computedAttackBonus != null ? fbonus(computedAttackBonus) : '',
       damageFormula,
       damageLabel: damageFormula,
       resource: buildResource(action),
