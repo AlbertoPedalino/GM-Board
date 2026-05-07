@@ -1529,7 +1529,11 @@ export function computeInventory() {
           const rarity = item?.rarity && item.rarity !== 'none' ? item.rarity : null;
           const typeLabel = ITEM_TYPE_LABELS[item?.type] || item?.type || '';
           const sourceLabel = SOURCE_LABELS[item?.source] || item?.source || '';
-          const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI'].includes(item?.type);
+          const equipTypes = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI'];
+          const canEquip = equipTypes.includes(item?.type)
+            || !!item?.dmg1
+            || (item?.ac != null && item?.ac !== '')
+            || /weapon|armor|shield/i.test(String(item?.typeLabel || ''));
           const magicBonus = parseInt(String(item?.bonusWeapon || item?.bonusAc || '0').replace('+', ''), 10) || 0;
           const damageParts = [];
           if (item?.dmg1) damageParts.push(`${item.dmg1}${item.dmgType ? ` ${item.dmgType}` : ''}`);
