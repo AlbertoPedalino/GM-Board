@@ -2075,7 +2075,13 @@ export function computeActions() {
       attackLabel: `Attack: ${name}`,
       stat: computedAttackBonus != null ? fbonus(computedAttackBonus) : '',
       damageFormula,
-      damageLabel: damageFormula,
+      damageLabel: (() => {
+        if (typeof action.damageButtonLabel === 'function') {
+          try { return String(action.damageButtonLabel({ ...ctx, formula: damageFormula || '' }) || damageFormula); } catch { return damageFormula; }
+        }
+        if (typeof action.damageButtonLabel === 'string') return action.damageButtonLabel;
+        return damageFormula;
+      })(),
       resource: buildResource(action),
       extraBodyHtml,
       choicePicker,
