@@ -375,11 +375,10 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetVitals(readCharacterSheetVitals());
         setSheetScores(readCharacterSheetScores());
         setSheetLeftPanels(readCharacterSheetLeftPanels());
-        setSheetSkills(readCharacterSheetSkills());
         setSheetTabs(readCharacterSheetTabs());
         setSheetSaves(computeSaves());
-      setSheetSenses(computeSenses());
-      setSheetSkillsRows(computeSkills());
+        setSheetSenses(computeSenses());
+        setSheetSkillsRows(computeSkills());
         runtimeReadyRef.current = true;
         setRuntimeReady(true);
       })
