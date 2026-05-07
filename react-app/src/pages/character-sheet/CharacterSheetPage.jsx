@@ -220,13 +220,15 @@ function readCharacterSheetSummary() {
 }
 
 function readCharacterSheetVitals() {
-  const hpDeath = document.querySelector('.hp-death');
+  const scoresMirror = document.querySelector('.legacy-scores-mirror');
+  const hpDeath = scoresMirror?.querySelector('.hp-death') || null;
   const deathSuccess = hpDeath
     ? hpDeath.querySelectorAll('.hp-ds-pip.success.on').length
     : 0;
   const deathFail = hpDeath
     ? hpDeath.querySelectorAll('.hp-ds-pip.fail.on').length
     : 0;
+  const hpScope = scoresMirror || document;
   const hitDiceBody = document.getElementById('hd-body');
   const hitDicePips = Array.from(hitDiceBody?.querySelectorAll('.hd-pip') || []).map((pip) => ({
     used: pip.classList.contains('used'),
@@ -235,11 +237,11 @@ function readCharacterSheetVitals() {
 
   return {
     hp: {
-      current: document.getElementById('hp-cur-display')?.textContent || '0',
-      max: document.getElementById('hp-max-display')?.textContent || '0',
-      temp: document.getElementById('hp-temp-display')?.textContent || '0',
-      maxBonus: document.getElementById('hp-max-bonus-display')?.textContent || '0',
-      amount: document.getElementById('hp-amount-input')?.value || '1',
+      current: hpScope.querySelector('#hp-cur-display')?.textContent || '0',
+      max: hpScope.querySelector('#hp-max-display')?.textContent || '0',
+      temp: hpScope.querySelector('#hp-temp-display')?.textContent || '0',
+      maxBonus: hpScope.querySelector('#hp-max-bonus-display')?.textContent || '0',
+      amount: hpScope.querySelector('#hp-amount-input')?.value || '1',
       showDeathSaves: hpDeath ? !hpDeath.hasAttribute('hidden') : false,
       deathSuccess,
       deathFail,
