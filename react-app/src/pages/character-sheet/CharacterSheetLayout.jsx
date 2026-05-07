@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { rollSave } from './sheetRuntime.js';
 
 function callLegacy(name, ...args) {
   const fn = window[name];
@@ -325,14 +326,56 @@ function HtmlPanelBody({ html }) {
   );
 }
 
-function SheetLeftColumn({ vitals, leftPanels, onHitDieToggle }) {
-  const panels = leftPanels || { savesHtml: '', sensesHtml: '', profsHtml: '' };
+function SheetSavesPanel({ saves }) {
+  const rows = Array.isArray(saves) ? saves : [];
+
+  return (
+    <Panel icon="dice-5" title="Saving Throws">
+      <div className="panel-body">
+        {rows.map((save) => {
+          const titleParts = [`Roll ${save.fullLabel} saving throw`];
+          if (save.hasForcedDis) titleParts.push('Disadvantage: untrained armor');
+          if (save.eAdv === 'adv') titleParts.push('Advantage (feature)');
+          else if (save.eAdv === 'disadv') titleParts.push('Disadvantage (feature)');
+
+          return (
+            <div
+              key={save.stat}
+              className="save-row"
+              onClick={() => rollSave(save.stat)}
+              title={titleParts.join(' | ')}
+            >
+              <div className={`save-dot${save.prof ? ' on' : ''}`} />
+              <span className="save-stat">{save.shortLabel}</span>
+              <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text2)' }}>
+                {save.fullLabel}
+              </span>
+              {save.hasForcedDis && (
+                <span className="adv-badge disadv" title="Disadvantage: untrained armor">
+                  DIS
+                </span>
+              )}
+              {save.eAdv === 'adv' && (
+                <span className="adv-badge adv" title="Advantage (feature)">ADV</span>
+              )}
+              {save.eAdv === 'disadv' && (
+                <span className="adv-badge disadv" title="Disadvantage (feature)">DIS</span>
+              )}
+              <span className="save-bonus">{save.bonusText}</span>
+            </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
+
+function SheetLeftColumn({ vitals, leftPanels, saves, onHitDieToggle }) {
+  const panels = leftPanels || { sensesHtml: '', profsHtml: '' };
 
   return (
     <div className="main-col-left">
-      <Panel icon="dice-5" title="Saving Throws">
-        <HtmlPanelBody html={panels.savesHtml} />
-      </Panel>
+      <SheetSavesPanel saves={saves} />
       <Panel icon="eye" title="Senses">
         <HtmlPanelBody html={panels.sensesHtml} />
       </Panel>
@@ -341,7 +384,6 @@ function SheetLeftColumn({ vitals, leftPanels, onHitDieToggle }) {
       </Panel>
       <SheetHitDicePanel hitDice={vitals.hitDice} onHitDieToggle={onHitDieToggle} />
       <div className="legacy-left-panels-mirror" aria-hidden="true">
-        <div id="saves-body" />
         <div id="senses-body" />
         <div id="profs-body" />
       </div>
@@ -659,6 +701,7 @@ export default function CharacterSheetLayout({
   leftPanels,
   skills,
   tabs,
+  saves,
   activeTab,
   onTabChange,
   onHeaderXpChange,
@@ -683,7 +726,12 @@ export default function CharacterSheetLayout({
       />
 
       <div className="main-grid">
-        <SheetLeftColumn vitals={vitals} leftPanels={leftPanels} onHitDieToggle={onHitDieToggle} />
+        <SheetLeftColumn
+          vitals={vitals}
+          leftPanels={leftPanels}
+          saves={saves}
+          onHitDieToggle={onHitDieToggle}
+        />
         <SheetSkillsColumn skills={skills} />
         <SheetRightColumn
           summary={summary}

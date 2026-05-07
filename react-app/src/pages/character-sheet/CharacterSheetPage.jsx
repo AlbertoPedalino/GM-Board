@@ -9,6 +9,7 @@ import {
   readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
+import { computeSaves, installSheetRuntimeBridge } from './sheetRuntime.js';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
 const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
@@ -266,7 +267,6 @@ function installSnapshotRefreshHooks() {
     '_applyLongRest',
     '_applyShortRest',
     'renderStatsRow',
-    'renderSaves',
     'renderSenses',
     'renderProficiencies',
     'renderSkills',
@@ -305,6 +305,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
   const [sheetSkills, setSheetSkills] = useState(() => readCharacterSheetSkills());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
+  const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
   const [activeTab, setActiveTab] = useState('actions');
   const [error, setError] = useState('');
 
@@ -349,6 +350,7 @@ export default function CharacterSheetPage({ active, title }) {
       window.__gbCharacterSheetRuntimeLoaded ||
       (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
     ) {
+      installSheetRuntimeBridge();
       refreshLegacySheetRuntime();
       installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
@@ -358,6 +360,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetLeftPanels(readCharacterSheetLeftPanels());
       setSheetSkills(readCharacterSheetSkills());
       setSheetTabs(readCharacterSheetTabs());
+      setSheetSaves(computeSaves());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -365,11 +368,16 @@ export default function CharacterSheetPage({ active, title }) {
 
     runLegacyScripts(legacyDoc.scripts)
       .then(() => {
+        installSheetRuntimeBridge();
         installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(readCharacterSheetSummary());
         setSheetVitals(readCharacterSheetVitals());
         setSheetScores(readCharacterSheetScores());
+        setSheetLeftPanels(readCharacterSheetLeftPanels());
+        setSheetSkills(readCharacterSheetSkills());
+        setSheetTabs(readCharacterSheetTabs());
+        setSheetSaves(computeSaves());
         runtimeReadyRef.current = true;
         setRuntimeReady(true);
       })
@@ -380,6 +388,7 @@ export default function CharacterSheetPage({ active, title }) {
 
   useEffect(() => {
     if (!active || !runtimeReadyRef.current) return;
+    installSheetRuntimeBridge();
     refreshLegacySheetRuntime();
     installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
@@ -389,6 +398,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetSkills(readCharacterSheetSkills());
     setSheetTabs(readCharacterSheetTabs());
+    setSheetSaves(computeSaves());
     setRuntimeReady(true);
   }, [active]);
 
@@ -421,6 +431,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetSkills(readCharacterSheetSkills());
     setSheetTabs(readCharacterSheetTabs());
+    setSheetSaves(computeSaves());
   }
 
   function handleScoreClick(onclickSource) {
@@ -482,6 +493,7 @@ export default function CharacterSheetPage({ active, title }) {
             leftPanels={sheetLeftPanels}
             skills={sheetSkills}
             tabs={sheetTabs}
+            saves={sheetSaves}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             onHeaderXpChange={handleHeaderXpChange}

@@ -186,7 +186,6 @@ export function writeSheetXp(nextXp) {
 
 export function readCharacterSheetLeftPanels() {
   return {
-    savesHtml: document.getElementById('saves-body')?.innerHTML || '',
     sensesHtml: document.getElementById('senses-body')?.innerHTML || '',
     profsHtml: document.getElementById('profs-body')?.innerHTML || '',
   };
