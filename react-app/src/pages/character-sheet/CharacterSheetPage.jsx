@@ -86,6 +86,7 @@ if (typeof loadItems === 'function') {
     try {
       if (Array.isArray(sheetInventory)) {
         var dirty = false;
+        var stripPipe = function(v){ return String(v || '').split('|')[0]; };
         var inferType = function(it){
           if (!it) return '';
           if (it.dmg1) {
@@ -104,13 +105,19 @@ if (typeof loadItems === 'function') {
           return '';
         };
         sheetInventory.forEach(function(it){
-          if (!it || it.custom || it.type) return;
+          if (!it) return;
+          if (it.type && it.type.indexOf('|') >= 0) { it.type = stripPipe(it.type); dirty = true; }
+          if (Array.isArray(it.property)) {
+            var nextProps = it.property.map(stripPipe);
+            if (nextProps.some(function(p, i){ return p !== it.property[i]; })) { it.property = nextProps; dirty = true; }
+          }
+          if (it.custom || it.type) return;
           if (typeof _resolveInvItem === 'function') {
             var enriched = _resolveInvItem(it);
-            if (enriched && enriched.type) { it.type = enriched.type; dirty = true; }
+            if (enriched && enriched.type) { it.type = stripPipe(enriched.type); dirty = true; }
             if (enriched && enriched.dmg1 && !it.dmg1) { it.dmg1 = enriched.dmg1; dirty = true; }
             if (enriched && enriched.ac != null && it.ac == null) { it.ac = enriched.ac; dirty = true; }
-            if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.slice(); dirty = true; }
+            if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.map(stripPipe); dirty = true; }
           }
           if (!it.type) {
             var inferred = inferType(it);

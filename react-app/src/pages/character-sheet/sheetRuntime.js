@@ -1530,7 +1530,8 @@ export function computeInventory() {
           const typeLabel = ITEM_TYPE_LABELS[item?.type] || item?.type || '';
           const sourceLabel = SOURCE_LABELS[item?.source] || item?.source || '';
           const equipTypes = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI'];
-          const canEquip = equipTypes.includes(item?.type)
+          const baseItemType = String(item?.type || '').split('|')[0];
+          const canEquip = equipTypes.includes(baseItemType)
             || !!item?.dmg1
             || (item?.ac != null && item?.ac !== '')
             || /weapon|armor|shield/i.test(String(item?.typeLabel || ''));
@@ -1898,7 +1899,8 @@ export function computeActions() {
   if (!character) return { sections: [] };
 
   const rows = resolveInventoryRows();
-  const isWeaponItem = (item) => ['M', 'R'].includes(item?.type) || !!item?.dmg1;
+  const baseType = (item) => String(item?.type || '').split('|')[0];
+  const isWeaponItem = (item) => ['M', 'R'].includes(baseType(item)) || !!item?.dmg1;
   const equippedWeapons = rows
     .filter(({ item }) => item?.equipped && isWeaponItem(item) && item.hand !== 'off')
     .map(({ item, index }) => computeWeaponAction(item, index, character))
