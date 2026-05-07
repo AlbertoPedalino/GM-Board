@@ -1740,6 +1740,11 @@ function SpellEntry({ spell }) {
         ) : (
           <span>{spell.name}</span>
         )}
+        {spell.sourceLabel && (
+          <span className="spell-badge" style={spellSourceBadgeStyle}>
+            {spell.sourceLabel}
+          </span>
+        )}
         {spell.castLevel > spell.level && (
           <span className="spell-badge" style={{ border: '1px solid var(--blue)', color: 'var(--blue)', background: 'var(--bg3)' }}>
             {spell.castLevel} slot
@@ -1867,6 +1872,13 @@ const spellNeutralBadgeStyle = {
   border: '1px solid var(--bdr2)',
   color: 'var(--text3)',
   background: 'transparent',
+};
+
+const spellSourceBadgeStyle = {
+  border: '1px solid var(--purple)',
+  color: 'var(--purple)',
+  background: 'var(--pbg)',
+  flexShrink: 0,
 };
 
 const entryTableHeaderStyle = {

@@ -269,6 +269,46 @@ function installRendererBridgeShims() {
   window.__gbInstallReactSheetRendererShims();
 }
 
+function installSpellDbLookupBridge() {
+  const script = document.createElement('script');
+  script.dataset.gmBoardLegacySheetSpellLookup = 'true';
+  script.textContent = `
+    (function(){
+      window.__gbLookupSheetSpell = function(name){
+        try {
+          if (!Array.isArray(sheetSpellDb)) return null;
+          var lower = String(name || '').toLowerCase();
+          var hit = sheetSpellDb.find(function(spell){
+            return String((spell && spell.name) || '').toLowerCase() === lower;
+          });
+          if (!hit) return null;
+          return {
+            name: hit.name,
+            level: hit.level,
+            school: hit.school,
+            source: hit.source,
+            time: hit.time,
+            components: hit.components,
+            duration: hit.duration,
+            range: hit.range,
+            ritual: !!hit.ritual,
+            concentration: !!hit.concentration,
+            entries: hit.entries || [],
+            entriesHigherLevel: hit.entriesHigherLevel || [],
+            spellAttack: hit.spellAttack || null,
+            damageInflict: hit.damageInflict || null,
+            savingThrow: hit.savingThrow || null
+          };
+        } catch (err) {
+          return null;
+        }
+      };
+    })();
+  `;
+  document.body.appendChild(script);
+  script.remove();
+}
+
 function installSnapshotRefreshHooks() {
   if (window.__gbCharacterSheetSnapshotHooksInstalled) return;
 
@@ -373,6 +413,7 @@ export default function CharacterSheetPage({ active, title }) {
     ) {
       refreshLegacySheetRuntime();
       installRendererBridgeShims();
+      installSpellDbLookupBridge();
       installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
       setSheetSummary(computeSummary());
@@ -395,6 +436,7 @@ export default function CharacterSheetPage({ active, title }) {
     runLegacyScripts(legacyDoc.scripts)
       .then(() => {
         installRendererBridgeShims();
+        installSpellDbLookupBridge();
         installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(computeSummary());
@@ -421,6 +463,7 @@ export default function CharacterSheetPage({ active, title }) {
     if (!active || !runtimeReadyRef.current) return;
     refreshLegacySheetRuntime();
     installRendererBridgeShims();
+    installSpellDbLookupBridge();
     installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(computeSummary());

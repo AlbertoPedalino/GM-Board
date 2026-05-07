@@ -2048,12 +2048,76 @@ export function toggleVersatile(index) {
 function getSpellLevelByName(character, name) {
   const lower = String(name || '').toLowerCase();
   const snap = (character?.spellSnapshots || []).find((spell) => String(spell?.name || '').toLowerCase() === lower);
-  return typeof snap?.level === 'number' ? snap.level : null;
+  if (typeof snap?.level === 'number') return snap.level;
+  const full = lookupLoadedSpellRecord(name);
+  return typeof full?.level === 'number' ? full.level : null;
 }
 
 function getSpellSnapshot(character, name) {
   const lower = String(name || '').toLowerCase();
   return (character?.spellSnapshots || []).find((spell) => String(spell?.name || '').toLowerCase() === lower) || null;
+}
+
+function lookupLoadedSpellRecord(name) {
+  if (typeof window.__gbLookupSheetSpell !== 'function') return null;
+  try {
+    return window.__gbLookupSheetSpell(name) || null;
+  } catch {
+    return null;
+  }
+}
+
+function getSpellRecord(character, name) {
+  const snap = getSpellSnapshot(character, name);
+  const full = lookupLoadedSpellRecord(name);
+  if (!snap && !full) return { snap: null, full: null, record: null };
+  return {
+    snap,
+    full,
+    record: {
+      ...(full || {}),
+      ...(snap || {}),
+      entries: full?.entries || snap?.entries || [],
+      entriesHigherLevel: full?.entriesHigherLevel || snap?.entriesHigherLevel || [],
+      spellAttack: full?.spellAttack || snap?.spellAttack || null,
+      savingThrow: full?.savingThrow || snap?.savingThrow || null,
+      damageInflict: full?.damageInflict || snap?.damageInflict || null,
+    },
+  };
+}
+
+function isRitualSpell(character, name) {
+  const { record } = getSpellRecord(character, name);
+  return !!record?.ritual;
+}
+
+function collectWizardRitualSpellbookNames(character) {
+  const names = [];
+  const collect = (bucket) => {
+    Object.values(bucket?.wizardSpellbook || {}).forEach((list) => {
+      (Array.isArray(list) ? list : []).forEach((entry) => {
+        const name = typeof entry === 'string' ? entry : entry?.name;
+        if (name && isRitualSpell(character, name)) names.push(name);
+      });
+    });
+  };
+
+  if (String(character?.className || '').toLowerCase() === 'wizard') collect(character);
+  (character?.extraClasses || []).forEach((extraClass) => {
+    if (String(extraClass?.name || '').toLowerCase() === 'wizard') collect(extraClass);
+  });
+  return names;
+}
+
+function getSpellSourceTag(name) {
+  if (typeof window.getSpellSource !== 'function') return null;
+  try {
+    const source = window.getSpellSource(name);
+    const label = String(source?.label || '').trim();
+    return label ? { label, cls: source?.cls || '' } : null;
+  } catch {
+    return null;
+  }
 }
 
 function mergeSelectedSpells(character) {
@@ -2154,6 +2218,7 @@ export function computeSpells() {
 
   const leveledNames = new Set([
     ...Object.values(selectedSpells).flat(),
+    ...collectWizardRitualSpellbookNames(character),
     ...choiceSpellNames.filter((name) => {
       const level = getSpellLevelByName(character, name);
       return typeof level === 'number' && level >= 1;
@@ -2171,23 +2236,26 @@ export function computeSpells() {
   };
 
   const makeSpellRow = (name, castLevel = null) => {
-    const snap = getSpellSnapshot(character, name);
-    const baseLevel = typeof snap?.level === 'number' ? snap.level : getSpellLevelByName(character, name);
-    const entries = snap?.entries || [];
+    const { snap, full, record } = getSpellRecord(character, name);
+    const baseLevel = typeof record?.level === 'number' ? record.level : getSpellLevelByName(character, name);
+    const entries = record?.entries || [];
+    const entriesHigherLevel = record?.entriesHigherLevel || [];
+    const ruleEntries = [...(Array.isArray(entries) ? entries : [entries]), ...(Array.isArray(entriesHigherLevel) ? entriesHigherLevel : [entriesHigherLevel])].filter(Boolean);
     const damageBase = extractFirstDamageFormulaFromEntries(entries);
     const damageFormula = baseLevel === 0 && damageBase ? scaleCantripFormula(damageBase, Number(character.level || 1)) : damageBase;
-    const lowerEntries = JSON.stringify(entries || []).toLowerCase();
-    const hasAttack = !!(snap?.spellAttack?.length || /\{@atk\s+/i.test(JSON.stringify(entries || [])) || /\bspell attack\b/.test(lowerEntries));
-    const hasSave = !!(snap?.savingThrow?.length || /\{@dc\s+/i.test(JSON.stringify(entries || [])) || /\bsaving throw\b/.test(lowerEntries));
-    const school = SCHOOL_LABELS[snap?.school] || snap?.school || '';
-    const range = snap?.range?.distance?.amount != null
-      ? `${snap.range.distance.amount} ${snap.range.distance.type || ''}`.trim()
-      : (snap?.range?.type || '');
-    const time = snap?.time?.[0] ? `${snap.time[0].number || 1} ${snap.time[0].unit || 'action'}` : '';
-    const components = snap?.components
-      ? [snap.components.v ? 'V' : null, snap.components.s ? 'S' : null, snap.components.m ? 'M' : null].filter(Boolean).join(', ')
+    const lowerEntries = JSON.stringify(ruleEntries || []).toLowerCase();
+    const hasAttack = !!(record?.spellAttack?.length || /\{@atk\s+/i.test(JSON.stringify(ruleEntries || [])) || /\bspell attack\b/.test(lowerEntries));
+    const hasSave = !!(record?.savingThrow?.length || /\{@dc\s+/i.test(JSON.stringify(ruleEntries || [])) || /\bsaving throw\b/.test(lowerEntries));
+    const school = SCHOOL_LABELS[record?.school] || record?.school || '';
+    const range = record?.range?.distance?.amount != null
+      ? `${record.range.distance.amount} ${record.range.distance.type || ''}`.trim()
+      : (record?.range?.type || '');
+    const time = record?.time?.[0] ? `${record.time[0].number || 1} ${record.time[0].unit || 'action'}` : '';
+    const components = record?.components
+      ? [record.components.v ? 'V' : null, record.components.s ? 'S' : null, record.components.m ? 'M' : null].filter(Boolean).join(', ')
       : '';
-    const duration = snap?.duration?.[0]?.type || '';
+    const duration = record?.duration?.[0]?.type || '';
+    const sourceTag = getSpellSourceTag(name);
 
     return {
       key: `${name}-${castLevel || baseLevel || 0}`,
@@ -2199,8 +2267,9 @@ export function computeSpells() {
       time,
       components,
       duration,
-      concentration: !!snap?.concentration,
-      ritual: !!snap?.ritual,
+      sourceLabel: sourceTag?.label || '',
+      concentration: !!record?.concentration,
+      ritual: !!record?.ritual,
       entries,
       meta: [time, range, components, duration].filter(Boolean),
       hasAttack,
@@ -2208,7 +2277,7 @@ export function computeSpells() {
       attackBonus: typeof window.getSpellAttackBonus === 'function' ? window.getSpellAttackBonus() : 0,
       saveDc: stats.dc,
       damageFormula,
-      spellUrl: snap?.source ? `https://5e.tools/spells.html#${encodeURIComponent(`${name}_${snap.source}`.toLowerCase())}` : '',
+      spellUrl: (snap?.source || full?.source) ? `https://5e.tools/spells.html#${encodeURIComponent(`${name}_${snap?.source || full?.source}`.toLowerCase())}` : '',
     };
   };
 
