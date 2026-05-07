@@ -298,3 +298,19 @@ button {
   margin-right: 2px;
 }
 
+
+.score-adv-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  font-size: 8px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+.save-row .adv-badge,
+.skill-row .adv-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  margin-left: 2px;
+}
+

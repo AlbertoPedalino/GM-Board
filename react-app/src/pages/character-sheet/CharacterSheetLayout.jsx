@@ -229,6 +229,15 @@ function SheetHpBlock({
 }
 
 function ScoreBox({ score }) {
+  let badgeNode = null;
+  if (score.hasForcedDis) {
+    badgeNode = <span className="score-adv-badge adv-badge disadv">DIS</span>;
+  } else if (score.featureAdv === 'adv') {
+    badgeNode = <span className="score-adv-badge adv-badge adv">ADV</span>;
+  } else if (score.featureAdv === 'disadv') {
+    badgeNode = <span className="score-adv-badge adv-badge disadv">DIS</span>;
+  }
+
   return (
     <div
       className="score-box"
@@ -238,42 +247,8 @@ function ScoreBox({ score }) {
     >
       <div className="score-lbl">{score.shortLabel}</div>
       <div className="score-mod">{score.modText}</div>
-      <div className="score-base">
-        {score.value}
-        {score.hasForcedDis && (
-          <>
-            {' '}
-            <span
-              className="adv-badge disadv"
-              style={{ fontSize: '6px', padding: '0 2px' }}
-            >
-              DIS
-            </span>
-          </>
-        )}
-        {!score.hasForcedDis && score.featureAdv === 'adv' && (
-          <>
-            {' '}
-            <span
-              className="adv-badge adv"
-              style={{ fontSize: '6px', padding: '0 2px' }}
-            >
-              ADV
-            </span>
-          </>
-        )}
-        {!score.hasForcedDis && score.featureAdv === 'disadv' && (
-          <>
-            {' '}
-            <span
-              className="adv-badge disadv"
-              style={{ fontSize: '6px', padding: '0 2px' }}
-            >
-              DIS
-            </span>
-          </>
-        )}
-      </div>
+      <div className="score-base">{score.value}</div>
+      {badgeNode}
     </div>
   );
 }
