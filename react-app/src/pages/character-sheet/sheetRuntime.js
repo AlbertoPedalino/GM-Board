@@ -1995,6 +1995,13 @@ export function computeActions() {
       action?.attackAbility !== undefined ||
       typeof action?.attackBonus === 'number';
 
+    let extraBodyHtml = '';
+    if (typeof action.extraBodyHtml === 'function') {
+      try { extraBodyHtml = String(action.extraBodyHtml(character) || ''); } catch { extraBodyHtml = ''; }
+    } else if (typeof action.extraBodyHtml === 'string') {
+      extraBodyHtml = action.extraBodyHtml;
+    }
+
     return {
       kind: 'class',
       key: `class-action-${index}-${name}`,
@@ -2012,6 +2019,7 @@ export function computeActions() {
       damageFormula,
       damageLabel: damageFormula,
       resource: buildResource(action),
+      extraBodyHtml,
     };
   });
 

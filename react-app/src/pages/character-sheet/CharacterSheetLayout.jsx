@@ -1588,7 +1588,7 @@ function ActionCard({ item, onRuntimeRefresh }) {
     window.setTimeout(onRuntimeRefresh, 0);
   }
 
-  const hasBody = !!item.desc;
+  const hasBody = !!(item.desc || item.extraBodyHtml);
   const isWeapon = item.kind === 'weapon';
   const isUnarmed = item.kind === 'unarmed';
 
@@ -1683,9 +1683,12 @@ function ActionCard({ item, onRuntimeRefresh }) {
         </div>
       ) : null}
 
-      {hasBody && (
+      {(hasBody || item.extraBodyHtml) && (
         <div className="action-card-body">
-          <div className="action-desc">{item.desc}</div>
+          {item.desc && <div className="action-desc">{item.desc}</div>}
+          {item.extraBodyHtml && (
+            <div className="action-extra-body" dangerouslySetInnerHTML={{ __html: item.extraBodyHtml }} />
+          )}
           {isUnarmed && (
             <div style={{ marginTop: '.6rem', borderTop: '1px solid var(--bdr2)', paddingTop: '.5rem', display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
               <div style={{ fontSize: 'var(--fs-label)', color: 'var(--text3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>
