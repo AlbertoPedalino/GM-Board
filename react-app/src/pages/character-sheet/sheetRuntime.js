@@ -110,23 +110,6 @@ export const INVENTORY_FILTERS = [
   { key: 'magic', label: 'Magic', icon: 'sparkles' },
 ];
 
-const STANDARD_ACTIONS = [
-  { name: 'Attack', icon: 'swords', cat: 'action', universal: true, desc: 'Make one weapon attack. With Extra Attack (Lv.5+) you can attack multiple times. Any attack can be replaced with a Grapple or Shove special attack.' },
-  { name: 'Dash', icon: 'move-right', cat: 'action', universal: true, desc: 'Your maximum Speed doubles for the turn.' },
-  { name: 'Disengage', icon: 'wind', cat: 'action', universal: true, desc: "Your movement doesn't provoke Opportunity Attacks for the rest of the turn." },
-  { name: 'Dodge', icon: 'shield', cat: 'action', universal: true, desc: 'Until the start of your next turn: attack rolls against you have Disadvantage, and you make Dexterity saving throws with Advantage.' },
-  { name: 'Help', icon: 'handshake', cat: 'action', universal: true, desc: 'Give an ally Advantage on a check you can assist with, or on their next attack roll against a target within 5 ft of you.' },
-  { name: 'Hide', icon: 'eye', cat: 'action', universal: true, desc: 'Make a Dexterity (Stealth) check to gain the Hidden condition when cover or concealment allows it.' },
-  { name: 'Influence', icon: 'drama', cat: 'action', universal: true, desc: 'Attempt to sway a creature using Charisma or Wisdom social checks. The DM determines the DC.' },
-  { name: 'Search', icon: 'search', cat: 'action', universal: true, desc: 'Make a Wisdom (Perception) or Intelligence (Investigation) check to locate hidden objects, creatures, or clues.' },
-  { name: 'Study', icon: 'book-open', cat: 'action', universal: true, desc: 'Make an Intelligence check to recall lore or examine an object.' },
-  { name: 'Ready', icon: 'timer', cat: 'action', universal: true, desc: 'Describe a trigger and choose a reaction. When the trigger occurs before your next turn, you use your Reaction to execute it.' },
-  { name: 'Utilize', icon: 'backpack', cat: 'action', universal: true, desc: 'Activate a non-magical item that requires an action, or interact with a second object on your turn.' },
-  { name: 'Cast a Spell', icon: 'sparkles', cat: 'action', casterOnly: true, desc: 'Cast a spell with a casting time of 1 Action.' },
-  { name: 'Spell (Reaction)', icon: 'sparkles', cat: 'reaction', casterOnly: true, desc: 'Some spells use your Reaction in response to a trigger.' },
-  { name: 'Opportunity Attack', icon: 'zap', cat: 'reaction', universal: true, desc: 'When a hostile creature you can see voluntarily leaves your reach, use your Reaction to make one melee attack.' },
-];
-
 const UNARMED_ACTION = {
   name: 'Unarmed Strike',
   icon: 'hand',
@@ -1919,28 +1902,6 @@ export function computeActions() {
     };
   });
 
-  const isCaster = !!(
-    character.clsSnapshot?.casterProgression ||
-    (character.selectedCantrips || []).length > 0 ||
-    Object.values(character.selectedSpells || {}).flat().length > 0 ||
-    (character.extraClasses || []).some((extraClass) => (
-      extraClass.clsSnapshot?.casterProgression ||
-      (extraClass.selectedCantrips || []).length > 0 ||
-      Object.values(extraClass.selectedSpells || {}).flat().length > 0
-    ))
-  );
-  const stdActions = STANDARD_ACTIONS
-    .filter((action) => action.universal || (action.casterOnly && isCaster))
-    .map((action) => ({
-      kind: 'standard',
-      key: `standard-${action.name}`,
-      category: action.cat === 'react' ? 'reaction' : action.cat,
-      icon: action.icon,
-      name: action.name,
-      desc: action.desc,
-      tags: [{ label: action.cat === 'bonus' ? 'BONUS' : action.cat === 'reaction' ? 'REACT.' : 'ACTION', cls: action.cat === 'bonus' ? 'bonus' : action.cat === 'reaction' ? 'react' : 'util' }],
-    }));
-
   const unarmedAttackBonus = typeof window.getPB === 'function' && typeof window.getMod === 'function' && typeof window.getFinal === 'function'
     ? window.getPB() + window.getMod(window.getFinal('str'))
     : 0;
@@ -1975,7 +1936,6 @@ export function computeActions() {
         icon: 'target',
         items: [
           ...allClassActions.filter((action) => action.category === 'action' && action.uses !== 'Passive'),
-          ...stdActions.filter((action) => action.category === 'action'),
         ],
       },
       {
@@ -1985,7 +1945,6 @@ export function computeActions() {
         items: [
           ...offHandWeapons,
           ...allClassActions.filter((action) => action.category === 'bonus'),
-          ...stdActions.filter((action) => action.category === 'bonus'),
         ],
         emptyHint: `No bonus actions specific to ${className || 'this class'}.`,
       },
@@ -1995,7 +1954,6 @@ export function computeActions() {
         icon: 'rotate-ccw',
         items: [
           ...allClassActions.filter((action) => action.category === 'reaction'),
-          ...stdActions.filter((action) => action.category === 'reaction'),
         ],
       },
     ],
