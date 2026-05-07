@@ -6,6 +6,7 @@ import {
   readCharacterSheetLeftPanels,
   readCharacterSheetScores,
   readCharacterSheetSkills,
+  readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
 
@@ -269,6 +270,14 @@ function installSnapshotRefreshHooks() {
     'renderSenses',
     'renderProficiencies',
     'renderSkills',
+    'renderActionsTab',
+    'renderSpellsTab',
+    'renderInventoryTab',
+    'renderInventoryList',
+    'renderCurrency',
+    'renderItemSearch',
+    'renderFeaturesTab',
+    'renderBackgroundTab',
   ].forEach((name) => {
     const original = window[name];
     if (typeof original !== 'function') return;
@@ -295,6 +304,8 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetScores, setSheetScores] = useState(() => readCharacterSheetScores());
   const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
   const [sheetSkills, setSheetSkills] = useState(() => readCharacterSheetSkills());
+  const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
+  const [activeTab, setActiveTab] = useState('actions');
   const [error, setError] = useState('');
 
   const className = useMemo(
@@ -346,6 +357,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetScores(readCharacterSheetScores());
       setSheetLeftPanels(readCharacterSheetLeftPanels());
       setSheetSkills(readCharacterSheetSkills());
+      setSheetTabs(readCharacterSheetTabs());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -376,6 +388,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetScores(readCharacterSheetScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetSkills(readCharacterSheetSkills());
+    setSheetTabs(readCharacterSheetTabs());
     setRuntimeReady(true);
   }, [active]);
 
@@ -407,6 +420,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetScores(readCharacterSheetScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetSkills(readCharacterSheetSkills());
+    setSheetTabs(readCharacterSheetTabs());
   }
 
   function handleScoreClick(onclickSource) {
@@ -467,6 +481,9 @@ export default function CharacterSheetPage({ active, title }) {
             scores={sheetScores}
             leftPanels={sheetLeftPanels}
             skills={sheetSkills}
+            tabs={sheetTabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
             onHeaderXpChange={handleHeaderXpChange}
             onSummaryRefresh={refreshSheetSummary}
             onRuntimeRefresh={refreshDynamicSnapshots}

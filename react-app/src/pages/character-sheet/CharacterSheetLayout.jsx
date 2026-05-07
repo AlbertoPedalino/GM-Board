@@ -442,12 +442,12 @@ function SheetRightSummary({ summary, onRefresh }) {
   );
 }
 
-function TabButton({ name, active, children }) {
+function TabButton({ name, active, onSelect, children }) {
   return (
     <button
       className={`tab-btn${active ? ' active' : ''}`}
       type="button"
-      onClick={(event) => callLegacy('switchTab', name, event.currentTarget)}
+      onClick={() => onSelect(name)}
     >
       {children}
     </button>
@@ -478,19 +478,32 @@ function InventoryFilter({ filter, active, icon, children }) {
   );
 }
 
-function SheetTabsPanel() {
+function HtmlBlock({ html, className, style }) {
+  return (
+    <div
+      className={className}
+      style={style}
+      dangerouslySetInnerHTML={{ __html: html || '' }}
+    />
+  );
+}
+
+function SheetTabsPanel({ tabs, activeTab, onTabChange }) {
+  const t = tabs || {};
+  const isActive = (name) => (activeTab === name ? ' active' : '');
+
   return (
     <div className="panel" style={{ marginBottom: 0 }}>
       <div className="tabs-bar">
-        <TabButton name="actions" active>Actions</TabButton>
-        <TabButton name="spells">Spells</TabButton>
-        <TabButton name="inventory">Inventory</TabButton>
-        <TabButton name="features">Features</TabButton>
-        <TabButton name="background">Background</TabButton>
-        <TabButton name="notes">Notes</TabButton>
+        <TabButton name="actions" active={activeTab === 'actions'} onSelect={onTabChange}>Actions</TabButton>
+        <TabButton name="spells" active={activeTab === 'spells'} onSelect={onTabChange}>Spells</TabButton>
+        <TabButton name="inventory" active={activeTab === 'inventory'} onSelect={onTabChange}>Inventory</TabButton>
+        <TabButton name="features" active={activeTab === 'features'} onSelect={onTabChange}>Features</TabButton>
+        <TabButton name="background" active={activeTab === 'background'} onSelect={onTabChange}>Background</TabButton>
+        <TabButton name="notes" active={activeTab === 'notes'} onSelect={onTabChange}>Notes</TabButton>
       </div>
 
-      <div id="tab-actions" className="tab-content active">
+      <div className={`tab-content${isActive('actions')}`}>
         <div className="action-filters">
           <ActionFilter filter="all" active>All</ActionFilter>
           <ActionFilter filter="attack">Attack</ActionFilter>
@@ -498,17 +511,17 @@ function SheetTabsPanel() {
           <ActionFilter filter="bonus">Bonus Action</ActionFilter>
           <ActionFilter filter="reaction">Reaction</ActionFilter>
         </div>
-        <div id="attacks-table-wrap" />
-        <div id="combat-actions-wrap" style={{ marginTop: '.75rem' }} />
+        <HtmlBlock html={t.attacksTableHtml} />
+        <HtmlBlock html={t.combatActionsHtml} style={{ marginTop: '.75rem' }} />
       </div>
 
-      <div id="tab-spells" className="tab-content">
-        <div id="spells-wrap" />
+      <div className={`tab-content${isActive('spells')}`}>
+        <HtmlBlock html={t.spellsHtml} />
       </div>
 
-      <div id="tab-inventory" className="tab-content">
-        <div className="currency-row" id="currency-row" />
-        <div className="inv-stat-row" id="inv-stats-row" />
+      <div className={`tab-content${isActive('inventory')}`}>
+        <HtmlBlock className="currency-row" html={t.currencyHtml} />
+        <HtmlBlock className="inv-stat-row" html={t.invStatsHtml} />
         <input
           className="inv-search-box"
           id="inv-search"
@@ -523,7 +536,7 @@ function SheetTabsPanel() {
           <InventoryFilter filter="gear" icon="backpack">Gear</InventoryFilter>
           <InventoryFilter filter="magic" icon="sparkles">Magic</InventoryFilter>
         </div>
-        <div className="inv-search-list" id="inv-search-results" />
+        <HtmlBlock className="inv-search-list" html={t.invSearchResultsHtml} />
 
         <div style={{ display: 'flex', gap: 6, marginBottom: '.75rem', flexWrap: 'wrap' }}>
           <input
@@ -567,26 +580,39 @@ function SheetTabsPanel() {
         </div>
 
         <div className="inv-section-hdr">
-          <Icon name="package" /> Inventory (<span id="inv-count">0</span> items)
+          <Icon name="package" /> Inventory ({t.invCount || '0'} items)
         </div>
-        <div id="inv-list" />
+        <HtmlBlock html={t.invListHtml} />
       </div>
 
-      <div id="tab-features" className="tab-content">
-        <div id="features-wrap" />
+      <div className={`tab-content${isActive('features')}`}>
+        <HtmlBlock html={t.featuresHtml} />
       </div>
 
-      <div id="tab-background" className="tab-content">
-        <div id="background-wrap" />
+      <div className={`tab-content${isActive('background')}`}>
+        <HtmlBlock html={t.backgroundHtml} />
       </div>
 
-      <div id="tab-notes" className="tab-content">
+      <div className={`tab-content${isActive('notes')}`}>
         <textarea
           className="notes-area"
           id="notes-area"
           placeholder="Write your notes here..."
           onInput={() => callLegacy('saveNotes')}
         />
+      </div>
+
+      <div className="legacy-tabs-mirror" aria-hidden="true">
+        <div id="attacks-table-wrap" />
+        <div id="combat-actions-wrap" />
+        <div id="spells-wrap" />
+        <div id="currency-row" />
+        <div id="inv-stats-row" />
+        <div id="inv-search-results" />
+        <div id="inv-list" />
+        <span id="inv-count">0</span>
+        <div id="features-wrap" />
+        <div id="background-wrap" />
       </div>
     </div>
   );
@@ -616,11 +642,11 @@ const addItemButtonStyle = {
   transition: 'all .12s',
 };
 
-function SheetRightColumn({ summary, onSummaryRefresh }) {
+function SheetRightColumn({ summary, onSummaryRefresh, tabs, activeTab, onTabChange }) {
   return (
     <div className="main-col-right">
       <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
-      <SheetTabsPanel />
+      <SheetTabsPanel tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
     </div>
   );
 }
@@ -632,6 +658,9 @@ export default function CharacterSheetLayout({
   scores,
   leftPanels,
   skills,
+  tabs,
+  activeTab,
+  onTabChange,
   onHeaderXpChange,
   onSummaryRefresh,
   onRuntimeRefresh,
@@ -656,7 +685,13 @@ export default function CharacterSheetLayout({
       <div className="main-grid">
         <SheetLeftColumn vitals={vitals} leftPanels={leftPanels} onHitDieToggle={onHitDieToggle} />
         <SheetSkillsColumn skills={skills} />
-        <SheetRightColumn summary={summary} onSummaryRefresh={onSummaryRefresh} />
+        <SheetRightColumn
+          summary={summary}
+          onSummaryRefresh={onSummaryRefresh}
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+        />
       </div>
     </div>
   );

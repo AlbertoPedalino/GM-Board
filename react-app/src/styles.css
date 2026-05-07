@@ -142,7 +142,8 @@ button {
 .legacy-hit-dice-mirror,
 .legacy-scores-mirror,
 .legacy-left-panels-mirror,
-.legacy-skills-mirror {
+.legacy-skills-mirror,
+.legacy-tabs-mirror {
   position: absolute;
   width: 1px;
   height: 1px;
