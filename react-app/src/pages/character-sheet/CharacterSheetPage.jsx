@@ -216,6 +216,66 @@ function readCharacterSheetSummary() {
   };
 }
 
+function readCharacterSheetVitals() {
+  const hpDeath = document.querySelector('.hp-death');
+  const deathSuccess = hpDeath
+    ? hpDeath.querySelectorAll('.hp-ds-pip.success.on').length
+    : 0;
+  const deathFail = hpDeath
+    ? hpDeath.querySelectorAll('.hp-ds-pip.fail.on').length
+    : 0;
+  const hitDiceBody = document.getElementById('hd-body');
+  const hitDicePips = Array.from(hitDiceBody?.querySelectorAll('.hd-pip') || []).map((pip) => ({
+    used: pip.classList.contains('used'),
+    title: pip.getAttribute('title') || '',
+  }));
+
+  return {
+    hp: {
+      current: document.getElementById('hp-cur-display')?.textContent || '0',
+      max: document.getElementById('hp-max-display')?.textContent || '0',
+      temp: document.getElementById('hp-temp-display')?.textContent || '0',
+      maxBonus: document.getElementById('hp-max-bonus-display')?.textContent || '0',
+      amount: document.getElementById('hp-amount-input')?.value || '1',
+      showDeathSaves: hpDeath ? !hpDeath.hasAttribute('hidden') : false,
+      deathSuccess,
+      deathFail,
+    },
+    hitDice: {
+      label: document.getElementById('hd-label')?.textContent || '',
+      pips: hitDicePips,
+      hint: hitDicePips.length ? 'Click to use/recover a hit die' : '',
+    },
+  };
+}
+
+function installSnapshotRefreshHooks() {
+  if (window.__gbCharacterSheetSnapshotHooksInstalled) return;
+
+  [
+    'adjustHP',
+    'adjustTempHP',
+    'adjustMaxHpBonus',
+    'rollDeathSave',
+    'resetDeathSaves',
+    'toggleHD',
+    '_applyLongRest',
+    '_applyShortRest',
+  ].forEach((name) => {
+    const original = window[name];
+    if (typeof original !== 'function') return;
+    window[name] = function snapshotRefreshWrapper(...args) {
+      const result = original.apply(this, args);
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
+      }, 0);
+      return result;
+    };
+  });
+
+  window.__gbCharacterSheetSnapshotHooksInstalled = true;
+}
+
 export default function CharacterSheetPage({ active, title }) {
   const hasRunScriptsRef = useRef(false);
   const runtimeReadyRef = useRef(false);
@@ -223,6 +283,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
   const [sheetSummary, setSheetSummary] = useState(() => readCharacterSheetSummary());
+  const [sheetVitals, setSheetVitals] = useState(() => readCharacterSheetVitals());
   const [error, setError] = useState('');
 
   const className = useMemo(
@@ -267,8 +328,10 @@ export default function CharacterSheetPage({ active, title }) {
       (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
     ) {
       refreshLegacySheetRuntime();
+      installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
       setSheetSummary(readCharacterSheetSummary());
+      setSheetVitals(readCharacterSheetVitals());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -276,8 +339,10 @@ export default function CharacterSheetPage({ active, title }) {
 
     runLegacyScripts(legacyDoc.scripts)
       .then(() => {
+        installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(readCharacterSheetSummary());
+        setSheetVitals(readCharacterSheetVitals());
         runtimeReadyRef.current = true;
         setRuntimeReady(true);
       })
@@ -289,10 +354,23 @@ export default function CharacterSheetPage({ active, title }) {
   useEffect(() => {
     if (!active || !runtimeReadyRef.current) return;
     refreshLegacySheetRuntime();
+    installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(readCharacterSheetSummary());
+    setSheetVitals(readCharacterSheetVitals());
     setRuntimeReady(true);
   }, [active]);
+
+  useEffect(() => {
+    function handleSnapshotChange() {
+      refreshDynamicSnapshots();
+    }
+
+    window.addEventListener('gb-sheet-snapshot-change', handleSnapshotChange);
+    return () => {
+      window.removeEventListener('gb-sheet-snapshot-change', handleSnapshotChange);
+    };
+  }, []);
 
   function handleHeaderXpChange(nextXp) {
     const xp = writeSheetXp(nextXp);
@@ -302,6 +380,44 @@ export default function CharacterSheetPage({ active, title }) {
 
   function refreshSheetSummary() {
     setSheetSummary(readCharacterSheetSummary());
+  }
+
+  function refreshDynamicSnapshots() {
+    setSheetHeader(readCharacterSheetHeader());
+    setSheetSummary(readCharacterSheetSummary());
+    setSheetVitals(readCharacterSheetVitals());
+  }
+
+  function handleHpAdjust(direction, amount) {
+    const safeDirection = direction > 0 ? 1 : -1;
+    const safeAmount = Math.max(1, parseInt(amount, 10) || 1);
+    runLegacySheetScript(`hpAdjustAmt = ${safeAmount}; adjustHP(${safeDirection});`);
+    refreshDynamicSnapshots();
+  }
+
+  function handleHpQuickAction(action, direction) {
+    const safeDirection = direction > 0 ? 1 : -1;
+    if (action === 'temp') {
+      callLegacyFunction('adjustTempHP', safeDirection);
+    } else if (action === 'max') {
+      callLegacyFunction('adjustMaxHpBonus', safeDirection);
+    }
+    refreshDynamicSnapshots();
+  }
+
+  function handleDeathSaveAction(action) {
+    if (action === 'roll') {
+      callLegacyFunction('rollDeathSave');
+    } else if (action === 'reset') {
+      callLegacyFunction('resetDeathSaves');
+      callLegacyFunction('renderStatsRow');
+    }
+    refreshDynamicSnapshots();
+  }
+
+  function handleHitDieToggle(index) {
+    callLegacyFunction('toggleHD', index);
+    refreshDynamicSnapshots();
   }
 
   return (
@@ -321,8 +437,14 @@ export default function CharacterSheetPage({ active, title }) {
           <CharacterSheetLayout
             header={sheetHeader}
             summary={sheetSummary}
+            vitals={sheetVitals}
             onHeaderXpChange={handleHeaderXpChange}
             onSummaryRefresh={refreshSheetSummary}
+            onRuntimeRefresh={refreshDynamicSnapshots}
+            onHpAdjust={handleHpAdjust}
+            onHpQuickAction={handleHpQuickAction}
+            onDeathSaveAction={handleDeathSaveAction}
+            onHitDieToggle={handleHitDieToggle}
           />
         </div>
       )}
@@ -338,6 +460,20 @@ function callLegacyFunction(name, ...args) {
       if (typeof ${name} === 'function') ${name}.apply(null, ${JSON.stringify(args)});
     } catch (err) {
       console.error('Legacy call failed: ${name}', err);
+    }
+  `;
+  document.body.appendChild(script);
+  script.remove();
+}
+
+function runLegacySheetScript(source) {
+  const script = document.createElement('script');
+  script.dataset.gmBoardLegacySheetCall = 'true';
+  script.textContent = `
+    try {
+      ${source}
+    } catch (err) {
+      console.error('Legacy sheet script failed', err);
     }
   `;
   document.body.appendChild(script);

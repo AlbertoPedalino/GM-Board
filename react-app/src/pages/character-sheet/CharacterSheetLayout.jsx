@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 function callLegacy(name, ...args) {
   const fn = window[name];
   if (typeof fn === 'function') return fn(...args);
@@ -8,7 +10,7 @@ function Icon({ name }) {
   return <i data-lucide={name} className="lucide-emoji" />;
 }
 
-function SheetHeader({ header, onXpChange }) {
+function SheetHeader({ header, onXpChange, onAfterRest }) {
   return (
     <>
       <div className="topbar">
@@ -35,10 +37,24 @@ function SheetHeader({ header, onXpChange }) {
             <div className="xp-label" style={{ whiteSpace: 'nowrap' }}>{header.xpLabel}</div>
           </div>
         </div>
-        <button className="rest-btn short" type="button" onClick={() => callLegacy('doRest', 'short')}>
+        <button
+          className="rest-btn short"
+          type="button"
+          onClick={() => {
+            callLegacy('doRest', 'short');
+            window.setTimeout(onAfterRest, 0);
+          }}
+        >
           <Icon name="sun" /> SHORT REST
         </button>
-        <button className="rest-btn long" type="button" onClick={() => callLegacy('doRest', 'long')}>
+        <button
+          className="rest-btn long"
+          type="button"
+          onClick={() => {
+            callLegacy('doRest', 'long');
+            window.setTimeout(onAfterRest, 0);
+          }}
+        >
           <Icon name="moon" /> LONG REST
         </button>
         <a
@@ -70,12 +86,125 @@ function SheetHeader({ header, onXpChange }) {
   );
 }
 
-function SheetScoreStrip() {
+function DeathPips({ type, count }) {
   return (
-    <>
+    <span className="hp-ds-pips">
+      {Array.from({ length: 3 }, (_, index) => (
+        <span
+          key={index}
+          className={`hp-ds-pip ${type}${index < count ? ' on' : ''}`}
+        />
+      ))}
+    </span>
+  );
+}
+
+function SheetHpBlock({
+  hp,
+  onHpAdjust,
+  onHpQuickAction,
+  onDeathSaveAction,
+}) {
+  const [amount, setAmount] = useState(hp.amount || '1');
+
+  useEffect(() => {
+    setAmount(hp.amount || '1');
+  }, [hp.amount]);
+
+  const maxBonus = hp.maxBonus || '0';
+
+  return (
+    <div className="hp-block react-hp-block">
+      <div className="hp-title">HP</div>
+      <div className="hp-controls">
+        <div className="hp-vals">
+          <div className="hp-cur">{hp.current}</div>
+          <div className="hp-sep">/</div>
+          <div className="hp-max">{hp.max}</div>
+        </div>
+        <button
+          className="hp-btn heal"
+          type="button"
+          onClick={() => onHpAdjust(1, amount)}
+          title="Heal"
+        >
+          <Icon name="plus" />
+        </button>
+        <input
+          className="hp-amount-input"
+          type="number"
+          min="1"
+          value={amount}
+          onChange={(event) => setAmount(event.currentTarget.value)}
+          title="Amount"
+        />
+        <button
+          className="hp-btn dmg"
+          type="button"
+          onClick={() => onHpAdjust(-1, amount)}
+          title="Damage"
+        >
+          <Icon name="minus" />
+        </button>
+      </div>
+      <div className="hp-subline">
+        <span className="hp-mini">
+          <Icon name="sparkles" /> TEMP <b>{hp.temp}</b>
+        </span>
+        <span className="hp-mini-actions">
+          <button className="hp-mini-btn temp" type="button" onClick={() => onHpQuickAction('temp', -1)} title="Decrease Temp HP">
+            <Icon name="minus" />
+          </button>
+          <button className="hp-mini-btn temp" type="button" onClick={() => onHpQuickAction('temp', 1)} title="Increase Temp HP">
+            <Icon name="plus" />
+          </button>
+        </span>
+      </div>
+      <div className="hp-subline">
+        <span className="hp-mini">
+          <Icon name="heart-pulse" /> MAX MOD <b>{maxBonus}</b>
+        </span>
+        <span className="hp-mini-actions">
+          <button className="hp-mini-btn max" type="button" onClick={() => onHpQuickAction('max', -1)} title="Decrease Max HP">
+            <Icon name="minus" />
+          </button>
+          <button className="hp-mini-btn max" type="button" onClick={() => onHpQuickAction('max', 1)} title="Increase Max HP">
+            <Icon name="plus" />
+          </button>
+        </span>
+      </div>
+      <div className="hp-death" hidden={!hp.showDeathSaves}>
+        <span className="hp-ds-lbl">Death Saves</span>
+        <DeathPips type="success" count={hp.deathSuccess} />
+        <DeathPips type="fail" count={hp.deathFail} />
+        <button className="roll-btn" type="button" onClick={() => onDeathSaveAction('roll')}>
+          <Icon name="dice-5" /> Roll
+        </button>
+        <button className="roll-btn" type="button" onClick={() => onDeathSaveAction('reset')}>
+          <Icon name="rotate-ccw" /> Reset
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SheetScoreStrip({
+  vitals,
+  onHpAdjust,
+  onHpQuickAction,
+  onDeathSaveAction,
+}) {
+  return (
+    <div className="react-scores-strip">
       <div className="scores-row" id="scores-row" />
       <div className="stats-row" id="stats-row" />
-    </>
+      <SheetHpBlock
+        hp={vitals.hp}
+        onHpAdjust={onHpAdjust}
+        onHpQuickAction={onHpQuickAction}
+        onDeathSaveAction={onDeathSaveAction}
+      />
+    </div>
   );
 }
 
@@ -93,7 +222,41 @@ function Panel({ icon, title, titleNode, children, style }) {
   );
 }
 
-function SheetLeftColumn() {
+function SheetHitDicePanel({ hitDice, onHitDieToggle }) {
+  return (
+    <Panel
+      icon="dice-5"
+      title="Hit Dice"
+      titleNode={<span className="react-hd-label">{hitDice.label}</span>}
+    >
+      <div className="panel-body">
+        <div className="hd-pips">
+          {hitDice.pips.map((pip, index) => (
+            <div
+              key={`${pip.title}-${index}`}
+              className={`hd-pip${pip.used ? ' used' : ' full'}`}
+              title={pip.title}
+              onClick={() => onHitDieToggle(index)}
+            >
+              {pip.used ? null : <Icon name="hexagon" />}
+            </div>
+          ))}
+        </div>
+        {hitDice.hint && (
+          <div style={{ marginTop: '.5rem', fontSize: 'var(--fs-meta)', color: 'var(--text3)' }}>
+            <i>{hitDice.hint}</i>
+          </div>
+        )}
+        <div className="legacy-hit-dice-mirror" aria-hidden="true">
+          <span id="hd-label" />
+          <div id="hd-body" />
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function SheetLeftColumn({ vitals, onHitDieToggle }) {
   return (
     <div className="main-col-left">
       <Panel icon="dice-5" title="Saving Throws">
@@ -105,9 +268,7 @@ function SheetLeftColumn() {
       <Panel icon="scroll-text" title="Proficiencies">
         <div className="panel-body" id="profs-body" />
       </Panel>
-      <Panel icon="dice-5" title="Hit Dice" titleNode={<span id="hd-label" />}>
-        <div className="panel-body" id="hd-body" />
-      </Panel>
+      <SheetHitDicePanel hitDice={vitals.hitDice} onHitDieToggle={onHitDieToggle} />
     </div>
   );
 }
@@ -386,16 +547,27 @@ function SheetRightColumn({ summary, onSummaryRefresh }) {
 export default function CharacterSheetLayout({
   header,
   summary,
+  vitals,
   onHeaderXpChange,
   onSummaryRefresh,
+  onRuntimeRefresh,
+  onHpAdjust,
+  onHpQuickAction,
+  onDeathSaveAction,
+  onHitDieToggle,
 }) {
   return (
     <div className="character-sheet-root">
-      <SheetHeader header={header} onXpChange={onHeaderXpChange} />
-      <SheetScoreStrip />
+      <SheetHeader header={header} onXpChange={onHeaderXpChange} onAfterRest={onRuntimeRefresh} />
+      <SheetScoreStrip
+        vitals={vitals}
+        onHpAdjust={onHpAdjust}
+        onHpQuickAction={onHpQuickAction}
+        onDeathSaveAction={onDeathSaveAction}
+      />
 
       <div className="main-grid">
-        <SheetLeftColumn />
+        <SheetLeftColumn vitals={vitals} onHitDieToggle={onHitDieToggle} />
         <SheetSkillsColumn />
         <SheetRightColumn summary={summary} onSummaryRefresh={onSummaryRefresh} />
       </div>
