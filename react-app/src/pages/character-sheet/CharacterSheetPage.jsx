@@ -4,11 +4,10 @@ import {
   configureCharacterSheetScope,
   readCharacterSheetHeader,
   readCharacterSheetLeftPanels,
-  readCharacterSheetScores,
   readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
-import { computeSaves, computeSenses, computeSkills } from './sheetRuntime.js';
+import { computeSaves, computeScores, computeSenses, computeSkills } from './sheetRuntime.js';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
 const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
@@ -301,7 +300,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
   const [sheetSummary, setSheetSummary] = useState(() => readCharacterSheetSummary());
   const [sheetVitals, setSheetVitals] = useState(() => readCharacterSheetVitals());
-  const [sheetScores, setSheetScores] = useState(() => readCharacterSheetScores());
+  const [sheetScores, setSheetScores] = useState(() => computeScores());
   const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
   const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
@@ -356,7 +355,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetHeader(readCharacterSheetHeader());
       setSheetSummary(readCharacterSheetSummary());
       setSheetVitals(readCharacterSheetVitals());
-      setSheetScores(readCharacterSheetScores());
+      setSheetScores(computeScores());
       setSheetLeftPanels(readCharacterSheetLeftPanels());
       setSheetTabs(readCharacterSheetTabs());
       setSheetSaves(computeSaves());
@@ -373,7 +372,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(readCharacterSheetSummary());
         setSheetVitals(readCharacterSheetVitals());
-        setSheetScores(readCharacterSheetScores());
+        setSheetScores(computeScores());
         setSheetLeftPanels(readCharacterSheetLeftPanels());
         setSheetTabs(readCharacterSheetTabs());
         setSheetSaves(computeSaves());
@@ -394,7 +393,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(readCharacterSheetSummary());
     setSheetVitals(readCharacterSheetVitals());
-    setSheetScores(readCharacterSheetScores());
+    setSheetScores(computeScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetTabs(readCharacterSheetTabs());
     setSheetSaves(computeSaves());
@@ -428,17 +427,12 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(readCharacterSheetSummary());
     setSheetVitals(readCharacterSheetVitals());
-    setSheetScores(readCharacterSheetScores());
+    setSheetScores(computeScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetTabs(readCharacterSheetTabs());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
     setSheetSkillsRows(computeSkills());
-  }
-
-  function handleScoreClick(onclickSource) {
-    if (!onclickSource) return;
-    runLegacySheetScript(onclickSource);
   }
 
   function handleHpAdjust(direction, amount) {
@@ -511,7 +505,6 @@ export default function CharacterSheetPage({ active, title }) {
             onHpQuickAction={handleHpQuickAction}
             onDeathSaveAction={handleDeathSaveAction}
             onHitDieToggle={handleHitDieToggle}
-            onScoreClick={handleScoreClick}
           />
         </div>
       )}

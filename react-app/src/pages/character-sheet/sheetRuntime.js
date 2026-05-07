@@ -147,6 +147,96 @@ export function cycleSkillAdv(name) {
   }
 }
 
+export function computeScores() {
+  const {
+    C,
+    getFinal,
+    getMod,
+    getPB,
+    _sheetSpeedSet,
+    _sheetSpeedBonus,
+    _sheetHasNonProficientArmor,
+    _sheetAdvFor,
+    cachedEncLevel,
+  } = window;
+
+  if (typeof getFinal !== 'function' || typeof getMod !== 'function' || typeof getPB !== 'function') {
+    return { ready: false, scores: [], pb: '', speed: null };
+  }
+
+  const armorTrainingDis = typeof _sheetHasNonProficientArmor === 'function' && _sheetHasNonProficientArmor();
+
+  const scores = STATS.map((stat) => {
+    const value = getFinal(stat);
+    const mod = getMod(value);
+    const hasForcedDis = armorTrainingDis && (stat === 'str' || stat === 'dex');
+    const eAdv = typeof _sheetAdvFor === 'function' ? _sheetAdvFor({ target: 'check', ability: stat }) : null;
+
+    let advFlag;
+    if (hasForcedDis) advFlag = false;
+    else if (eAdv === 'adv') advFlag = true;
+    else if (eAdv === 'disadv') advFlag = false;
+
+    const titleParts = [`Roll ${FULL_LBL[stat]} Check`];
+    if (hasForcedDis) titleParts.push('Disadvantage: untrained armor');
+    if (!hasForcedDis && eAdv === 'adv') titleParts.push('Advantage (feature)');
+    if (!hasForcedDis && eAdv === 'disadv') titleParts.push('Disadvantage (feature)');
+
+    return {
+      stat,
+      shortLabel: SLBL[stat],
+      fullLabel: FULL_LBL[stat],
+      value,
+      mod,
+      modText: fbonus(mod),
+      hasForcedDis,
+      featureAdv: !hasForcedDis ? eAdv : null,
+      advFlag,
+      title: titleParts.join(' | '),
+    };
+  });
+
+  const speciesSpeed = C?.speciesSnapshot?.speed ?? 30;
+  const spdMap = typeof speciesSpeed === 'object' ? speciesSpeed : { walk: speciesSpeed };
+  const baseWalk = Number(spdMap.walk ?? (typeof speciesSpeed === 'number' ? speciesSpeed : 30));
+  const setWalk = typeof _sheetSpeedSet === 'function' ? _sheetSpeedSet('walk') : 0;
+  const speedBonus = typeof _sheetSpeedBonus === 'function' ? _sheetSpeedBonus('walk') : 0;
+  const spdBase = Math.max(baseWalk, setWalk) + speedBonus;
+  const isOverCap = cachedEncLevel === 1;
+  const spdVal = isOverCap ? 5 : spdBase;
+
+  const altModes = ['fly', 'swim', 'climb', 'burrow']
+    .map((t) => {
+      const base = Number(spdMap[t] || 0);
+      const set = typeof _sheetSpeedSet === 'function' ? _sheetSpeedSet(t) : 0;
+      const bonus = typeof _sheetSpeedBonus === 'function' ? _sheetSpeedBonus(t) : 0;
+      const total = Math.max(base, set) + bonus;
+      return total > 0 ? { mode: t, value: total, label: t.charAt(0).toUpperCase() + t.slice(1) } : null;
+    })
+    .filter(Boolean);
+
+  return {
+    ready: true,
+    scores,
+    pb: fbonus(getPB()),
+    speed: {
+      value: spdVal,
+      base: spdBase,
+      isOverCap,
+      altModes,
+      title: isOverCap ? `Base ${spdBase} ft — Over Capacity` : '',
+    },
+  };
+}
+
+export function rollAbilityCheck(stat, mod, advFlag) {
+  if (typeof window.rollD20 === 'function') {
+    const label = `${FULL_LBL[stat] || SLBL[stat] || stat} Check`;
+    if (advFlag === undefined) window.rollD20(mod, label);
+    else window.rollD20(mod, label, advFlag);
+  }
+}
+
 export function computeSenses() {
   const { getSkillBonus, _sheetExtraSenses, C } = window;
   if (typeof getSkillBonus !== 'function') return [];

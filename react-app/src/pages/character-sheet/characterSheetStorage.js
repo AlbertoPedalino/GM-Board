@@ -205,33 +205,3 @@ export function readCharacterSheetTabs() {
   };
 }
 
-export function readCharacterSheetScores() {
-  const root = document.getElementById('scores-row');
-  if (!root) {
-    return { hasContent: false, scores: [], pb: '', speed: null };
-  }
-
-  const scores = [...root.querySelectorAll('.scores-left > .score-box')].map((box) => ({
-    label: box.querySelector('.score-lbl')?.textContent || '',
-    mod: box.querySelector('.score-mod')?.textContent || '+0',
-    baseHtml: box.querySelector('.score-base')?.innerHTML || '',
-    onclick: box.getAttribute('onclick') || '',
-    title: box.getAttribute('title') || '',
-  }));
-
-  const statBoxes = [...root.querySelectorAll('.scores-left > .stat-box')];
-  const pbBox = statBoxes.find((box) => box.classList.contains('green'));
-  const speedBox = statBoxes.find((box) => !box.classList.contains('green'));
-
-  return {
-    hasContent: scores.length > 0,
-    scores,
-    pb: pbBox?.querySelector('.stat-box-val')?.textContent || '',
-    speed: speedBox
-      ? {
-          html: speedBox.innerHTML,
-          title: speedBox.getAttribute('title') || '',
-        }
-      : null,
-  };
-}

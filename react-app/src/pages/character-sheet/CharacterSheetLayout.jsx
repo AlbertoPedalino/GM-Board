@@ -1,5 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { cycleSkillAdv, rollSave, rollSkill } from './sheetRuntime.js';
+import {
+  cycleSkillAdv,
+  rollAbilityCheck,
+  rollSave,
+  rollSkill,
+} from './sheetRuntime.js';
 
 function callLegacy(name, ...args) {
   const fn = window[name];
@@ -204,41 +209,106 @@ function SheetHpBlock({
   );
 }
 
-function SheetScoresRow({ scores, onScoreClick }) {
-  if (!scores?.hasContent) {
+function ScoreBox({ score }) {
+  return (
+    <div
+      className="score-box"
+      style={{ cursor: 'pointer' }}
+      title={score.title}
+      onClick={() => rollAbilityCheck(score.stat, score.mod, score.advFlag)}
+    >
+      <div className="score-lbl">{score.shortLabel}</div>
+      <div className="score-mod">{score.modText}</div>
+      <div className="score-base">
+        {score.value}
+        {score.hasForcedDis && (
+          <>
+            {' '}
+            <span
+              className="adv-badge disadv"
+              style={{ fontSize: '6px', padding: '0 2px' }}
+            >
+              DIS
+            </span>
+          </>
+        )}
+        {!score.hasForcedDis && score.featureAdv === 'adv' && (
+          <>
+            {' '}
+            <span
+              className="adv-badge adv"
+              style={{ fontSize: '6px', padding: '0 2px' }}
+            >
+              ADV
+            </span>
+          </>
+        )}
+        {!score.hasForcedDis && score.featureAdv === 'disadv' && (
+          <>
+            {' '}
+            <span
+              className="adv-badge disadv"
+              style={{ fontSize: '6px', padding: '0 2px' }}
+            >
+              DIS
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SpeedBox({ speed }) {
+  if (!speed) return null;
+  const valStyle = speed.isOverCap ? { color: 'var(--red2)' } : undefined;
+
+  return (
+    <div className="stat-box" title={speed.title}>
+      <div className="stat-box-val" style={valStyle}>
+        {speed.value} ft.
+      </div>
+      <div className="stat-box-lbl">
+        Speed
+        {speed.isOverCap && (
+          <>
+            <br />
+            <span style={{ color: 'var(--red2)', fontSize: '6px' }}>5 ft</span>
+          </>
+        )}
+      </div>
+      {speed.altModes.length > 0 && (
+        <div
+          style={{
+            fontSize: '8px',
+            color: 'var(--text2)',
+            marginTop: 2,
+            lineHeight: 1.2,
+          }}
+        >
+          {speed.altModes.map((m) => `${m.label} ${m.value}`).join(' · ')}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SheetScoresRow({ scores }) {
+  if (!scores?.ready) {
     return <div className="scores-row react-scores-row" />;
   }
 
   return (
     <div className="scores-row react-scores-row">
       <div className="scores-left">
-        {scores.scores.map((score, index) => (
-          <div
-            key={`${score.label}-${index}`}
-            className="score-box"
-            style={{ cursor: score.onclick ? 'pointer' : 'default' }}
-            title={score.title}
-            onClick={() => onScoreClick(score.onclick)}
-          >
-            <div className="score-lbl">{score.label}</div>
-            <div className="score-mod">{score.mod}</div>
-            <div
-              className="score-base"
-              dangerouslySetInnerHTML={{ __html: score.baseHtml }}
-            />
-          </div>
+        {scores.scores.map((score) => (
+          <ScoreBox key={score.stat} score={score} />
         ))}
         <div className="stat-box green">
           <div className="stat-box-val">{scores.pb}</div>
           <div className="stat-box-lbl">Prof. Bonus</div>
         </div>
-        {scores.speed && (
-          <div
-            className="stat-box"
-            title={scores.speed.title}
-            dangerouslySetInnerHTML={{ __html: scores.speed.html }}
-          />
-        )}
+        <SpeedBox speed={scores.speed} />
       </div>
     </div>
   );
@@ -247,14 +317,13 @@ function SheetScoresRow({ scores, onScoreClick }) {
 function SheetScoreStrip({
   scores,
   vitals,
-  onScoreClick,
   onHpAdjust,
   onHpQuickAction,
   onDeathSaveAction,
 }) {
   return (
     <div className="react-scores-strip">
-      <SheetScoresRow scores={scores} onScoreClick={onScoreClick} />
+      <SheetScoresRow scores={scores} />
       <SheetHpBlock
         hp={vitals.hp}
         onHpAdjust={onHpAdjust}
@@ -771,7 +840,6 @@ export default function CharacterSheetLayout({
   onHpQuickAction,
   onDeathSaveAction,
   onHitDieToggle,
-  onScoreClick,
 }) {
   return (
     <div className="character-sheet-root">
@@ -779,7 +847,6 @@ export default function CharacterSheetLayout({
       <SheetScoreStrip
         scores={scores}
         vitals={vitals}
-        onScoreClick={onScoreClick}
         onHpAdjust={onHpAdjust}
         onHpQuickAction={onHpQuickAction}
         onDeathSaveAction={onDeathSaveAction}
