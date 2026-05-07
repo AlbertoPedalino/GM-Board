@@ -3,6 +3,7 @@ import CharacterSheetLayout from './CharacterSheetLayout.jsx';
 import {
   configureCharacterSheetScope,
   readCharacterSheetHeader,
+  readCharacterSheetLeftPanels,
   readCharacterSheetScores,
   writeSheetXp,
 } from './characterSheetStorage.js';
@@ -263,6 +264,9 @@ function installSnapshotRefreshHooks() {
     '_applyLongRest',
     '_applyShortRest',
     'renderStatsRow',
+    'renderSaves',
+    'renderSenses',
+    'renderProficiencies',
   ].forEach((name) => {
     const original = window[name];
     if (typeof original !== 'function') return;
@@ -287,6 +291,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetSummary, setSheetSummary] = useState(() => readCharacterSheetSummary());
   const [sheetVitals, setSheetVitals] = useState(() => readCharacterSheetVitals());
   const [sheetScores, setSheetScores] = useState(() => readCharacterSheetScores());
+  const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
   const [error, setError] = useState('');
 
   const className = useMemo(
@@ -336,6 +341,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetSummary(readCharacterSheetSummary());
       setSheetVitals(readCharacterSheetVitals());
       setSheetScores(readCharacterSheetScores());
+      setSheetLeftPanels(readCharacterSheetLeftPanels());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -364,6 +370,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetSummary(readCharacterSheetSummary());
     setSheetVitals(readCharacterSheetVitals());
     setSheetScores(readCharacterSheetScores());
+    setSheetLeftPanels(readCharacterSheetLeftPanels());
     setRuntimeReady(true);
   }, [active]);
 
@@ -393,6 +400,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetSummary(readCharacterSheetSummary());
     setSheetVitals(readCharacterSheetVitals());
     setSheetScores(readCharacterSheetScores());
+    setSheetLeftPanels(readCharacterSheetLeftPanels());
   }
 
   function handleScoreClick(onclickSource) {
@@ -451,6 +459,7 @@ export default function CharacterSheetPage({ active, title }) {
             summary={sheetSummary}
             vitals={sheetVitals}
             scores={sheetScores}
+            leftPanels={sheetLeftPanels}
             onHeaderXpChange={handleHeaderXpChange}
             onSummaryRefresh={refreshSheetSummary}
             onRuntimeRefresh={refreshDynamicSnapshots}

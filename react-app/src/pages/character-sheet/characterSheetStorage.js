@@ -184,6 +184,14 @@ export function writeSheetXp(nextXp) {
   return xp;
 }
 
+export function readCharacterSheetLeftPanels() {
+  return {
+    savesHtml: document.getElementById('saves-body')?.innerHTML || '',
+    sensesHtml: document.getElementById('senses-body')?.innerHTML || '',
+    profsHtml: document.getElementById('profs-body')?.innerHTML || '',
+  };
+}
+
 export function readCharacterSheetScores() {
   const root = document.getElementById('scores-row');
   if (!root) {

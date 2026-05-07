@@ -301,19 +301,35 @@ function SheetHitDicePanel({ hitDice, onHitDieToggle }) {
   );
 }
 
-function SheetLeftColumn({ vitals, onHitDieToggle }) {
+function HtmlPanelBody({ html }) {
+  return (
+    <div
+      className="panel-body"
+      dangerouslySetInnerHTML={{ __html: html || '' }}
+    />
+  );
+}
+
+function SheetLeftColumn({ vitals, leftPanels, onHitDieToggle }) {
+  const panels = leftPanels || { savesHtml: '', sensesHtml: '', profsHtml: '' };
+
   return (
     <div className="main-col-left">
       <Panel icon="dice-5" title="Saving Throws">
-        <div className="panel-body" id="saves-body" />
+        <HtmlPanelBody html={panels.savesHtml} />
       </Panel>
       <Panel icon="eye" title="Senses">
-        <div className="panel-body" id="senses-body" />
+        <HtmlPanelBody html={panels.sensesHtml} />
       </Panel>
       <Panel icon="scroll-text" title="Proficiencies">
-        <div className="panel-body" id="profs-body" />
+        <HtmlPanelBody html={panels.profsHtml} />
       </Panel>
       <SheetHitDicePanel hitDice={vitals.hitDice} onHitDieToggle={onHitDieToggle} />
+      <div className="legacy-left-panels-mirror" aria-hidden="true">
+        <div id="saves-body" />
+        <div id="senses-body" />
+        <div id="profs-body" />
+      </div>
     </div>
   );
 }
@@ -594,6 +610,7 @@ export default function CharacterSheetLayout({
   summary,
   vitals,
   scores,
+  leftPanels,
   onHeaderXpChange,
   onSummaryRefresh,
   onRuntimeRefresh,
@@ -616,7 +633,7 @@ export default function CharacterSheetLayout({
       />
 
       <div className="main-grid">
-        <SheetLeftColumn vitals={vitals} onHitDieToggle={onHitDieToggle} />
+        <SheetLeftColumn vitals={vitals} leftPanels={leftPanels} onHitDieToggle={onHitDieToggle} />
         <SheetSkillsColumn />
         <SheetRightColumn summary={summary} onSummaryRefresh={onSummaryRefresh} />
       </div>
