@@ -29,9 +29,9 @@ const ROUTES = [
   },
   {
     path: '/character-sheet',
-    label: 'Scheda',
+    label: 'Sheet',
     page: 'character-sheet.html',
-    title: 'Scheda Personaggio - D&D 5e',
+    title: 'Character Sheet - D&D 5e',
   },
 ];
 
@@ -105,10 +105,10 @@ export default function App() {
           <span className="brand-mark">GB</span>
           <div>
             <h1>GM Board React</h1>
-            <p>Migrazione compatibile</p>
+            <p>Compat shell</p>
           </div>
         </div>
-        <nav className="route-tabs" aria-label="Pagine">
+        <nav className="route-tabs" aria-label="Pages">
           {ROUTES.map((route) => (
             <button
               key={route.path}
@@ -131,8 +131,8 @@ export default function App() {
         />
       )}
 
-      {hasVisitedSheet && (
-        <CharacterSheetPage active={isCharacterSheet} title="Scheda Personaggio - D&D 5e" />
+      {(hasVisitedSheet || isCharacterSheet) && (
+        <CharacterSheetPage active={isCharacterSheet} title="Character Sheet - D&D 5e" />
       )}
     </main>
   );

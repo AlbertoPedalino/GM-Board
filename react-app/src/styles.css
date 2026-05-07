@@ -137,6 +137,41 @@ button {
   visibility: visible;
 }
 
+.sheet-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  background: #0d0e10;
+}
+
+.sheet-loading-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.2rem;
+  border: 1px solid #373a42;
+  border-radius: 8px;
+  color: #d8dce5;
+  background: #1d2026;
+  font-size: 0.95rem;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+}
+
+.sheet-loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #3a3d44;
+  border-top-color: #f0c85a;
+  border-radius: 50%;
+  animation: sheet-loading-spin 0.9s linear infinite;
+}
+
+@keyframes sheet-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
 .legacy-topbar-mirror,
 .legacy-right-summary-mirror,
 .legacy-hit-dice-mirror,

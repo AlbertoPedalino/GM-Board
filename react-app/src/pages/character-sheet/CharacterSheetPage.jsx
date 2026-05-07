@@ -330,7 +330,7 @@ export default function CharacterSheetPage({ active, title }) {
         const parsed = parseLegacySheet(html);
         if (!cancelled) setLegacyDoc(parsed);
       } catch (err) {
-        if (!cancelled) setError(err?.message || 'Errore sconosciuto');
+        if (!cancelled) setError(err?.message || 'Unknown error');
       }
     }
 
@@ -384,7 +384,7 @@ export default function CharacterSheetPage({ active, title }) {
         setRuntimeReady(true);
       })
       .catch((err) => {
-        setError(err?.message || 'Errore durante inizializzazione scheda');
+        setError(err?.message || 'Sheet runtime initialization failed');
       });
   }, [legacyDoc]);
 
@@ -478,12 +478,17 @@ export default function CharacterSheetPage({ active, title }) {
     <section className={className} aria-label={title} hidden={!active}>
       {error && (
         <div className="sheet-error">
-          Errore caricamento scheda: {error}
+          Sheet load error: {error}
         </div>
       )}
 
       {(!legacyDoc || !runtimeReady) && !error && (
-        <div className="loading-strip">Caricamento scheda</div>
+        <div className="sheet-loading-overlay" role="status" aria-live="polite">
+          <div className="sheet-loading-card">
+            <div className="sheet-loading-spinner" aria-hidden="true" />
+            <span>Loading character sheet…</span>
+          </div>
+        </div>
       )}
 
       {legacyDoc && (

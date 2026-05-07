@@ -64,7 +64,7 @@ export default function LegacyFrame({ page, title, onLegacyNavigate, onLegacyRou
 
   return (
     <section className="legacy-pane" aria-label={title}>
-      {loading && <div className="loading-strip">Caricamento</div>}
+      {loading && <div className="loading-strip">Loading…</div>}
       <iframe
         key={src}
         ref={frameRef}
