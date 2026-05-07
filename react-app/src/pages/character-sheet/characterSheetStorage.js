@@ -184,12 +184,6 @@ export function writeSheetXp(nextXp) {
   return xp;
 }
 
-export function readCharacterSheetLeftPanels() {
-  return {
-    profsHtml: document.getElementById('profs-body')?.innerHTML || '',
-  };
-}
-
 export function readCharacterSheetTabs() {
   return {
     attacksTableHtml: document.getElementById('attacks-table-wrap')?.innerHTML || '',
@@ -204,4 +198,3 @@ export function readCharacterSheetTabs() {
     backgroundHtml: document.getElementById('background-wrap')?.innerHTML || '',
   };
 }
-

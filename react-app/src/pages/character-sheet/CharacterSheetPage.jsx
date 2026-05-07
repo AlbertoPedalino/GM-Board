@@ -3,11 +3,11 @@ import CharacterSheetLayout from './CharacterSheetLayout.jsx';
 import {
   configureCharacterSheetScope,
   readCharacterSheetHeader,
-  readCharacterSheetLeftPanels,
   readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
 import {
+  computeProficiencies,
   computeSaves,
   computeScores,
   computeSenses,
@@ -262,7 +262,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetSummary, setSheetSummary] = useState(() => computeSummary());
   const [sheetVitals, setSheetVitals] = useState(() => computeVitals());
   const [sheetScores, setSheetScores] = useState(() => computeScores());
-  const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
+  const [sheetProficiencies, setSheetProficiencies] = useState(() => computeProficiencies());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
   const [sheetSaves, setSheetSaves] = useState(() => computeSaves());
   const [sheetSenses, setSheetSenses] = useState(() => computeSenses());
@@ -317,7 +317,7 @@ export default function CharacterSheetPage({ active, title }) {
       setSheetSummary(computeSummary());
       setSheetVitals(computeVitals());
       setSheetScores(computeScores());
-      setSheetLeftPanels(readCharacterSheetLeftPanels());
+      setSheetProficiencies(computeProficiencies());
       setSheetTabs(readCharacterSheetTabs());
       setSheetSaves(computeSaves());
       setSheetSenses(computeSenses());
@@ -334,7 +334,7 @@ export default function CharacterSheetPage({ active, title }) {
         setSheetSummary(computeSummary());
         setSheetVitals(computeVitals());
         setSheetScores(computeScores());
-        setSheetLeftPanels(readCharacterSheetLeftPanels());
+        setSheetProficiencies(computeProficiencies());
         setSheetTabs(readCharacterSheetTabs());
         setSheetSaves(computeSaves());
         setSheetSenses(computeSenses());
@@ -355,7 +355,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetSummary(computeSummary());
     setSheetVitals(computeVitals());
     setSheetScores(computeScores());
-    setSheetLeftPanels(readCharacterSheetLeftPanels());
+    setSheetProficiencies(computeProficiencies());
     setSheetTabs(readCharacterSheetTabs());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
@@ -389,7 +389,7 @@ export default function CharacterSheetPage({ active, title }) {
     setSheetSummary(computeSummary());
     setSheetVitals(computeVitals());
     setSheetScores(computeScores());
-    setSheetLeftPanels(readCharacterSheetLeftPanels());
+    setSheetProficiencies(computeProficiencies());
     setSheetTabs(readCharacterSheetTabs());
     setSheetSaves(computeSaves());
     setSheetSenses(computeSenses());
@@ -452,7 +452,7 @@ export default function CharacterSheetPage({ active, title }) {
             summary={sheetSummary}
             vitals={sheetVitals}
             scores={sheetScores}
-            leftPanels={sheetLeftPanels}
+            proficiencies={sheetProficiencies}
             tabs={sheetTabs}
             saves={sheetSaves}
             senses={sheetSenses}

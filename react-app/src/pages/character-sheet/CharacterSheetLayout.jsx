@@ -395,15 +395,6 @@ function SheetHitDicePanel({ hitDice, onHitDieToggle }) {
   );
 }
 
-function HtmlPanelBody({ html }) {
-  return (
-    <div
-      className="panel-body"
-      dangerouslySetInnerHTML={{ __html: html || '' }}
-    />
-  );
-}
-
 function SheetSavesPanel({ saves }) {
   const rows = Array.isArray(saves) ? saves : [];
 
@@ -467,16 +458,35 @@ function SheetSensesPanel({ senses }) {
   );
 }
 
-function SheetLeftColumn({ vitals, leftPanels, saves, senses, onHitDieToggle }) {
-  const panels = leftPanels || { profsHtml: '' };
+function SheetProficienciesPanel({ proficiencies }) {
+  const sections = Array.isArray(proficiencies) ? proficiencies : [];
 
+  return (
+    <Panel icon="scroll-text" title="Proficiencies">
+      <div className="panel-body">
+        {sections.map((section, index) => (
+          <div
+            key={section.key || section.title}
+            className="prof-section"
+            style={index === sections.length - 1 ? { marginBottom: 0 } : undefined}
+          >
+            <div className="prof-section-title">
+              <Icon name={section.icon} /> {section.title}
+            </div>
+            <div className="prof-text">{section.text}</div>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function SheetLeftColumn({ vitals, proficiencies, saves, senses, onHitDieToggle }) {
   return (
     <div className="main-col-left">
       <SheetSavesPanel saves={saves} />
       <SheetSensesPanel senses={senses} />
-      <Panel icon="scroll-text" title="Proficiencies">
-        <HtmlPanelBody html={panels.profsHtml} />
-      </Panel>
+      <SheetProficienciesPanel proficiencies={proficiencies} />
       <SheetHitDicePanel hitDice={vitals.hitDice} onHitDieToggle={onHitDieToggle} />
       <div className="legacy-left-panels-mirror" aria-hidden="true">
         <div id="saves-body" />
@@ -944,7 +954,7 @@ export default function CharacterSheetLayout({
   summary,
   vitals,
   scores,
-  leftPanels,
+  proficiencies,
   skills,
   tabs,
   saves,
@@ -973,7 +983,7 @@ export default function CharacterSheetLayout({
       <div className="main-grid">
         <SheetLeftColumn
           vitals={vitals}
-          leftPanels={leftPanels}
+          proficiencies={proficiencies}
           saves={saves}
           senses={senses}
           onHitDieToggle={onHitDieToggle}

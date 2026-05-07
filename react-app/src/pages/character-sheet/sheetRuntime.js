@@ -199,12 +199,343 @@ function readActiveCharacter() {
   return readJsonLs('5e_current_char', null);
 }
 
+function cleanTaggedText(value) {
+  return String(value || '')
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .replace(/\{@[a-z]+\s*/gi, '')
+    .replace(/[{}]/g, '')
+    .split('|')[0]
+    .trim();
+}
+
+function normalizeProfLabel(value) {
+  if (typeof window._sheetNormalizeProfLabel === 'function') {
+    return window._sheetNormalizeProfLabel(value);
+  }
+
+  let base = cleanTaggedText(value);
+  if (!base) return '';
+  base = base.replace(/\.$/, '').replace(/\s+/g, ' ').trim();
+  if (/^martial weapons that have the finesse or light$/i.test(base)) {
+    base = 'Martial weapons that have the Finesse or Light property';
+  }
+  if (/^(?:finesse|light) property$/i.test(base)) return '';
+  if (/^one type of /i.test(base)) return '';
+  if (/ of your choice$/i.test(base)) return '';
+  if (/^any/i.test(base)) return '';
+  if (base.includes(',')) return '';
+
+  const alias = {
+    "thieves' tools": "Thieves' Tools",
+    "thieves' tool": "Thieves' Tools",
+    "tinker's tools": "Tinker's Tools",
+    "tinker's tool": "Tinker's Tools",
+    "artisan's tools": "Artisan's Tools",
+    'herbalism kit': 'Herbalism Kit',
+    "navigator's tools": "Navigator's Tools",
+    "poisoner's kit": "Poisoner's Kit",
+    'forgery kit': 'Forgery Kit',
+    'disguise kit': 'Disguise Kit',
+  };
+  const lc = base.toLowerCase();
+  if (alias[lc]) return alias[lc];
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
+function splitAndNormalizeProfs(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  return raw.split(/[;,]/).map((s) => normalizeProfLabel(s)).filter(Boolean);
+}
+
+function fixedKeysFromProfBlock(block, excluded = []) {
+  if (!block || typeof block !== 'object' || Array.isArray(block)) return [];
+  return Object.keys(block)
+    .filter((key) => !excluded.includes(key) && block[key] !== false)
+    .map((key) => normalizeProfLabel(key))
+    .filter(Boolean);
+}
+
+function normalizeProfDisplayList(values) {
+  if (typeof window._sheetNormalizeProfDisplayList === 'function') {
+    return window._sheetNormalizeProfDisplayList(values);
+  }
+
+  const out = [];
+  (Array.isArray(values) ? values : Array.from(values || [])).forEach((value) => {
+    const normalized = normalizeProfLabel(value);
+    if (normalized && !out.some((x) => String(x).toLowerCase() === String(normalized).toLowerCase())) {
+      out.push(normalized);
+    }
+  });
+  return out;
+}
+
+function collectFixedFeatureProfs(character, field, excluded) {
+  const out = new Set();
+  if (!character) return out;
+
+  const buckets = [{
+    maxLv: character.classLevel || character.level || 1,
+    features: [
+      ...(character.allClassFeatures || []),
+      ...(character.subclassShortName
+        ? (character.allSubFeatures || []).filter((f) => f.subclassShortName === character.subclassShortName)
+        : []),
+    ],
+  }];
+
+  for (const extraClass of (character.extraClasses || [])) {
+    if (!extraClass?.name) continue;
+    buckets.push({
+      maxLv: extraClass.level || 1,
+      features: [
+        ...(extraClass.allClassFeatures || []),
+        ...(extraClass.subclassShortName
+          ? (extraClass.allSubFeatures || []).filter((f) => f.subclassShortName === extraClass.subclassShortName)
+          : []),
+      ],
+    });
+  }
+
+  buckets.forEach(({ maxLv, features }) => {
+    (features || [])
+      .filter((feature) => !feature?.isReprinted && (feature?.level || 0) <= maxLv)
+      .forEach((feature) => {
+        (feature?.[field] || []).forEach((block) => {
+          if (typeof block === 'string') {
+            const normalized = normalizeProfLabel(block);
+            if (normalized) out.add(normalized);
+            return;
+          }
+          fixedKeysFromProfBlock(block, excluded).forEach((value) => out.add(value));
+        });
+      });
+  });
+
+  return out;
+}
+
+function collectFixedFeatProfs(character, field, excluded) {
+  const out = new Set();
+  const snapshots = Array.isArray(character?.allFeatSnapshots) ? character.allFeatSnapshots : [];
+
+  snapshots.forEach((feat) => {
+    (feat?.[field] || []).forEach((block) => {
+      if (typeof block === 'string') {
+        const normalized = normalizeProfLabel(block);
+        if (normalized) out.add(normalized);
+        return;
+      }
+      fixedKeysFromProfBlock(block, excluded).forEach((value) => out.add(value));
+    });
+  });
+
+  return out;
+}
+
+function collectAdapterProfGrants(character) {
+  const {
+    getClassSheetProficiencies,
+    getSubclassSheetProficiencies,
+    getSpeciesSheetProficiencies,
+  } = window;
+  const grantsOut = [];
+
+  function append(grants, level, prefix = '') {
+    (Array.isArray(grants) ? grants : []).forEach((grant) => {
+      if (!grant || typeof grant !== 'object') return;
+      const minLevel = Number(grant.minLevel || 1);
+      if ((level || 1) < minLevel) return;
+      if (grant.requiredChoice) {
+        const required = grant.requiredChoice;
+        const stored = character?.choices?.[prefix + required.key];
+        const values = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+        if (!values.includes(required.value)) return;
+      }
+      grantsOut.push(grant);
+    });
+  }
+
+  function collectEntity(className, subclassShortName, level, prefix = '') {
+    if (typeof getClassSheetProficiencies === 'function') {
+      append(getClassSheetProficiencies(className), level, prefix);
+    }
+    if (typeof getSubclassSheetProficiencies === 'function') {
+      append(getSubclassSheetProficiencies(className, subclassShortName), level, prefix);
+    }
+  }
+
+  collectEntity(
+    character?.className || '',
+    character?.subclassShortName || '',
+    character?.classLevel || character?.level || 1,
+  );
+
+  for (const [index, extraClass] of (character?.extraClasses || []).entries()) {
+    collectEntity(
+      extraClass?.name || '',
+      extraClass?.subclassShortName || '',
+      extraClass?.level || 1,
+      `mc${index}_`,
+    );
+  }
+
+  if (typeof getSpeciesSheetProficiencies === 'function') {
+    append(
+      getSpeciesSheetProficiencies(character?.speciesName || '', character?.speciesSource || ''),
+      character?.level || 1,
+    );
+  }
+
+  return grantsOut;
+}
+
 function getHitDieFaces(character) {
   const hd = character?.clsSnapshot?.hd;
   if (!hd) return 8;
   if (hd.faces) return hd.faces;
   if (Array.isArray(hd) && hd[0]?.faces) return hd[0].faces;
   return 8;
+}
+
+export function computeProficiencies() {
+  const character = readActiveCharacter();
+  if (!character) return [];
+
+  const sp = character.clsSnapshot?.startingProficiencies || {};
+  const bsp = character.bgSnapshot || {};
+  const adapterGrants = collectAdapterProfGrants(character);
+  const equipmentExcluded = ['choose', 'any'];
+  const choiceExcluded = ['choose', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'any'];
+
+  const armorSet = new Set();
+  const weaponSet = new Set();
+  const weaponMasterySet = new Set();
+
+  function addFixedProfsFromBlocks(source, set) {
+    const entries = Array.isArray(source) ? source : [source];
+    entries.forEach((entry) => {
+      if (!entry) return;
+      if (typeof entry === 'string') {
+        splitAndNormalizeProfs(entry).forEach((value) => set.add(value));
+        return;
+      }
+      fixedKeysFromProfBlock(entry, equipmentExcluded).forEach((value) => set.add(value));
+    });
+  }
+
+  addFixedProfsFromBlocks(sp.armor, armorSet);
+  addFixedProfsFromBlocks(sp.weapons, weaponSet);
+  collectFixedFeatureProfs(character, 'armorProficiencies', equipmentExcluded).forEach((value) => armorSet.add(value));
+  collectFixedFeatureProfs(character, 'weaponProficiencies', equipmentExcluded).forEach((value) => weaponSet.add(value));
+  collectFixedFeatProfs(character, 'armorProficiencies', equipmentExcluded).forEach((value) => armorSet.add(value));
+  collectFixedFeatProfs(character, 'weaponProficiencies', equipmentExcluded).forEach((value) => weaponSet.add(value));
+
+  if (character.choices) {
+    for (const [key, rawValue] of Object.entries(character.choices)) {
+      if (!rawValue) continue;
+      const lowerKey = key.toLowerCase();
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      if (lowerKey.includes('mastery') && lowerKey.includes('weapon')) {
+        values.forEach((value) => {
+          const normalized = normalizeProfLabel(value);
+          if (normalized) weaponMasterySet.add(normalized);
+        });
+        continue;
+      }
+      if (lowerKey.includes('armor')) {
+        values.forEach((value) => {
+          const normalized = normalizeProfLabel(value);
+          if (normalized) armorSet.add(normalized);
+        });
+      }
+      if (lowerKey.includes('weapon')) {
+        values.forEach((value) => {
+          const normalized = normalizeProfLabel(value);
+          if (normalized) weaponSet.add(normalized);
+        });
+      }
+    }
+  }
+
+  adapterGrants
+    .filter((grant) => grant.type === 'armor' || grant.type === 'weapon')
+    .forEach((grant) => {
+      if (grant.display === false) return;
+      const values = Array.isArray(grant.values) ? grant.values : [grant.values];
+      values.map((value) => normalizeProfLabel(value)).filter(Boolean).forEach((value) => {
+        if (grant.type === 'armor') armorSet.add(value);
+        else weaponSet.add(value);
+      });
+    });
+
+  const toolSet = new Set();
+  const addTool = (raw) => {
+    splitAndNormalizeProfs(String(raw || '')).forEach((value) => toolSet.add(value));
+  };
+  const classToolBlocks = [];
+  if (sp.tools) classToolBlocks.push(...(Array.isArray(sp.tools) ? sp.tools : [sp.tools]));
+  if (sp.toolProficiencies) {
+    classToolBlocks.push(...(Array.isArray(sp.toolProficiencies) ? sp.toolProficiencies : [sp.toolProficiencies]));
+  }
+  classToolBlocks.forEach((toolBlock) => {
+    if (typeof toolBlock === 'string') {
+      addTool(toolBlock);
+      return;
+    }
+    fixedKeysFromProfBlock(toolBlock, choiceExcluded).forEach(addTool);
+  });
+  (bsp.toolProficiencies || []).forEach((toolBlock) => {
+    fixedKeysFromProfBlock(toolBlock, choiceExcluded).forEach(addTool);
+  });
+  collectFixedFeatureProfs(character, 'toolProficiencies', choiceExcluded).forEach(addTool);
+  collectFixedFeatProfs(character, 'toolProficiencies', choiceExcluded).forEach(addTool);
+  (character.selectedTools || []).forEach(addTool);
+  if (character.choices) {
+    for (const [key, rawValue] of Object.entries(character.choices)) {
+      if (!rawValue) continue;
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('tool') || lowerKey.includes('instrument')) {
+        const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+        values.forEach(addTool);
+      }
+    }
+  }
+  adapterGrants
+    .filter((grant) => grant.type === 'tool')
+    .forEach((grant) => {
+      const values = Array.isArray(grant.values) ? grant.values : [grant.values];
+      values.forEach(addTool);
+    });
+
+  const languageSet = new Set((character.selectedLanguages || []).map((value) => normalizeProfLabel(value)).filter(Boolean));
+  collectFixedFeatureProfs(character, 'languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any'])
+    .forEach((value) => languageSet.add(value));
+  collectFixedFeatProfs(character, 'languageProficiencies', ['choose', 'anyStandard', 'anyExotic', 'any'])
+    .forEach((value) => languageSet.add(value));
+  adapterGrants
+    .filter((grant) => grant.type === 'language')
+    .forEach((grant) => {
+      const values = Array.isArray(grant.values) ? grant.values : [grant.values];
+      values.map((value) => normalizeProfLabel(value)).filter(Boolean).forEach((value) => languageSet.add(value));
+    });
+  if (!languageSet.size) languageSet.add('Common');
+
+  const weaponDisplay = normalizeProfDisplayList(weaponSet);
+  const empty = '-';
+
+  return [
+    { key: 'armor', icon: 'shield', title: 'Armor', text: armorSet.size ? Array.from(armorSet).join(', ') : empty },
+    { key: 'weapons', icon: 'swords', title: 'Weapons', text: weaponDisplay.length ? weaponDisplay.join(', ') : empty },
+    {
+      key: 'weapon-mastery',
+      icon: 'target',
+      title: 'Weapon Mastery',
+      text: weaponMasterySet.size ? Array.from(weaponMasterySet).join(', ') : empty,
+    },
+    { key: 'tools', icon: 'wrench', title: 'Tools', text: toolSet.size ? Array.from(toolSet).join(', ') : empty },
+    { key: 'languages', icon: 'languages', title: 'Languages', text: Array.from(languageSet).join(', ') || 'Common' },
+  ];
 }
 
 export function computeVitals() {
@@ -587,4 +918,3 @@ export function computeSenses() {
 
   return rows;
 }
-
