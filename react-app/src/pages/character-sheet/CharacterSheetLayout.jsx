@@ -2,10 +2,15 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   clearConditions,
   cycleSkillAdv,
+  doRest,
+  downloadSheet,
+  goBackToBuilder,
   rollAbilityCheck,
   rollInitiative,
   rollSave,
   rollSkill,
+  readSheetNotes,
+  writeSheetNotes,
   toggleCondition,
   toggleInspiration,
 } from './sheetRuntime.js';
@@ -66,7 +71,7 @@ function SheetHeader({ header, onXpChange, onAfterRest }) {
           className="rest-btn short"
           type="button"
           onClick={() => {
-            callLegacy('doRest', 'short');
+            doRest('short');
             window.setTimeout(onAfterRest, 0);
           }}
         >
@@ -76,7 +81,7 @@ function SheetHeader({ header, onXpChange, onAfterRest }) {
           className="rest-btn long"
           type="button"
           onClick={() => {
-            callLegacy('doRest', 'long');
+            doRest('long');
             window.setTimeout(onAfterRest, 0);
           }}
         >
@@ -85,7 +90,7 @@ function SheetHeader({ header, onXpChange, onAfterRest }) {
         <a
           className="back-btn"
           href="charbuilder.html"
-          onClick={(event) => callLegacy('goBackToBuilder', event)}
+          onClick={goBackToBuilder}
         >
           <Icon name="arrow-left" /> Builder
         </a>
@@ -93,7 +98,7 @@ function SheetHeader({ header, onXpChange, onAfterRest }) {
           className="rest-btn"
           type="button"
           style={{ borderColor: 'var(--teal)', color: 'var(--teal)', background: 'var(--tbg)' }}
-          onClick={() => callLegacy('downloadSheet')}
+          onClick={downloadSheet}
         >
           <Icon name="download" /> DOWNLOAD
         </button>
@@ -736,6 +741,36 @@ function InventoryFilter({ filter, active, icon, children }) {
   );
 }
 
+function NotesTextarea() {
+  const [value, setValue] = useState(() => readSheetNotes());
+
+  useEffect(() => {
+    function syncFromStorage() {
+      setValue(readSheetNotes());
+    }
+    window.addEventListener('storage', syncFromStorage);
+    window.addEventListener('gb-sheet-snapshot-change', syncFromStorage);
+    return () => {
+      window.removeEventListener('storage', syncFromStorage);
+      window.removeEventListener('gb-sheet-snapshot-change', syncFromStorage);
+    };
+  }, []);
+
+  return (
+    <textarea
+      className="notes-area"
+      id="notes-area"
+      placeholder="Write your notes here..."
+      value={value}
+      onChange={(event) => {
+        const next = event.currentTarget.value;
+        setValue(next);
+        writeSheetNotes(next);
+      }}
+    />
+  );
+}
+
 function HtmlBlock({ html, className, style }) {
   return (
     <div
@@ -852,12 +887,7 @@ function SheetTabsPanel({ tabs, activeTab, onTabChange }) {
       </div>
 
       <div className={`tab-content${isActive('notes')}`}>
-        <textarea
-          className="notes-area"
-          id="notes-area"
-          placeholder="Write your notes here..."
-          onInput={() => callLegacy('saveNotes')}
-        />
+        <NotesTextarea />
       </div>
 
       <div className="legacy-tabs-mirror" aria-hidden="true">

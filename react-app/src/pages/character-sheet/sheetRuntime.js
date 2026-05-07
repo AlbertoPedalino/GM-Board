@@ -429,6 +429,38 @@ function readJsonRaw(key) {
   }
 }
 
+export function doRest(type) {
+  if (typeof window.doRest === 'function') window.doRest(type);
+}
+
+export function downloadSheet() {
+  if (typeof window.downloadSheet === 'function') window.downloadSheet();
+}
+
+export function goBackToBuilder(event) {
+  if (typeof window.goBackToBuilder === 'function') window.goBackToBuilder(event);
+}
+
+export function saveNotes() {
+  if (typeof window.saveNotes === 'function') window.saveNotes();
+}
+
+export function readSheetNotes() {
+  try {
+    return localStorage.getItem('5e_notes') || '';
+  } catch {
+    return '';
+  }
+}
+
+export function writeSheetNotes(value) {
+  try {
+    localStorage.setItem('5e_notes', String(value || ''));
+  } catch {
+    // ignore quota errors
+  }
+}
+
 export function rollInitiative() {
   if (typeof window.rollInitiative === 'function') window.rollInitiative();
 }
