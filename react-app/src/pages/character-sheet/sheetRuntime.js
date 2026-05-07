@@ -9,6 +9,40 @@ export const FULL_LBL = {
   cha: 'Charisma',
 };
 
+export const CONDITION_OPTIONS = [
+  { key: 'blinded', label: 'Blinded', icon: 'eye-off' },
+  { key: 'charmed', label: 'Charmed', icon: 'heart' },
+  { key: 'deafened', label: 'Deafened', icon: 'ear' },
+  { key: 'frightened', label: 'Frightened', icon: 'ghost' },
+  { key: 'grappled', label: 'Grappled', icon: 'hand' },
+  { key: 'incapacitated', label: 'Incapacitated', icon: 'pause' },
+  { key: 'invisible', label: 'Invisible', icon: 'circle-dashed' },
+  { key: 'paralyzed', label: 'Paralyzed', icon: 'brain' },
+  { key: 'petrified', label: 'Petrified', icon: 'mountain' },
+  { key: 'poisoned', label: 'Poisoned', icon: 'flask-conical' },
+  { key: 'prone', label: 'Prone', icon: 'arrow-down' },
+  { key: 'restrained', label: 'Restrained', icon: 'link' },
+  { key: 'stunned', label: 'Stunned', icon: 'zap' },
+  { key: 'unconscious', label: 'Unconscious', icon: 'moon' },
+  { key: 'exhaustion', label: 'Exhaustion', icon: 'battery-low' },
+];
+
+const DMGTYPE_LABELS = {
+  fire: 'Fire',
+  cold: 'Cold',
+  lightning: 'Lightning',
+  thunder: 'Thunder',
+  acid: 'Acid',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  necrotic: 'Necrotic',
+  force: 'Force',
+  bludgeoning: 'Bludgeoning',
+  piercing: 'Piercing',
+  slashing: 'Slashing',
+};
+
 export const SKILLS_LIST = [
   { n: 'Acrobatics', a: 'dex' },
   { n: 'Animal Handling', a: 'wis' },
@@ -229,6 +263,135 @@ export function computeScores() {
   };
 }
 
+function computeDefenses() {
+  const {
+    C,
+    _sheetExtraResists,
+    _sheetExtraImmunes,
+    _sheetExtraCondImmunes,
+    _resolvedInventory,
+    _sheetClassEntities,
+    _sheetGetClassRuntimeConfig,
+    _sheetGetSubclassRuntimeConfig,
+    _sheetGetSpeciesRuntimeConfig,
+    _sheetArmorTrainingIssues,
+  } = window;
+
+  const items = [];
+
+  function dmgLabel(r) {
+    const raw = typeof r === 'string' ? r : r?.special || '';
+    if (!raw || raw === '—') return raw || '—';
+    const stripped = raw.replace(/^(resistance|immunity)[-:]\s*/i, '').trim();
+    return DMGTYPE_LABELS[stripped.toLowerCase()] || DMGTYPE_LABELS[raw.toLowerCase()] || stripped || raw;
+  }
+
+  const resist = C?.speciesSnapshot?.resist || [];
+  const immune = C?.speciesSnapshot?.immune || [];
+
+  for (const r of resist) {
+    const lbl = dmgLabel(r);
+    if (lbl && lbl !== '—') items.push({ label: `Resistance: ${lbl}`, color: 'b' });
+  }
+  for (const r of immune) {
+    const lbl = dmgLabel(r);
+    if (lbl && lbl !== '—') items.push({ label: `Immunity: ${lbl}`, color: 'r' });
+  }
+
+  if (typeof _sheetExtraResists === 'function') {
+    _sheetExtraResists().forEach((d) => {
+      const lbl = DMGTYPE_LABELS[String(d).toLowerCase()] || d;
+      items.push({ label: `Resistance: ${lbl}`, color: 'b' });
+    });
+  }
+  if (typeof _sheetExtraImmunes === 'function') {
+    _sheetExtraImmunes().forEach((d) => {
+      const lbl = DMGTYPE_LABELS[String(d).toLowerCase()] || d;
+      items.push({ label: `Immunity: ${lbl}`, color: 'r' });
+    });
+  }
+  if (typeof _sheetExtraCondImmunes === 'function') {
+    _sheetExtraCondImmunes().forEach((c) => {
+      items.push({ label: `Cond. Immunity: ${c}`, color: 'r' });
+    });
+  }
+
+  if (C?.speciesSnapshot?.darkvision) {
+    items.push({ label: `Darkvision ${C.speciesSnapshot.darkvision} ft`, color: 't' });
+  }
+
+  const inv = typeof _resolvedInventory === 'function' ? _resolvedInventory() : [];
+  const hasArmor = !!inv.find((i) => i.equipped && ['LA', 'MA', 'HA'].includes(i.type));
+  const hasShield = !!inv.find((i) => i.equipped && i.type === 'S');
+
+  if (!hasArmor) {
+    const labels = new Set();
+    function pushRules(rules, level) {
+      (Array.isArray(rules) ? rules : []).forEach((rule) => {
+        if (!rule || typeof rule !== 'object') return;
+        if (Number(level || 0) < Number(rule.minLevel || 1)) return;
+        if (!rule.allowShield && hasShield) return;
+        const abilities = Array.isArray(rule.abilities) ? rule.abilities : [];
+        if (!abilities.length) return;
+        const txt = `${rule.name || 'Unarmored Defense'} (${abilities.map((a) => String(a || '').toUpperCase()).join('+')})`;
+        labels.add(txt);
+      });
+    }
+
+    if (typeof _sheetClassEntities === 'function') {
+      _sheetClassEntities().forEach((ent) => {
+        pushRules(_sheetGetClassRuntimeConfig?.(ent.className)?.unarmoredDefense, ent.level);
+        pushRules(_sheetGetSubclassRuntimeConfig?.(ent.className, ent.subclassShortName)?.unarmoredDefense, ent.level);
+      });
+    }
+    pushRules(
+      _sheetGetSpeciesRuntimeConfig?.(C?.speciesName || '', C?.speciesSource || '')?.unarmoredDefense,
+      C?.level || 1,
+    );
+    labels.forEach((txt) => items.push({ label: txt, color: 'g' }));
+  }
+
+  if (typeof _sheetArmorTrainingIssues === 'function') {
+    _sheetArmorTrainingIssues().forEach(({ item, info }) => {
+      if (item.type === 'S') {
+        items.push({ label: `Untrained Shield: no AC bonus (${item.name || info.kind})`, color: 'r' });
+      } else {
+        items.push({
+          label: `Untrained ${info.kind}: DIS STR/DEX tests, no spells (${item.name || info.kind})`,
+          color: 'r',
+        });
+      }
+    });
+  }
+
+  return items;
+}
+
+function readActiveConditions() {
+  try {
+    const raw = localStorage.getItem('5e_conditions_active');
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const valid = new Set(CONDITION_OPTIONS.map((c) => c.key));
+    return parsed.filter((k) => valid.has(k));
+  } catch {
+    return [];
+  }
+}
+
+export function computeConditions() {
+  const activeKeys = readActiveConditions();
+  const activeSet = new Set(activeKeys);
+  const active = CONDITION_OPTIONS.filter((c) => activeSet.has(c.key));
+  return {
+    active,
+    allOptions: CONDITION_OPTIONS,
+    activeKeys,
+    hasAny: active.length > 0,
+  };
+}
+
 export function computeSummary() {
   const { getMod, getFinal, calcAC, _getInitiativeBonus } = window;
 
@@ -245,11 +408,17 @@ export function computeSummary() {
     ac,
     inspirationActive,
     inspirationLabel: inspirationActive ? 'Inspired!' : 'No Insp.',
-    defensesHtml: document.getElementById('def-content')?.innerHTML
-      || '<span style="font-size:var(--fs-body);color:var(--text3);font-style:italic">None</span>',
-    conditionsHtml: document.getElementById('conditions-content')?.innerHTML
-      || '<span class="condition-tag">- None</span>',
+    defenses: computeDefenses(),
+    conditions: computeConditions(),
   };
+}
+
+export function toggleCondition(key) {
+  if (typeof window.toggleCondition === 'function') window.toggleCondition(key);
+}
+
+export function clearConditions() {
+  if (typeof window.clearConditions === 'function') window.clearConditions();
 }
 
 function readJsonRaw(key) {

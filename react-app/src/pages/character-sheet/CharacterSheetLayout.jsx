@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
+  clearConditions,
   cycleSkillAdv,
   rollAbilityCheck,
   rollInitiative,
   rollSave,
   rollSkill,
+  toggleCondition,
   toggleInspiration,
 } from './sheetRuntime.js';
 
@@ -542,6 +544,97 @@ function SheetSkillsColumn({ skills }) {
   );
 }
 
+function DefensesList({ defenses }) {
+  const items = Array.isArray(defenses) ? defenses : [];
+  if (!items.length) {
+    return (
+      <div className="def-text phmsg">
+        <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text3)', fontStyle: 'italic' }}>
+          None
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="def-text phmsg">
+      {items.map((item, index) => (
+        <div key={`${item.label}-${index}`} className={`tag ${item.color}`}>
+          {item.label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConditionsBlock({ conditions, onAfterChange }) {
+  const data = conditions || { active: [], allOptions: [], hasAny: false };
+  const active = Array.isArray(data.active) ? data.active : [];
+  const allOptions = Array.isArray(data.allOptions) ? data.allOptions : [];
+  const activeKeys = new Set(active.map((c) => c.key));
+
+  function handleToggle(key) {
+    toggleCondition(key);
+    window.setTimeout(onAfterChange, 0);
+  }
+
+  function handleClear() {
+    clearConditions();
+    window.setTimeout(onAfterChange, 0);
+  }
+
+  return (
+    <div className="def-text">
+      <div className="conditions-wrap">
+        <div className="cond-active">
+          {active.length === 0 && (
+            <span className="condition-tag empty">
+              <Icon name="circle" /> None
+            </span>
+          )}
+          {active.map((cond) => (
+            <button
+              key={cond.key}
+              type="button"
+              className="condition-tag on"
+              onClick={() => handleToggle(cond.key)}
+              title={`Remove ${cond.label}`}
+            >
+              <Icon name={cond.icon} /> {cond.label}
+            </button>
+          ))}
+        </div>
+        <details className="cond-details">
+          <summary className="cond-summary">
+            <Icon name="list-checks" /> Manage ({active.length})
+          </summary>
+          <div className="cond-picker">
+            {allOptions.map((cond) => {
+              const on = activeKeys.has(cond.key);
+              return (
+                <button
+                  key={cond.key}
+                  type="button"
+                  className={`cond-btn${on ? ' on' : ''}`}
+                  onClick={() => handleToggle(cond.key)}
+                  title={`${on ? 'Remove' : 'Apply'} ${cond.label}`}
+                >
+                  <Icon name={cond.icon} /> <span>{cond.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </details>
+        {data.hasAny && (
+          <button type="button" className="cond-clear" onClick={handleClear}>
+            <Icon name="x" /> Clear
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SheetRightSummary({ summary, onRefresh }) {
   return (
     <>
@@ -583,18 +676,11 @@ function SheetRightSummary({ summary, onRefresh }) {
         </div>
         <div className="defenses-block">
           <div className="block-title">Defenses</div>
-          <div
-            className="def-text phmsg"
-            dangerouslySetInnerHTML={{ __html: summary.defensesHtml }}
-          />
+          <DefensesList defenses={summary.defenses} />
         </div>
         <div className="conditions-block">
           <div className="block-title">Conditions</div>
-          <div
-            className="def-text"
-            onClick={() => window.setTimeout(onRefresh, 0)}
-            dangerouslySetInnerHTML={{ __html: summary.conditionsHtml }}
-          />
+          <ConditionsBlock conditions={summary.conditions} onAfterChange={onRefresh} />
         </div>
       </div>
 
