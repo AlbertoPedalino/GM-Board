@@ -465,7 +465,7 @@ export default function CharacterSheetPage({ active, title }) {
 
   function handleHeaderXpChange(nextXp) {
     const xp = writeSheetXp(nextXp);
-    callLegacyFunction('updateXPDisplay', xp);
+    if (typeof window.updateXPDisplay === 'function') window.updateXPDisplay(xp);
     setSheetHeader(readCharacterSheetHeader());
   }
 
@@ -498,26 +498,26 @@ export default function CharacterSheetPage({ active, title }) {
 
   function handleHpQuickAction(action, direction) {
     const safeDirection = direction > 0 ? 1 : -1;
-    if (action === 'temp') {
-      callLegacyFunction('adjustTempHP', safeDirection);
-    } else if (action === 'max') {
-      callLegacyFunction('adjustMaxHpBonus', safeDirection);
+    if (action === 'temp' && typeof window.adjustTempHP === 'function') {
+      window.adjustTempHP(safeDirection);
+    } else if (action === 'max' && typeof window.adjustMaxHpBonus === 'function') {
+      window.adjustMaxHpBonus(safeDirection);
     }
     refreshDynamicSnapshots();
   }
 
   function handleDeathSaveAction(action) {
-    if (action === 'roll') {
-      callLegacyFunction('rollDeathSave');
+    if (action === 'roll' && typeof window.rollDeathSave === 'function') {
+      window.rollDeathSave();
     } else if (action === 'reset') {
-      callLegacyFunction('resetDeathSaves');
-      callLegacyFunction('renderStatsRow');
+      if (typeof window.resetDeathSaves === 'function') window.resetDeathSaves();
+      if (typeof window.renderStatsRow === 'function') window.renderStatsRow();
     }
     refreshDynamicSnapshots();
   }
 
   function handleHitDieToggle(index) {
-    callLegacyFunction('toggleHD', index);
+    if (typeof window.toggleHD === 'function') window.toggleHD(index);
     refreshDynamicSnapshots();
   }
 
@@ -568,20 +568,6 @@ export default function CharacterSheetPage({ active, title }) {
       )}
     </section>
   );
-}
-
-function callLegacyFunction(name, ...args) {
-  const script = document.createElement('script');
-  script.dataset.gmBoardLegacySheetCall = 'true';
-  script.textContent = `
-    try {
-      if (typeof ${name} === 'function') ${name}.apply(null, ${JSON.stringify(args)});
-    } catch (err) {
-      console.error('Legacy call failed: ${name}', err);
-    }
-  `;
-  document.body.appendChild(script);
-  script.remove();
 }
 
 function runLegacySheetScript(source) {
