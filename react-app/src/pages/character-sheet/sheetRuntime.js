@@ -1898,12 +1898,13 @@ export function computeActions() {
   if (!character) return { sections: [] };
 
   const rows = resolveInventoryRows();
+  const isWeaponItem = (item) => ['M', 'R'].includes(item?.type) || !!item?.dmg1;
   const equippedWeapons = rows
-    .filter(({ item }) => item?.equipped && ['M', 'R'].includes(item.type) && item.hand !== 'off')
+    .filter(({ item }) => item?.equipped && isWeaponItem(item) && item.hand !== 'off')
     .map(({ item, index }) => computeWeaponAction(item, index, character))
     .filter(Boolean);
   const offHandWeapons = rows
-    .filter(({ item }) => item?.equipped && ['M', 'R'].includes(item.type) && item.hand === 'off')
+    .filter(({ item }) => item?.equipped && isWeaponItem(item) && item.hand === 'off')
     .map(({ item, index }) => computeWeaponAction(item, index, character))
     .filter(Boolean);
 

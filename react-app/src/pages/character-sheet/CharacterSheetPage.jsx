@@ -81,7 +81,25 @@ if (typeof window.__gbInstallReactSheetRendererShims === 'function') {
 }
 C = loadChar();
 if (typeof renderAll === 'function') renderAll();
-if (typeof loadItems === 'function') loadItems();
+if (typeof loadItems === 'function') {
+  Promise.resolve(loadItems()).then(function(){
+    try {
+      if (Array.isArray(sheetInventory) && typeof _resolveInvItem === 'function') {
+        var dirty = false;
+        sheetInventory.forEach(function(it){
+          if (!it || it.custom || it.type) return;
+          var enriched = _resolveInvItem(it);
+          if (enriched && enriched.type) { it.type = enriched.type; dirty = true; }
+          if (enriched && enriched.dmg1 && !it.dmg1) { it.dmg1 = enriched.dmg1; dirty = true; }
+          if (enriched && enriched.ac != null && it.ac == null) { it.ac = enriched.ac; dirty = true; }
+          if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.slice(); dirty = true; }
+        });
+        if (dirty && typeof persistInventory === 'function') persistInventory();
+      }
+    } catch(e) { console.warn('[react] inventory type backfill failed', e); }
+    window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
+  });
+}
 window.adjustHpBy = function(amt, dir){ hpAdjustAmt = amt; adjustHP(dir); };
 if (typeof _loadSheetSpells === 'function') {
   _loadSheetSpells().then(()=>{ if(C && typeof renderSpellsTab === 'function') renderSpellsTab(); });
@@ -213,7 +231,25 @@ function refreshLegacySheetRuntime() {
         }
         C = loadChar();
         renderAll();
-        if (typeof loadItems === 'function') loadItems();
+        if (typeof loadItems === 'function') {
+          Promise.resolve(loadItems()).then(function(){
+            try {
+              if (Array.isArray(sheetInventory) && typeof _resolveInvItem === 'function') {
+                var dirty = false;
+                sheetInventory.forEach(function(it){
+                  if (!it || it.custom || it.type) return;
+                  var enriched = _resolveInvItem(it);
+                  if (enriched && enriched.type) { it.type = enriched.type; dirty = true; }
+                  if (enriched && enriched.dmg1 && !it.dmg1) { it.dmg1 = enriched.dmg1; dirty = true; }
+                  if (enriched && enriched.ac != null && it.ac == null) { it.ac = enriched.ac; dirty = true; }
+                  if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.slice(); dirty = true; }
+                });
+                if (dirty && typeof persistInventory === 'function') persistInventory();
+              }
+            } catch(e) { console.warn('[react] inventory type backfill failed', e); }
+            window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
+          });
+        }
         window.adjustHpBy = function(amt, dir){ hpAdjustAmt = amt; adjustHP(dir); };
         if (typeof _loadSheetSpells === 'function') {
           _loadSheetSpells().then(function(){
