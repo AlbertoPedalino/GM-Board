@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 function callLegacy(name, ...args) {
   const fn = window[name];
@@ -7,7 +7,22 @@ function callLegacy(name, ...args) {
 }
 
 function Icon({ name }) {
-  return <i data-lucide={name} className="lucide-emoji" />;
+  const ref = useRef(null);
+
+  useLayoutEffect(() => {
+    const host = ref.current;
+    if (!host) return;
+    const placeholder = document.createElement('i');
+    placeholder.setAttribute('data-lucide', name);
+    placeholder.setAttribute('class', 'lucide-emoji');
+    placeholder.setAttribute('aria-hidden', 'true');
+    host.replaceChildren(placeholder);
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons({ attrs: { 'stroke-width': 1.7 } });
+    }
+  }, [name]);
+
+  return <span ref={ref} className="lucide-emoji-host" aria-hidden="true" />;
 }
 
 function SheetHeader({ header, onXpChange, onAfterRest }) {
