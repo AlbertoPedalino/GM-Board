@@ -334,7 +334,9 @@ function SheetLeftColumn({ vitals, leftPanels, onHitDieToggle }) {
   );
 }
 
-function SheetSkillsColumn() {
+function SheetSkillsColumn({ skills }) {
+  const html = skills?.html || '';
+
   return (
     <div className="main-col-middle">
       <Panel title="Skills" style={{ marginBottom: 0 }}>
@@ -344,7 +346,10 @@ function SheetSkillsColumn() {
           <span>Skill</span>
           <span>Mod.</span>
         </div>
-        <div id="skills-body" />
+        <div dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="legacy-skills-mirror" aria-hidden="true">
+          <div id="skills-body" />
+        </div>
       </Panel>
     </div>
   );
@@ -611,6 +616,7 @@ export default function CharacterSheetLayout({
   vitals,
   scores,
   leftPanels,
+  skills,
   onHeaderXpChange,
   onSummaryRefresh,
   onRuntimeRefresh,
@@ -634,7 +640,7 @@ export default function CharacterSheetLayout({
 
       <div className="main-grid">
         <SheetLeftColumn vitals={vitals} leftPanels={leftPanels} onHitDieToggle={onHitDieToggle} />
-        <SheetSkillsColumn />
+        <SheetSkillsColumn skills={skills} />
         <SheetRightColumn summary={summary} onSummaryRefresh={onSummaryRefresh} />
       </div>
     </div>
