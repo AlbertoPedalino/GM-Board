@@ -2015,6 +2015,23 @@ export function computeActions() {
       }
     }
 
+    let inlinePills = [];
+    if (Array.isArray(action.inlinePills)) {
+      inlinePills = action.inlinePills;
+    } else if (typeof action.inlinePills === 'function') {
+      try {
+        const result = action.inlinePills(ctx);
+        inlinePills = Array.isArray(result) ? result : [];
+      } catch { inlinePills = []; }
+    }
+    inlinePills = inlinePills
+      .filter((p) => p && typeof p === 'object')
+      .map((p) => ({
+        icon: String(p.icon || 'info'),
+        label: p.label != null ? String(p.label) : '',
+        value: p.value != null ? String(p.value) : '',
+      }));
+
     let extraBodyHtml = '';
     let choicePicker = null;
     if (action.choicePicker && Array.isArray(action.choicePicker.options)) {
@@ -2062,6 +2079,7 @@ export function computeActions() {
       resource: buildResource(action),
       extraBodyHtml,
       choicePicker,
+      inlinePills,
     };
   });
 

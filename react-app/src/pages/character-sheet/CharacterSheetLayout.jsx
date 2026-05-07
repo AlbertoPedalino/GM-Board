@@ -1677,6 +1677,18 @@ function ActionCard({ item, onRuntimeRefresh }) {
         <ResourceBlock resource={item.resource} onRuntimeRefresh={onRuntimeRefresh} />
       )}
 
+      {Array.isArray(item.inlinePills) && item.inlinePills.length > 0 && (
+        <div className="action-card-bar" onClick={(e) => e.stopPropagation()}>
+          {item.inlinePills.map((pill, idx) => (
+            <div key={`pill-${idx}`} className="action-dmg-pill">
+              <Icon name={pill.icon} />
+              {pill.label && <span> {pill.label}{pill.value ? ': ' : ''}</span>}
+              {pill.value && <b>{pill.value}</b>}
+            </div>
+          ))}
+        </div>
+      )}
+
       {(item.attackBonus !== null && item.attackBonus !== undefined) || item.damageFormula || item.flatDamage ? (
         <div className="action-card-bar">
           {item.attackBonus !== null && item.attackBonus !== undefined && (
