@@ -181,6 +181,78 @@ export function cycleSkillAdv(name) {
   }
 }
 
+function readJsonLs(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readIntLs(key, fallback = 0) {
+  const v = parseInt(localStorage.getItem(key) || '', 10);
+  return Number.isFinite(v) ? v : fallback;
+}
+
+function getHitDieFaces() {
+  const hd = window.C?.clsSnapshot?.hd;
+  if (!hd) return 8;
+  if (hd.faces) return hd.faces;
+  if (Array.isArray(hd) && hd[0]?.faces) return hd[0].faces;
+  return 8;
+}
+
+export function computeVitals() {
+  const { calcMaxHP, C } = window;
+
+  const currentHP = readIntLs('5e_hp_current', 0);
+  const tempHP = readIntLs('5e_hp_temp', 0);
+  const maxHPBonus = readIntLs('5e_hp_max_bonus', 0);
+  const baseMax = typeof calcMaxHP === 'function' ? Number(calcMaxHP()) || 0 : 0;
+  const maxHP = Math.max(1, baseMax + maxHPBonus);
+
+  const ds = readJsonLs('5e_death_saves', { success: 0, fail: 0 }) || { success: 0, fail: 0 };
+  const deathSuccess = Math.max(0, Math.min(3, Number(ds.success) || 0));
+  const deathFail = Math.max(0, Math.min(3, Number(ds.fail) || 0));
+
+  const total = Number(C?.level) || 0;
+  const usedHD = readIntLs('5e_hd_used', 0);
+  const remainingHD = Math.max(0, total - usedHD);
+  const faces = getHitDieFaces();
+
+  const pips = [];
+  for (let i = 0; i < total; i += 1) {
+    const used = i >= total - usedHD;
+    pips.push({ used, title: `d${faces}` });
+  }
+
+  const maxBonusLabel = maxHPBonus
+    ? `${maxHPBonus > 0 ? '+' : ''}${maxHPBonus}`
+    : '0';
+
+  return {
+    hp: {
+      current: String(currentHP),
+      max: String(maxHP),
+      temp: String(tempHP),
+      maxBonus: maxBonusLabel,
+      amount: '1',
+      showDeathSaves: currentHP === 0,
+      deathSuccess,
+      deathFail,
+    },
+    hitDice: {
+      label: total ? `${remainingHD}/${total} d${faces}` : '',
+      pips,
+      total,
+      used: usedHD,
+      faces,
+      hint: pips.length ? 'Click to use/recover a hit die' : '',
+    },
+  };
+}
+
 export function computeScores() {
   const {
     C,

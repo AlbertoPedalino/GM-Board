@@ -13,6 +13,7 @@ import {
   computeSenses,
   computeSkills,
   computeSummary,
+  computeVitals,
 } from './sheetRuntime.js';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
@@ -209,41 +210,6 @@ function refreshLegacySheetRuntime() {
   script.remove();
 }
 
-function readCharacterSheetVitals() {
-  const scoresMirror = document.querySelector('.legacy-scores-mirror');
-  const hpDeath = scoresMirror?.querySelector('.hp-death') || null;
-  const deathSuccess = hpDeath
-    ? hpDeath.querySelectorAll('.hp-ds-pip.success.on').length
-    : 0;
-  const deathFail = hpDeath
-    ? hpDeath.querySelectorAll('.hp-ds-pip.fail.on').length
-    : 0;
-  const hpScope = scoresMirror || document;
-  const hitDiceBody = document.getElementById('hd-body');
-  const hitDicePips = Array.from(hitDiceBody?.querySelectorAll('.hd-pip') || []).map((pip) => ({
-    used: pip.classList.contains('used'),
-    title: pip.getAttribute('title') || '',
-  }));
-
-  return {
-    hp: {
-      current: hpScope.querySelector('#hp-cur-display')?.textContent || '0',
-      max: hpScope.querySelector('#hp-max-display')?.textContent || '0',
-      temp: hpScope.querySelector('#hp-temp-display')?.textContent || '0',
-      maxBonus: hpScope.querySelector('#hp-max-bonus-display')?.textContent || '0',
-      amount: hpScope.querySelector('#hp-amount-input')?.value || '1',
-      showDeathSaves: hpDeath ? !hpDeath.hasAttribute('hidden') : false,
-      deathSuccess,
-      deathFail,
-    },
-    hitDice: {
-      label: document.getElementById('hd-label')?.textContent || '',
-      pips: hitDicePips,
-      hint: hitDicePips.length ? 'Click to use/recover a hit die' : '',
-    },
-  };
-}
-
 function installSnapshotRefreshHooks() {
   if (window.__gbCharacterSheetSnapshotHooksInstalled) return;
 
@@ -294,7 +260,7 @@ export default function CharacterSheetPage({ active, title }) {
   const [runtimeReady, setRuntimeReady] = useState(false);
   const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
   const [sheetSummary, setSheetSummary] = useState(() => computeSummary());
-  const [sheetVitals, setSheetVitals] = useState(() => readCharacterSheetVitals());
+  const [sheetVitals, setSheetVitals] = useState(() => computeVitals());
   const [sheetScores, setSheetScores] = useState(() => computeScores());
   const [sheetLeftPanels, setSheetLeftPanels] = useState(() => readCharacterSheetLeftPanels());
   const [sheetTabs, setSheetTabs] = useState(() => readCharacterSheetTabs());
@@ -349,7 +315,7 @@ export default function CharacterSheetPage({ active, title }) {
       installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
       setSheetSummary(computeSummary());
-      setSheetVitals(readCharacterSheetVitals());
+      setSheetVitals(computeVitals());
       setSheetScores(computeScores());
       setSheetLeftPanels(readCharacterSheetLeftPanels());
       setSheetTabs(readCharacterSheetTabs());
@@ -366,7 +332,7 @@ export default function CharacterSheetPage({ active, title }) {
         installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(computeSummary());
-        setSheetVitals(readCharacterSheetVitals());
+        setSheetVitals(computeVitals());
         setSheetScores(computeScores());
         setSheetLeftPanels(readCharacterSheetLeftPanels());
         setSheetTabs(readCharacterSheetTabs());
@@ -387,7 +353,7 @@ export default function CharacterSheetPage({ active, title }) {
     installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(computeSummary());
-    setSheetVitals(readCharacterSheetVitals());
+    setSheetVitals(computeVitals());
     setSheetScores(computeScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetTabs(readCharacterSheetTabs());
@@ -421,7 +387,7 @@ export default function CharacterSheetPage({ active, title }) {
   function refreshDynamicSnapshots() {
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(computeSummary());
-    setSheetVitals(readCharacterSheetVitals());
+    setSheetVitals(computeVitals());
     setSheetScores(computeScores());
     setSheetLeftPanels(readCharacterSheetLeftPanels());
     setSheetTabs(readCharacterSheetTabs());
