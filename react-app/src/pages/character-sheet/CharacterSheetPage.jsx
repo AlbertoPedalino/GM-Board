@@ -72,7 +72,19 @@ function parseLegacySheet(html) {
       return {
         src: src ? absoluteLegacyUrl(src) : null,
         type: node.getAttribute('type') || '',
-        content: src ? '' : node.textContent || '',
+        content: src ? '' : (node.textContent || '').replace(
+          /\nC = loadChar\(\);\s*\nrenderAll\(\);\s*\nloadItems\(\);\s*\n\/\/ Load spell DB in background so ATK\/DMG buttons and picker work immediately\s*\n_loadSheetSpells\(\)\.then\(\(\)=>\{ if\(C\) renderSpellsTab\(\); \}\);/,
+          `
+if (typeof window.__gbInstallReactSheetRendererShims === 'function') {
+  window.__gbInstallReactSheetRendererShims();
+}
+C = loadChar();
+if (typeof renderAll === 'function') renderAll();
+if (typeof loadItems === 'function') loadItems();
+if (typeof _loadSheetSpells === 'function') {
+  _loadSheetSpells().then(()=>{ if(C && typeof renderSpellsTab === 'function') renderSpellsTab(); });
+}`,
+        ),
       };
     });
 
@@ -194,6 +206,9 @@ function refreshLegacySheetRuntime() {
     (function(){
       try {
         if (typeof loadChar !== 'function' || typeof renderAll !== 'function') return;
+        if (typeof window.__gbInstallReactSheetRendererShims === 'function') {
+          window.__gbInstallReactSheetRendererShims();
+        }
         C = loadChar();
         renderAll();
         if (typeof loadItems === 'function') loadItems();
@@ -214,6 +229,46 @@ function refreshLegacySheetRuntime() {
   script.remove();
 }
 
+function installRendererBridgeShims() {
+  window.__gbInstallReactSheetRendererShims = function installReactSheetRendererShims() {
+    if (window.__gbReactSheetRendererShimsInstalled) return;
+
+    let installedCount = 0;
+    [
+      'renderTopBar',
+      'renderStatsRow',
+      'renderSaves',
+      'renderSenses',
+      'renderProficiencies',
+      'renderHitDice',
+      'renderSkills',
+      'renderRightTop',
+      'renderConditions',
+      'renderInspirationSheet',
+      'renderActionsTab',
+      'renderSpellsTab',
+      'renderInventoryTab',
+      'renderInventoryList',
+      'renderCurrency',
+      'renderItemSearch',
+      'renderFeaturesTab',
+      'renderBackgroundTab',
+    ].forEach((name) => {
+      if (typeof window[name] !== 'function') return;
+      installedCount += 1;
+      window[name] = function reactRendererShim() {
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
+        }, 0);
+      };
+    });
+
+    if (installedCount > 0) window.__gbReactSheetRendererShimsInstalled = true;
+  };
+
+  window.__gbInstallReactSheetRendererShims();
+}
+
 function installSnapshotRefreshHooks() {
   if (window.__gbCharacterSheetSnapshotHooksInstalled) return;
 
@@ -226,22 +281,18 @@ function installSnapshotRefreshHooks() {
     'toggleHD',
     '_applyLongRest',
     '_applyShortRest',
-    'renderStatsRow',
-    'renderSaves',
-    'renderSenses',
-    'renderProficiencies',
-    'renderSkills',
-    'renderRightTop',
-    'renderConditions',
-    'renderInspirationSheet',
-    'renderActionsTab',
-    'renderSpellsTab',
-    'renderInventoryTab',
-    'renderInventoryList',
-    'renderCurrency',
-    'renderItemSearch',
-    'renderFeaturesTab',
-    'renderBackgroundTab',
+    'updateCurrencySheet',
+    'addItemToInventory',
+    'addCustomItemSheet',
+    'changeSheetInvQty',
+    'toggleEquip',
+    'toggleItemFlag',
+    'setWeaponOverride',
+    'toggleWeaponHand',
+    'toggleVersatile',
+    'toggleSlot',
+    'togglePactSlot',
+    'openSpellPicker',
   ].forEach((name) => {
     const original = window[name];
     if (typeof original !== 'function') return;
@@ -314,12 +365,14 @@ export default function CharacterSheetPage({ active, title }) {
     hasRunScriptsRef.current = true;
     setRuntimeReady(false);
     configureCharacterSheetScope();
+    installRendererBridgeShims();
 
     if (
       window.__gbCharacterSheetRuntimeLoaded ||
       (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
     ) {
       refreshLegacySheetRuntime();
+      installRendererBridgeShims();
       installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
       setSheetSummary(computeSummary());
@@ -341,6 +394,7 @@ export default function CharacterSheetPage({ active, title }) {
 
     runLegacyScripts(legacyDoc.scripts)
       .then(() => {
+        installRendererBridgeShims();
         installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(computeSummary());
@@ -366,6 +420,7 @@ export default function CharacterSheetPage({ active, title }) {
   useEffect(() => {
     if (!active || !runtimeReadyRef.current) return;
     refreshLegacySheetRuntime();
+    installRendererBridgeShims();
     installSnapshotRefreshHooks();
     setSheetHeader(readCharacterSheetHeader());
     setSheetSummary(computeSummary());

@@ -119,14 +119,6 @@ function SheetHeader({ header, onXpChange, onAfterRest }) {
         </button>
       </div>
 
-      <div className="legacy-topbar-mirror" aria-hidden="true">
-        <div id="top-avatar" />
-        <div id="top-name" />
-        <div id="top-meta" />
-        <div id="xp-fill" />
-        <input id="xp-input" readOnly value={header.xp} />
-        <div id="xp-label" />
-      </div>
     </>
   );
 }
@@ -354,10 +346,6 @@ function SheetScoreStrip({
         onHpQuickAction={onHpQuickAction}
         onDeathSaveAction={onDeathSaveAction}
       />
-      <div className="legacy-scores-mirror" aria-hidden="true">
-        <div className="scores-row" id="scores-row" />
-        <div className="stats-row" id="stats-row" />
-      </div>
     </div>
   );
 }
@@ -401,10 +389,6 @@ function SheetHitDicePanel({ hitDice, onHitDieToggle }) {
             <i>{hitDice.hint}</i>
           </div>
         )}
-        <div className="legacy-hit-dice-mirror" aria-hidden="true">
-          <span id="hd-label" />
-          <div id="hd-body" />
-        </div>
       </div>
     </Panel>
   );
@@ -503,11 +487,6 @@ function SheetLeftColumn({ vitals, proficiencies, saves, senses, onHitDieToggle 
       <SheetSensesPanel senses={senses} />
       <SheetProficienciesPanel proficiencies={proficiencies} />
       <SheetHitDicePanel hitDice={vitals.hitDice} onHitDieToggle={onHitDieToggle} />
-      <div className="legacy-left-panels-mirror" aria-hidden="true">
-        <div id="saves-body" />
-        <div id="senses-body" />
-        <div id="profs-body" />
-      </div>
     </div>
   );
 }
@@ -566,9 +545,6 @@ function SheetSkillsColumn({ skills }) {
         {rows.map((skill) => (
           <SkillRow key={skill.name} skill={skill} />
         ))}
-        <div className="legacy-skills-mirror" aria-hidden="true">
-          <div id="skills-body" />
-        </div>
       </Panel>
     </div>
   );
@@ -714,18 +690,6 @@ function SheetRightSummary({ summary, onRefresh }) {
         </div>
       </div>
 
-      <div className="legacy-right-summary-mirror" aria-hidden="true">
-        <div id="init-val" />
-        <div id="ac-val" />
-        <div id="inspiration-block">
-          <div id="insp-star" />
-          <div id="insp-label" />
-        </div>
-        <div id="defenses-block">
-          <div id="def-content" />
-        </div>
-        <div id="conditions-content" />
-      </div>
     </>
   );
 }
@@ -1971,18 +1935,6 @@ function SheetTabsPanel({ actions, background, features, inventory, spells, acti
         <NotesTextarea />
       </div>
 
-      <div className="legacy-tabs-mirror" aria-hidden="true">
-        <div id="attacks-table-wrap" />
-        <div id="combat-actions-wrap" />
-        <div id="spells-wrap" />
-        <div id="currency-row" />
-        <div id="inv-stats-row" />
-        <div id="inv-search-results" />
-        <div id="inv-list" />
-        <span id="inv-count">0</span>
-        <div id="features-wrap" />
-        <div id="background-wrap" />
-      </div>
     </div>
   );
 }
