@@ -137,7 +137,8 @@ button {
   visibility: visible;
 }
 
-.legacy-topbar-mirror {
+.legacy-topbar-mirror,
+.legacy-right-summary-mirror {
   position: absolute;
   width: 1px;
   height: 1px;

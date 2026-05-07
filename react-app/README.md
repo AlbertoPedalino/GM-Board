@@ -24,8 +24,10 @@ Dev server predefinito: `http://127.0.0.1:5173/`.
   ancora compatibile con CSS e runtime legacy.
 - `src/pages/character-sheet/CharacterSheetLayout.jsx`: layout statico della scheda
   in JSX, diviso in sezioni grandi di pagina. Gli script legacy riempiono ancora i
-  contenitori dinamici tramite gli stessi `id`; la topbar e XP sono gia renderizzati
-  da React usando i dati letti dallo storage della scheda.
+  contenitori dinamici tramite gli stessi `id`; topbar, XP e riepilogo destro sono
+  renderizzati da React usando snapshot letti dallo storage/runtime della scheda.
+- `src/pages/character-sheet/characterSheetStorage.js`: scope `localStorage` e
+  lettura/scrittura dei dati della scheda usati dai componenti React.
 - `public/legacy/`: snapshot delle pagine HTML e degli adapter usati dagli script.
 
 ## Prossimo passo consigliato

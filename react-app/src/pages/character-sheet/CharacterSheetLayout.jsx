@@ -128,37 +128,75 @@ function SheetSkillsColumn() {
   );
 }
 
-function SheetRightSummary() {
+function SheetRightSummary({ summary, onRefresh }) {
   return (
-    <div className="right-top-row">
-      <div className="inspiration-block" onClick={() => callLegacy('rollInitiative')} title="Roll Initiative">
-        <div className="insp-star" id="init-val">+0</div>
-        <div className="block-title" style={{ marginBottom: 0, textAlign: 'center' }}>Initiative</div>
-      </div>
-      <div className="inspiration-block" style={{ cursor: 'default' }}>
-        <div className="insp-star" id="ac-val">10</div>
-        <div className="block-title" style={{ marginBottom: 0, textAlign: 'center' }}>AC</div>
-      </div>
-      <div
-        className="inspiration-block"
-        id="inspiration-block"
-        onClick={() => callLegacy('toggleInspirationSheet')}
-        title="Toggle Inspiration"
-      >
-        <div className="insp-star" id="insp-star">*</div>
-        <div className="block-title" style={{ marginBottom: 0, textAlign: 'center' }} id="insp-label">No Insp.</div>
-      </div>
-      <div className="defenses-block" id="defenses-block">
-        <div className="block-title">Defenses</div>
-        <div id="def-content" className="def-text phmsg">No resistances detected.</div>
-      </div>
-      <div className="conditions-block">
-        <div className="block-title">Conditions</div>
-        <div id="conditions-content" className="def-text">
-          <span className="condition-tag">- None</span>
+    <>
+      <div className="right-top-row">
+        <div
+          className="inspiration-block"
+          onClick={() => {
+            callLegacy('rollInitiative');
+            window.setTimeout(onRefresh, 0);
+          }}
+          title="Roll Initiative"
+        >
+          <div className="insp-star">{summary.initiative}</div>
+          <div className="block-title" style={{ marginBottom: 0, textAlign: 'center' }}>Initiative</div>
+        </div>
+        <div className="inspiration-block" style={{ cursor: 'default' }}>
+          <div className="insp-star">{summary.ac}</div>
+          <div className="block-title" style={{ marginBottom: 0, textAlign: 'center' }}>AC</div>
+        </div>
+        <div
+          className={`inspiration-block${summary.inspirationActive ? ' active' : ''}`}
+          onClick={() => {
+            callLegacy('toggleInspirationSheet');
+            window.setTimeout(onRefresh, 0);
+          }}
+          title="Toggle Inspiration"
+        >
+          <div className="insp-star">*</div>
+          <div
+            className="block-title"
+            style={{
+              marginBottom: 0,
+              textAlign: 'center',
+              color: summary.inspirationActive ? 'var(--gold2)' : '',
+            }}
+          >
+            {summary.inspirationLabel}
+          </div>
+        </div>
+        <div className="defenses-block">
+          <div className="block-title">Defenses</div>
+          <div
+            className="def-text phmsg"
+            dangerouslySetInnerHTML={{ __html: summary.defensesHtml }}
+          />
+        </div>
+        <div className="conditions-block">
+          <div className="block-title">Conditions</div>
+          <div
+            className="def-text"
+            onClick={() => window.setTimeout(onRefresh, 0)}
+            dangerouslySetInnerHTML={{ __html: summary.conditionsHtml }}
+          />
         </div>
       </div>
-    </div>
+
+      <div className="legacy-right-summary-mirror" aria-hidden="true">
+        <div id="init-val" />
+        <div id="ac-val" />
+        <div id="inspiration-block">
+          <div id="insp-star" />
+          <div id="insp-label" />
+        </div>
+        <div id="defenses-block">
+          <div id="def-content" />
+        </div>
+        <div id="conditions-content" />
+      </div>
+    </>
   );
 }
 
@@ -336,16 +374,21 @@ const addItemButtonStyle = {
   transition: 'all .12s',
 };
 
-function SheetRightColumn() {
+function SheetRightColumn({ summary, onSummaryRefresh }) {
   return (
     <div className="main-col-right">
-      <SheetRightSummary />
+      <SheetRightSummary summary={summary} onRefresh={onSummaryRefresh} />
       <SheetTabsPanel />
     </div>
   );
 }
 
-export default function CharacterSheetLayout({ header, onHeaderXpChange }) {
+export default function CharacterSheetLayout({
+  header,
+  summary,
+  onHeaderXpChange,
+  onSummaryRefresh,
+}) {
   return (
     <div className="character-sheet-root">
       <SheetHeader header={header} onXpChange={onHeaderXpChange} />
@@ -354,7 +397,7 @@ export default function CharacterSheetLayout({ header, onHeaderXpChange }) {
       <div className="main-grid">
         <SheetLeftColumn />
         <SheetSkillsColumn />
-        <SheetRightColumn />
+        <SheetRightColumn summary={summary} onSummaryRefresh={onSummaryRefresh} />
       </div>
     </div>
   );
