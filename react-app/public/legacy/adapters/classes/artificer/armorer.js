@@ -33,6 +33,16 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "uses": "At will",
     "minLevel": 3,
     "desc": "Magic action (Smith's Tools in hand): turn worn armor into Arcane Armor. Benefits: no Strength requirement, don/doff as Utilize action (can't be removed against will), use as spellcasting focus. Change armor model on Short or Long Rest (Smith's Tools required).",
+    "choicePicker": {
+      "keyMatch": /^(?:mc\d+_)?armorer_model$/,
+      "fallbackKey": "armorer_model",
+      "label": "Arcane Armor Model",
+      "options": [
+        { "value": "Dreadnaught", "label": "Dreadnought (Force, Reach, Giant Stature)" },
+        { "value": "Guardian", "label": "Guardian (Thunder, Defensive Field)" },
+        { "value": "Infiltrator", "label": "Infiltrator (Lightning, +5 Speed, Stealth ADV)" }
+      ]
+    },
     "extraBodyHtml": function (C) {
       if (typeof _sheetChoicePickerHtml !== 'function') return '';
       const keys = Object.keys((C && C.choices) || {});

@@ -1996,7 +1996,27 @@ export function computeActions() {
       typeof action?.attackBonus === 'number';
 
     let extraBodyHtml = '';
-    if (typeof action.extraBodyHtml === 'function') {
+    let choicePicker = null;
+    if (action.choicePicker && Array.isArray(action.choicePicker.options)) {
+      const cp = action.choicePicker;
+      const choices = (character?.choices && typeof character.choices === 'object') ? character.choices : {};
+      const allKeys = Object.keys(choices);
+      const matchedKey = cp.keyMatch instanceof RegExp
+        ? allKeys.find((k) => cp.keyMatch.test(k))
+        : (typeof cp.keyMatch === 'string' ? allKeys.find((k) => k === cp.keyMatch) : null);
+      const resolvedKey = matchedKey || cp.fallbackKey || (typeof cp.keyMatch === 'string' ? cp.keyMatch : '');
+      const norm = (v) => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const current = choices[resolvedKey];
+      choicePicker = {
+        key: resolvedKey,
+        label: cp.label || resolvedKey,
+        options: cp.options.map((opt) => {
+          const value = typeof opt === 'string' ? opt : opt?.value;
+          const label = typeof opt === 'string' ? opt : (opt?.label || opt?.value || '');
+          return { value, label, active: norm(current) === norm(value) };
+        }),
+      };
+    } else if (typeof action.extraBodyHtml === 'function') {
       try { extraBodyHtml = String(action.extraBodyHtml(character) || ''); } catch { extraBodyHtml = ''; }
     } else if (typeof action.extraBodyHtml === 'string') {
       extraBodyHtml = action.extraBodyHtml;
@@ -2020,6 +2040,7 @@ export function computeActions() {
       damageLabel: damageFormula,
       resource: buildResource(action),
       extraBodyHtml,
+      choicePicker,
     };
   });
 
@@ -2139,6 +2160,24 @@ export function recoverActionResource(key, max) {
   const cap = Number(max) || cur + 1;
   state[key] = Math.min(cap, cur + 1);
   writeResources(state);
+}
+
+export function setActionChoice(key, value) {
+  if (typeof window._sheetChoiceSet === 'function') {
+    try { window._sheetChoiceSet(key, value); return; } catch { /* fall through */ }
+  }
+  if (window.C) {
+    if (!window.C.choices) window.C.choices = {};
+    window.C.choices[key] = value;
+  }
+  try {
+    const overrides = JSON.parse(localStorage.getItem('5e_choice_overrides') || '{}');
+    overrides[key] = value;
+    localStorage.setItem('5e_choice_overrides', JSON.stringify(overrides));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 export function setActionResourcePip(key, idx, max) {

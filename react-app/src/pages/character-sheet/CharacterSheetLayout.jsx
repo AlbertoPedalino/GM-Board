@@ -17,6 +17,7 @@ import {
   rollSkill,
   openSpellPicker,
   recoverActionResource,
+  setActionChoice,
   setActionResourcePip,
   spendActionResource,
   readSheetNotes,
@@ -1573,6 +1574,35 @@ function ResourceBlock({ resource, onRuntimeRefresh }) {
   );
 }
 
+function ChoicePicker({ picker, onRuntimeRefresh }) {
+  if (!picker || !picker.key || !Array.isArray(picker.options) || !picker.options.length) return null;
+  const refreshSoon = () => window.setTimeout(onRuntimeRefresh, 0);
+  return (
+    <div className="action-choice-picker" onClick={(e) => e.stopPropagation()}>
+      <div className="action-choice-label">{picker.label}</div>
+      <div className="action-choice-options">
+        {picker.options.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            className={`inv-equip-btn${opt.active ? ' on' : ''}`}
+            style={opt.active
+              ? { background: 'var(--purple)', borderColor: 'var(--purple)', color: '#fff' }
+              : { borderColor: 'var(--purple)', color: 'var(--purple)' }}
+            onClick={(event) => {
+              event.stopPropagation();
+              setActionChoice(picker.key, opt.value);
+              refreshSoon();
+            }}
+          >
+            {opt.active && <Icon name="check" />} {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ActionCard({ item, onRuntimeRefresh }) {
   const [open, setOpen] = useState(false);
 
@@ -1588,7 +1618,7 @@ function ActionCard({ item, onRuntimeRefresh }) {
     window.setTimeout(onRuntimeRefresh, 0);
   }
 
-  const hasBody = !!(item.desc || item.extraBodyHtml);
+  const hasBody = !!(item.desc || item.extraBodyHtml || item.choicePicker);
   const isWeapon = item.kind === 'weapon';
   const isUnarmed = item.kind === 'unarmed';
 
@@ -1683,10 +1713,13 @@ function ActionCard({ item, onRuntimeRefresh }) {
         </div>
       ) : null}
 
-      {(hasBody || item.extraBodyHtml) && (
+      {hasBody && (
         <div className="action-card-body">
           {item.desc && <div className="action-desc">{item.desc}</div>}
-          {item.extraBodyHtml && (
+          {item.choicePicker && (
+            <ChoicePicker picker={item.choicePicker} onRuntimeRefresh={onRuntimeRefresh} />
+          )}
+          {item.extraBodyHtml && !item.choicePicker && (
             <div className="action-extra-body" dangerouslySetInnerHTML={{ __html: item.extraBodyHtml }} />
           )}
           {isUnarmed && (
