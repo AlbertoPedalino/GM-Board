@@ -190,12 +190,6 @@ export function readCharacterSheetLeftPanels() {
   };
 }
 
-export function readCharacterSheetSkills() {
-  return {
-    html: document.getElementById('skills-body')?.innerHTML || '',
-  };
-}
-
 export function readCharacterSheetTabs() {
   return {
     attacksTableHtml: document.getElementById('attacks-table-wrap')?.innerHTML || '',

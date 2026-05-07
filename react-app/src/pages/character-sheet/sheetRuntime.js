@@ -9,6 +9,27 @@ export const FULL_LBL = {
   cha: 'Charisma',
 };
 
+export const SKILLS_LIST = [
+  { n: 'Acrobatics', a: 'dex' },
+  { n: 'Animal Handling', a: 'wis' },
+  { n: 'Arcana', a: 'int' },
+  { n: 'Athletics', a: 'str' },
+  { n: 'Insight', a: 'wis' },
+  { n: 'Sleight of Hand', a: 'dex' },
+  { n: 'Stealth', a: 'dex' },
+  { n: 'Investigation', a: 'int' },
+  { n: 'Deception', a: 'cha' },
+  { n: 'Perception', a: 'wis' },
+  { n: 'Intimidation', a: 'cha' },
+  { n: 'Medicine', a: 'wis' },
+  { n: 'Nature', a: 'int' },
+  { n: 'History', a: 'int' },
+  { n: 'Performance', a: 'cha' },
+  { n: 'Persuasion', a: 'cha' },
+  { n: 'Religion', a: 'int' },
+  { n: 'Survival', a: 'wis' },
+];
+
 function fbonus(n) {
   return (n >= 0 ? '+' : '') + n;
 }
@@ -40,6 +61,90 @@ export function computeSaves() {
 
 export function rollSave(stat) {
   if (typeof window.rollSave === 'function') window.rollSave(stat);
+}
+
+export function computeSkills() {
+  const {
+    getSkillBonus,
+    getSkillProficiency,
+    _resolvedInventory,
+    _sheetItemHasProperty,
+    _sheetHasNonProficientArmor,
+    _sheetClassEntities,
+    _sheetGetClassRuntimeConfig,
+    _sheetGetSubclassRuntimeConfig,
+    _sheetAdvFor,
+    skillAdv,
+  } = window;
+
+  if (typeof getSkillBonus !== 'function' || typeof getSkillProficiency !== 'function') return [];
+
+  const inv = typeof _resolvedInventory === 'function' ? _resolvedInventory() : [];
+  const equippedArmor = inv.find((i) => i.equipped && ['LA', 'MA', 'HA'].includes(i.type));
+  const hasStealthDis = !!equippedArmor && (
+    equippedArmor.type === 'HA' ||
+    (typeof _sheetItemHasProperty === 'function' && _sheetItemHasProperty(equippedArmor, ['S', 'stealth', 'disadvantage']))
+  );
+  const armorTrainingDis = typeof _sheetHasNonProficientArmor === 'function' && _sheetHasNonProficientArmor();
+
+  const isJoat = typeof _sheetClassEntities === 'function'
+    && _sheetClassEntities().some((ent) => {
+      const classMin = Number(_sheetGetClassRuntimeConfig?.(ent.className)?.skillRules?.jackOfAllTradesMinLevel || 0);
+      const subMin = Number(_sheetGetSubclassRuntimeConfig?.(ent.className, ent.subclassShortName)?.skillRules?.jackOfAllTradesMinLevel || 0);
+      return (classMin > 0 && ent.level >= classMin) || (subMin > 0 && ent.level >= subMin);
+    });
+
+  return SKILLS_LIST.map((sk) => {
+    const bonus = getSkillBonus(sk);
+    const ptype = getSkillProficiency(sk.n);
+    const dotCls = ptype === 'exp'
+      ? 'exp'
+      : ptype === 'prof'
+      ? 'prof'
+      : isJoat && !ptype
+      ? 'joat'
+      : '';
+
+    const userAdv = (skillAdv && skillAdv[sk.n]) || null;
+    const armorDis = hasStealthDis && sk.n === 'Stealth';
+    const trainingDis = armorTrainingDis && (sk.a === 'str' || sk.a === 'dex');
+    const forcedDis = armorDis || trainingDis;
+
+    const eAdvSkill = typeof _sheetAdvFor === 'function' ? _sheetAdvFor({ target: 'skill', skill: sk.n }) : null;
+    const eAdvCheck = typeof _sheetAdvFor === 'function' ? _sheetAdvFor({ target: 'check', ability: sk.a }) : null;
+    const eAdv = eAdvSkill || eAdvCheck;
+
+    let baseAdv = userAdv;
+    if (!baseAdv && eAdv === 'adv') baseAdv = 'adv';
+    else if (!baseAdv && eAdv === 'disadv') baseAdv = 'disadv';
+    const effectiveAdv = forcedDis ? (baseAdv === 'adv' ? '' : 'disadv') : (baseAdv || '');
+
+    return {
+      name: sk.n,
+      ability: sk.a,
+      abilityLabel: SLBL[sk.a],
+      bonus,
+      bonusText: fbonus(bonus),
+      dotCls,
+      userAdv,
+      featureAdv: eAdv,
+      armorDis,
+      trainingDis,
+      effectiveAdv,
+    };
+  });
+}
+
+export function rollSkill(name, bonus, effectiveAdv) {
+  if (typeof window.rollSkill === 'function') {
+    window.rollSkill(name, bonus, effectiveAdv);
+  }
+}
+
+export function cycleSkillAdv(name) {
+  if (typeof window.cycleSkillAdv === 'function') {
+    window.cycleSkillAdv(name);
+  }
 }
 
 export function computeSenses() {

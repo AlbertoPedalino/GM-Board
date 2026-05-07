@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { rollSave } from './sheetRuntime.js';
+import { cycleSkillAdv, rollSave, rollSkill } from './sheetRuntime.js';
 
 function callLegacy(name, ...args) {
   const fn = window[name];
@@ -409,8 +409,47 @@ function SheetLeftColumn({ vitals, leftPanels, saves, senses, onHitDieToggle }) 
   );
 }
 
+function SkillRow({ skill }) {
+  const titleParts = ['Click: roll', 'Right-click: advantage/disadvantage'];
+  if (skill.armorDis) titleParts.push('Disadvantage (Heavy Armor)');
+  if (skill.trainingDis) titleParts.push('Disadvantage: untrained armor');
+  if (skill.featureAdv === 'adv') titleParts.push('Advantage (feature)');
+  else if (skill.featureAdv === 'disadv') titleParts.push('Disadvantage (feature)');
+
+  function handleContextMenu(event) {
+    event.preventDefault();
+    cycleSkillAdv(skill.name);
+  }
+
+  return (
+    <div
+      className="skill-row"
+      onClick={() => rollSkill(skill.name, skill.bonus, skill.effectiveAdv)}
+      onContextMenu={handleContextMenu}
+      title={titleParts.join(' | ')}
+    >
+      <div className={`skill-dot${skill.dotCls ? ` ${skill.dotCls}` : ''}`} />
+      <span className="skill-ability">{skill.abilityLabel}</span>
+      <span className="skill-name">{skill.name}</span>
+      {skill.userAdv === 'adv' && <span className="adv-badge adv" title="Advantage">ADV</span>}
+      {skill.userAdv === 'disadv' && <span className="adv-badge disadv" title="Disadvantage">DIS</span>}
+      {!skill.userAdv && skill.featureAdv === 'adv' && (
+        <span className="adv-badge adv" title="Advantage (feature)">ADV</span>
+      )}
+      {!skill.userAdv && skill.featureAdv === 'disadv' && (
+        <span className="adv-badge disadv" title="Disadvantage (feature)">DIS</span>
+      )}
+      {skill.armorDis && <span className="adv-badge disadv" title="Disadvantage (Heavy Armor)">D</span>}
+      {skill.trainingDis && (
+        <span className="adv-badge disadv" title="Disadvantage: untrained armor">DIS</span>
+      )}
+      <span className="skill-bonus">{skill.bonusText}</span>
+    </div>
+  );
+}
+
 function SheetSkillsColumn({ skills }) {
-  const html = skills?.html || '';
+  const rows = Array.isArray(skills) ? skills : [];
 
   return (
     <div className="main-col-middle">
@@ -421,7 +460,9 @@ function SheetSkillsColumn({ skills }) {
           <span>Skill</span>
           <span>Mod.</span>
         </div>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+        {rows.map((skill) => (
+          <SkillRow key={skill.name} skill={skill} />
+        ))}
         <div className="legacy-skills-mirror" aria-hidden="true">
           <div id="skills-body" />
         </div>
