@@ -1948,6 +1948,30 @@ export function computeActions() {
     });
   });
 
+  const allResDefs = typeof window.getAllResDefs === 'function' ? window.getAllResDefs() : [];
+  const resourceState = readJsonLs('5e_resources', {}) || {};
+
+  const buildResource = (action) => {
+    if (!allResDefs.length || typeof window._resourceMatchesAction !== 'function') return null;
+    const def = allResDefs.find((res) => window._resourceMatchesAction(res, action));
+    if (!def) return null;
+    const max = typeof window.getResMax === 'function' ? window.getResMax(def) : 0;
+    if (!max) return null;
+    const stateKey = String(def._stateKey || def.key || '');
+    const cur = resourceState[stateKey] != null ? Number(resourceState[stateKey]) : max;
+    const recharge = typeof window._getResourceRechargeLabel === 'function'
+      ? window._getResourceRechargeLabel(def)
+      : (def.recharge === 'SR' ? 'RS' : 'RL');
+    return {
+      key: stateKey,
+      name: def.name || stateKey,
+      max,
+      cur: Math.max(0, Math.min(max, cur)),
+      isPool: !!def.pool,
+      recharge,
+    };
+  };
+
   const allClassActions = [
     ...classActions.map((action) => ({ ...action, _cls: className, _ownerLevel: primaryLevel })),
     ...subActions.map((action) => ({ ...action, _cls: character.subclassShortName || className, _ownerLevel: primaryLevel })),
@@ -1980,6 +2004,7 @@ export function computeActions() {
       attackLabel: `Attack: ${name}`,
       damageFormula,
       damageLabel: damageFormula,
+      resource: buildResource(action),
     };
   });
 
@@ -2059,6 +2084,27 @@ export function toggleWeaponHand(index) {
 
 export function toggleVersatile(index) {
   if (typeof window.toggleVersatile === 'function') window.toggleVersatile(index);
+}
+
+export function spendActionResource(key, cost = 1) {
+  if (typeof window.spendResource === 'function') window.spendResource(key, cost);
+}
+
+export function recoverActionResource(key, max) {
+  if (typeof window.recoverResourceByKey === 'function') {
+    window.recoverResourceByKey(key, 1);
+    return;
+  }
+  if (typeof window.charResources === 'object' && window.charResources && typeof window.saveResources === 'function') {
+    const cur = Number(window.charResources[key] || 0);
+    window.charResources[key] = Math.min(Number(max) || cur + 1, cur + 1);
+    window.saveResources();
+    window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
+  }
+}
+
+export function setActionResourcePip(key, idx, max) {
+  if (typeof window.setResourcePip === 'function') window.setResourcePip(key, idx, max);
 }
 
 function getSpellLevelByName(character, name) {
