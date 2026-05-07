@@ -35,7 +35,7 @@ button {
   background: #111214;
 }
 
-.topbar {
+.app-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -108,11 +108,33 @@ button {
   background: #25231d;
 }
 
-.legacy-pane {
+.legacy-pane,
+.character-sheet-page {
   position: relative;
   min-width: 0;
   min-height: 0;
   background: #0d0e10;
+}
+
+.character-sheet-page {
+  overflow: auto;
+}
+
+.character-sheet-page[hidden] {
+  display: none;
+}
+
+.character-sheet-root {
+  min-height: 100%;
+}
+
+.sheet-error {
+  margin: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #7f3630;
+  border-radius: 6px;
+  color: #ffd4cf;
+  background: #2b1716;
 }
 
 .legacy-frame {
@@ -139,7 +161,7 @@ button {
 }
 
 @media (max-width: 760px) {
-  .topbar {
+  .app-topbar {
     align-items: stretch;
     flex-direction: column;
   }

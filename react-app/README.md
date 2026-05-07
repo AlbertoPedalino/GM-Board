@@ -2,9 +2,9 @@
 
 Prima fase di migrazione React.
 
-La app Vite monta le pagine HTML esistenti come pagine legacy isolate in `iframe`.
-Questo conserva gli script globali e permette di verificare subito che il comportamento
-rimanga equivalente, prima di estrarre componenti React veri e propri.
+La app Vite monta le pagine HTML esistenti come pagine legacy isolate in `iframe`,
+tranne la scheda personaggio: `character-sheet` e ora montata in una pagina React
+dedicata che inserisce markup e script legacy nel DOM principale.
 
 ## Comandi
 
@@ -20,6 +20,8 @@ Dev server predefinito: `http://127.0.0.1:5173/`.
 
 - `src/App.jsx`: shell React e routing leggero.
 - `src/legacy/LegacyFrame.jsx`: bridge per caricare una pagina HTML legacy.
+- `src/pages/character-sheet/CharacterSheetPage.jsx`: prima pagina React dedicata
+  alla scheda personaggio, ancora compatibile con il runtime legacy.
 - `public/legacy/`: snapshot delle pagine HTML e degli adapter usati dagli script.
 
 ## Prossimo passo consigliato

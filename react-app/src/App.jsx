@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import LegacyFrame from './legacy/LegacyFrame.jsx';
+import CharacterSheetPage from './pages/character-sheet/CharacterSheetPage.jsx';
 
 const ROUTES = [
   {
@@ -50,11 +51,14 @@ function normalizePath(pathname) {
 
 export default function App() {
   const [path, setPath] = useState(() => normalizePath(window.location.pathname));
+  const [hasVisitedSheet, setHasVisitedSheet] = useState(path === '/character-sheet');
 
   const activeRoute = useMemo(
     () => ROUTES.find((route) => route.path === path) ?? ROUTES[0],
     [path],
   );
+
+  const isCharacterSheet = activeRoute.path === '/character-sheet';
 
   useEffect(() => {
     function handlePopState() {
@@ -64,6 +68,10 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  useEffect(() => {
+    if (isCharacterSheet) setHasVisitedSheet(true);
+  }, [isCharacterSheet]);
 
   function navigate(nextPath) {
     if (nextPath === path) return;
@@ -84,7 +92,7 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <header className="topbar">
+      <header className="app-topbar">
         <div className="brand">
           <span className="brand-mark">GB</span>
           <div>
@@ -106,11 +114,17 @@ export default function App() {
         </nav>
       </header>
 
-      <LegacyFrame
-        page={activeRoute.page}
-        title={activeRoute.title}
-        onLegacyNavigate={handleLegacyNavigate}
-      />
+      {!isCharacterSheet && (
+        <LegacyFrame
+          page={activeRoute.page}
+          title={activeRoute.title}
+          onLegacyNavigate={handleLegacyNavigate}
+        />
+      )}
+
+      {hasVisitedSheet && (
+        <CharacterSheetPage active={isCharacterSheet} title="Scheda Personaggio - D&D 5e" />
+      )}
     </main>
   );
 }
