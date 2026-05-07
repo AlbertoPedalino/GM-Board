@@ -1,3 +1,5 @@
+import { lookupSheetSpell } from './sheetSpellDb.js';
+
 export const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 export const SLBL = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
 export const FULL_LBL = {
@@ -2059,12 +2061,7 @@ function getSpellSnapshot(character, name) {
 }
 
 function lookupLoadedSpellRecord(name) {
-  if (typeof window.__gbLookupSheetSpell !== 'function') return null;
-  try {
-    return window.__gbLookupSheetSpell(name) || null;
-  } catch {
-    return null;
-  }
+  return lookupSheetSpell(name);
 }
 
 function getSpellRecord(character, name) {
@@ -2109,15 +2106,100 @@ function collectWizardRitualSpellbookNames(character) {
   return names;
 }
 
-function getSpellSourceTag(name) {
-  if (typeof window.getSpellSource !== 'function') return null;
-  try {
-    const source = window.getSpellSource(name);
-    const label = String(source?.label || '').trim();
-    return label ? { label, cls: source?.cls || '' } : null;
-  } catch {
-    return null;
+function classEntitiesFromCharacter(character) {
+  if (!character) return [];
+  const list = [{
+    className: character.className || '',
+    subclassShortName: character.subclassShortName || '',
+  }];
+  (character.extraClasses || []).forEach((extraClass) => {
+    list.push({
+      className: extraClass?.name || '',
+      subclassShortName: extraClass?.subclassShortName || '',
+    });
+  });
+  return list;
+}
+
+function collectChoiceSpellSourceMeta(character) {
+  const out = {};
+  const merge = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    for (const [k, v] of Object.entries(obj)) {
+      if (!k || !v || typeof v !== 'object') continue;
+      out[k] = { ...v };
+    }
+  };
+  classEntitiesFromCharacter(character).forEach((ent) => {
+    if (typeof window._sheetGetClassRuntimeConfig === 'function') {
+      const cfg = window._sheetGetClassRuntimeConfig(ent.className);
+      merge(cfg?.spellcasting?.choiceSpellSources);
+    }
+    if (typeof window._sheetGetSubclassRuntimeConfig === 'function') {
+      const cfg = window._sheetGetSubclassRuntimeConfig(ent.className, ent.subclassShortName);
+      merge(cfg?.spellcasting?.choiceSpellSources);
+    }
+  });
+  return out;
+}
+
+function extractChoiceGrantSlotKey(choiceKey) {
+  const match = String(choiceKey || '').match(/^(.*)_(known|innate|prepared|expanded)_/i);
+  return match ? String(match[1] || '') : '';
+}
+
+function getSpellSourceTag(character, name) {
+  const lower = String(name || '').toLowerCase();
+  const choiceSpellName = (v) => String(v || '').split('|')[0].trim().toLowerCase();
+
+  const autoEntry = (character?.autoGrantedSpells || []).find(
+    (entry) => String(entry?.name || '').toLowerCase() === lower,
+  );
+  if (autoEntry) {
+    const label = autoEntry.source || 'Auto';
+    return label ? { label, cls: 't' } : null;
   }
+
+  if (typeof window.getClassAtWillSpells === 'function') {
+    const awEntities = [
+      { name: character?.className || '', level: character?.classLevel || character?.level || 1 },
+      ...(character?.extraClasses || []).map((ec) => ({ name: ec?.name || '', level: ec?.level || 1 })),
+    ];
+    const hasInvocation = (invocationName) => {
+      if (!character?.choices || !invocationName) return false;
+      return Object.entries(character.choices).some(([key, val]) => (
+        key.replace(/^mc\d+_/, '').startsWith('warlock_invocation_')
+        && String(val).split('|')[0].trim() === invocationName
+      ));
+    };
+    for (const ent of awEntities) {
+      const awMap = window.getClassAtWillSpells(ent.name);
+      if (!awMap) continue;
+      for (const entry of awMap) {
+        if (String(entry.spell || '').toLowerCase() !== lower) continue;
+        if (ent.level < (entry.minLevel || 1)) continue;
+        if (hasInvocation(entry.invocation)) return { label: entry.invocation, cls: 'p' };
+      }
+    }
+  }
+
+  const choiceMeta = collectChoiceSpellSourceMeta(character);
+  if (character?.choices) {
+    for (const [key, val] of Object.entries(character.choices)) {
+      if (!val) continue;
+      const vals = Array.isArray(val) ? val : [val];
+      if (!vals.some((v) => typeof v === 'string' && choiceSpellName(v) === lower)) continue;
+      const slotKey = extractChoiceGrantSlotKey(key);
+      const grantFeatName = slotKey ? String(character?.choices?.[slotKey] || '').trim() : '';
+      const grantAbility = slotKey ? String(character?.choices?.[`${slotKey}_spell_ability`] || '').toLowerCase() : '';
+      if (grantAbility && grantFeatName) return { label: grantFeatName, cls: 'g' };
+      if (choiceMeta[key]) return { label: choiceMeta[key].label, cls: 'p' };
+      if (key.startsWith('feat_')) return { label: 'Feat', cls: 'g' };
+      if (key.startsWith('subclass_')) return { label: character?.subclassShortName || 'Subclass', cls: 'p' };
+      if (key.startsWith('species_')) return { label: character?.speciesName || 'Species', cls: 't' };
+    }
+  }
+  return null;
 }
 
 function mergeSelectedSpells(character) {
@@ -2255,7 +2337,7 @@ export function computeSpells() {
       ? [record.components.v ? 'V' : null, record.components.s ? 'S' : null, record.components.m ? 'M' : null].filter(Boolean).join(', ')
       : '';
     const duration = record?.duration?.[0]?.type || '';
-    const sourceTag = getSpellSourceTag(name);
+    const sourceTag = getSpellSourceTag(character, name);
 
     return {
       key: `${name}-${castLevel || baseLevel || 0}`,
