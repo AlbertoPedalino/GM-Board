@@ -384,6 +384,7 @@ function SheetLeftColumn({ vitals, leftPanels, saves, onHitDieToggle }) {
       </Panel>
       <SheetHitDicePanel hitDice={vitals.hitDice} onHitDieToggle={onHitDieToggle} />
       <div className="legacy-left-panels-mirror" aria-hidden="true">
+        <div id="saves-body" />
         <div id="senses-body" />
         <div id="profs-body" />
       </div>

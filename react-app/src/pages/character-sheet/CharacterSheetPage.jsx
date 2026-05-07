@@ -9,7 +9,7 @@ import {
   readCharacterSheetTabs,
   writeSheetXp,
 } from './characterSheetStorage.js';
-import { computeSaves, installSheetRuntimeBridge } from './sheetRuntime.js';
+import { computeSaves } from './sheetRuntime.js';
 
 const LEGACY_URL = '/legacy/character-sheet.html';
 const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
@@ -267,6 +267,7 @@ function installSnapshotRefreshHooks() {
     '_applyLongRest',
     '_applyShortRest',
     'renderStatsRow',
+    'renderSaves',
     'renderSenses',
     'renderProficiencies',
     'renderSkills',
@@ -350,7 +351,6 @@ export default function CharacterSheetPage({ active, title }) {
       window.__gbCharacterSheetRuntimeLoaded ||
       (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
     ) {
-      installSheetRuntimeBridge();
       refreshLegacySheetRuntime();
       installSnapshotRefreshHooks();
       setSheetHeader(readCharacterSheetHeader());
@@ -368,7 +368,6 @@ export default function CharacterSheetPage({ active, title }) {
 
     runLegacyScripts(legacyDoc.scripts)
       .then(() => {
-        installSheetRuntimeBridge();
         installSnapshotRefreshHooks();
         setSheetHeader(readCharacterSheetHeader());
         setSheetSummary(readCharacterSheetSummary());

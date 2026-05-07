@@ -9,15 +9,8 @@ export const FULL_LBL = {
   cha: 'Charisma',
 };
 
-const SNAPSHOT_EVENT = 'gb-sheet-snapshot-change';
-const BRIDGED_RENDERERS = ['renderSaves'];
-
 function fbonus(n) {
   return (n >= 0 ? '+' : '') + n;
-}
-
-function dispatchSnapshotChange() {
-  window.dispatchEvent(new CustomEvent(SNAPSHOT_EVENT));
 }
 
 export function computeSaves() {
@@ -49,14 +42,3 @@ export function rollSave(stat) {
   if (typeof window.rollSave === 'function') window.rollSave(stat);
 }
 
-export function installSheetRuntimeBridge() {
-  if (window.__gbSheetRuntimeBridgeInstalled) return;
-
-  BRIDGED_RENDERERS.forEach((name) => {
-    window[name] = function reactBridgeRenderer() {
-      dispatchSnapshotChange();
-    };
-  });
-
-  window.__gbSheetRuntimeBridgeInstalled = true;
-}
