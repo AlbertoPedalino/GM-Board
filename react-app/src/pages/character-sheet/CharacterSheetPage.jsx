@@ -21,6 +21,11 @@ const SHEET_KEYS = [
   '5e_builder_state',
   '5e_inspiration',
 ];
+const XP_THRESHOLDS = [
+  0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000,
+  85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000,
+  305000, 355000,
+];
 
 function absoluteLegacyUrl(value) {
   return new URL(value, LEGACY_BASE_URL).href;
@@ -99,6 +104,86 @@ function configureCharacterSheetScope() {
     };
     window.__gbCharacterSheetStoragePatched = true;
   }
+}
+
+function readJsonStorage(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getClassSummary(character) {
+  if (!character) return '';
+
+  const extra = Array.isArray(character.extraClasses) ? character.extraClasses : [];
+  const extraLevel = extra.reduce((sum, entry) => sum + (Number(entry?.level) || 1), 0);
+  const primaryLevel = character.classLevel || ((Number(character.level) || 1) - extraLevel);
+  const subclass = character.subclassShortName ? ` (${character.subclassShortName})` : '';
+
+  if (!extra.length) {
+    return `${character.className || '-'}${subclass} Lv.${character.level || 1}`;
+  }
+
+  const parts = [`${character.className || '-'}${subclass} ${primaryLevel}`];
+  extra.forEach((entry) => {
+    const entrySubclass = entry?.subclassShortName ? ` (${entry.subclassShortName})` : '';
+    parts.push(`${entry?.name || '-'}${entrySubclass} ${entry?.level || 1}`);
+  });
+
+  return `${parts.join(' / ')} [Lv.${character.level || 1}]`;
+}
+
+function getXpState(character) {
+  const level = Math.min(Number(character?.level || 1), 20);
+  const xp = parseInt(localStorage.getItem('5e_xp') || character?.xp || 0, 10) || 0;
+  const curLvXP = XP_THRESHOLDS[level - 1] || 0;
+  const nextLvXP = level >= 20 ? XP_THRESHOLDS[19] : XP_THRESHOLDS[level] || XP_THRESHOLDS[19];
+  const pct = level >= 20
+    ? 100
+    : Math.max(0, Math.min(100, Math.round(((xp - curLvXP) / (nextLvXP - curLvXP)) * 100)));
+
+  return {
+    xp,
+    pct,
+    label: level >= 20 ? 'MAX' : `-> Lv.${level + 1} (${nextLvXP.toLocaleString()})`,
+  };
+}
+
+function readCharacterSheetHeader() {
+  configureCharacterSheetScope();
+
+  const character = readJsonStorage('5e_current_char');
+  if (!character) {
+    return {
+      hasCharacter: false,
+      name: 'No character found',
+      meta: 'Go back to the builder to create a character',
+      avatar: '?',
+      xp: 0,
+      xpPct: 0,
+      xpLabel: 'XP',
+    };
+  }
+
+  const classSummary = getClassSummary(character);
+  const xp = getXpState(character);
+
+  if (typeof window.gbRegisterCharScope === 'function') {
+    window.gbRegisterCharScope(character.name || character.className || 'Unnamed Character');
+  }
+
+  return {
+    hasCharacter: true,
+    name: character.name || 'Unnamed Character',
+    meta: [character.speciesName, classSummary, character.bgName].filter(Boolean).join(' · '),
+    avatar: (character.name || '?')[0].toUpperCase(),
+    xp: xp.xp,
+    xpPct: xp.pct,
+    xpLabel: xp.label,
+  };
 }
 
 function parseLegacySheet(html) {
@@ -293,6 +378,7 @@ export default function CharacterSheetPage({ active, title }) {
   const runtimeReadyRef = useRef(false);
   const [legacyDoc, setLegacyDoc] = useState(null);
   const [runtimeReady, setRuntimeReady] = useState(false);
+  const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
   const [error, setError] = useState('');
 
   const className = useMemo(
@@ -337,6 +423,7 @@ export default function CharacterSheetPage({ active, title }) {
       (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
     ) {
       refreshLegacySheetRuntime();
+      setSheetHeader(readCharacterSheetHeader());
       runtimeReadyRef.current = true;
       setRuntimeReady(true);
       return;
@@ -344,6 +431,7 @@ export default function CharacterSheetPage({ active, title }) {
 
     runLegacyScripts(legacyDoc.scripts)
       .then(() => {
+        setSheetHeader(readCharacterSheetHeader());
         runtimeReadyRef.current = true;
         setRuntimeReady(true);
       })
@@ -355,8 +443,16 @@ export default function CharacterSheetPage({ active, title }) {
   useEffect(() => {
     if (!active || !runtimeReadyRef.current) return;
     refreshLegacySheetRuntime();
+    setSheetHeader(readCharacterSheetHeader());
     setRuntimeReady(true);
   }, [active]);
+
+  function handleHeaderXpChange(nextXp) {
+    const xp = parseInt(nextXp, 10) || 0;
+    localStorage.setItem('5e_xp', String(xp));
+    callLegacyFunction('updateXPDisplay', xp);
+    setSheetHeader(readCharacterSheetHeader());
+  }
 
   return (
     <section className={className} aria-label={title} hidden={!active}>
@@ -372,9 +468,23 @@ export default function CharacterSheetPage({ active, title }) {
 
       {legacyDoc && (
         <div className={`character-sheet-runtime ${runtimeReady ? 'ready' : 'pending'}`}>
-          <CharacterSheetLayout />
+          <CharacterSheetLayout header={sheetHeader} onHeaderXpChange={handleHeaderXpChange} />
         </div>
       )}
     </section>
   );
+}
+
+function callLegacyFunction(name, ...args) {
+  const script = document.createElement('script');
+  script.dataset.gmBoardLegacySheetCall = 'true';
+  script.textContent = `
+    try {
+      if (typeof ${name} === 'function') ${name}.apply(null, ${JSON.stringify(args)});
+    } catch (err) {
+      console.error('Legacy call failed: ${name}', err);
+    }
+  `;
+  document.body.appendChild(script);
+  script.remove();
 }

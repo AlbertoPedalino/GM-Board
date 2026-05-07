@@ -137,6 +137,15 @@ button {
   visibility: visible;
 }
 
+.legacy-topbar-mirror {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .sheet-error {
   margin: 1rem;
   padding: 0.75rem 0.9rem;

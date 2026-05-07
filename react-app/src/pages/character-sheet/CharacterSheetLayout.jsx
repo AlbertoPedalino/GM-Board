@@ -8,55 +8,65 @@ function Icon({ name }) {
   return <i data-lucide={name} className="lucide-emoji" />;
 }
 
-function SheetHeader() {
+function SheetHeader({ header, onXpChange }) {
   return (
-    <div className="topbar">
-      <div className="char-avatar" id="top-avatar">
-        <Icon name="swords" />
-      </div>
-      <div className="char-identity">
-        <div className="char-name" id="top-name">-</div>
-        <div className="char-meta" id="top-meta">-</div>
-      </div>
-      <div className="xp-block">
-        <div className="xp-bar-wrap">
-          <div className="xp-bar-fill" id="xp-fill" style={{ width: '0%' }} />
+    <>
+      <div className="topbar">
+        <div className="char-avatar">
+          {header.avatar}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center' }}>
-          <input
-            className="xp-edit-input"
-            id="xp-input"
-            type="number"
-            min="0"
-            defaultValue="0"
-            onInput={(event) => callLegacy('updateXPDisplay', event.currentTarget.value)}
-            title="Total XP"
-          />
-          <div className="xp-label" id="xp-label" style={{ whiteSpace: 'nowrap' }}>XP</div>
+        <div className="char-identity">
+          <div className="char-name">{header.name}</div>
+          <div className="char-meta">{header.meta}</div>
         </div>
+        <div className="xp-block">
+          <div className="xp-bar-wrap">
+            <div className="xp-bar-fill" style={{ width: `${header.xpPct}%` }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'center' }}>
+            <input
+              className="xp-edit-input"
+              type="number"
+              min="0"
+              value={header.xp}
+              onChange={(event) => onXpChange(event.currentTarget.value)}
+              title="Total XP"
+            />
+            <div className="xp-label" style={{ whiteSpace: 'nowrap' }}>{header.xpLabel}</div>
+          </div>
+        </div>
+        <button className="rest-btn short" type="button" onClick={() => callLegacy('doRest', 'short')}>
+          <Icon name="sun" /> SHORT REST
+        </button>
+        <button className="rest-btn long" type="button" onClick={() => callLegacy('doRest', 'long')}>
+          <Icon name="moon" /> LONG REST
+        </button>
+        <a
+          className="back-btn"
+          href="charbuilder.html"
+          onClick={(event) => callLegacy('goBackToBuilder', event)}
+        >
+          <Icon name="arrow-left" /> Builder
+        </a>
+        <button
+          className="rest-btn"
+          type="button"
+          style={{ borderColor: 'var(--teal)', color: 'var(--teal)', background: 'var(--tbg)' }}
+          onClick={() => callLegacy('downloadSheet')}
+        >
+          <Icon name="download" /> DOWNLOAD
+        </button>
       </div>
-      <button className="rest-btn short" type="button" onClick={() => callLegacy('doRest', 'short')}>
-        <Icon name="sun" /> SHORT REST
-      </button>
-      <button className="rest-btn long" type="button" onClick={() => callLegacy('doRest', 'long')}>
-        <Icon name="moon" /> LONG REST
-      </button>
-      <a
-        className="back-btn"
-        href="charbuilder.html"
-        onClick={(event) => callLegacy('goBackToBuilder', event)}
-      >
-        <Icon name="arrow-left" /> Builder
-      </a>
-      <button
-        className="rest-btn"
-        type="button"
-        style={{ borderColor: 'var(--teal)', color: 'var(--teal)', background: 'var(--tbg)' }}
-        onClick={() => callLegacy('downloadSheet')}
-      >
-        <Icon name="download" /> DOWNLOAD
-      </button>
-    </div>
+
+      <div className="legacy-topbar-mirror" aria-hidden="true">
+        <div id="top-avatar" />
+        <div id="top-name" />
+        <div id="top-meta" />
+        <div id="xp-fill" />
+        <input id="xp-input" readOnly value={header.xp} />
+        <div id="xp-label" />
+      </div>
+    </>
   );
 }
 
@@ -335,10 +345,10 @@ function SheetRightColumn() {
   );
 }
 
-export default function CharacterSheetLayout() {
+export default function CharacterSheetLayout({ header, onHeaderXpChange }) {
   return (
     <div className="character-sheet-root">
-      <SheetHeader />
+      <SheetHeader header={header} onXpChange={onHeaderXpChange} />
       <SheetScoreStrip />
 
       <div className="main-grid">
