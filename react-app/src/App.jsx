@@ -90,6 +90,14 @@ export default function App() {
     setPath(nextPath);
   }
 
+  function handleLegacyRouteRequest(nextPath, search) {
+    const normalizedPath = normalizePath(nextPath);
+    if (normalizedPath === path && window.location.search === (search || '')) return;
+
+    window.history.pushState(null, '', `${normalizedPath}${search || ''}`);
+    setPath(normalizedPath);
+  }
+
   return (
     <main className="app-shell">
       <header className="app-topbar">
@@ -119,6 +127,7 @@ export default function App() {
           page={activeRoute.page}
           title={activeRoute.title}
           onLegacyNavigate={handleLegacyNavigate}
+          onLegacyRouteRequest={handleLegacyRouteRequest}
         />
       )}
 

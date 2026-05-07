@@ -1,6 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function LegacyFrame({ page, title, onLegacyNavigate }) {
+const REACT_ROUTE_MESSAGE = 'gm-board-react:navigate';
+
+export default function LegacyFrame({ page, title, onLegacyNavigate, onLegacyRouteRequest }) {
   const frameRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
@@ -9,6 +11,41 @@ export default function LegacyFrame({ page, title, onLegacyNavigate }) {
     return `/legacy/${page}${search}`;
   }, [page]);
 
+  useEffect(() => {
+    function handleMessage(event) {
+      const frame = frameRef.current;
+      if (!frame?.contentWindow || event.source !== frame.contentWindow) return;
+      if (event.data?.type !== REACT_ROUTE_MESSAGE) return;
+
+      onLegacyRouteRequest?.(event.data.path, event.data.search || '');
+    }
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onLegacyRouteRequest]);
+
+  function installReactNavigationBridge(frame) {
+    try {
+      const win = frame.contentWindow;
+      if (!win || win.__gbReactNavigationBridgeInstalled) return;
+
+      const previousScopedHref = win.gbScopedHref;
+      win.gbScopedHref = function gbReactScopedHref(pageName) {
+        if (String(pageName || '') === 'character-sheet.html') {
+          return `javascript:parent.postMessage({type:'${REACT_ROUTE_MESSAGE}',path:'/character-sheet',search:location.search},'*')`;
+        }
+
+        return typeof previousScopedHref === 'function'
+          ? previousScopedHref(pageName)
+          : pageName;
+      };
+
+      win.__gbReactNavigationBridgeInstalled = true;
+    } catch {
+      // Cross-origin legacy pages cannot be patched; the onLoad fallback still handles local pages.
+    }
+  }
+
   function handleLoad() {
     setLoading(false);
 
@@ -16,6 +53,8 @@ export default function LegacyFrame({ page, title, onLegacyNavigate }) {
     if (!frame?.contentWindow) return;
 
     try {
+      installReactNavigationBridge(frame);
+
       const { pathname, search } = frame.contentWindow.location;
       onLegacyNavigate?.(pathname, search);
     } catch {
