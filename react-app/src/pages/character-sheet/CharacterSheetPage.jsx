@@ -312,7 +312,9 @@ function refreshLegacySheetRuntime() {
 
 export default function CharacterSheetPage({ active, title }) {
   const hasRunScriptsRef = useRef(false);
+  const runtimeReadyRef = useRef(false);
   const [legacyDoc, setLegacyDoc] = useState(null);
+  const [runtimeReady, setRuntimeReady] = useState(false);
   const [error, setError] = useState('');
 
   const className = useMemo(
@@ -349,6 +351,7 @@ export default function CharacterSheetPage({ active, title }) {
     if (!legacyDoc?.sections || hasRunScriptsRef.current) return;
 
     hasRunScriptsRef.current = true;
+    setRuntimeReady(false);
     configureCharacterSheetScope();
 
     if (
@@ -356,17 +359,25 @@ export default function CharacterSheetPage({ active, title }) {
       (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
     ) {
       refreshLegacySheetRuntime();
+      runtimeReadyRef.current = true;
+      setRuntimeReady(true);
       return;
     }
 
-    runLegacyScripts(legacyDoc.scripts).catch((err) => {
-      setError(err?.message || 'Errore durante inizializzazione scheda');
-    });
+    runLegacyScripts(legacyDoc.scripts)
+      .then(() => {
+        runtimeReadyRef.current = true;
+        setRuntimeReady(true);
+      })
+      .catch((err) => {
+        setError(err?.message || 'Errore durante inizializzazione scheda');
+      });
   }, [legacyDoc]);
 
   useEffect(() => {
-    if (!active || !hasRunScriptsRef.current) return;
+    if (!active || !runtimeReadyRef.current) return;
     refreshLegacySheetRuntime();
+    setRuntimeReady(true);
   }, [active]);
 
   return (
@@ -377,9 +388,15 @@ export default function CharacterSheetPage({ active, title }) {
         </div>
       )}
 
-      {!legacyDoc && !error && <div className="loading-strip">Caricamento scheda</div>}
+      {(!legacyDoc || !runtimeReady) && !error && (
+        <div className="loading-strip">Caricamento scheda</div>
+      )}
 
-      {legacyDoc && <CharacterSheetLayout sections={legacyDoc.sections} />}
+      {legacyDoc && (
+        <div className={`character-sheet-runtime ${runtimeReady ? 'ready' : 'pending'}`}>
+          <CharacterSheetLayout sections={legacyDoc.sections} />
+        </div>
+      )}
     </section>
   );
 }
