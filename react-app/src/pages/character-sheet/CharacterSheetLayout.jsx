@@ -384,30 +384,28 @@ function SheetSavesPanel({ saves }) {
           if (save.eAdv === 'adv') titleParts.push('Advantage (feature)');
           else if (save.eAdv === 'disadv') titleParts.push('Disadvantage (feature)');
 
+          const reasons = [];
+          if (save.hasForcedDis) reasons.push({ kind: 'disadv', text: 'Disadvantage (untrained armor)' });
+          if (save.eAdv === 'adv') reasons.push({ kind: 'adv', text: 'Advantage (feature)' });
+          else if (save.eAdv === 'disadv') reasons.push({ kind: 'disadv', text: 'Disadvantage (feature)' });
+
           return (
-            <div
-              key={save.stat}
-              className="save-row"
-              onClick={() => rollSave(save.stat)}
-              title={titleParts.join(' | ')}
-            >
-              <div className={`save-dot${save.prof ? ' on' : ''}`} />
-              <span className="save-stat">{save.shortLabel}</span>
-              <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text2)' }}>
-                {save.fullLabel}
-              </span>
-              {save.hasForcedDis && (
-                <span className="adv-badge disadv" title="Disadvantage: untrained armor">
-                  DIS
+            <div key={save.stat} className="save-row-wrap">
+              <div
+                className="save-row"
+                onClick={() => rollSave(save.stat)}
+                title={titleParts.join(' | ')}
+              >
+                <div className={`save-dot${save.prof ? ' on' : ''}`} />
+                <span className="save-stat">{save.shortLabel}</span>
+                <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text2)' }}>
+                  {save.fullLabel}
                 </span>
-              )}
-              {save.eAdv === 'adv' && (
-                <span className="adv-badge adv" title="Advantage (feature)">ADV</span>
-              )}
-              {save.eAdv === 'disadv' && (
-                <span className="adv-badge disadv" title="Disadvantage (feature)">DIS</span>
-              )}
-              <span className="save-bonus">{save.bonusText}</span>
+                <span className="save-bonus">{save.bonusText}</span>
+              </div>
+              {reasons.map((r, i) => (
+                <div key={`${save.stat}-r${i}`} className={`save-adv-line ${r.kind}`}>{r.text}</div>
+              ))}
             </div>
           );
         })}
@@ -481,30 +479,31 @@ function SkillRow({ skill }) {
     cycleSkillAdv(skill.name);
   }
 
+  const reasons = [];
+  if (skill.userAdv === 'adv') reasons.push({ kind: 'adv', text: 'Advantage' });
+  else if (skill.userAdv === 'disadv') reasons.push({ kind: 'disadv', text: 'Disadvantage' });
+  if (!skill.userAdv && skill.featureAdv === 'adv') reasons.push({ kind: 'adv', text: 'Advantage (feature)' });
+  else if (!skill.userAdv && skill.featureAdv === 'disadv') reasons.push({ kind: 'disadv', text: 'Disadvantage (feature)' });
+  if (skill.armorDis) reasons.push({ kind: 'disadv', text: 'Disadvantage (Heavy Armor)' });
+  if (skill.trainingDis) reasons.push({ kind: 'disadv', text: 'Disadvantage (untrained armor)' });
+
   return (
-    <div
-      className="skill-row"
-      onClick={() => rollSkill(skill.name, skill.bonus, skill.effectiveAdv)}
-      onContextMenu={handleContextMenu}
-      title={titleParts.join(' | ')}
-    >
-      <div className={`skill-dot${skill.dotCls ? ` ${skill.dotCls}` : ''}`} />
-      <span className="skill-ability">{skill.abilityLabel}</span>
-      <span className="skill-name">{skill.name}</span>
-      {skill.userAdv === 'adv' && <span className="adv-badge adv" title="Advantage">ADV</span>}
-      {skill.userAdv === 'disadv' && <span className="adv-badge disadv" title="Disadvantage">DIS</span>}
-      {!skill.userAdv && skill.featureAdv === 'adv' && (
-        <span className="adv-badge adv" title="Advantage (feature)">ADV</span>
-      )}
-      {!skill.userAdv && skill.featureAdv === 'disadv' && (
-        <span className="adv-badge disadv" title="Disadvantage (feature)">DIS</span>
-      )}
-      {skill.armorDis && <span className="adv-badge disadv" title="Disadvantage (Heavy Armor)">D</span>}
-      {skill.trainingDis && (
-        <span className="adv-badge disadv" title="Disadvantage: untrained armor">DIS</span>
-      )}
-      <span className="skill-bonus">{skill.bonusText}</span>
-    </div>
+    <>
+      <div
+        className="skill-row"
+        onClick={() => rollSkill(skill.name, skill.bonus, skill.effectiveAdv)}
+        onContextMenu={handleContextMenu}
+        title={titleParts.join(' | ')}
+      >
+        <div className={`skill-dot${skill.dotCls ? ` ${skill.dotCls}` : ''}`} />
+        <span className="skill-ability">{skill.abilityLabel}</span>
+        <span className="skill-name">{skill.name}</span>
+        <span className="skill-bonus">{skill.bonusText}</span>
+      </div>
+      {reasons.map((r, i) => (
+        <div key={`${skill.name}-r${i}`} className={`skill-adv-line ${r.kind}`}>{r.text}</div>
+      ))}
+    </>
   );
 }
 

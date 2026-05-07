@@ -314,3 +314,24 @@ button {
   margin-left: 2px;
 }
 
+
+.skill-adv-line, .save-adv-line {
+  font-family: var(--ff-display);
+  font-size: 10px;
+  letter-spacing: .04em;
+  padding: 1px 8px 2px 28px;
+  margin: -2px 0 2px;
+  border-left: 2px solid transparent;
+  line-height: 1.2;
+}
+.skill-adv-line.adv, .save-adv-line.adv {
+  color: var(--green);
+  border-left-color: var(--green);
+  background: rgba(39,174,96,.08);
+}
+.skill-adv-line.disadv, .save-adv-line.disadv {
+  color: var(--red2);
+  border-left-color: var(--red2);
+  background: rgba(192,57,43,.08);
+}
+
