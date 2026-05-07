@@ -1540,52 +1540,46 @@ function ResourceBlock({ resource, onRuntimeRefresh }) {
   const refreshSoon = () => window.setTimeout(onRuntimeRefresh, 0);
   const stop = (event) => event.stopPropagation();
 
-  if (resource.isPool) {
-    return (
-      <div className="res-inline" onClick={stop}>
-        <span className="res-inline-label">{resource.name}</span>
-        <button
-          className="res-badge"
-          type="button"
-          onClick={(event) => {
-            stop(event);
-            spendActionResource(resource.key, 1);
-            refreshSoon();
-          }}
-        >
-          −
-        </button>
-        <span style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-body-lg)', fontWeight: 700, color: 'var(--gold2)' }}>
-          {resource.cur}
-        </span>
-        <span style={{ fontSize: 'var(--fs-label)', color: 'var(--text3)' }}>/{resource.max}</span>
-        <button
-          className="res-badge"
-          type="button"
-          onClick={(event) => {
-            stop(event);
-            recoverActionResource(resource.key, resource.max);
-            refreshSoon();
-          }}
-        >
-          +
-        </button>
-        <span className="res-recharge">{resource.recharge}</span>
-      </div>
-    );
-  }
-
-  const used = resource.max - resource.cur;
-  const pips = Array.from({ length: resource.max }, (_, i) => i);
-  return (
-    <div className="res-inline" onClick={stop}>
+  const inner = resource.isPool ? (
+    <>
+      <span className="res-inline-label">{resource.name}</span>
+      <button
+        className="res-badge"
+        type="button"
+        onClick={(event) => {
+          stop(event);
+          spendActionResource(resource.key, 1);
+          refreshSoon();
+        }}
+      >
+        −
+      </button>
+      <span style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-body-lg)', fontWeight: 700, color: 'var(--gold2)' }}>
+        {resource.cur}
+      </span>
+      <span style={{ fontSize: 'var(--fs-label)', color: 'var(--text3)' }}>/{resource.max}</span>
+      <button
+        className="res-badge"
+        type="button"
+        onClick={(event) => {
+          stop(event);
+          recoverActionResource(resource.key, resource.max);
+          refreshSoon();
+        }}
+      >
+        +
+      </button>
+      <span className="res-recharge">{resource.recharge}</span>
+    </>
+  ) : (
+    <>
       <span className="res-inline-label">{resource.name}</span>
       <div className="res-pip-group" data-key={resource.key} data-max={resource.max}>
-        {pips.map((i) => (
+        {Array.from({ length: resource.max }).map((_, i) => (
           <div
             key={i}
-            className={`res-pip${i < used ? ' used' : ''}`}
-            title={i < used ? 'Used' : 'Available'}
+            className={`res-pip${i < (resource.max - resource.cur) ? ' used' : ''}`}
+            title={i < (resource.max - resource.cur) ? 'Used' : 'Available'}
             onClick={(event) => {
               stop(event);
               setActionResourcePip(resource.key, i, resource.max);
@@ -1595,6 +1589,12 @@ function ResourceBlock({ resource, onRuntimeRefresh }) {
         ))}
       </div>
       <span className="res-recharge">{resource.recharge}</span>
+    </>
+  );
+
+  return (
+    <div className="action-card-resource res-inline" onClick={stop}>
+      {inner}
     </div>
   );
 }

@@ -283,3 +283,18 @@ button {
     max-width: none;
   }
 }
+
+
+.action-card-resource {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-top: 1px solid var(--bdr);
+  flex-wrap: wrap;
+  background: rgba(0,0,0,.18);
+}
+.action-card-resource .res-inline-label {
+  margin-right: 2px;
+}
+
