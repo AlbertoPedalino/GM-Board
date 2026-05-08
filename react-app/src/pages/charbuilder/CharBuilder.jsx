@@ -20,15 +20,9 @@ import PreviewPane from './components/PreviewPane.jsx';
 import { STEPS } from './constants.js';
 import { adapterRegistry, loadClassAdapters, loadCoreAdapters } from '../../adapters/index.js';
 import { adaptBuilderData } from '../../adapters/adapterPipeline.js';
-import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells } from './logic/dataLoaders.js';
-import { extractSheetData, importSheetPayload } from './logic/persistence.js';
+import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, extractSheetData, importSheetPayload } from './logic/index.js';
 import { builderReducer, initialBuilderState } from './state.js';
-import BackgroundStep from './steps/BackgroundStep.jsx';
-import ClassStep from './steps/ClassStep.jsx';
-import EquipmentStep from './steps/EquipmentStep.jsx';
-import ScoresStep from './steps/ScoresStep.jsx';
-import SheetStep from './steps/SheetStep.jsx';
-import SpeciesStep from './steps/SpeciesStep.jsx';
+import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, SpeciesStep } from './steps/index.js';
 
 function StepLabel({ step, index }) {
   const Icon = step.icon;

@@ -1,10 +1,11 @@
 import { adapterRegistry, installAdapters } from './registry.js';
 
-const adapterModules = import.meta.glob('./converted/**/*.js');
+const adapterModules = import.meta.glob('./{classes,feats,species,spells}/**/*.js');
 const loadedPaths = new Set();
 const installedAdapters = [];
-const speciesPathPattern = /^\.\/converted\/species\//;
-const featPathPattern = /^\.\/converted\/feats\//;
+const speciesPathPattern = /^\.\/species\//;
+const featPathPattern = /^\.\/feats\//;
+const runtimeConfigPathPattern = /\/runtime-config\.js$/;
 
 function classFolderToken(name) {
   return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -12,7 +13,7 @@ function classFolderToken(name) {
 
 function pathsForClass(name) {
   const token = classFolderToken(name);
-  return Object.keys(adapterModules).filter((path) => path.includes(`/converted/classes/${token}/`));
+  return Object.keys(adapterModules).filter((path) => path.includes(`/classes/${token}/`));
 }
 
 function pathsForSpecies() {
@@ -21,6 +22,10 @@ function pathsForSpecies() {
 
 function pathsForFeats() {
   return Object.keys(adapterModules).filter((path) => featPathPattern.test(path));
+}
+
+function pathsForCoreRuntime() {
+  return Object.keys(adapterModules).filter((path) => runtimeConfigPathPattern.test(path));
 }
 
 async function loadPaths(paths, context) {
@@ -39,6 +44,7 @@ export async function loadCoreAdapters(context = {}) {
   await Promise.all([
     loadPaths(pathsForSpecies(), context),
     loadPaths(pathsForFeats(), context),
+    loadPaths(pathsForCoreRuntime(), context),
   ]);
   return adapterRegistry;
 }

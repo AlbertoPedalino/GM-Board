@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
-import { spellMatchesAnyClass } from '../logic/spells.js';
+import { spellMatchesAnyClass } from '../spells/spells.js';
 
 const SPELL_LEVEL_LABELS = ['Cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 

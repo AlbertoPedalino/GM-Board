@@ -3,7 +3,7 @@ import { Sparkles } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
 import SearchList from '../components/SearchList.jsx';
-import { speciesChoiceSpecs } from '../logic/choiceSpecs.js';
+import { speciesChoiceSpecs } from '../spells/choiceSpecs.js';
 import { renderEntryText } from '../logic/text.js';
 
 export default function SpeciesStep({ state, dispatch }) {

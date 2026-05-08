@@ -4,14 +4,14 @@ import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
 import { FeatCategorySlot, FeatFixedSlot } from '../components/FeatSlots.jsx';
 import SpellChoiceList from '../components/SpellChoiceList.jsx';
-import { classChoiceSpecs } from '../logic/choiceSpecs.js';
-import NamePanel from '../panels/NamePanel.jsx';
-import XpPanel from '../panels/XpPanel.jsx';
-import ClassPanel from '../panels/ClassPanel.jsx';
-import LevelPanel from '../panels/LevelPanel.jsx';
-import SubclassPanel from '../panels/SubclassPanel.jsx';
-import SpellSlotsPanel from '../panels/SpellSlotsPanel.jsx';
-import SpellSelectionPanel from '../panels/SpellSelectionPanel.jsx';
+import { classChoiceSpecs } from '../spells/choiceSpecs.js';
+import NamePanel from '../components/NamePanel.jsx';
+import XpPanel from '../components/XpPanel.jsx';
+import ClassPanel from '../components/ClassPanel.jsx';
+import LevelPanel from '../components/LevelPanel.jsx';
+import SubclassPanel from '../components/SubclassPanel.jsx';
+import SpellSlotsPanel from '../components/SpellSlotsPanel.jsx';
+import SpellSelectionPanel from '../components/SpellSelectionPanel.jsx';
 
 export default function ClassStep({ state, dispatch }) {
   const { character } = state;

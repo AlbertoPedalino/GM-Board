@@ -1,6 +1,6 @@
 import { Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
-import { optionLabel } from '../logic/choiceSpecs.js';
+import { optionLabel } from '../spells/choiceSpecs.js';
 
 export default function ChoiceBlock({ spec, choices, dispatch }) {
   const selected = Array.isArray(choices[spec.key]) ? choices[spec.key] : (choices[spec.key] ? [choices[spec.key]] : []);
