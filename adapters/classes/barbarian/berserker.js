@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Barbarian_Berserker", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

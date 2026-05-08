@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources } from '../../registry.js';
+
 registerClassAdapter("Fighter", function (cls, lv, specs) {
   if (lv >= 1) {
     const weapons = typeof allItemsDb !== 'undefined'

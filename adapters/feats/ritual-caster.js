@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter === "function") {
-    global.registerFeatAdapter("Ritual Caster", function (feat) {
+import { registerFeatAdapter, registerFeatSheetActions } from '../registry.js';
+registerFeatAdapter("Ritual Caster", function (feat) {
       return {
         ...feat,
         choiceUi: {
@@ -19,10 +16,8 @@
         }
       };
     });
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Ritual Caster", [
+registerFeatSheetActions("Ritual Caster", [
       {
         name: "Ritual Casting",
         icon: "book-open",
@@ -31,5 +26,3 @@
         desc: "You have a ritual book. When you gain this feat, add two 1st-level ritual spells from the chosen class. Cast any ritual spell from your book in 10 extra minutes without expending a spell slot. Add rituals by copying from scrolls or spellbooks."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

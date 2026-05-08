@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Fighter_Psi Warrior", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

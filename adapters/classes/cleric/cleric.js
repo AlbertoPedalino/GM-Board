@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources, registerClassSheetProficiencies } from '../../registry.js';
+
 registerClassAdapter("Cleric", function (cls, lv, specs) {
   if (lv >= 1) {
     specs.push({

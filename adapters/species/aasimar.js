@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta, registerSpeciesSheetActions, registerSpeciesSheetResources } from '../registry.js';
+
 registerSpeciesAdapter("Aasimar_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);
   specs = specs.filter(function (x) { return !x.key.startsWith('species_resist'); });

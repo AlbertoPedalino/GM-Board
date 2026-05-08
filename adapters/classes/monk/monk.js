@@ -1,3 +1,4 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources } from '../../registry.js';
 
 registerClassAdapter("Monk", function (cls, lv, specs) {
   if (lv >= 1) {

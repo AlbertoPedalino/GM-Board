@@ -11,13 +11,7 @@ let cache = null;
 let loadPromise = null;
 
 function adapt(spell) {
-  if (typeof window.adaptSpellRecord === 'function') {
-    try {
-      return window.adaptSpellRecord(spell);
-    } catch {
-      return spell;
-    }
-  }
+  // Return spell as-is, no legacy adaptation
   return spell;
 }
 

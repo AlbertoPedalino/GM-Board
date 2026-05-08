@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Monk_Open Hand", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta } from '../registry.js';
+
 // Gnome XPHB: Gnomish Lineage — scelta tra 3 varianti
 registerSpeciesAdapter("Gnome_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);

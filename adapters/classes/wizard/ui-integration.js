@@ -2,8 +2,9 @@
  * Wizard Spellbook Integration for character-sheet.html
  */
 
-(function (global) {
-  "use strict";
+"use strict";
+
+import { WizardSpellbookAPI } from './spellbook.js';
 
   function isPrimaryWizard() {
     return !!C && String(C.className || "").toLowerCase() === "wizard";
@@ -677,7 +678,7 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
     if (typeof localStorage !== "undefined") localStorage.setItem("5e_current_char", JSON.stringify(C));
   }
 
-  global.WizardUIIntegration = {
+export const WizardUIIntegration = {
     openWizardPrepareModal,
     toggleWizardCantrip,
     toggleWizardPreparedSpell,
@@ -709,4 +710,4 @@ function toggleWizardPreparedSpell(spellName, spellLevel, targetKey) {
       return true;
     },
   };
-})(typeof window !== "undefined" ? window : global);
+

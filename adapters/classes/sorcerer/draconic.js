@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 const _DRAGON_ANCESTORS = [
   'Black (Acid)', 'Blue (Lightning)', 'Brass (Fire)', 'Bronze (Lightning)',
   'Copper (Acid)', 'Gold (Fire)', 'Green (Poison)', 'Red (Fire)',

@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Barbarian_World Tree", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

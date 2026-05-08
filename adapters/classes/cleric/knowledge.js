@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({

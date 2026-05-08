@@ -1,3 +1,6 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources, registerSubclassRuntimeConfig } from '../../registry.js';
+import { addWizardSavantSpellChoices } from './wizard.js';
+
 registerSubclassAdapter("Wizard_Illusionist", function (cls, lv, specs) {
   if (typeof addWizardSavantSpellChoices === "function") {
     addWizardSavantSpellChoices(specs, lv, { key: "illusionist", label: "Illusion", school: "I" });

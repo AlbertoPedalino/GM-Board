@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-  if (typeof global.registerFeatAdapter !== "function") return;
-
-  global.registerFeatAdapter("Ability Score Improvement", function (feat) {
+import { registerFeatAdapter } from '../registry.js';
+registerFeatAdapter("Ability Score Improvement", function (feat) {
     return {
       ...feat,
       choiceUi: {
@@ -11,4 +8,3 @@
       }
     };
   });
-})(typeof window !== "undefined" ? window : globalThis);

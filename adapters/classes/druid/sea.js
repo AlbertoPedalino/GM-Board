@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Druid_Sea", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

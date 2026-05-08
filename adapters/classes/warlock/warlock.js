@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources, registerClassSheetEffects, registerItemFlagDef, registerClassAtWillSpells, registerCantripDataModifier, registerWeaponAbilityOverride, registerResourceSideEffect } from '../../registry.js';
+
 // Eldritch Invocations XPHB 2024 — name, minLevel, prereqInvocation, description
 const _INV_DATA = [
   { name: 'Agonizing Blast', minLevel: 1, prereq: null,

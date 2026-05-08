@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
   if (lv >= 3) {
     const allSkills = typeof SKILLS !== 'undefined'

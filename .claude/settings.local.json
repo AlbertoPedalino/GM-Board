@@ -88,7 +88,8 @@
       "PowerShell($resp = Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items.json' -UseBasicParsing; $d = $resp.Content | ConvertFrom-Json; foreach\\($n in @\\('Oil','Rations','Rope','Tinderbox','Torch'\\)\\){ $f = $d.item | Where-Object { $_.name -eq $n -and $_.source -eq 'XPHB' }; if\\($f\\){ Write-Output \"--- $n ---\"; $f.entries | ConvertTo-Json -Depth 6 } })",
       "PowerShell($resp = Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json' -UseBasicParsing; $d = $resp.Content | ConvertFrom-Json; $d.baseitem | Where-Object { $_.name -eq 'Greataxe' -or $_.name -eq 'Handaxe' } | Select-Object name, source, type, packContents | Format-Table -AutoSize)",
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/items-base.json\" -o /tmp/items-base.json)",
-      "Bash(awk 'NR>=5220 && NR<=5320' character-sheet.html)"
+      "Bash(awk 'NR>=5220 && NR<=5320' character-sheet.html)",
+      "Bash(npm run *)"
     ]
   }
 }

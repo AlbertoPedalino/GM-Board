@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Warlock_Archfey", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

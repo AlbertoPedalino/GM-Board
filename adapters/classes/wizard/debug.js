@@ -5,10 +5,11 @@
  * Usa dalla console del browser: wizardDebug.test() oppure wizardDebug.status()
  */
 
-(function (global) {
-  "use strict";
+"use strict";
 
-  const wizardDebug = {
+import { WizardSpellbookAPI } from './spellbook.js';
+
+const wizardDebug = {
     /**
      * Mostra lo stato completo dello spellbook del wizard
      */
@@ -197,11 +198,8 @@ ESEMPIO:
     }
   };
 
-  // Esposizione globale
-  global.wizardDebug = wizardDebug;
+// Auto-log quando caricato
+console.log("%c📖 Wizard Spellbook Debug Tools Loaded", "color: blue; font-weight: bold;");
+console.log("Digita: wizardDebug.help() per una lista di comandi");
 
-  // Auto-log quando caricato
-  console.log("%c📖 Wizard Spellbook Debug Tools Loaded", "color: blue; font-weight: bold;");
-  console.log("Digita: wizardDebug.help() per una lista di comandi");
-
-})(typeof window !== 'undefined' ? window : global);
+export { wizardDebug };

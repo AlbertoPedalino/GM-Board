@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta, registerSpeciesSheetActions, registerSpeciesSheetResources } from '../registry.js';
+
 registerSpeciesAdapter("Orc_XPHB", function (s) {
   return getGenericSpeciesChoiceSpecs(s);
 });

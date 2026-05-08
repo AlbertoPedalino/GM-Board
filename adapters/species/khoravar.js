@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta } from '../registry.js';
+
 registerSpeciesAdapter("Khoravar_EFA", function (s) {
   const specs = getGenericSpeciesChoiceSpecs(s);
 

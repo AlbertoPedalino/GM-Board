@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Sorcerer_Spellfire", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

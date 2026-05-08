@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Bard_Dance", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

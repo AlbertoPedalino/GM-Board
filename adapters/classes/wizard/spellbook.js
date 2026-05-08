@@ -3,8 +3,7 @@
  * Wizard spellbook helpers
  */
 
-(function (global) {
-  "use strict";
+"use strict";
 
   const WIZARD_PROGRESSION = {
     // L1 = 6 spells, poi +2 per livello
@@ -180,7 +179,7 @@
     return true;
   }
 
-  global.WizardSpellbookAPI = {
+export const WizardSpellbookAPI = {
     initWizardSpellbook,
     syncSpellbookFromPrepared,
     calcMaxPreparedSpells,
@@ -196,4 +195,4 @@
     setSignatureSpells,
     WIZARD_PROGRESSION,
   };
-})(typeof window !== "undefined" ? window : global);
+

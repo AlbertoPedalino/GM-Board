@@ -4,6 +4,34 @@ import {
   writeSheetConditionsToggle,
   writeSheetCurrency,
 } from './characterSheetStorage.js';
+import { FULL_SLOTS, HALF_SLOTS, THIRD_SLOTS, PACT_SLOTS } from './spellSlots.js';
+import { rollD20, rollDice, formatD20Result, formatRollResult } from './diceRoller.js';
+import { getPB, getMod, getFinal, calculateSpellSaveDC, calculateSpellAttackBonus } from './sheetCalculators.js';
+import { toggleSpellSlot, togglePactSlot, loadResources, saveResources } from './sheetSlots.js';
+import {
+  getSheetClassActions,
+  getSheetSubclassActions,
+  getSheetSpeciesActions,
+  getFeatSheetActions,
+  getClassAtWillSpells,
+  getSpellcastingProfile,
+  getCasterProgression,
+  getCasterLevelContribution,
+  getResourceSideEffect,
+  getAllResDefs,
+  getResMax,
+  getSpellAbility,
+  getSpellSaveDC,
+  getSpellAttackBonus,
+  getResolvedInventory,
+  hasNonproficientArmor,
+  getWeaponProficiencyInfo,
+  getActiveWeaponOverrides,
+  getAdvantageFor,
+} from './sheetAdapters.js';
+
+// Re-export from sheetSlots for backward compatibility
+export { toggleSpellSlot, togglePactSlot as togglePactSpellSlot };
 
 function dispatchSheetSnapshotChange() {
   window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
@@ -203,7 +231,25 @@ export function computeSaves() {
 }
 
 export function rollSave(stat) {
-  if (typeof window.rollSave === 'function') window.rollSave(stat);
+  const character = readActiveCharacter();
+  if (!character) return;
+  
+  const saves = computeSaves();
+  const save = saves.find((s) => s.stat === stat);
+  if (!save) return;
+  
+  const d20Result = rollD20(save.mod, null);
+  try {
+    if (typeof window.rollSave === 'function') {
+      window.rollSave(stat);
+    } else {
+      const msg = formatD20Result(d20Result, `${FULL_LBL[stat]} Save`);
+      console.log('🎲', msg);
+      window.dispatchEvent(new CustomEvent('gb-dice-roll', { detail: { type: 'save', stat, result: d20Result, label: `${FULL_LBL[stat]} Save` } }));
+    }
+  } catch (err) {
+    console.error('Save roll error:', err);
+  }
 }
 
 export function computeSkills() {
@@ -279,14 +325,34 @@ export function computeSkills() {
 }
 
 export function rollSkill(name, bonus, effectiveAdv) {
-  if (typeof window.rollSkill === 'function') {
-    window.rollSkill(name, bonus, effectiveAdv);
+  const d20Result = rollD20(bonus, effectiveAdv);
+  try {
+    if (typeof window.rollSkill === 'function') {
+      window.rollSkill(name, bonus, effectiveAdv);
+    } else {
+      const msg = formatD20Result(d20Result, `${name} Check`);
+      console.log('🎲', msg);
+      window.dispatchEvent(new CustomEvent('gb-dice-roll', { detail: { type: 'skill', skill: name, result: d20Result, label: `${name} Check` } }));
+    }
+  } catch (err) {
+    console.error('Skill roll error:', err);
   }
 }
 
 export function cycleSkillAdv(name) {
-  if (typeof window.cycleSkillAdv === 'function') {
-    window.cycleSkillAdv(name);
+  try {
+    const skillAdv = readJsonLs('5e_skill_adv', {}) || {};
+    const cur = skillAdv[name] || null;
+    const next = cur === null ? 'adv' : cur === 'adv' ? 'disadv' : null;
+    if (next === null) {
+      delete skillAdv[name];
+    } else {
+      skillAdv[name] = next;
+    }
+    localStorage.setItem('5e_skill_adv', JSON.stringify(skillAdv));
+    dispatchSheetSnapshotChange();
+  } catch {
+    // ignore
   }
 }
 
@@ -995,15 +1061,17 @@ function readJsonRaw(key) {
 }
 
 export function doRest(type) {
-  if (typeof window.doRest === 'function') window.doRest(type);
+  // Legacy admin function - not applicable in React context
 }
 
 export function downloadSheet() {
-  if (typeof window.downloadSheet === 'function') window.downloadSheet();
+  // Legacy admin function - not applicable in React context
 }
 
 export function goBackToBuilder(event) {
-  if (typeof window.goBackToBuilder === 'function') window.goBackToBuilder(event);
+  if (event) event.preventDefault();
+  // Full page reload to clear legacy script globals before builder loads
+  window.location.href = `/character-builder${window.location.search || ''}`;
 }
 
 export function saveNotes() {
@@ -1028,18 +1096,51 @@ export function writeSheetNotes(value) {
 }
 
 export function rollInitiative() {
-  if (typeof window.rollInitiative === 'function') window.rollInitiative();
+  const character = readActiveCharacter();
+  if (!character) return;
+  
+  const scores = computeScores();
+  const dexMod = scores.scores.find((s) => s.stat === 'dex')?.mod || 0;
+  
+  const d20Result = rollD20(dexMod, null);
+  try {
+    if (typeof window.rollInitiative === 'function') {
+      window.rollInitiative();
+    } else {
+      const msg = formatD20Result(d20Result, 'Initiative');
+      console.log('🎲', msg);
+      window.dispatchEvent(new CustomEvent('gb-dice-roll', { detail: { type: 'initiative', result: d20Result, label: 'Initiative' } }));
+    }
+  } catch (err) {
+    console.error('Initiative roll error:', err);
+  }
 }
 
 export function toggleInspiration() {
-  if (typeof window.toggleInspirationSheet === 'function') window.toggleInspirationSheet();
+  try {
+    const current = readJsonRaw('5e_inspiration') === 'true';
+    const next = !current;
+    localStorage.setItem('5e_inspiration', String(next));
+    dispatchSheetSnapshotChange();
+  } catch {
+    // ignore
+  }
 }
 
 export function rollAbilityCheck(stat, mod, advFlag) {
-  if (typeof window.rollD20 === 'function') {
+  const d20Result = rollD20(mod, advFlag);
+  try {
     const label = `${FULL_LBL[stat] || SLBL[stat] || stat} Check`;
-    if (advFlag === undefined) window.rollD20(mod, label);
-    else window.rollD20(mod, label, advFlag);
+    if (typeof window.rollD20 === 'function') {
+      if (advFlag === undefined) window.rollD20(mod, label);
+      else window.rollD20(mod, label, advFlag);
+    } else {
+      const msg = formatD20Result(d20Result, label);
+      console.log('🎲', msg);
+      window.dispatchEvent(new CustomEvent('gb-dice-roll', { detail: { type: 'ability', stat, result: d20Result, label } }));
+    }
+  } catch (err) {
+    console.error('Ability check error:', err);
   }
 }
 
@@ -1634,29 +1735,70 @@ export function updateCurrency(coin, value) {
 }
 
 export function addCustomItem() {
-  if (typeof window.addCustomItemSheet === 'function') window.addCustomItemSheet();
+  // Legacy UI function - implement via React modal if needed
 }
 
 export function addInventoryItem(payload) {
-  if (typeof window.addItemToInventory === 'function') {
-    window.addItemToInventory(JSON.stringify(payload || {}));
-  }
+  // Legacy UI function - implement via React modal if needed
 }
 
 export function changeInventoryQty(index, delta) {
-  if (typeof window.changeSheetInvQty === 'function') window.changeSheetInvQty(index, delta);
+  const inventory = readInventoryStorage();
+  if (!inventory[index]) return;
+  const item = inventory[index];
+  const currentQty = Number(item.qty || 1);
+  const newQty = Math.max(1, currentQty + (Number(delta) || 0));
+  item.qty = newQty;
+  try {
+    localStorage.setItem('5e_inventory', JSON.stringify(inventory));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 export function toggleInventoryEquip(index) {
-  if (typeof window.toggleEquip === 'function') window.toggleEquip(index);
+  const inventory = readInventoryStorage();
+  if (!inventory[index]) return;
+  const item = inventory[index];
+  item.equipped = !item.equipped;
+  try {
+    localStorage.setItem('5e_inventory', JSON.stringify(inventory));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 export function toggleInventoryFlag(index, key) {
-  if (typeof window.toggleItemFlag === 'function') window.toggleItemFlag(index, key);
+  const inventory = readInventoryStorage();
+  if (!inventory[index]) return;
+  const item = inventory[index];
+  if (!Array.isArray(item.flags)) item.flags = [];
+  const flagIndex = item.flags.indexOf(key);
+  if (flagIndex >= 0) {
+    item.flags.splice(flagIndex, 1);
+  } else {
+    item.flags.push(key);
+  }
+  try {
+    localStorage.setItem('5e_inventory', JSON.stringify(inventory));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 export function setInventoryWeaponOverride(index, key) {
-  if (typeof window.setWeaponOverride === 'function') window.setWeaponOverride(index, key);
+  const inventory = readInventoryStorage();
+  if (!inventory[index]) return;
+  inventory[index].weaponMod = key;
+  try {
+    localStorage.setItem('5e_inventory', JSON.stringify(inventory));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 function getWeaponMasteries(character) {
@@ -1791,21 +1933,9 @@ function inferActionAttackBonus(action) {
 }
 
 function computeWeaponAction(item, index, character) {
-  const {
-    getFinal,
-    getMod,
-    getPB,
-    _sheetItemHasProperty,
-    _getActiveWeaponOverrides,
-    _sheetWeaponProficiencyInfo,
-    _sheetHasNonProficientArmor,
-  } = window;
-
-  if (
-    typeof getFinal !== 'function' ||
-    typeof getMod !== 'function' ||
-    typeof getPB !== 'function'
-  ) return null;
+  // Use imported functions instead of window destructure
+  const hasCharacter = !!character;
+  if (!hasCharacter) return null;
 
   const props = item?.property || [];
   const isRanged = item?.type === 'R';
@@ -1818,19 +1948,17 @@ function computeWeaponAction(item, index, character) {
   const isTwoHanded = isVersatile && item?.versatileHand === '2h';
   const bonus = parseInt(String(item?.bonusWeapon || '0').replace('+', ''), 10) || 0;
 
-  const strMod = getMod(getFinal('str'));
-  const dexMod = getMod(getFinal('dex'));
-  const pb = getPB();
-  const activeOverrides = typeof _getActiveWeaponOverrides === 'function' ? _getActiveWeaponOverrides() : [];
+  const strMod = getMod(getFinal('str', character));
+  const dexMod = getMod(getFinal('dex', character));
+  const pb = getPB(character.level || character.classLevel || 1);
+  const activeOverrides = getActiveWeaponOverrides();
   const flagOverride = activeOverrides.find((override) => (
     override.itemFlag && Array.isArray(item?.flags) && item.flags.includes(override.itemFlag)
   ));
   const weaponOverride = flagOverride || (
     item?.weaponMod ? activeOverrides.find((override) => override.key === item.weaponMod) : null
   );
-  const profInfo = typeof _sheetWeaponProficiencyInfo === 'function'
-    ? _sheetWeaponProficiencyInfo(item, weaponOverride)
-    : { proficient: true, source: '' };
+  const profInfo = getWeaponProficiencyInfo(item, weaponOverride);
   const profBonus = profInfo.proficient ? pb : 0;
 
   let attackAbility = 'str';
@@ -1919,13 +2047,9 @@ export function computeActions() {
   const className = character.className || '';
   const level = Number(character.level || 1);
   const primaryLevel = Number(character.classLevel || level);
-  const classActions = typeof window.getSheetClassActions === 'function'
-    ? window.getSheetClassActions(className, primaryLevel)
-    : [];
+  const classActions = getSheetClassActions(className, primaryLevel);
   const subKey = `${className}_${character.subclassShortName || ''}`;
-  const subActions = typeof window.getSheetSubclassActions === 'function'
-    ? window.getSheetSubclassActions(subKey, primaryLevel)
-    : [];
+  const subActions = getSheetSubclassActions(subKey, primaryLevel);
   const extraActions = [];
 
   (character.extraClasses || []).forEach((extraClass, index) => {
@@ -1933,15 +2057,19 @@ export function computeActions() {
     const extraLevel = Number(extraClass.level || 1);
     const extraSubKey = `${extraClass.name}_${extraClass.subclassShortName || ''}`;
     const extraPrefix = `mc${index}_`;
-    if (typeof window.getSheetClassActions === 'function') {
-      extraActions.push(...window.getSheetClassActions(extraClass.name, extraLevel).map((action) => ({
+    // Use imported functions for extra class actions
+    const extraClassActs = getSheetClassActions(extraClass.name, extraLevel);
+    if (extraClassActs?.length) {
+      extraActions.push(...extraClassActs.map((action) => ({
         ...action,
         _cls: extraClass.name,
         _ownerLevel: extraLevel,
       })));
     }
-    if (typeof window.getSheetSubclassActions === 'function') {
-      extraActions.push(...window.getSheetSubclassActions(extraSubKey, extraLevel, extraPrefix).map((action) => ({
+    // Use imported functions for extra subclass actions
+    const extraSubActs = getSheetSubclassActions(extraSubKey, extraLevel, extraPrefix);
+    if (extraSubActs?.length) {
+      extraActions.push(...extraSubActs.map((action) => ({
         ...action,
         _cls: extraClass.name,
         _ownerLevel: extraLevel,
@@ -1949,26 +2077,25 @@ export function computeActions() {
     }
   });
 
-  const speciesActions = typeof window.getSheetSpeciesActions === 'function'
-    ? window.getSheetSpeciesActions(character.speciesName || '', character.speciesSource || '', level)
-      .map((action) => ({ ...action, _cls: character.speciesName || 'Species', _ownerLevel: level }))
-    : [];
+  const speciesActions = getSheetSpeciesActions(character.speciesName || '', character.speciesSource || '', level)
+    .map((action) => ({ ...action, _cls: character.speciesName || 'Species', _ownerLevel: level }));
   const featActions = [];
   (character.allFeatSnapshots || []).forEach((feat) => {
-    if (!feat?.name || typeof window.getFeatSheetActions !== 'function') return;
-    window.getFeatSheetActions(feat.name).forEach((action) => {
+    if (!feat?.name) return;
+    getFeatSheetActions(feat.name).forEach((action) => {
       featActions.push({ ...action, _cls: 'Feat', _ownerLevel: level });
     });
   });
 
-  const allResDefs = typeof window.getAllResDefs === 'function' ? window.getAllResDefs() : [];
+  const allResDefs = getAllResDefs();
   const resourceState = readJsonLs('5e_resources', {}) || {};
 
   const buildResource = (action) => {
     if (!allResDefs.length || typeof window._resourceMatchesAction !== 'function') return null;
     const def = allResDefs.find((res) => window._resourceMatchesAction(res, action));
     if (!def) return null;
-    const max = typeof window.getResMax === 'function' ? window.getResMax(def) : 0;
+    // Use imported getResMax function
+    const max = getResMax(def) || 0;
     if (!max) return null;
     const stateKey = String(def._stateKey || def.key || '');
     const cur = resourceState[stateKey] != null ? Number(resourceState[stateKey]) : max;
@@ -2148,23 +2275,70 @@ export function computeActions() {
 }
 
 export function rollDamage(formula, label) {
-  if (typeof window.rollDamage === 'function') window.rollDamage(formula, label);
+  const result = rollDice(1, 1, 0);
+  try {
+    // Attempt to parse and roll the formula
+    const match = String(formula || '').match(/^(\d+)d(\d+)([-+]\d+)?$/i);
+    if (match) {
+      const dice = parseInt(match[1], 10);
+      const sides = parseInt(match[2], 10);
+      const modifier = parseInt(match[3] || '0', 10);
+      const rollResult = rollDice(dice, sides, modifier);
+      
+      // Try to notify legacy system if available
+      if (typeof window.showDiceToast === 'function') {
+        window.showDiceToast('Damage', rollResult.rolls, rollResult.total, rollResult.total, label);
+      } else {
+        // Fallback: log to console and/or dispatch event
+        const msg = formatRollResult(rollResult, label || 'Damage');
+        console.log('🎲', msg);
+        window.dispatchEvent(new CustomEvent('gb-dice-roll', { detail: { type: 'damage', result: rollResult, label } }));
+      }
+    }
+  } catch (err) {
+    console.error('Dice roll error:', err);
+  }
 }
 
 export function rollFlatDamage(label, total, formulaLabel) {
-  if (typeof window.showDiceToast === 'function') {
-    window.showDiceToast('Damage', [], total, total, formulaLabel);
-  } else if (typeof window.rollDamage === 'function') {
-    window.rollDamage(String(total), label);
+  const rollResult = { rolls: [total], total, modifier: 0 };
+  try {
+    if (typeof window.showDiceToast === 'function') {
+      window.showDiceToast('Damage', [total], total, total, formulaLabel || label);
+    } else {
+      const msg = formatRollResult(rollResult, formulaLabel || label || 'Damage');
+      console.log('🎲', msg);
+      window.dispatchEvent(new CustomEvent('gb-dice-roll', { detail: { type: 'damage', result: rollResult, label: formulaLabel || label } }));
+    }
+  } catch (err) {
+    console.error('Flat damage roll error:', err);
   }
 }
 
 export function toggleWeaponHand(index) {
-  if (typeof window.toggleWeaponHand === 'function') window.toggleWeaponHand(index);
+  const inventory = readInventoryStorage();
+  if (!inventory[index]) return;
+  const item = inventory[index];
+  item.hand = item.hand === 'off' ? 'main' : 'off';
+  try {
+    localStorage.setItem('5e_inventory', JSON.stringify(inventory));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 export function toggleVersatile(index) {
-  if (typeof window.toggleVersatile === 'function') window.toggleVersatile(index);
+  const inventory = readInventoryStorage();
+  if (!inventory[index]) return;
+  const item = inventory[index];
+  item.versatileHand = item.versatileHand === '2h' ? '1h' : '2h';
+  try {
+    localStorage.setItem('5e_inventory', JSON.stringify(inventory));
+  } catch {
+    // ignore
+  }
+  dispatchSheetSnapshotChange();
 }
 
 function readResources() {
@@ -2414,9 +2588,9 @@ function mergeSelectedSpells(character) {
 }
 
 function getSpellSlots(character) {
-  const fullSlots = window.FULL_SLOTS || [];
-  const halfSlots = window.HALF_SLOTS || [];
-  const thirdSlots = window.THIRD_SLOTS || [];
+  const fullSlots = FULL_SLOTS || [];
+  const halfSlots = HALF_SLOTS || [];
+  const thirdSlots = THIRD_SLOTS || [];
   const level = Number(character?.level || 1);
   const extra = character?.extraClasses || [];
   const primaryLevel = Number(character?.classLevel || (level - extra.reduce((sum, entry) => sum + (Number(entry?.level) || 1), 0)) || level);
@@ -2458,7 +2632,7 @@ function getSpellSlots(character) {
   else if (progression === '1/3') regular = thirdSlots[level] || [];
   else if (progression === 'artificer') regular = fullSlots[Math.min(Math.ceil(level / 2), 20)] || [];
 
-  const pactSlots = window.PACT_SLOTS || [];
+  const pactSlots = PACT_SLOTS || [];
   const pact = warlockLevel > 0 ? (pactSlots[Math.min(warlockLevel, 20)] || null) : null;
 
   return {
@@ -2614,14 +2788,13 @@ export function computeSpells() {
   };
 }
 
-export function toggleSpellSlot(level, index) {
-  if (typeof window.toggleSlot === 'function') window.toggleSlot(level, index);
-}
-
-export function togglePactSpellSlot(level, total, index) {
-  if (typeof window.togglePactSlot === 'function') window.togglePactSlot(level, total, index);
-}
+// toggleSpellSlot and togglePactSlot are now imported from sheetSlots.js
 
 export function openSpellPicker() {
+  // Try new React modal first (CharacterSheetPage bridge)
+  if (typeof window.__gbOpenSpellPicker === 'function') {
+    return window.__gbOpenSpellPicker();
+  }
+  // Fallback to legacy
   if (typeof window.openSpellPicker === 'function') window.openSpellPicker();
 }

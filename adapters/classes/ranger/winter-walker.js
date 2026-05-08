@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Ranger_Winter Walker", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

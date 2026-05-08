@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources, registerClassSheetChoiceMeta } from '../../registry.js';
+
 registerClassAdapter("Bard", function (cls, lv, specs) {
   if (lv >= 1) {
     specs.push({ key: 'bard_instrument_1', label: 'Musical Instrument 1 (Bard)', type: 'generic_choice', from: window._MUSICAL_INSTRUMENTS || [], count: 1, level: 1 });

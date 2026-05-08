@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources } from '../../registry.js';
+
 registerClassAdapter("Paladin", function (cls, lv, specs) {
   if (lv >= 2) {
     specs.push({

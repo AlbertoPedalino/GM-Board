@@ -1,3 +1,4 @@
+import { adaptItemRecord } from 'adapters';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   addCustomItem,
@@ -108,7 +109,7 @@ function SheetHeader({ header, onXpChange, onAfterRest }) {
         </button>
         <a
           className="back-btn"
-          href="charbuilder.html"
+          href="/character-builder"
           onClick={goBackToBuilder}
         >
           <Icon name="arrow-left" /> Builder
@@ -869,12 +870,12 @@ function useItemSearchDb() {
         )));
         const baseItems = (payloads[0]?.baseitem || [])
           .filter((item) => ['XPHB', 'FRAiF', 'FRHoF', 'EFA'].includes(item.source))
-          .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+          .map((item) => adaptItemRecord(item));
         const magicItems = (payloads[1]?.item || [])
           .filter((item) => ['XPHB', 'XDMG', 'FRAiF', 'FRHoF', 'EFA'].includes(item.source))
-          .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+          .map((item) => adaptItemRecord(item));
         const variants = expandMagicVariants(payloads[2]?.magicvariant || [], baseItems)
-          .map((item) => (typeof window.adaptItemRecord === 'function' ? window.adaptItemRecord(item) : item));
+          .map((item) => adaptItemRecord(item));
         const combined = [
           ...baseItems,
           ...magicItems,

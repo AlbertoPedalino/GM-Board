@@ -1,9 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter !== "function") return;
-
-  global.registerFeatAdapter("Resilient", function (feat) {
+import { registerFeatAdapter } from '../registry.js';
+registerFeatAdapter("Resilient", function (feat) {
     return {
       ...feat,
       choiceUi: {
@@ -23,4 +19,3 @@
       }
     };
   });
-})(typeof window !== "undefined" ? window : globalThis);

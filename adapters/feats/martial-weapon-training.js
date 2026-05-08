@@ -1,9 +1,6 @@
-(function (global) {
-  "use strict";
+import { registerFeatAdapter } from '../registry.js';
 
-  if (typeof global.registerFeatAdapter !== "function") return;
-
-  var _MARTIAL_WEAPONS = [
+var _MARTIAL_WEAPONS = [
     "Battleaxe", "Flail", "Glaive", "Greataxe", "Greatsword",
     "Halberd", "Lance", "Longsword", "Maul", "Morningstar",
     "Pike", "Rapier", "Scimitar", "Shortsword", "Trident",
@@ -11,7 +8,7 @@
     "Blowgun", "Hand Crossbow", "Heavy Crossbow", "Longbow", "Net"
   ];
 
-  global.registerFeatAdapter("Martial Weapon Training", function (feat) {
+  registerFeatAdapter("Martial Weapon Training", function (feat) {
     return {
       ...feat,
       choiceUi: {
@@ -24,4 +21,3 @@
       }
     };
   });
-})(typeof window !== "undefined" ? window : globalThis);

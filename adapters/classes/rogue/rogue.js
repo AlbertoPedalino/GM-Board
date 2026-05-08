@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources, registerClassSheetProficiencies } from '../../registry.js';
+
 registerClassAdapter("Rogue", function (cls, lv, specs) {
   if (lv >= 1) {
     // Expertise (L1): 2 slot; uno può essere Thieves' Tools

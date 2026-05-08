@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources, registerSubclassSheetProficiencies } from '../../registry.js';
+
 registerSubclassAdapter("Bard_Moon", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({

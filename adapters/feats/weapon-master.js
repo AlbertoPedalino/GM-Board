@@ -1,9 +1,6 @@
-(function (global) {
-  "use strict";
+import { registerFeatAdapter } from '../registry.js';
 
-  if (typeof global.registerFeatAdapter !== "function") return;
-
-  var _SIMPLE_WEAPONS = [
+var _SIMPLE_WEAPONS = [
     "Club", "Dagger", "Greatclub", "Handaxe", "Javelin",
     "Light Hammer", "Mace", "Quarterstaff", "Sickle", "Spear",
     "Dart", "Light Crossbow", "Shortbow", "Sling"
@@ -16,7 +13,7 @@
     "Blowgun", "Hand Crossbow", "Heavy Crossbow", "Longbow", "Net"
   ];
 
-  global.registerFeatAdapter("Weapon Master", function (feat) {
+  registerFeatAdapter("Weapon Master", function (feat) {
     return {
       ...feat,
       choiceUi: {
@@ -29,4 +26,3 @@
       }
     };
   });
-})(typeof window !== "undefined" ? window : globalThis);

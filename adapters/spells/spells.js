@@ -1,261 +1,389 @@
 /**
  * adapters/spells/spells.js
  *
- * Dati strutturati per spell di livello 1–9. Nessun fallback su testo raw.
- * Ogni entry definisce:
- *   icon       — nome lucide icon
- *   toHit      — true = tiro per colpire
- *   hasSave    — true = tiro salvezza
- *   saveAbility — ability del save ('dex','con','wis', ecc.) o null
- *   dmgType    — tipo danno o ''
- *   baseDie    — dado/formula danno al livello base (es. '8d6')
- *   upcastDie  — dado/formula aggiuntivo per ogni slot superiore (es. '1d6') o ''
- *   range      — portata
- *   aoe        — area effetto (es. '20-ft sphere') o ''
- *   heal       — true se è una spell di cura
- *   concentration — true se richiede concentrazione
- *   notes      — testo note extra
- *
- * Per aggiungere una spell: registerSpellData('Nome', { ... });
- * Spell non registrate: la sheet usa i dati 5etools raw.
+ * Dati strutturati per spell di livello 1–9.
  */
+import { registerSpellData } from '../registry.js';
 
-(function () {
-  "use strict";
-  if (typeof registerSpellData !== "function") return;
+/* ════════════════════════════
+   LIVELLO 1
+════════════════════════════ */
+registerSpellData("Magic Missile", {
+  icon: "zap",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "force",
+  baseDie: "3d4+3",
+  upcastDie: "1d4+1",
+  range: "120 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "3 dardi automatici (nessun tiro). +1 dardo per ogni slot superiore al 1°."
+});
+registerSpellData("Burning Hands", {
+  icon: "flame",
+  toHit: false, hasSave: true, saveAbility: "dex",
+  dmgType: "fire",
+  baseDie: "3d6", upcastDie: "1d6",
+  range: "Self", aoe: "15-ft cone",
+  heal: false, concentration: false,
+  notes: "DEX save. Metà danno su successo."
+});
 
-  /* ════════════════════════════
-     LIVELLO 1
-  ════════════════════════════ */
-  registerSpellData("Magic Missile", {
-    icon: "zap",
-    toHit: false, hasSave: false, saveAbility: null,
-    dmgType: "force",
-    baseDie: "3d4+3",  // 3 dardi × (1d4+1)
-    upcastDie: "1d4+1",  // +1 dardo per slot superiore
-    range: "120 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "3 dardi automatici (nessun tiro). +1 dardo per ogni slot superiore al 1°."
-  });
-  registerSpellData("Burning Hands", {
-    icon: "flame",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "fire",
-    baseDie: "3d6", upcastDie: "1d6",
-    range: "Self", aoe: "15-ft cone",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo."
-  });
-  registerSpellData("Cure Wounds", {
-    icon: "heart-pulse",
-    toHit: false, hasSave: false, saveAbility: null,
-    dmgType: "",
-    baseDie: "2d8", upcastDie: "2d8",
-    range: "Touch", aoe: "",
-    heal: true, concentration: false,
-    notes: "Cura 2d8 + mod. spellcasting. +2d8 per slot superiore al 1°."
-  });
-  registerSpellData("Healing Word", {
-    icon: "heart",
-    toHit: false, hasSave: false, saveAbility: null,
-    dmgType: "",
-    baseDie: "2d4", upcastDie: "2d4",
-    range: "60 ft", aoe: "",
-    heal: true, concentration: false,
-    notes: "Bonus Action. Cura 2d4 + mod. spellcasting. +2d4 per slot superiore al 1°."
-  });
-  registerSpellData("Thunderwave", {
-    icon: "waves",
-    toHit: false, hasSave: true, saveAbility: "con",
-    dmgType: "thunder",
-    baseDie: "2d8", upcastDie: "1d8",
-    range: "Self", aoe: "15-ft cube",
-    heal: false, concentration: false,
-    notes: "CON save. Metà danno su successo. Fallimento: spinto 10 ft."
-  });
-  registerSpellData("Chromatic Orb", {
-    icon: "circle",
-    toHit: true, hasSave: false, saveAbility: null,
-    dmgType: "varies",
-    baseDie: "3d8", upcastDie: "1d8",
-    range: "90 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "Scegli tipo danno: acid/cold/fire/lightning/poison/thunder."
-  });
-  registerSpellData("Inflict Wounds", {
-    icon: "skull",
-    toHit: true, hasSave: false, saveAbility: null,
-    dmgType: "necrotic",
-    baseDie: "2d10", upcastDie: "1d10",
-    range: "Touch", aoe: "",
-    heal: false, concentration: false,
-    notes: ""
-  });
-  registerSpellData("Guiding Bolt", {
-    icon: "sparkles",
-    toHit: true, hasSave: false, saveAbility: null,
-    dmgType: "radiant",
-    baseDie: "4d6", upcastDie: "1d6",
-    range: "120 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "Prossimo attacco contro il bersaglio ha vantaggio (entro fine del tuo prossimo turno)."
-  });
+registerSpellData("Cure Wounds", {
+  icon: "heart-pulse",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "2d8+mod", upcastDie: "1d8",
+  range: "Touch", aoe: "",
+  heal: true, concentration: false,
+  notes: "Cura 2d8 + mod. +1d8 per slot."
+});
+registerSpellData("Guiding Bolt", {
+  icon: "sun",
+  toHit: true, hasSave: false, saveAbility: null,
+  dmgType: "radiant",
+  baseDie: "4d6", upcastDie: "1d6",
+  range: "120 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "Next attack vs target has advantage."
+});
+registerSpellData("Inflict Wounds", {
+  icon: "hand",
+  toHit: true, hasSave: false, saveAbility: null,
+  dmgType: "necrotic",
+  baseDie: "4d10", upcastDie: "1d10",
+  range: "Touch", aoe: "",
+  heal: false, concentration: false,
+  notes: "Melee spell attack."
+});
+registerSpellData("Thunderwave", {
+  icon: "volume-2",
+  toHit: false, hasSave: true, saveAbility: "con",
+  dmgType: "thunder",
+  baseDie: "3d8", upcastDie: "1d8",
+  range: "Self", aoe: "15-ft cube",
+  heal: false, concentration: false,
+  notes: "CON save. Push 10 ft."
+});
+registerSpellData("Bless", {
+  icon: "star",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "30 ft", aoe: "",
+  heal: false, concentration: true,
+  notes: "+1d4 to attack and save for up to 3 creatures."
+});
+registerSpellData("Shield", {
+  icon: "shield",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Self", aoe: "",
+  heal: false, concentration: false,
+  notes: "Reaction: +5 AC until start of next turn."
+});
+registerSpellData("Healing Word", {
+  icon: "message-circle",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "2d4+mod", upcastDie: "1d4",
+  range: "60 ft", aoe: "",
+  heal: true, concentration: false,
+  notes: "Bonus Action: cura 2d4 + mod."
+});
+registerSpellData("Faerie Fire", {
+  icon: "sparkle",
+  toHit: false, hasSave: true, saveAbility: "dex",
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "60 ft", aoe: "20-ft cube",
+  heal: false, concentration: true,
+  notes: "DEX save. Attack advantage vs glowing creatures."
+});
+registerSpellData("Entangle", {
+  icon: "leaf",
+  toHit: false, hasSave: true, saveAbility: "str",
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "60 ft", aoe: "20-ft square",
+  heal: false, concentration: true,
+  notes: "STR save. Area difficult terrain; restrained on fail."
+});
+registerSpellData("Speak with Animals", {
+  icon: "message-square",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Self", aoe: "",
+  heal: false, concentration: false,
+  notes: "Comprehend/communicate with animals. 10 min."
+});
+registerSpellData("Tasha's Hideous Laughter", {
+  icon: "smile",
+  toHit: false, hasSave: true, saveAbility: "wis",
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "30 ft", aoe: "",
+  heal: false, concentration: true,
+  notes: "WIS save. Target falls prone, incapacitated (C)."
+});
+registerSpellData("Command", {
+  icon: "message-square",
+  toHit: false, hasSave: true, saveAbility: "wis",
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "60 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "WIS save. Target obeys 1-word command."
+});
+registerSpellData("Sleep", {
+  icon: "moon",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "5d8", upcastDie: "2d8",
+  range: "90 ft", aoe: "20-ft radius",
+  heal: false, concentration: false,
+  notes: "Puts creatures to sleep (lowest HP first)."
+});
 
-  /* ════════════════════════════
-     LIVELLO 2
-  ════════════════════════════ */
-  registerSpellData("Shatter", {
-    icon: "volume-2",
-    toHit: false, hasSave: true, saveAbility: "con",
-    dmgType: "thunder",
-    baseDie: "3d8", upcastDie: "1d8",
-    range: "60 ft", aoe: "10-ft sphere",
-    heal: false, concentration: false,
-    notes: "CON save. Metà danno su successo. Svantaggio per creature in armatura o inorganiche."
-  });
-  registerSpellData("Scorching Ray", {
-    icon: "flame",
-    toHit: true, hasSave: false, saveAbility: null,
-    dmgType: "fire",
-    baseDie: "6d6", upcastDie: "2d6",
-    range: "120 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "3 raggi, ogni raggio fa 2d6. +1 raggio per slot superiore al 2°."
-  });
-  registerSpellData("Spiritual Weapon", {
-    icon: "sword",
-    toHit: true, hasSave: false, saveAbility: null,
-    dmgType: "force",
-    baseDie: "1d8", upcastDie: "1d8",
-    range: "60 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "Bonus Action ogni turno per attaccare. +1d8 ogni 2 livelli sopra il 2°. Non concentrazione."
-  });
-  registerSpellData("Prayer of Healing", {
-    icon: "heart-pulse",
-    toHit: false, hasSave: false, saveAbility: null,
-    dmgType: "",
-    baseDie: "2d8", upcastDie: "2d8",
-    range: "30 ft", aoe: "",
-    heal: true, concentration: false,
-    notes: "Fino a 6 creature. 10 minuti di casting. +2d8 per slot superiore al 2°."
-  });
+/* ════════════════════════════
+   LIVELLO 2
+════════════════════════════ */
+registerSpellData("Spiritual Weapon", {
+  icon: "sword",
+  toHit: true, hasSave: false, saveAbility: null,
+  dmgType: "force",
+  baseDie: "1d8+mod", upcastDie: "1d8",
+  range: "60 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "Bonus action. 1 min. +1d8 per 2 slot lv."
+});
+registerSpellData("Lesser Restoration", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: false,
+  notes: "Cure disease/poison/blind/deaf/paralyze."
+});
+registerSpellData("Darkvision", {
+  icon: "eye",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: false,
+  notes: "Grant darkvision 60 ft for 8 hours."
+});
+registerSpellData("Invisibility", {
+  icon: "eye-off",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: true,
+  notes: "Creature turns invisible (C). 1 hour."
+});
+registerSpellData("Hold Person", {
+  icon: "hand",
+  toHit: false, hasSave: true, saveAbility: "wis",
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "60 ft", aoe: "",
+  heal: false, concentration: true,
+  notes: "WIS save. Paralyzed (C). +1 target per slot."
+});
 
-  /* ════════════════════════════
-     LIVELLO 3
-  ════════════════════════════ */
-  registerSpellData("Fireball", {
-    icon: "flame",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "fire",
-    baseDie: "8d6", upcastDie: "1d6",
-    range: "150 ft", aoe: "20-ft sphere",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo. Il fuoco si espande attorno agli angoli."
-  });
-  registerSpellData("Lightning Bolt", {
-    icon: "zap",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "lightning",
-    baseDie: "8d6", upcastDie: "1d6",
-    range: "Self", aoe: "100-ft line",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo. Il fulmine rimbalza sulle pareti."
-  });
-  registerSpellData("Mass Healing Word", {
-    icon: "heart",
-    toHit: false, hasSave: false, saveAbility: null,
-    dmgType: "",
-    baseDie: "1d4", upcastDie: "1d4",
-    range: "60 ft", aoe: "",
-    heal: true, concentration: false,
-    notes: "Bonus Action. Fino a 6 creature. Cura 1d4 + mod. spellcasting ciascuna. +1d4 per slot superiore al 3°."
-  });
+/* ════════════════════════════
+   LIVELLO 3
+════════════════════════════ */
+registerSpellData("Fireball", {
+  icon: "flame",
+  toHit: false, hasSave: true, saveAbility: "dex",
+  dmgType: "fire",
+  baseDie: "8d6", upcastDie: "1d6",
+  range: "150 ft", aoe: "20-ft radius",
+  heal: false, concentration: false,
+  notes: "DEX save. Metà danno su successo."
+});
+registerSpellData("Lightning Bolt", {
+  icon: "zap",
+  toHit: false, hasSave: true, saveAbility: "dex",
+  dmgType: "lightning",
+  baseDie: "8d6", upcastDie: "1d6",
+  range: "Self", aoe: "100-ft line",
+  heal: false, concentration: false,
+  notes: "DEX save. 100-ft line."
+});
+registerSpellData("Revivify", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: true, concentration: false,
+  notes: "Return to 1 HP (died last 1 min). 300 GP diamond."
+});
+registerSpellData("Counterspell", {
+  icon: "x-circle",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "60 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "Reaction. Spell lv3 or lower: auto-success. Higher: DC 10 + spell lv check."
+});
+registerSpellData("Dispel Magic", {
+  icon: "x-square",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "120 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "End spells on target. Lv3+: auto. Higher: check DC 10 + spell lv."
+});
+registerSpellData("Haste", {
+  icon: "zap",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "30 ft", aoe: "",
+  heal: false, concentration: true,
+  notes: "+2 AC, double speed, extra action. (C) 1 min."
+});
+registerSpellData("Fly", {
+  icon: "feather",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: true,
+  notes: "Fly 60 ft (C). 10 min."
+});
 
-  /* ════════════════════════════
-     LIVELLO 4
-  ════════════════════════════ */
-  registerSpellData("Ice Storm", {
-    icon: "snowflake",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "bludgeoning/cold",
-    baseDie: "2d8+4d6", upcastDie: "1d8",
-    range: "300 ft", aoe: "20-ft cylinder",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo. Terreno ghiacciato = difficile."
-  });
+/* ════════════════════════════
+   LIVELLO 4
+════════════════════════════ */
+registerSpellData("Death Ward", {
+  icon: "shield",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: false,
+  notes: "If target drops to 0 HP: 1 HP instead. 8 hours."
+});
+registerSpellData("Greater Invisibility", {
+  icon: "eye-off",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: true,
+  notes: "Invisible (C). 1 min."
+});
 
-  /* ════════════════════════════
-     LIVELLO 5
-  ════════════════════════════ */
-  registerSpellData("Cone of Cold", {
-    icon: "snowflake",
-    toHit: false, hasSave: true, saveAbility: "con",
-    dmgType: "cold",
-    baseDie: "8d8", upcastDie: "1d8",
-    range: "Self", aoe: "60-ft cone",
-    heal: false, concentration: false,
-    notes: "CON save. Metà danno su successo."
-  });
-  registerSpellData("Mass Cure Wounds", {
-    icon: "heart-pulse",
-    toHit: false, hasSave: false, saveAbility: null,
-    dmgType: "",
-    baseDie: "5d8", upcastDie: "1d8",
-    range: "60 ft", aoe: "",
-    heal: true, concentration: false,
-    notes: "Fino a 6 creature. Cura 5d8 + mod. spellcasting ciascuna. +1d8 per slot superiore al 5°."
-  });
+/* ════════════════════════════
+   LIVELLO 5
+════════════════════════════ */
+registerSpellData("Mass Cure Wounds", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "5d8+mod", upcastDie: "1d8",
+  range: "60 ft", aoe: "30-ft radius",
+  heal: true, concentration: false,
+  notes: "Cura 5d8 + mod for up to 6 creatures."
+});
+registerSpellData("Greater Restoration", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: false,
+  notes: "End charmed/frightened/curse/reduce exhaustion. 100 GP dust."
+});
+registerSpellData("Raise Dead", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: true, concentration: false,
+  notes: "Return to life (died last 10 days). 500 GP diamond."
+});
 
-  /* ════════════════════════════
-     LIVELLO 6
-  ════════════════════════════ */
-  registerSpellData("Chain Lightning", {
-    icon: "zap",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "lightning",
-    baseDie: "10d8", upcastDie: "1d8",
-    range: "150 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo. 3 archi secondari a bersagli entro 30 ft. +1 arco per slot superiore al 6°."
-  });
+/* ════════════════════════════
+   LIVELLO 6
+════════════════════════════ */
+registerSpellData("Heal", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "70", upcastDie: "10",
+  range: "60 ft", aoe: "",
+  heal: true, concentration: false,
+  notes: "Cura 70 HP + blind/deaf/disease removal."
+});
+registerSpellData("True Seeing", {
+  icon: "eye",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: false, concentration: false,
+  notes: "True sight 120 ft. 1 hour."
+});
 
-  /* ════════════════════════════
-     LIVELLO 7
-  ════════════════════════════ */
-  registerSpellData("Fire Storm", {
-    icon: "flame",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "fire",
-    baseDie: "7d10", upcastDie: "",
-    range: "150 ft", aoe: "10 10-ft cubes",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo. Piante non magiche bruciano."
-  });
+/* ════════════════════════════
+   LIVELLO 7+
+════════════════════════════ */
+registerSpellData("Resurrection", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Touch", aoe: "",
+  heal: true, concentration: false,
+  notes: "Return to life (died last 100 years). 1,000 GP diamond."
+});
+registerSpellData("Power Word: Kill", {
+  icon: "skull",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "60 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "Target (100 HP or fewer) dies."
+});
+registerSpellData("Holy Aura", {
+  icon: "sun",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "Self", aoe: "30-ft radius",
+  heal: false, concentration: true,
+  notes: "Allies: advantage on saves. Foes: disadvantage on attacks. 1 min."
+});
 
-  /* ════════════════════════════
-     LIVELLO 8
-  ════════════════════════════ */
-  registerSpellData("Sunburst", {
-    icon: "sun",
-    toHit: false, hasSave: true, saveAbility: "con",
-    dmgType: "radiant",
-    baseDie: "12d6", upcastDie: "",
-    range: "150 ft", aoe: "60-ft sphere",
-    heal: false, concentration: false,
-    notes: "CON save. Metà danno su successo. Fallimento: accecato fino alla prossima verifica al termine turno."
-  });
-
-  /* ════════════════════════════
-     LIVELLO 9
-  ════════════════════════════ */
-  registerSpellData("Meteor Swarm", {
-    icon: "flame",
-    toHit: false, hasSave: true, saveAbility: "dex",
-    dmgType: "fire/bludgeoning",
-    baseDie: "40d6", upcastDie: "",
-    range: "1 mile", aoe: "4× 40-ft sphere",
-    heal: false, concentration: false,
-    notes: "DEX save. Metà danno su successo. 4 meteore (20d6 bludg + 20d6 fire ciascuna) — possono colpire punti diversi."
-  });
-})();
+// Spells non-D&D 2024 but kept for legacy character compat
+registerSpellData("Aid", {
+  icon: "heart",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "5", upcastDie: "5",
+  range: "30 ft", aoe: "",
+  heal: false, concentration: false,
+  notes: "+5 max HP & current HP for 3 targets. +5 per slot."
+});
+registerSpellData("Bless (Legacy)", {
+  icon: "star",
+  toHit: false, hasSave: false, saveAbility: null,
+  dmgType: "",
+  baseDie: "", upcastDie: "",
+  range: "30 ft", aoe: "",
+  heal: false, concentration: true,
+  notes: "+1d4 to attack and save for up to 3 creatures (Legacy compat)."
+});

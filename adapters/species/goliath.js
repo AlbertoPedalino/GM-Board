@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta } from '../registry.js';
+
 // Goliath XPHB: Giant Ancestry — scelta del tipo di gigante (determina resistenza e abilità)
 registerSpeciesAdapter("Goliath_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);

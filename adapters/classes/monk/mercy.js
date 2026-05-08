@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources, registerSubclassSheetProficiencies } from '../../registry.js';
+
 registerSubclassAdapter("Monk_Mercy", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import LegacyFrame from './legacy/LegacyFrame.jsx';
 import CharacterSheetPage from './pages/character-sheet/CharacterSheetPage.jsx';
+import CharbuilderPage from './pages/charbuilder/CharbuilderPage.jsx';
 
 const ROUTES = [
   {
@@ -52,6 +53,7 @@ function normalizePath(pathname) {
 export default function App() {
   const [path, setPath] = useState(() => normalizePath(window.location.pathname));
   const [hasVisitedSheet, setHasVisitedSheet] = useState(path === '/character-sheet');
+  const [hasVisitedBuilder, setHasVisitedBuilder] = useState(path === '/character-builder');
 
   const activeRoute = useMemo(
     () => ROUTES.find((route) => route.path === path) ?? ROUTES[0],
@@ -59,6 +61,7 @@ export default function App() {
   );
 
   const isCharacterSheet = activeRoute.path === '/character-sheet';
+  const isCharacterBuilder = activeRoute.path === '/character-builder';
 
   useEffect(() => {
     function handlePopState() {
@@ -71,7 +74,8 @@ export default function App() {
 
   useEffect(() => {
     if (isCharacterSheet) setHasVisitedSheet(true);
-  }, [isCharacterSheet]);
+    if (isCharacterBuilder) setHasVisitedBuilder(true);
+  }, [isCharacterSheet, isCharacterBuilder]);
 
   function navigate(nextPath) {
     if (nextPath === path) return;
@@ -99,30 +103,32 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
-      <header className="app-topbar">
-        <div className="brand">
-          <span className="brand-mark">GB</span>
-          <div>
-            <h1>GM Board React</h1>
-            <p>Compat shell</p>
+    <main className={`app-shell route-${activeRoute.path === '/' ? 'home' : activeRoute.path.slice(1)}`}>
+      {!isCharacterSheet && !isCharacterBuilder && (
+        <header className="app-topbar">
+          <div className="brand">
+            <span className="brand-mark">GB</span>
+            <div>
+              <h1>GM Board React</h1>
+              <p>Compat shell</p>
+            </div>
           </div>
-        </div>
-        <nav className="route-tabs" aria-label="Pages">
-          {ROUTES.map((route) => (
-            <button
-              key={route.path}
-              type="button"
-              className={route.path === activeRoute.path ? 'active' : ''}
-              onClick={() => navigate(route.path)}
-            >
-              {route.label}
-            </button>
-          ))}
-        </nav>
-      </header>
+          <nav className="route-tabs" aria-label="Pages">
+            {ROUTES.map((route) => (
+              <button
+                key={route.path}
+                type="button"
+                className={route.path === activeRoute.path ? 'active' : ''}
+                onClick={() => navigate(route.path)}
+              >
+                {route.label}
+              </button>
+            ))}
+          </nav>
+        </header>
+      )}
 
-      {!isCharacterSheet && (
+      {!isCharacterSheet && !isCharacterBuilder && (
         <LegacyFrame
           page={activeRoute.page}
           title={activeRoute.title}
@@ -133,6 +139,10 @@ export default function App() {
 
       {(hasVisitedSheet || isCharacterSheet) && (
         <CharacterSheetPage active={isCharacterSheet} title="Character Sheet - D&D 5e" />
+      )}
+
+      {(hasVisitedBuilder || isCharacterBuilder) && (
+        <CharbuilderPage active={isCharacterBuilder} title="D&D 5e - Character Builder" />
       )}
     </main>
   );

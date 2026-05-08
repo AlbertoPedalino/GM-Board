@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter === "function") {
-    global.registerFeatAdapter("Telepathic", function (feat) {
+import { registerFeatAdapter, registerFeatSheetActions, registerFeatSheetResources } from '../registry.js';
+registerFeatAdapter("Telepathic", function (feat) {
       return {
         ...feat,
         choiceUi: {
@@ -19,10 +16,8 @@
         }
       };
     });
-  }
 
-  if (typeof global.registerFeatSheetResources === "function") {
-    global.registerFeatSheetResources("Telepathic", [
+registerFeatSheetResources("Telepathic", [
       {
         key: "telepathic_detect_thoughts",
         name: "Detect Thoughts",
@@ -31,10 +26,8 @@
         max: function () { return 1; }
       }
     ]);
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Telepathic", [
+registerFeatSheetActions("Telepathic", [
       {
         name: "Telepathic Speech",
         icon: "message-circle",
@@ -50,5 +43,3 @@
         desc: "Cast Detect Thoughts once per Long Rest without a spell slot. You can also cast it using spell slots. Spellcasting ability is your chosen ability."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

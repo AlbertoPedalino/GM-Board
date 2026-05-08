@@ -1,9 +1,6 @@
-(function (global) {
-  "use strict";
+import { registerFeatAdapter } from '../registry.js';
 
-  if (typeof global.registerFeatAdapter !== "function") return;
-
-  function _titleClass(raw) {
+function _titleClass(raw) {
     const map = {
       artificer: "Artificer",
       bard: "Bard",
@@ -88,5 +85,4 @@
     return out;
   }
 
-  global.registerFeatAdapter("Magic Initiate", _adaptMagicInitiate);
-})(typeof window !== "undefined" ? window : globalThis);
+  registerFeatAdapter("Magic Initiate", _adaptMagicInitiate);

@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Rogue_Soulknife", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

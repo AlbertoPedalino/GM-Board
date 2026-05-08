@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 const _BANNERET_ENVOY_SKILLS = ['Insight', 'Intimidation', 'Persuasion', 'Performance'];
 
 registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {

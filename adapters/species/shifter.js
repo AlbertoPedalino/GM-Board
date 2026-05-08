@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta, registerSpeciesSheetActions, registerSpeciesSheetResources } from '../registry.js';
+
 registerSpeciesAdapter("Shifter_EFA", function (s) {
   const specs = getGenericSpeciesChoiceSpecs(s);
 

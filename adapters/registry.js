@@ -1,12 +1,12 @@
 /**
  * adapters/registry.js
  * Dizionari globali + registrazione/lookup adapter con chiavi canoniche.
- * Caricato prima di manifest.js e loader.js.
+ * ES Module — importa da React; setta window per retrocompatibilità con runtime legacy.
  */
 
-const ClassAdapters    = {};
-const SubclassAdapters = {};
-const SpeciesAdapters  = {};
+export const ClassAdapters    = {};
+export const SubclassAdapters = {};
+export const SpeciesAdapters  = {};
 const FeatAdapters     = {};
 const GlobalFeatAdapters = [];
 
@@ -41,7 +41,7 @@ const ClassAtWillSpells  = {};
 const SpeciesLongRestGrants = {};
 const ResourceSideEffects = {};
 
-function _normAdapterKey(v) {
+export function _normAdapterKey(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 function _hasOwn(obj, key) {
@@ -200,16 +200,16 @@ function _sheetActionsPrepare(actions) {
   return (Array.isArray(actions) ? actions : []).map(_sheetActionEnrichRollMeta);
 }
 
-function registerClassAdapter(name, fn) {
+export function registerClassAdapter(name, fn) {
   _setStoreValue(ClassAdapters, name, _toClassCanonicalKey(name), fn);
 }
-function registerSubclassAdapter(key, fn) {
+export function registerSubclassAdapter(key, fn) {
   _setStoreValue(SubclassAdapters, key, _toSubclassCanonicalKeyFromRaw(key), fn);
 }
-function registerSpeciesAdapter(key, fn) {
+export function registerSpeciesAdapter(key, fn) {
   _setStoreValue(SpeciesAdapters, key, _toSpeciesCanonicalKeyFromRaw(key), fn);
 }
-function registerFeatAdapter(key, fn) {
+export function registerFeatAdapter(key, fn) {
   if (typeof fn !== "function") return;
   if (typeof key === "string") {
     const raw = key;
@@ -225,12 +225,12 @@ function registerFeatAdapter(key, fn) {
     _setStoreValue(FeatAdapters, raw || "", canonical, fn);
   }
 }
-function registerGlobalFeatAdapter(fn) {
+export function registerGlobalFeatAdapter(fn) {
   if (typeof fn !== "function") return;
   GlobalFeatAdapters.push(fn);
 }
 
-function registerClassSheetActions(name, actions) {
+export function registerClassSheetActions(name, actions) {
   _setStoreValue(
     ClassSheetActions,
     name,
@@ -238,7 +238,7 @@ function registerClassSheetActions(name, actions) {
     _sheetActionsPrepare(actions)
   );
 }
-function registerSubclassSheetActions(key, actions) {
+export function registerSubclassSheetActions(key, actions) {
   _setStoreValue(
     SubclassSheetActions,
     key,
@@ -247,7 +247,7 @@ function registerSubclassSheetActions(key, actions) {
   );
 }
 
-function registerClassSheetResources(name, resources) {
+export function registerClassSheetResources(name, resources) {
   _setStoreValue(
     ClassSheetResources,
     name,
@@ -255,7 +255,7 @@ function registerClassSheetResources(name, resources) {
     Array.isArray(resources) ? resources : []
   );
 }
-function registerSubclassSheetResources(key, resources) {
+export function registerSubclassSheetResources(key, resources) {
   _setStoreValue(
     SubclassSheetResources,
     key,
@@ -263,7 +263,7 @@ function registerSubclassSheetResources(key, resources) {
     Array.isArray(resources) ? resources : []
   );
 }
-function registerClassSheetProficiencies(name, grants) {
+export function registerClassSheetProficiencies(name, grants) {
   _setStoreValue(
     ClassSheetProficiencies,
     name,
@@ -271,7 +271,7 @@ function registerClassSheetProficiencies(name, grants) {
     Array.isArray(grants) ? grants : []
   );
 }
-function registerSubclassSheetProficiencies(key, grants) {
+export function registerSubclassSheetProficiencies(key, grants) {
   _setStoreValue(
     SubclassSheetProficiencies,
     key,
@@ -279,7 +279,7 @@ function registerSubclassSheetProficiencies(key, grants) {
     Array.isArray(grants) ? grants : []
   );
 }
-function registerSpeciesSheetProficiencies(key, grants) {
+export function registerSpeciesSheetProficiencies(key, grants) {
   _setStoreValue(
     SpeciesSheetProficiencies,
     key,
@@ -287,7 +287,7 @@ function registerSpeciesSheetProficiencies(key, grants) {
     Array.isArray(grants) ? grants : []
   );
 }
-function registerClassSheetSpellModifiers(name, modifiers) {
+export function registerClassSheetSpellModifiers(name, modifiers) {
   _setStoreValue(
     ClassSheetSpellModifiers,
     name,
@@ -295,7 +295,7 @@ function registerClassSheetSpellModifiers(name, modifiers) {
     Array.isArray(modifiers) ? modifiers.filter(fn => typeof fn === "function") : []
   );
 }
-function registerSubclassSheetSpellModifiers(key, modifiers) {
+export function registerSubclassSheetSpellModifiers(key, modifiers) {
   _setStoreValue(
     SubclassSheetSpellModifiers,
     key,
@@ -303,7 +303,7 @@ function registerSubclassSheetSpellModifiers(key, modifiers) {
     Array.isArray(modifiers) ? modifiers.filter(fn => typeof fn === "function") : []
   );
 }
-function registerSpeciesSheetSpellModifiers(key, modifiers) {
+export function registerSpeciesSheetSpellModifiers(key, modifiers) {
   _setStoreValue(
     SpeciesSheetSpellModifiers,
     key,
@@ -311,7 +311,7 @@ function registerSpeciesSheetSpellModifiers(key, modifiers) {
     Array.isArray(modifiers) ? modifiers.filter(fn => typeof fn === "function") : []
   );
 }
-function registerClassRuntimeConfig(name, config) {
+export function registerClassRuntimeConfig(name, config) {
   _setStoreValue(
     ClassRuntimeConfigs,
     name,
@@ -319,7 +319,7 @@ function registerClassRuntimeConfig(name, config) {
     config && typeof config === "object" ? { ...config } : {}
   );
 }
-function registerSubclassRuntimeConfig(key, config) {
+export function registerSubclassRuntimeConfig(key, config) {
   _setStoreValue(
     SubclassRuntimeConfigs,
     key,
@@ -327,7 +327,7 @@ function registerSubclassRuntimeConfig(key, config) {
     config && typeof config === "object" ? { ...config } : {}
   );
 }
-function registerSpeciesRuntimeConfig(key, config) {
+export function registerSpeciesRuntimeConfig(key, config) {
   _setStoreValue(
     SpeciesRuntimeConfigs,
     key,
@@ -336,21 +336,21 @@ function registerSpeciesRuntimeConfig(key, config) {
   );
 }
 
-function registerClassSheetFeatureFilter(name, fn) {
+export function registerClassSheetFeatureFilter(name, fn) {
   _pushSheetFilter(ClassSheetFeatureFilters, name, _toClassCanonicalKey(name), fn);
 }
-function registerSubclassSheetFeatureFilter(key, fn) {
+export function registerSubclassSheetFeatureFilter(key, fn) {
   _pushSheetFilter(SubclassSheetFeatureFilters, key, _toSubclassCanonicalKeyFromRaw(key), fn);
 }
 
-function registerClassSheetChoiceMeta(name, meta) {
+export function registerClassSheetChoiceMeta(name, meta) {
   _setMetaValue(ClassSheetChoiceMeta, name, _toClassCanonicalKey(name), meta);
 }
-function registerSubclassSheetChoiceMeta(key, meta) {
+export function registerSubclassSheetChoiceMeta(key, meta) {
   _setMetaValue(SubclassSheetChoiceMeta, key, _toSubclassCanonicalKeyFromRaw(key), meta);
 }
 
-function registerSpeciesSheetActions(key, actions) {
+export function registerSpeciesSheetActions(key, actions) {
   _setStoreValue(
     SpeciesSheetActions,
     key,
@@ -359,7 +359,7 @@ function registerSpeciesSheetActions(key, actions) {
   );
 }
 
-function registerSpeciesSheetResources(key, resources) {
+export function registerSpeciesSheetResources(key, resources) {
   _setStoreValue(
     SpeciesSheetResources,
     key,
@@ -368,11 +368,11 @@ function registerSpeciesSheetResources(key, resources) {
   );
 }
 
-function registerSpeciesSheetFeatureFilter(key, fn) {
+export function registerSpeciesSheetFeatureFilter(key, fn) {
   _pushSheetFilter(SpeciesSheetFeatureFilters, key, _toSpeciesCanonicalKeyFromRaw(key), fn);
 }
 
-function registerSpeciesSheetChoiceMeta(key, meta) {
+export function registerSpeciesSheetChoiceMeta(key, meta) {
   _setMetaValue(SpeciesSheetChoiceMeta, key, _toSpeciesCanonicalKeyFromRaw(key), meta);
 }
 
@@ -390,7 +390,7 @@ function _defaultChoiceNormalize(value) {
     .replace(/\}/g, "")
     .trim();
 }
-function registerClassSheetCommonChoiceMeta(name, extraMeta) {
+export function registerClassSheetCommonChoiceMeta(name, extraMeta) {
   registerClassSheetChoiceMeta(name, {
     sectionTitle: "Class Choices",
     isChoiceKey: function (choiceKey) {
@@ -413,7 +413,7 @@ function registerClassSheetCommonChoiceMeta(name, extraMeta) {
     ...(extraMeta && typeof extraMeta === "object" ? extraMeta : {}),
   });
 }
-function registerSubclassSheetCommonChoiceMeta(key, extraMeta) {
+export function registerSubclassSheetCommonChoiceMeta(key, extraMeta) {
   registerSubclassSheetChoiceMeta(key, {
     sectionTitle: "Class Choices",
     isChoiceKey: function (choiceKey, ctx) {
@@ -433,7 +433,7 @@ function registerSubclassSheetCommonChoiceMeta(key, extraMeta) {
   });
 }
 
-function registerSpeciesSheetCommonChoiceMeta(key, extraMeta) {
+export function registerSpeciesSheetCommonChoiceMeta(key, extraMeta) {
   registerSpeciesSheetChoiceMeta(key, {
     sectionTitle: "Species Choices",
     isChoiceKey: function (choiceKey) {
@@ -466,303 +466,269 @@ function registerSpeciesSheetCommonChoiceMeta(key, extraMeta) {
   });
 }
 
-function getClassAdapter(name) {
+export function getClassAdapter(name) {
   return _getStoreValue(ClassAdapters, name, _toClassCanonicalKey(name));
 }
-function getSubclassAdapter(className, subclassShortName) {
+export function getSubclassAdapter(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassAdapters, raw, _toSubclassCanonicalKey(className, subclassShortName));
 }
-function getSpeciesAdapter(speciesName, speciesSource) {
+export function getSpeciesAdapter(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesAdapters, raw, _toSpeciesCanonicalKey(speciesName, speciesSource));
 }
-function getFeatAdapter(name, source) {
+export function getFeatAdapter(name, source) {
   const raw = name && source ? `${name}|${source}` : String(name || "");
   return _getStoreValue(FeatAdapters, raw, _toFeatCanonicalKey(name, source));
 }
-function getGlobalFeatAdapters() {
+export function getGlobalFeatAdapters() {
   return GlobalFeatAdapters.slice();
 }
 
-function getClassSheetActions(name) {
+export function getClassSheetActions(name) {
   return _getStoreValue(ClassSheetActions, name, _toClassCanonicalKey(name)) || [];
 }
-function getSubclassSheetActions(className, subclassShortName) {
+export function getSubclassSheetActions(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetActions, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
 }
-function getClassSheetResources(name) {
+export function getClassSheetResources(name) {
   return _getStoreValue(ClassSheetResources, name, _toClassCanonicalKey(name)) || [];
 }
-function getSubclassSheetResources(className, subclassShortName) {
+export function getSubclassSheetResources(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetResources, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
 }
-function getClassSheetFeatureFilters(name) {
+export function getClassSheetFeatureFilters(name) {
   return _getStoreValue(ClassSheetFeatureFilters, name, _toClassCanonicalKey(name)) || [];
 }
-function getSubclassSheetFeatureFilters(className, subclassShortName) {
+export function getSubclassSheetFeatureFilters(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetFeatureFilters, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
 }
-function getClassSheetChoiceMeta(name) {
+export function getClassSheetChoiceMeta(name) {
   return _getStoreValue(ClassSheetChoiceMeta, name, _toClassCanonicalKey(name)) || {};
 }
-function getSubclassSheetChoiceMeta(className, subclassShortName) {
+export function getSubclassSheetChoiceMeta(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetChoiceMeta, raw, _toSubclassCanonicalKey(className, subclassShortName)) || {};
 }
 
-function getSpeciesSheetActions(speciesName, speciesSource) {
+export function getSpeciesSheetActions(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetActions, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
 }
-function getSpeciesSheetResources(speciesName, speciesSource) {
+export function getSpeciesSheetResources(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetResources, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
 }
-function getSpeciesSheetFeatureFilters(speciesName, speciesSource) {
+export function getSpeciesSheetFeatureFilters(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetFeatureFilters, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
 }
-function getSpeciesSheetChoiceMeta(speciesName, speciesSource) {
+export function getSpeciesSheetChoiceMeta(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetChoiceMeta, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || {};
 }
-function getClassSheetProficiencies(name) {
+export function getClassSheetProficiencies(name) {
   return _getStoreValue(ClassSheetProficiencies, name, _toClassCanonicalKey(name)) || [];
 }
-function getSubclassSheetProficiencies(className, subclassShortName) {
+export function getSubclassSheetProficiencies(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetProficiencies, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
 }
-function getSpeciesSheetProficiencies(speciesName, speciesSource) {
+export function getSpeciesSheetProficiencies(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetProficiencies, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
 }
-function getClassSheetSpellModifiers(name) {
+export function getClassSheetSpellModifiers(name) {
   return _getStoreValue(ClassSheetSpellModifiers, name, _toClassCanonicalKey(name)) || [];
 }
-function getSubclassSheetSpellModifiers(className, subclassShortName) {
+export function getSubclassSheetSpellModifiers(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetSpellModifiers, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
 }
-function getSpeciesSheetSpellModifiers(speciesName, speciesSource) {
+export function getSpeciesSheetSpellModifiers(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesSheetSpellModifiers, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
 }
-function getClassRuntimeConfig(name) {
+export function getClassRuntimeConfig(name) {
   return _getStoreValue(ClassRuntimeConfigs, name, _toClassCanonicalKey(name)) || {};
 }
-function getSubclassRuntimeConfig(className, subclassShortName) {
+export function getSubclassRuntimeConfig(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassRuntimeConfigs, raw, _toSubclassCanonicalKey(className, subclassShortName)) || {};
 }
-function getSpeciesRuntimeConfig(speciesName, speciesSource) {
+export function getSpeciesRuntimeConfig(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : "";
   return _getStoreValue(SpeciesRuntimeConfigs, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || {};
 }
 
-function registerSpeciesSheetHpBonus(key, bonusPerLevel) {
+export function registerSpeciesSheetHpBonus(key, bonusPerLevel) {
   _setStoreValue(SpeciesSheetHpBonus, key, _toSpeciesCanonicalKeyFromRaw(key), Number(bonusPerLevel) || 0);
 }
-function getSpeciesSheetHpBonus(speciesName, speciesSource) {
+export function getSpeciesSheetHpBonus(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : speciesName || "";
   const canonical = _toSpeciesCanonicalKey(speciesName, speciesSource || "");
   const val = _getStoreValue(SpeciesSheetHpBonus, raw, canonical);
   return typeof val === "number" ? val : 0;
 }
 
-function registerClassChoiceKeyFilter(className, fn) {
+export function registerClassChoiceKeyFilter(className, fn) {
   if (typeof fn !== "function") return;
   _setStoreValue(ClassChoiceKeyFilters, className, _toClassCanonicalKey(className), fn);
 }
-function getClassChoiceKeyFilter(className) {
+export function getClassChoiceKeyFilter(className) {
   return _getStoreValue(ClassChoiceKeyFilters, className, _toClassCanonicalKey(className)) || null;
 }
 
-function registerClassChoiceLabelProvider(className, fn) {
+export function registerClassChoiceLabelProvider(className, fn) {
   if (typeof fn !== "function") return;
   _setStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className), fn);
 }
-function getClassChoiceLabelProvider(className) {
+export function getClassChoiceLabelProvider(className) {
   return _getStoreValue(ClassChoiceLabelProviders, className, _toClassCanonicalKey(className)) || null;
 }
 
-function registerWeaponAbilityOverride(cfg) {
+export function registerWeaponAbilityOverride(cfg) {
   if (!cfg || !cfg.key || !cfg.ability || typeof cfg.condition !== 'function') return;
   WeaponAbilityOverrides.push(cfg);
 }
-function getWeaponAbilityOverrides() {
+export function getWeaponAbilityOverrides() {
   return WeaponAbilityOverrides.slice();
 }
 
-function registerClassAtWillSpells(className, map) {
+export function registerClassAtWillSpells(className, map) {
   const k = _normAdapterKey(className);
   ClassAtWillSpells[String(className)] = Array.isArray(map) ? map : [];
   if (k) ClassAtWillSpells[k] = Array.isArray(map) ? map : [];
 }
-function getClassAtWillSpells(className) {
+export function getClassAtWillSpells(className) {
   const raw = String(className || '');
   const k = _normAdapterKey(raw);
   return ClassAtWillSpells[raw] || ClassAtWillSpells[k] || null;
 }
 
-function registerSpeciesLongRestGrants(speciesName, speciesSource, grants) {
+export function registerSpeciesLongRestGrants(speciesName, speciesSource, grants) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : String(speciesName || '');
   const k = _toSpeciesCanonicalKey(speciesName, speciesSource);
   SpeciesLongRestGrants[raw] = grants;
   if (k) SpeciesLongRestGrants[k] = grants;
 }
-function getSpeciesLongRestGrants(speciesName, speciesSource) {
+export function getSpeciesLongRestGrants(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : String(speciesName || '');
   const k = _toSpeciesCanonicalKey(speciesName, speciesSource);
   return SpeciesLongRestGrants[raw] || SpeciesLongRestGrants[k] || null;
 }
 
-function registerResourceSideEffect(key, fn) {
+export function registerResourceSideEffect(key, fn) {
   if (typeof fn !== 'function') return;
   ResourceSideEffects[String(key)] = fn;
 }
-function getResourceSideEffect(key) {
+export function getResourceSideEffect(key) {
   return ResourceSideEffects[String(key)] || null;
 }
 
-function registerFeatSheetResources(name, resources) {
+export function registerFeatSheetResources(name, resources) {
   const k = _normAdapterKey(name);
   FeatSheetResources[String(name)] = Array.isArray(resources) ? resources : [];
   if (k) FeatSheetResources[k] = Array.isArray(resources) ? resources : [];
 }
-function getFeatSheetResources(name) {
+export function getFeatSheetResources(name) {
   const raw = String(name || "");
   const k   = _normAdapterKey(raw);
   return FeatSheetResources[raw] || FeatSheetResources[k] || [];
 }
-function registerFeatSheetActions(name, actions) {
+export function registerFeatSheetActions(name, actions) {
   const k = _normAdapterKey(name);
   FeatSheetActions[String(name)] = Array.isArray(actions) ? actions : [];
   if (k) FeatSheetActions[k] = Array.isArray(actions) ? actions : [];
 }
-function getFeatSheetActions(name) {
+export function getFeatSheetActions(name) {
   const raw = String(name || "");
   const k   = _normAdapterKey(raw);
   return FeatSheetActions[raw] || FeatSheetActions[k] || [];
 }
 
-// ── Item Flag Definitions (pactWeapon, arcaneArmor, ...) ──
-// Each def: {
-//   key: 'arcaneArmor',
-//   label: 'Arcane Armor',
-//   icon: 'shield',                                // lucide icon
-//   types: ['LA','MA','HA'],                       // eligible item types (from inventory)
-//   maxCount: 1,                                   // max items with this flag (0 = unlimited)
-//   requireClass: 'Artificer',                     // must have this class
-//   requireSubclass: 'Armorer',                    // must have this subclass (optional)
-//   requireInvocation: 'Pact of the Blade',        // must have this invocation (optional)
-//   requireMinLevel: 3,                            // class min level
-// }
+// ── Item Flag Definitions ──
 const ItemFlagDefs = {};
-function registerItemFlagDef(key, def) {
+export function registerItemFlagDef(key, def) {
   if (!key || !def || typeof def !== 'object') return;
   ItemFlagDefs[String(key)] = { key: String(key), ...def };
 }
-function getItemFlagDef(key) { return ItemFlagDefs[String(key)] || null; }
-function getAllItemFlagDefs() { return Object.values(ItemFlagDefs); }
+export function getItemFlagDef(key) { return ItemFlagDefs[String(key)] || null; }
+export function getAllItemFlagDefs() { return Object.values(ItemFlagDefs); }
 
-// ── Sheet Effects (stat/speed/adv/disadv/resist/immune/sense/ac/reach/size/tempHp) ──
-// Each effect: {
-//   type: 'stat'|'speed'|'advantage'|'disadvantage'|'resist'|'immune'|'condImmune'|'sense'|'ac'|'reach'|'size'|'tempHp'|'hpPerLevel'|'initiative',
-//   stat: 'str'|'dex'|'con'|'int'|'wis'|'cha',           // for stat
-//   value: number | function(ctx)→number,                 // numeric payload (function for dynamic, e.g. half level)
-//   speedType: 'walk'|'fly'|'swim'|'climb'|'burrow'|'all',// for speed (default 'walk')
-//   target: 'save'|'check'|'attack'|'skill'|'initiative', // for adv/disadv
-//   ability: 'str'|'dex'|'con'|'int'|'wis'|'cha'|'all',   // narrow target (default 'all')
-//   skill: string,                                         // for skill target
-//   damageType: string,                                    // for resist/immune
-//   condition: string,                                     // for condImmune
-//   senseType: 'darkvision'|'blindsight'|'tremorsense'|'truesight',
-//   range: number,                                         // for sense
-//   size: 'M'|'L'|'H',                                     // for size
-//   note: string,                                          // optional human-readable hint
-//   minLevel: number,
-//   requiredChoice: { key, value },                        // value can be string or array; matched normalize-insensitive
-//   requiredFeatureActive: string,                         // toggle on sheet (resource-like)
-// }
+// ── Sheet Effects ──
 const ClassSheetEffects = {};
 const SubclassSheetEffects = {};
 const SpeciesSheetEffects = {};
 const FeatSheetEffects = {};
 
-function registerClassSheetEffects(name, effects) {
+export function registerClassSheetEffects(name, effects) {
   _setStoreValue(ClassSheetEffects, name, _toClassCanonicalKey(name), Array.isArray(effects) ? effects : []);
 }
-function registerSubclassSheetEffects(key, effects) {
+export function registerSubclassSheetEffects(key, effects) {
   _setStoreValue(SubclassSheetEffects, key, _toSubclassCanonicalKeyFromRaw(key), Array.isArray(effects) ? effects : []);
 }
-function registerSpeciesSheetEffects(key, effects) {
+export function registerSpeciesSheetEffects(key, effects) {
   _setStoreValue(SpeciesSheetEffects, key, _toSpeciesCanonicalKeyFromRaw(key), Array.isArray(effects) ? effects : []);
 }
-function registerFeatSheetEffects(name, effects) {
+export function registerFeatSheetEffects(name, effects) {
   const k = _normAdapterKey(name);
   const arr = Array.isArray(effects) ? effects : [];
   FeatSheetEffects[String(name)] = arr;
   if (k) FeatSheetEffects[k] = arr;
 }
-function getClassSheetEffects(name) {
+export function getClassSheetEffects(name) {
   return _getStoreValue(ClassSheetEffects, name, _toClassCanonicalKey(name)) || [];
 }
-function getSubclassSheetEffects(className, subclassShortName) {
+export function getSubclassSheetEffects(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassSheetEffects, raw, _toSubclassCanonicalKey(className, subclassShortName)) || [];
 }
-function getSpeciesSheetEffects(speciesName, speciesSource) {
+export function getSpeciesSheetEffects(speciesName, speciesSource) {
   const raw = speciesName && speciesSource ? `${speciesName}_${speciesSource}` : speciesName || "";
   return _getStoreValue(SpeciesSheetEffects, raw, _toSpeciesCanonicalKey(speciesName, speciesSource)) || [];
 }
-function getFeatSheetEffects(name) {
+export function getFeatSheetEffects(name) {
   const raw = String(name || "");
   const k = _normAdapterKey(raw);
   return FeatSheetEffects[raw] || FeatSheetEffects[k] || [];
 }
 
 const SubclassChoiceDetailDataProviders = {};
-function registerSubclassChoiceDetailDataProvider(className, subclassShortName, fn) {
+export function registerSubclassChoiceDetailDataProvider(className, subclassShortName, fn) {
   if (typeof fn !== "function") return;
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   _setStoreValue(SubclassChoiceDetailDataProviders, raw, _toSubclassCanonicalKey(className, subclassShortName), fn);
 }
-function getSubclassChoiceDetailDataProvider(className, subclassShortName) {
+export function getSubclassChoiceDetailDataProvider(className, subclassShortName) {
   const raw = className && subclassShortName ? `${className}_${subclassShortName}` : "";
   return _getStoreValue(SubclassChoiceDetailDataProviders, raw, _toSubclassCanonicalKey(className, subclassShortName)) || null;
 }
 
-// ── Spell / Cantrip data stores ──────────────────────────────────
-// Chiave: nome spell (raw + canonical _normAdapterKey).
-// Valore: oggetto dati strutturato { icon, die, dmgType, range, toHit, hasSave, notes, ... }
+// ── Spell / Cantrip data stores ──
 const CantripDataStore = {};
 const SpellDataStore   = {};
 const GlobalSpellAdapters = [];
 const GlobalClassAdapters = [];
 const GlobalSubclassAdapters = [];
 const GlobalItemAdapters = [];
-
-// CantripDataModifiers: per-name array of fn(data, C) → data
-// Adapter sets flags (dmgBonusPerBeam, range, notes); sheet computes numeric values.
 const CantripDataModifiers = {};
 
-function registerCantripData(name, data) {
+export function registerCantripData(name, data) {
   if (!name || !data || typeof data !== "object") return;
   const key = _normAdapterKey(name);
   CantripDataStore[String(name)] = data;
   if (key) CantripDataStore[key] = data;
 }
-function getCantripData(name) {
+export function getCantripData(name) {
   const raw = String(name || "");
   const key = _normAdapterKey(raw);
   return _getStoreValue(CantripDataStore, raw, key) || null;
 }
-function registerCantripDataModifier(name, fn) {
+export function registerCantripDataModifier(name, fn) {
   if (!name || typeof fn !== 'function') return;
   const raw = String(name);
   const key = _normAdapterKey(raw);
@@ -770,67 +736,67 @@ function registerCantripDataModifier(name, fn) {
   existing.push(fn);
   _setStoreValue(CantripDataModifiers, raw, key, existing);
 }
-function getCantripDataModifiers(name) {
+export function getCantripDataModifiers(name) {
   const raw = String(name || '');
   const key = _normAdapterKey(raw);
   return _getStoreValue(CantripDataModifiers, raw, key) || [];
 }
 
-function registerSpellData(name, data) {
+export function registerSpellData(name, data) {
   if (!name || !data || typeof data !== "object") return;
   const key = _normAdapterKey(name);
   SpellDataStore[String(name)] = data;
   if (key) SpellDataStore[key] = data;
 }
-function getSpellData(name) {
+export function getSpellData(name) {
   const raw = String(name || "");
   const key = _normAdapterKey(raw);
   return _getStoreValue(SpellDataStore, raw, key) || null;
 }
 
-function registerGlobalSpellAdapter(fn) {
+export function registerGlobalSpellAdapter(fn) {
   if (typeof fn !== "function") return;
   GlobalSpellAdapters.push(fn);
 }
-function getGlobalSpellAdapters() {
+export function getGlobalSpellAdapters() {
   return GlobalSpellAdapters.slice();
 }
 
-function registerGlobalClassAdapter(fn) {
+export function registerGlobalClassAdapter(fn) {
   if (typeof fn !== "function") return;
   GlobalClassAdapters.push(fn);
 }
-function getGlobalClassAdapters() {
+export function getGlobalClassAdapters() {
   return GlobalClassAdapters.slice();
 }
 
-function registerGlobalSubclassAdapter(fn) {
+export function registerGlobalSubclassAdapter(fn) {
   if (typeof fn !== "function") return;
   GlobalSubclassAdapters.push(fn);
 }
-function getGlobalSubclassAdapters() {
+export function getGlobalSubclassAdapters() {
   return GlobalSubclassAdapters.slice();
 }
 
-function registerGlobalItemAdapter(fn) {
+export function registerGlobalItemAdapter(fn) {
   if (typeof fn !== "function") return;
   GlobalItemAdapters.push(fn);
 }
-function getGlobalItemAdapters() {
+export function getGlobalItemAdapters() {
   return GlobalItemAdapters.slice();
 }
 
 const GlobalSpeciesAdapters = [];
-function registerGlobalSpeciesAdapter(fn) {
+export function registerGlobalSpeciesAdapter(fn) {
   if (typeof fn !== "function") return;
   GlobalSpeciesAdapters.push(fn);
 }
-function getGlobalSpeciesAdapters() {
+export function getGlobalSpeciesAdapters() {
   return GlobalSpeciesAdapters.slice();
 }
 
-// ── Shared game constants (available to all adapters + charbuilder) ──────────
-window._ARTISAN_TOOLS = [
+// ── Shared game constants ──
+export const _ARTISAN_TOOLS = [
   "Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies",
   "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools",
   "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools",
@@ -838,35 +804,219 @@ window._ARTISAN_TOOLS = [
   "Potter's Tools", "Smith's Tools", "Tinker's Tools",
   "Weaver's Tools", "Woodcarver's Tools",
 ];
-window._MUSICAL_INSTRUMENTS = [
+export const _MUSICAL_INSTRUMENTS = [
   'Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum',
   'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol',
 ];
-window._GAMING_SETS = [
+export const _GAMING_SETS = [
   'Dice Set', 'Dragonchess Set', 'Playing Card Set', 'Three-Dragon Ante Set',
 ];
-window._VEHICLE_TOOLS = [
+export const _VEHICLE_TOOLS = [
   'Vehicles (Land)', 'Vehicles (Water)',
 ];
-window._STD_LANGS = [
+export const _STD_LANGS = [
   'Common', 'Common Sign Language', 'Draconic', 'Dwarvish', 'Elvish',
   'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc',
 ];
-window._EXOTIC_LANGS = [
+export const _EXOTIC_LANGS = [
   'Abyssal', 'Celestial', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon',
 ];
-window._ALL_LANGS = [...window._STD_LANGS, ...window._EXOTIC_LANGS];
-window._ALL_TOOLS = [
-  ...window._ARTISAN_TOOLS,
-  ...window._MUSICAL_INSTRUMENTS,
-  ...window._GAMING_SETS,
-  ...window._VEHICLE_TOOLS,
+export const _ALL_LANGS = [..._STD_LANGS, ..._EXOTIC_LANGS];
+export const _ALL_TOOLS = [
+  ..._ARTISAN_TOOLS,
+  ..._MUSICAL_INSTRUMENTS,
+  ..._GAMING_SETS,
+  ..._VEHICLE_TOOLS,
   "Thieves' Tools", 'Disguise Kit', 'Forgery Kit',
   "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit",
 ];
 
-// Utility: rimuove tag 5etools ({@skill Foo|XPHB} -> "Foo")
-function _cleanTagName(str) {
+// Utility: rimuove tag 5etools
+export function _cleanTagName(str) {
   if (typeof str !== "string") return str;
   return str.split("|")[0].replace(/\{@\w+ /g, "").replace(/\}/g, "");
+}
+
+// ── Window globals per retrocompatibilità col runtime legacy ──
+const _glob = typeof window !== 'undefined' ? window : null;
+if (_glob) {
+  _glob.ClassAdapters = ClassAdapters;
+  _glob.SubclassAdapters = SubclassAdapters;
+  _glob.SpeciesAdapters = SpeciesAdapters;
+  _glob.FeatAdapters = FeatAdapters;
+  _glob.GlobalFeatAdapters = GlobalFeatAdapters;
+  _glob.ClassSheetActions = ClassSheetActions;
+  _glob.SubclassSheetActions = SubclassSheetActions;
+  _glob.ClassSheetResources = ClassSheetResources;
+  _glob.SubclassSheetResources = SubclassSheetResources;
+  _glob.ClassSheetFeatureFilters = ClassSheetFeatureFilters;
+  _glob.SubclassSheetFeatureFilters = SubclassSheetFeatureFilters;
+  _glob.ClassSheetChoiceMeta = ClassSheetChoiceMeta;
+  _glob.SubclassSheetChoiceMeta = SubclassSheetChoiceMeta;
+  _glob.SpeciesSheetActions = SpeciesSheetActions;
+  _glob.SpeciesSheetResources = SpeciesSheetResources;
+  _glob.SpeciesSheetFeatureFilters = SpeciesSheetFeatureFilters;
+  _glob.SpeciesSheetChoiceMeta = SpeciesSheetChoiceMeta;
+  _glob.ClassSheetProficiencies = ClassSheetProficiencies;
+  _glob.SubclassSheetProficiencies = SubclassSheetProficiencies;
+  _glob.SpeciesSheetProficiencies = SpeciesSheetProficiencies;
+  _glob.ClassSheetSpellModifiers = ClassSheetSpellModifiers;
+  _glob.SubclassSheetSpellModifiers = SubclassSheetSpellModifiers;
+  _glob.SpeciesSheetSpellModifiers = SpeciesSheetSpellModifiers;
+  _glob.ClassRuntimeConfigs = ClassRuntimeConfigs;
+  _glob.SubclassRuntimeConfigs = SubclassRuntimeConfigs;
+  _glob.SpeciesRuntimeConfigs = SpeciesRuntimeConfigs;
+  _glob.SpeciesSheetHpBonus = SpeciesSheetHpBonus;
+  _glob.ClassChoiceKeyFilters = ClassChoiceKeyFilters;
+  _glob.ClassChoiceLabelProviders = ClassChoiceLabelProviders;
+  _glob.FeatSheetResources = FeatSheetResources;
+  _glob.FeatSheetActions = FeatSheetActions;
+  _glob.WeaponAbilityOverrides = WeaponAbilityOverrides;
+  _glob.ClassAtWillSpells = ClassAtWillSpells;
+  _glob.SpeciesLongRestGrants = SpeciesLongRestGrants;
+  _glob.ResourceSideEffects = ResourceSideEffects;
+  _glob.ClassSheetEffects = ClassSheetEffects;
+  _glob.SubclassSheetEffects = SubclassSheetEffects;
+  _glob.SpeciesSheetEffects = SpeciesSheetEffects;
+  _glob.FeatSheetEffects = FeatSheetEffects;
+  _glob.SubclassChoiceDetailDataProviders = SubclassChoiceDetailDataProviders;
+  _glob.CantripDataStore = CantripDataStore;
+  _glob.SpellDataStore = SpellDataStore;
+  _glob.GlobalSpellAdapters = GlobalSpellAdapters;
+  _glob.GlobalClassAdapters = GlobalClassAdapters;
+  _glob.GlobalSubclassAdapters = GlobalSubclassAdapters;
+  _glob.GlobalItemAdapters = GlobalItemAdapters;
+  _glob.CantripDataModifiers = CantripDataModifiers;
+  _glob.GlobalSpeciesAdapters = GlobalSpeciesAdapters;
+  _glob.ItemFlagDefs = ItemFlagDefs;
+
+  _glob._normAdapterKey = _normAdapterKey;
+  _glob._toClassCanonicalKey = _toClassCanonicalKey;
+  _glob._toSubclassCanonicalKey = _toSubclassCanonicalKey;
+  _glob._toSubclassCanonicalKeyFromRaw = _toSubclassCanonicalKeyFromRaw;
+  _glob._toSpeciesCanonicalKey = _toSpeciesCanonicalKey;
+  _glob._toFeatCanonicalKey = _toFeatCanonicalKey;
+  _glob._toSpeciesCanonicalKeyFromRaw = _toSpeciesCanonicalKeyFromRaw;
+  _glob._sheetActionSign = _sheetActionSign;
+  _glob._sheetActionModOf = _sheetActionModOf;
+  _glob._sheetActionOwnerLevel = _sheetActionOwnerLevel;
+  _glob._sheetActionNormalizeDice = _sheetActionNormalizeDice;
+  _glob._sheetActionBuildAutoDamageFormula = _sheetActionBuildAutoDamageFormula;
+  _glob._sheetActionEnrichRollMeta = _sheetActionEnrichRollMeta;
+  _glob._sheetActionsPrepare = _sheetActionsPrepare;
+  _glob._defaultChoiceLabel = _defaultChoiceLabel;
+  _glob._defaultChoiceNormalize = _defaultChoiceNormalize;
+  _glob._cleanTagName = _cleanTagName;
+
+  _glob.registerClassAdapter = registerClassAdapter;
+  _glob.registerSubclassAdapter = registerSubclassAdapter;
+  _glob.registerSpeciesAdapter = registerSpeciesAdapter;
+  _glob.registerFeatAdapter = registerFeatAdapter;
+  _glob.registerGlobalFeatAdapter = registerGlobalFeatAdapter;
+  _glob.registerClassSheetActions = registerClassSheetActions;
+  _glob.registerSubclassSheetActions = registerSubclassSheetActions;
+  _glob.registerClassSheetResources = registerClassSheetResources;
+  _glob.registerSubclassSheetResources = registerSubclassSheetResources;
+  _glob.registerClassSheetProficiencies = registerClassSheetProficiencies;
+  _glob.registerSubclassSheetProficiencies = registerSubclassSheetProficiencies;
+  _glob.registerSpeciesSheetProficiencies = registerSpeciesSheetProficiencies;
+  _glob.registerClassSheetSpellModifiers = registerClassSheetSpellModifiers;
+  _glob.registerSubclassSheetSpellModifiers = registerSubclassSheetSpellModifiers;
+  _glob.registerSpeciesSheetSpellModifiers = registerSpeciesSheetSpellModifiers;
+  _glob.registerClassRuntimeConfig = registerClassRuntimeConfig;
+  _glob.registerSubclassRuntimeConfig = registerSubclassRuntimeConfig;
+  _glob.registerSpeciesRuntimeConfig = registerSpeciesRuntimeConfig;
+  _glob.registerClassSheetFeatureFilter = registerClassSheetFeatureFilter;
+  _glob.registerSubclassSheetFeatureFilter = registerSubclassSheetFeatureFilter;
+  _glob.registerClassSheetChoiceMeta = registerClassSheetChoiceMeta;
+  _glob.registerSubclassSheetChoiceMeta = registerSubclassSheetChoiceMeta;
+  _glob.registerSpeciesSheetActions = registerSpeciesSheetActions;
+  _glob.registerSpeciesSheetResources = registerSpeciesSheetResources;
+  _glob.registerSpeciesSheetFeatureFilter = registerSpeciesSheetFeatureFilter;
+  _glob.registerSpeciesSheetChoiceMeta = registerSpeciesSheetChoiceMeta;
+  _glob.registerClassSheetCommonChoiceMeta = registerClassSheetCommonChoiceMeta;
+  _glob.registerSubclassSheetCommonChoiceMeta = registerSubclassSheetCommonChoiceMeta;
+  _glob.registerSpeciesSheetCommonChoiceMeta = registerSpeciesSheetCommonChoiceMeta;
+  _glob.getClassAdapter = getClassAdapter;
+  _glob.getSubclassAdapter = getSubclassAdapter;
+  _glob.getSpeciesAdapter = getSpeciesAdapter;
+  _glob.getFeatAdapter = getFeatAdapter;
+  _glob.getGlobalFeatAdapters = getGlobalFeatAdapters;
+  _glob.getClassSheetActions = getClassSheetActions;
+  _glob.getSubclassSheetActions = getSubclassSheetActions;
+  _glob.getClassSheetResources = getClassSheetResources;
+  _glob.getSubclassSheetResources = getSubclassSheetResources;
+  _glob.getClassSheetFeatureFilters = getClassSheetFeatureFilters;
+  _glob.getSubclassSheetFeatureFilters = getSubclassSheetFeatureFilters;
+  _glob.getClassSheetChoiceMeta = getClassSheetChoiceMeta;
+  _glob.getSubclassSheetChoiceMeta = getSubclassSheetChoiceMeta;
+  _glob.getSpeciesSheetActions = getSpeciesSheetActions;
+  _glob.getSpeciesSheetResources = getSpeciesSheetResources;
+  _glob.getSpeciesSheetFeatureFilters = getSpeciesSheetFeatureFilters;
+  _glob.getSpeciesSheetChoiceMeta = getSpeciesSheetChoiceMeta;
+  _glob.getClassSheetProficiencies = getClassSheetProficiencies;
+  _glob.getSubclassSheetProficiencies = getSubclassSheetProficiencies;
+  _glob.getSpeciesSheetProficiencies = getSpeciesSheetProficiencies;
+  _glob.getClassSheetSpellModifiers = getClassSheetSpellModifiers;
+  _glob.getSubclassSheetSpellModifiers = getSubclassSheetSpellModifiers;
+  _glob.getSpeciesSheetSpellModifiers = getSpeciesSheetSpellModifiers;
+  _glob.getClassRuntimeConfig = getClassRuntimeConfig;
+  _glob.getSubclassRuntimeConfig = getSubclassRuntimeConfig;
+  _glob.getSpeciesRuntimeConfig = getSpeciesRuntimeConfig;
+  _glob.registerSpeciesSheetHpBonus = registerSpeciesSheetHpBonus;
+  _glob.getSpeciesSheetHpBonus = getSpeciesSheetHpBonus;
+  _glob.registerClassChoiceKeyFilter = registerClassChoiceKeyFilter;
+  _glob.getClassChoiceKeyFilter = getClassChoiceKeyFilter;
+  _glob.registerClassChoiceLabelProvider = registerClassChoiceLabelProvider;
+  _glob.getClassChoiceLabelProvider = getClassChoiceLabelProvider;
+  _glob.registerWeaponAbilityOverride = registerWeaponAbilityOverride;
+  _glob.getWeaponAbilityOverrides = getWeaponAbilityOverrides;
+  _glob.registerClassAtWillSpells = registerClassAtWillSpells;
+  _glob.getClassAtWillSpells = getClassAtWillSpells;
+  _glob.registerSpeciesLongRestGrants = registerSpeciesLongRestGrants;
+  _glob.getSpeciesLongRestGrants = getSpeciesLongRestGrants;
+  _glob.registerResourceSideEffect = registerResourceSideEffect;
+  _glob.getResourceSideEffect = getResourceSideEffect;
+  _glob.registerFeatSheetResources = registerFeatSheetResources;
+  _glob.getFeatSheetResources = getFeatSheetResources;
+  _glob.registerFeatSheetActions = registerFeatSheetActions;
+  _glob.getFeatSheetActions = getFeatSheetActions;
+  _glob.registerItemFlagDef = registerItemFlagDef;
+  _glob.getItemFlagDef = getItemFlagDef;
+  _glob.getAllItemFlagDefs = getAllItemFlagDefs;
+  _glob.registerClassSheetEffects = registerClassSheetEffects;
+  _glob.registerSubclassSheetEffects = registerSubclassSheetEffects;
+  _glob.registerSpeciesSheetEffects = registerSpeciesSheetEffects;
+  _glob.registerFeatSheetEffects = registerFeatSheetEffects;
+  _glob.getClassSheetEffects = getClassSheetEffects;
+  _glob.getSubclassSheetEffects = getSubclassSheetEffects;
+  _glob.getSpeciesSheetEffects = getSpeciesSheetEffects;
+  _glob.getFeatSheetEffects = getFeatSheetEffects;
+  _glob.registerSubclassChoiceDetailDataProvider = registerSubclassChoiceDetailDataProvider;
+  _glob.getSubclassChoiceDetailDataProvider = getSubclassChoiceDetailDataProvider;
+  _glob.registerCantripData = registerCantripData;
+  _glob.getCantripData = getCantripData;
+  _glob.registerCantripDataModifier = registerCantripDataModifier;
+  _glob.getCantripDataModifiers = getCantripDataModifiers;
+  _glob.registerSpellData = registerSpellData;
+  _glob.getSpellData = getSpellData;
+  _glob.registerGlobalSpellAdapter = registerGlobalSpellAdapter;
+  _glob.getGlobalSpellAdapters = getGlobalSpellAdapters;
+  _glob.registerGlobalClassAdapter = registerGlobalClassAdapter;
+  _glob.getGlobalClassAdapters = getGlobalClassAdapters;
+  _glob.registerGlobalSubclassAdapter = registerGlobalSubclassAdapter;
+  _glob.getGlobalSubclassAdapters = getGlobalSubclassAdapters;
+  _glob.registerGlobalItemAdapter = registerGlobalItemAdapter;
+  _glob.getGlobalItemAdapters = getGlobalItemAdapters;
+  _glob.registerGlobalSpeciesAdapter = registerGlobalSpeciesAdapter;
+  _glob.getGlobalSpeciesAdapters = getGlobalSpeciesAdapters;
+
+  _glob._ARTISAN_TOOLS = _ARTISAN_TOOLS;
+  _glob._MUSICAL_INSTRUMENTS = _MUSICAL_INSTRUMENTS;
+  _glob._GAMING_SETS = _GAMING_SETS;
+  _glob._VEHICLE_TOOLS = _VEHICLE_TOOLS;
+  _glob._STD_LANGS = _STD_LANGS;
+  _glob._EXOTIC_LANGS = _EXOTIC_LANGS;
+  _glob._ALL_LANGS = _ALL_LANGS;
+  _glob._ALL_TOOLS = _ALL_TOOLS;
 }

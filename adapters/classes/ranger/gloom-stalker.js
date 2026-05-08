@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Ranger_Gloom Stalker", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

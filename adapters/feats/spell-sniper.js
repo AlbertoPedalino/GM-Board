@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter === "function") {
-    global.registerFeatAdapter("Spell Sniper", function (feat) {
+import { registerFeatAdapter, registerFeatSheetActions } from '../registry.js';
+registerFeatAdapter("Spell Sniper", function (feat) {
       return {
         ...feat,
         choiceUi: {
@@ -19,10 +16,8 @@
         }
       };
     });
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Spell Sniper", [
+registerFeatSheetActions("Spell Sniper", [
       {
         name: "Spell Sniper",
         icon: "crosshair",
@@ -31,5 +26,3 @@
         desc: "You learn one cantrip that requires an attack roll from any class. Double the range of spells that require attack rolls. Your ranged spell attacks ignore half and three-quarters cover."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

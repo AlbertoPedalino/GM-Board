@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 // War Domain (XPHB): tutte le feature sono passive o azioni fisse, nessuna scelta di build.
 // L3: War Priest, Guided Strike (CD)
 // L6: War God's Blessing (CD)

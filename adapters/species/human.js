@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta, registerSpeciesLongRestGrants } from '../registry.js';
+
 // Human XPHB: Versatile — extra Origin Feat + lingua bonus
 registerSpeciesAdapter("Human_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);

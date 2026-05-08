@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Bard_Glamour", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

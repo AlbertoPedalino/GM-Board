@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter === "function") {
-    global.registerFeatAdapter("Artificer Initiate", function (feat) {
+import { registerFeatAdapter, registerFeatSheetActions } from '../registry.js';
+registerFeatAdapter("Artificer Initiate", function (feat) {
       return {
         ...feat,
         choiceUi: {
@@ -17,10 +14,8 @@
         }
       };
     });
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Artificer Initiate", [
+registerFeatSheetActions("Artificer Initiate", [
       {
         name: "Artificer Cantrip & Spell",
         icon: "flask-conical",
@@ -29,5 +24,3 @@
         desc: "You know one Artificer cantrip and one 1st-level Artificer spell. Cast the 1st-level spell once per Long Rest without a spell slot (or using slots). Intelligence is your spellcasting ability. You gain proficiency with one artisan's tool usable as a spellcasting focus."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

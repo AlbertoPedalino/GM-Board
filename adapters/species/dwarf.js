@@ -1,3 +1,5 @@
+import { registerSpeciesAdapter, registerSpeciesSheetCommonChoiceMeta, registerSpeciesSheetHpBonus } from '../registry.js';
+
 registerSpeciesAdapter("Dwarf_XPHB", function (s) {
   return getGenericSpeciesChoiceSpecs(s);
 });

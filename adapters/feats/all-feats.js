@@ -1,9 +1,6 @@
-(function (global) {
-  "use strict";
+import { registerGlobalFeatAdapter } from '../registry.js';
 
-  if (typeof global.registerGlobalFeatAdapter !== "function") return;
-
-  function _toTitleClass(raw) {
+function _toTitleClass(raw) {
     const map = {
       artificer: "Artificer",
       barbarian: "Barbarian",
@@ -81,7 +78,7 @@
     });
   }
 
-  global.registerGlobalFeatAdapter(function (feat) {
+  registerGlobalFeatAdapter(function (feat) {
     const out = feat && typeof feat === "object" ? { ...feat } : feat;
     if (!out || typeof out !== "object") return out;
 
@@ -123,4 +120,3 @@
 
     return out;
   });
-})(typeof window !== "undefined" ? window : globalThis);

@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources, registerSubclassSheetProficiencies, registerWeaponAbilityOverride } from '../../registry.js';
+
 function _wizardBladesingerAdapter(cls, lv, specs) {
   if (lv >= 3) {
     specs.push({

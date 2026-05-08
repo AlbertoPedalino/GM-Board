@@ -1,3 +1,4 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources, registerClassSheetChoiceMeta, registerClassChoiceKeyFilter, registerClassChoiceLabelProvider } from '../../registry.js';
 
 const _ARTIFICER_PLAN_POOL_LV2 = [
   'Alchemy Jug',
@@ -143,7 +144,7 @@ function _artificerCollectKnownTools() {
   return out;
 }
 
-function _artificerGetConditionalBonusCount(requiredTools) {
+export function _artificerGetConditionalBonusCount(requiredTools) {
   const profs = _artificerCollectKnownTools();
   let n = 0;
   (requiredTools || []).forEach(function (tool) {

@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 // Trickery Domain (XPHB): tutte le feature sono passive o azioni fisse, nessuna scelta di build.
 // L3: Blessing of the Trickster, Invoke Duplicity (CD)
 // L6: Trickster's Transposition

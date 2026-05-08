@@ -1,16 +1,20 @@
 /**
  * adapters/loader.js
- * Inietta ogni file del manifest come <script> sincrono via document.write.
- * Deve essere caricato durante il parsing iniziale della pagina (non dopo load).
- * Garantisce che tutti gli adapter siano registrati PRIMA che l'inline script esegua.
+ * Carica tutti gli adapter via dynamic import del barrel.
+ * Per pagine legacy che non usano React.
+ * Dopo il caricamento, dispatches 'adapters-ready' e chiama window.__onAdaptersReady.
  */
-
-(function () {
-  if (typeof ADAPTER_MANIFEST === 'undefined') {
-    console.error('[AdapterLoader] ADAPTER_MANIFEST non trovato – assicurati che manifest.js sia caricato prima di loader.js.');
-    return;
+(async function () {
+  try {
+    await import('./index.js');
+    if (window.__gbAdapterManifestError) {
+      console.error('[AdapterLoader]', window.__gbAdapterManifestError);
+    }
+  } catch (err) {
+    console.error('[AdapterLoader] Import failed:', err);
   }
-  ADAPTER_MANIFEST.forEach(function (path) {
-    document.write('<script src="' + path + '"><\/script>');
-  });
+  document.dispatchEvent(new Event('adapters-ready'));
+  if (typeof window.__onAdaptersReady === 'function') {
+    window.__onAdaptersReady();
+  }
 })();

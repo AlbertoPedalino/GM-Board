@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatSheetResources === "function") {
-    global.registerFeatSheetResources("Inspiring Leader", [
+import { registerFeatSheetActions, registerFeatSheetResources } from '../registry.js';
+registerFeatSheetResources("Inspiring Leader", [
       {
         key: "inspiring_speech",
         name: "Inspiring Speech",
@@ -11,10 +8,8 @@
         max: function () { return 1; }
       }
     ]);
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Inspiring Leader", [
+registerFeatSheetActions("Inspiring Leader", [
       {
         name: "Inspiring Speech",
         icon: "mic",
@@ -23,5 +18,3 @@
         desc: "Spend 10 minutes giving an inspiring speech. Up to 6 creatures who can hear and understand you gain Temporary Hit Points equal to your Proficiency Bonus. Once per Long Rest."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatSheetResources === "function") {
-    global.registerFeatSheetResources("Chef", [
+import { registerFeatSheetActions, registerFeatSheetResources } from '../registry.js';
+registerFeatSheetResources("Chef", [
       {
         key: "chef_treats",
         name: "Bolstering Treats",
@@ -15,10 +12,8 @@
         }
       }
     ]);
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Chef", [
+registerFeatSheetActions("Chef", [
       {
         name: "Replenishing Meal",
         icon: "chef-hat",
@@ -35,5 +30,3 @@
         desc: "A creature eats one of your treats (cooked in 1 hour or after a Long Rest, up to PB treats lasting 8 hours) to gain Temporary HP equal to your Proficiency Bonus."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

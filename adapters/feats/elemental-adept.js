@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter === "function") {
-    global.registerFeatAdapter("Elemental Adept", function (feat) {
+import { registerFeatAdapter, registerFeatSheetActions } from '../registry.js';
+registerFeatAdapter("Elemental Adept", function (feat) {
       return {
         ...feat,
         choiceUi: {
@@ -21,10 +18,8 @@
         }
       };
     });
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Elemental Adept", [
+registerFeatSheetActions("Elemental Adept", [
       {
         name: "Energy Mastery",
         icon: "zap",
@@ -33,5 +28,3 @@
         desc: "Your spells ignore Resistance to your chosen damage type (Acid, Cold, Fire, Lightning, or Thunder). When you roll damage for a spell of that type, treat any 1 on a die as a 2. Can be taken multiple times for different types."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

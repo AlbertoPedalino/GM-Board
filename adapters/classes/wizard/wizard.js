@@ -1,3 +1,5 @@
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources, registerResourceSideEffect } from '../../registry.js';
+
 registerClassAdapter("Wizard", function (cls, lv, specs) {
   if (lv >= 2) {
     specs.push({
@@ -53,7 +55,7 @@ registerClassAdapter("Wizard", function (cls, lv, specs) {
   }
 });
 
-function addWizardSavantSpellChoices(specs, lv, cfg) {
+export function addWizardSavantSpellChoices(specs, lv, cfg) {
   if (!Array.isArray(specs) || !cfg || !cfg.key || !cfg.school || !cfg.label) return;
   if (lv >= 3) {
     specs.push({

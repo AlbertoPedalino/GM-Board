@@ -1,3 +1,6 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources, registerSubclassSheetProficiencies, registerSubclassSheetEffects, _ARTISAN_TOOLS } from '../../registry.js';
+import { _artificerGetConditionalBonusCount } from './artificer.js';
+
 registerSubclassAdapter("Artificer_Alchemist", function (cls, lv, specs) {
   if (lv < 3) return;
   const bonusCount = typeof _artificerGetConditionalBonusCount === 'function'

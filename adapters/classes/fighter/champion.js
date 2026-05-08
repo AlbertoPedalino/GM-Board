@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Fighter_Champion", function (cls, lv, specs) {
   if (lv >= 7) {
     specs.push({

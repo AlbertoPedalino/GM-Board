@@ -1,4 +1,6 @@
 // Metamagic XPHB 2024
+import { registerClassAdapter, registerClassSheetActions, registerClassSheetResources } from '../../registry.js';
+
 const _METAMAGIC = [
   'Careful Spell', 'Distant Spell', 'Empowered Spell', 'Extended Spell',
   'Heightened Spell', 'Quickened Spell', 'Seeking Spell', 'Subtle Spell',

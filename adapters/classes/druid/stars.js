@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Druid_Stars", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

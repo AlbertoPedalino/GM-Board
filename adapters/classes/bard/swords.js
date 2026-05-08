@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetProficiencies } from '../../registry.js';
+
 registerSubclassAdapter("Bard_Swords", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({

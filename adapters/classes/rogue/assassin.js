@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetProficiencies } from '../../registry.js';
+
 registerSubclassAdapter("Rogue_Assassin", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

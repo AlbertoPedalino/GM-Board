@@ -1,9 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter !== "function") return;
-
-  global.registerFeatAdapter("Fey Touched", function (feat) {
+import { registerFeatAdapter } from '../registry.js';
+registerFeatAdapter("Fey Touched", function (feat) {
     return {
       ...feat,
       choiceUi: {
@@ -20,4 +16,3 @@
       }
     };
   });
-})(typeof window !== "undefined" ? window : globalThis);

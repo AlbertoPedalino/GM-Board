@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Paladin_Noble Genies", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({

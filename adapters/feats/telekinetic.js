@@ -1,8 +1,5 @@
-(function (global) {
-  "use strict";
-
-  if (typeof global.registerFeatAdapter === "function") {
-    global.registerFeatAdapter("Telekinetic", function (feat) {
+import { registerFeatAdapter, registerFeatSheetActions } from '../registry.js';
+registerFeatAdapter("Telekinetic", function (feat) {
       return {
         ...feat,
         choiceUi: {
@@ -19,10 +16,8 @@
         }
       };
     });
-  }
 
-  if (typeof global.registerFeatSheetActions === "function") {
-    global.registerFeatSheetActions("Telekinetic", [
+registerFeatSheetActions("Telekinetic", [
       {
         name: "Telekinetic Shove",
         icon: "hand",
@@ -38,5 +33,3 @@
         desc: "You learn the Mage Hand cantrip. The hand is invisible, has range 60 ft, and you can use it as a Bonus Action. The spell's spellcasting ability is your chosen ability."
       }
     ]);
-  }
-})(typeof window !== "undefined" ? window : globalThis);

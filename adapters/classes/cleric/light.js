@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 // Light Domain (XPHB): tutte le feature sono passive, nessuna scelta di build.
 // L3: Warding Flare, Radiance of the Dawn (CD)
 // L6: Improved Warding Flare

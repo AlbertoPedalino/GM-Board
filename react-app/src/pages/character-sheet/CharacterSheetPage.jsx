@@ -1,5 +1,8 @@
+import 'adapters/index.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CharacterSheetLayout from './CharacterSheetLayout.jsx';
+import { DiceRollToast } from './DiceRollToast.jsx';
+import { SpellPickerModal } from './SpellPickerModal.jsx';
 import {
   configureCharacterSheetScope,
   readCharacterSheetHeader,
@@ -21,230 +24,101 @@ import {
 } from './sheetRuntime.js';
 import { loadSheetSpellDb } from './sheetSpellDb.js';
 
-const LEGACY_URL = '/legacy/character-sheet.html';
-const LEGACY_BASE_URL = new URL(LEGACY_URL, window.location.origin).href;
+const LEGACY_URL = '/sheet-runtime.js';
+const LUCIDE_URL = 'https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js';
+const FONTS_URL = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap';
 
-function absoluteLegacyUrl(value) {
-  return new URL(value, LEGACY_BASE_URL).href;
+function legacyConstToVar(code) {
+  return code.replace(/^(const\s+)/gm, 'var ');
 }
 
-function parseLegacySheet(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-
-  const headResources = [...doc.head.querySelectorAll('link, style')].map((node) => {
-    if (node.tagName.toLowerCase() === 'style') {
-      return {
-        type: 'style',
-        content: node.textContent ?? '',
-      };
-    }
-
-    const attrs = {};
-    for (const attr of node.attributes) {
-      attrs[attr.name] = attr.name === 'href' ? absoluteLegacyUrl(attr.value) : attr.value;
-    }
-
-    return {
-      type: 'link',
-      attrs,
-    };
+function injectLucideScript() {
+  if (document.querySelector('script[src*="lucide"]')) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = LUCIDE_URL;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
   });
-
-  const scripts = [...doc.querySelectorAll('script')]
-    .filter((node) => {
-      const content = node.textContent || '';
-      return !(
-        !node.getAttribute('src') &&
-        content.includes('window.GB_SHEET_KEYS') &&
-        content.includes('Storage.prototype.getItem')
-      );
-    })
-    .map((node) => {
-      const src = node.getAttribute('src');
-      if (src && src.replaceAll('\\', '/').endsWith('adapters/loader.js')) {
-        return {
-          loadAdapterManifest: true,
-          src: null,
-          type: '',
-          content: '',
-        };
-      }
-
-      return {
-        src: src ? absoluteLegacyUrl(src) : null,
-        type: node.getAttribute('type') || '',
-        content: src ? '' : (node.textContent || '').replace(
-          /\nC = loadChar\(\);\s*\nrenderAll\(\);\s*\nloadItems\(\);\s*\n\/\/ Load spell DB in background so ATK\/DMG buttons and picker work immediately\s*\n_loadSheetSpells\(\)\.then\(\(\)=>\{ if\(C\) renderSpellsTab\(\); \}\);/,
-          `
-if (typeof window.__gbInstallReactSheetRendererShims === 'function') {
-  window.__gbInstallReactSheetRendererShims();
 }
-C = loadChar();
-if (typeof renderAll === 'function') renderAll();
-if (typeof loadItems === 'function') {
+
+async function runSheetRuntime(rawCode) {
+  const transformed = legacyConstToVar(rawCode);
+  const shims = `if(typeof window.__gbInstallReactSheetRendererShims==='function'){window.__gbInstallReactSheetRendererShims();}`;
+  const initCode = `
+C=loadChar();
+if(typeof renderAll==='function')renderAll();
+if(typeof loadItems==='function'){
   Promise.resolve(loadItems()).then(function(){
-    try {
-      if (Array.isArray(sheetInventory)) {
-        var dirty = false;
-        var stripPipe = function(v){ return String(v || '').split('|')[0]; };
-        var inferType = function(it){
-          if (!it) return '';
-          if (it.dmg1) {
-            var props = Array.isArray(it.property) ? it.property : [];
-            if (props.indexOf('A') >= 0 || props.indexOf('ammo') >= 0 || props.indexOf('R') >= 0 || props.indexOf('range') >= 0) return 'R';
-            return 'M';
-          }
-          if (it.ac != null && it.ac !== '') {
-            var ac = Number(it.ac) || 0;
-            var nm = String(it.name || '').toLowerCase();
-            if (nm.indexOf('shield') >= 0) return 'S';
-            if (ac >= 16) return 'HA';
-            if (ac >= 13) return 'MA';
-            return 'LA';
-          }
-          return '';
-        };
+    try{
+      if(Array.isArray(sheetInventory)){
+        var d=false,sp=function(v){return String(v||'').split('|')[0];};
         sheetInventory.forEach(function(it){
-          if (!it) return;
-          if (it.type && it.type.indexOf('|') >= 0) { it.type = stripPipe(it.type); dirty = true; }
-          if (Array.isArray(it.property)) {
-            var nextProps = it.property.map(stripPipe);
-            if (nextProps.some(function(p, i){ return p !== it.property[i]; })) { it.property = nextProps; dirty = true; }
+          if(!it)return;
+          if(it.type&&it.type.indexOf('|')>=0){it.type=sp(it.type);d=true;}
+          if(Array.isArray(it.property)){
+            var np=it.property.map(sp);
+            if(np.some(function(p,i){return p!==it.property[i];})){it.property=np;d=true;}
           }
-          if (it.custom || it.type) return;
-          if (typeof _resolveInvItem === 'function') {
-            var enriched = _resolveInvItem(it);
-            if (enriched && enriched.type) { it.type = stripPipe(enriched.type); dirty = true; }
-            if (enriched && enriched.dmg1 && !it.dmg1) { it.dmg1 = enriched.dmg1; dirty = true; }
-            if (enriched && enriched.ac != null && it.ac == null) { it.ac = enriched.ac; dirty = true; }
-            if (enriched && Array.isArray(enriched.property) && !Array.isArray(it.property)) { it.property = enriched.property.map(stripPipe); dirty = true; }
+          if(it.custom||it.type)return;
+          if(typeof _resolveInvItem==='function'){
+            var e=_resolveInvItem(it);
+            if(e&&e.type){it.type=sp(e.type);d=true;}
+            if(e&&e.dmg1&&!it.dmg1){it.dmg1=e.dmg1;d=true;}
+            if(e&&e.ac!=null&&it.ac==null){it.ac=e.ac;d=true;}
+            if(e&&Array.isArray(e.property)&&!Array.isArray(it.property)){it.property=e.property.map(sp);d=true;}
           }
-          if (!it.type) {
-            var inferred = inferType(it);
-            if (inferred) { it.type = inferred; dirty = true; }
+          if(!it.type){
+            var t=(function(it2){
+              if(!it2)return'';
+              if(it2.dmg1){
+                var pp=Array.isArray(it2.property)?it2.property:[];
+                if(pp.indexOf('A')>=0||pp.indexOf('ammo')>=0||pp.indexOf('R')>=0||pp.indexOf('range')>=0)return'R';
+                return'M';
+              }
+              if(it2.ac!=null&&it2.ac!==''){
+                var an=Number(it2.ac)||0, nm=String(it2.name||'').toLowerCase();
+                if(nm.indexOf('shield')>=0)return'S';
+                if(an>=16)return'HA';if(an>=13)return'MA';return'LA';
+              }
+              return'';
+            })(it);
+            if(t){it.type=t;d=true;}
           }
         });
-        if (dirty && typeof persistInventory === 'function') persistInventory();
+        if(d&&typeof persistInventory==='function')persistInventory();
       }
-    } catch(e) { console.warn('[react] inventory type backfill failed', e); }
+    }catch(e){console.warn('[react] inventory type backfill failed',e);}
     window.dispatchEvent(new CustomEvent('gb-sheet-snapshot-change'));
   });
 }
-window.adjustHpBy = function(amt, dir){ hpAdjustAmt = amt; adjustHP(dir); };
-if (typeof _loadSheetSpells === 'function') {
-  _loadSheetSpells().then(()=>{ if(C && typeof renderSpellsTab === 'function') renderSpellsTab(); });
-}`,
-        ),
-      };
-    });
-
-  return {
-    headResources,
-    scripts,
-  };
+window.adjustHpBy=function(amt,dir){hpAdjustAmt=amt;adjustHP(dir);};
+window.addSpellToSheet=function(s){if(s&&s.name!=null)try{toggleSheetSpell(s.name,s.level!=null?s.level:0);}catch(e){console.warn('[sheet] addSpellToSheet failed',e);}};
+if(typeof _loadSheetSpells==='function'){
+  _loadSheetSpells().then(function(){if(C&&typeof renderSpellsTab==='function')renderSpellsTab();});
 }
+`;
+  const fullCode = transformed + '\n' + shims + '\n' + initCode;
 
-function useLegacyHeadResources(resources, active) {
-  useEffect(() => {
-    if (!active || resources.length === 0) return undefined;
-
-    const mounted = resources.map((resource) => {
-      const node = document.createElement(resource.type);
-      node.dataset.gmBoardLegacySheet = 'true';
-
-      if (resource.type === 'style') {
-        node.textContent = resource.content;
-      } else {
-        Object.entries(resource.attrs).forEach(([name, value]) => {
-          node.setAttribute(name, value);
-        });
-      }
-
-      document.head.appendChild(node);
-      return node;
-    });
-
-    return () => mounted.forEach((node) => node.remove());
-  }, [active, resources]);
-}
-
-async function runLegacyScripts(scripts) {
-  for (const scriptDef of scripts) {
-    if (scriptDef.loadAdapterManifest) {
-      await loadAdapterManifestScripts();
-      continue;
-    }
-
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.dataset.gmBoardLegacySheetScript = 'true';
-
-      if (scriptDef.type) {
-        script.type = scriptDef.type;
-      }
-
-      if (scriptDef.src) {
-        script.src = scriptDef.src;
-        script.onload = resolve;
-        script.onerror = () => reject(new Error(`Cannot load ${scriptDef.src}`));
-      } else {
-        script.textContent = scriptDef.content;
-      }
-
-      document.body.appendChild(script);
-      if (!scriptDef.src) resolve();
-    });
-  }
+  const script = document.createElement('script');
+  script.textContent = fullCode;
+  document.body.appendChild(script);
+  script.remove();
 
   document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true }));
-
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons({ attrs: { 'stroke-width': 1.7 } });
   }
-
   window.__gbCharacterSheetRuntimeLoaded = true;
 }
 
-async function loadAdapterManifestScripts() {
-  await new Promise((resolve, reject) => {
-    delete window.__gbAdapterManifestError;
-
-    const script = document.createElement('script');
-    script.dataset.gmBoardLegacySheetScript = 'true';
-    script.textContent = `
-      try {
-        window.__gbAdapterManifest = Array.isArray(ADAPTER_MANIFEST)
-          ? ADAPTER_MANIFEST.slice()
-          : [];
-      } catch (err) {
-        window.__gbAdapterManifestError = err && err.message ? err.message : String(err);
-      }
-    `;
-    document.body.appendChild(script);
-    script.remove();
-
-    if (window.__gbAdapterManifestError) {
-      reject(new Error(window.__gbAdapterManifestError));
-      return;
-    }
-
-    resolve();
-  });
-
-  const manifest = Array.isArray(window.__gbAdapterManifest)
-    ? window.__gbAdapterManifest
-    : [];
-
-  for (const path of manifest) {
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.dataset.gmBoardLegacySheetScript = 'true';
-      script.src = absoluteLegacyUrl(path);
-      script.onload = resolve;
-      script.onerror = () => reject(new Error(`Cannot load adapter ${path}`));
-      document.body.appendChild(script);
-    });
-  }
+function installFonts() {
+  if (document.querySelector('link[href*="fonts.googleapis.com"][href*="Cinzel"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = FONTS_URL;
+  document.head.appendChild(link);
 }
 
 function refreshLegacySheetRuntime() {
@@ -281,6 +155,7 @@ function refreshLegacySheetRuntime() {
           });
         }
         window.adjustHpBy = function(amt, dir){ hpAdjustAmt = amt; adjustHP(dir); };
+        window.addSpellToSheet = function(s){ try{ if(s&&s.name!=null) toggleSheetSpell(s.name, s.level!=null?s.level:0); }catch(e){console.warn('[sheet] addSpellToSheet',e);} };
         if (typeof _loadSheetSpells === 'function') {
           _loadSheetSpells().then(function(){
             if (C && typeof renderSpellsTab === 'function') renderSpellsTab();
@@ -369,6 +244,15 @@ function installSnapshotRefreshHooks() {
   ].forEach((name) => {
     const original = window[name];
     if (typeof original !== 'function') return;
+    if (name === 'openSpellPicker') {
+      window[name] = function openSpellPickerWrapper(...args) {
+        if (typeof window.__gbOpenSpellPicker === 'function') {
+          window.__gbOpenSpellPicker();
+        }
+        return undefined;
+      };
+      return;
+    }
     window[name] = function snapshotRefreshWrapper(...args) {
       const result = original.apply(this, args);
       window.setTimeout(() => {
@@ -382,10 +266,9 @@ function installSnapshotRefreshHooks() {
 }
 
 export default function CharacterSheetPage({ active, title }) {
-  const hasRunScriptsRef = useRef(false);
   const runtimeReadyRef = useRef(false);
-  const [legacyDoc, setLegacyDoc] = useState(null);
   const [runtimeReady, setRuntimeReady] = useState(false);
+  const [injected, setInjected] = useState(false);
   const [sheetHeader, setSheetHeader] = useState(() => readCharacterSheetHeader());
   const [sheetSummary, setSheetSummary] = useState(() => computeSummary());
   const [sheetVitals, setSheetVitals] = useState(() => computeVitals());
@@ -401,31 +284,40 @@ export default function CharacterSheetPage({ active, title }) {
   const [sheetSkillsRows, setSheetSkillsRows] = useState(() => computeSkills());
   const [activeTab, setActiveTab] = useState('actions');
   const [error, setError] = useState('');
+  const [isSpellPickerOpen, setIsSpellPickerOpen] = useState(false);
 
   const className = useMemo(
     () => `character-sheet-page${active ? ' active' : ''}`,
     [active],
   );
 
-  useLegacyHeadResources(legacyDoc?.headResources ?? [], active);
-
   useEffect(() => {
     let cancelled = false;
 
-    async function loadSheet() {
+    async function bootSheet() {
       try {
-        const response = await fetch(`${LEGACY_URL}${window.location.search || ''}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        installFonts();
+        configureCharacterSheetScope();
+        installRendererBridgeShims();
+        await injectLucideScript();
 
-        const html = await response.text();
-        const parsed = parseLegacySheet(html);
-        if (!cancelled) setLegacyDoc(parsed);
+        const response = await fetch(LEGACY_URL);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const code = await response.text();
+
+        if (cancelled) return;
+        await runSheetRuntime(code);
+        if (cancelled) return;
+
+        installRendererBridgeShims();
+        installSnapshotRefreshHooks();
+        if (!cancelled) setInjected(true);
       } catch (err) {
         if (!cancelled) setError(err?.message || 'Unknown error');
       }
     }
 
-    loadSheet();
+    bootSheet();
 
     return () => {
       cancelled = true;
@@ -433,62 +325,23 @@ export default function CharacterSheetPage({ active, title }) {
   }, []);
 
   useEffect(() => {
-    if (!legacyDoc || hasRunScriptsRef.current) return;
-
-    hasRunScriptsRef.current = true;
-    setRuntimeReady(false);
-    configureCharacterSheetScope();
-    installRendererBridgeShims();
-
-    if (
-      window.__gbCharacterSheetRuntimeLoaded ||
-      (typeof window.loadChar === 'function' && typeof window.renderAll === 'function')
-    ) {
-      refreshLegacySheetRuntime();
-      installRendererBridgeShims();
-      installSnapshotRefreshHooks();
-      setSheetHeader(readCharacterSheetHeader());
-      setSheetSummary(computeSummary());
-      setSheetVitals(computeVitals());
-      setSheetScores(computeScores());
-      setSheetProficiencies(computeProficiencies());
-      setSheetActions(computeActions());
-      setSheetBackground(computeBackground());
-      setSheetFeatures(computeFeatures());
-      setSheetInventory(computeInventory());
-      setSheetSpells(computeSpells());
-      setSheetSaves(computeSaves());
-      setSheetSenses(computeSenses());
-      setSheetSkillsRows(computeSkills());
-      runtimeReadyRef.current = true;
-      setRuntimeReady(true);
-      return;
-    }
-
-    runLegacyScripts(legacyDoc.scripts)
-      .then(() => {
-        installRendererBridgeShims();
-        installSnapshotRefreshHooks();
-        setSheetHeader(readCharacterSheetHeader());
-        setSheetSummary(computeSummary());
-        setSheetVitals(computeVitals());
-        setSheetScores(computeScores());
-        setSheetProficiencies(computeProficiencies());
-        setSheetActions(computeActions());
-        setSheetBackground(computeBackground());
-        setSheetFeatures(computeFeatures());
-        setSheetInventory(computeInventory());
-        setSheetSpells(computeSpells());
-        setSheetSaves(computeSaves());
-        setSheetSenses(computeSenses());
-        setSheetSkillsRows(computeSkills());
-        runtimeReadyRef.current = true;
-        setRuntimeReady(true);
-      })
-      .catch((err) => {
-        setError(err?.message || 'Sheet runtime initialization failed');
-      });
-  }, [legacyDoc]);
+    if (!injected || runtimeReadyRef.current) return;
+    runtimeReadyRef.current = true;
+    setSheetHeader(readCharacterSheetHeader());
+    setSheetSummary(computeSummary());
+    setSheetVitals(computeVitals());
+    setSheetScores(computeScores());
+    setSheetProficiencies(computeProficiencies());
+    setSheetActions(computeActions());
+    setSheetBackground(computeBackground());
+    setSheetFeatures(computeFeatures());
+    setSheetInventory(computeInventory());
+    setSheetSpells(computeSpells());
+    setSheetSaves(computeSaves());
+    setSheetSenses(computeSenses());
+    setSheetSkillsRows(computeSkills());
+    setRuntimeReady(true);
+  }, [injected]);
 
   useEffect(() => {
     if (!active || !runtimeReadyRef.current) return;
@@ -519,6 +372,13 @@ export default function CharacterSheetPage({ active, title }) {
     window.addEventListener('gb-sheet-snapshot-change', handleSnapshotChange);
     return () => {
       window.removeEventListener('gb-sheet-snapshot-change', handleSnapshotChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    window.__gbOpenSpellPicker = () => setIsSpellPickerOpen(true);
+    return () => {
+      delete window.__gbOpenSpellPicker;
     };
   }, []);
 
@@ -601,7 +461,7 @@ export default function CharacterSheetPage({ active, title }) {
         </div>
       )}
 
-      {(!legacyDoc || !runtimeReady) && !error && (
+      {!runtimeReady && !error && (
         <div className="sheet-loading-overlay" role="status" aria-live="polite">
           <div className="sheet-loading-card">
             <div className="sheet-loading-spinner" aria-hidden="true" />
@@ -610,8 +470,19 @@ export default function CharacterSheetPage({ active, title }) {
         </div>
       )}
 
-      {legacyDoc && (
+      {injected && (
         <div className={`character-sheet-runtime ${runtimeReady ? 'ready' : 'pending'}`}>
+          <DiceRollToast />
+          <SpellPickerModal
+            isOpen={isSpellPickerOpen}
+            onClose={() => setIsSpellPickerOpen(false)}
+            onSpellSelect={(spell) => {
+              if (typeof window.addSpellToSheet === 'function') {
+                window.addSpellToSheet(spell);
+              }
+              setIsSpellPickerOpen(false);
+            }}
+          />
           <CharacterSheetLayout
             header={sheetHeader}
             summary={sheetSummary}

@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions } from '../../registry.js';
+
 registerSubclassAdapter("Barbarian_Wild Heart", function (cls, lv, specs) {
   if (lv >= 6) {
     specs.push({

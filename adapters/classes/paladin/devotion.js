@@ -1,3 +1,5 @@
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs) {});
 
 // [SheetRuntime] START

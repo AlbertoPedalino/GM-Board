@@ -19,6 +19,8 @@ const _BM_SLOTS = [
   { idx: 8, level: 15 }, { idx: 9, level: 15 },
 ];
 
+import { registerSubclassAdapter, registerSubclassSheetActions, registerSubclassSheetResources } from '../../registry.js';
+
 registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
