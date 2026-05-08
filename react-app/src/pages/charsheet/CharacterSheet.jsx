@@ -12,6 +12,7 @@ import TabsPanel from './components/TabsPanel.jsx';
 import DiceToast from './components/DiceToast.jsx';
 import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspiration, saveConditions, saveInventory, saveCurrency, saveCurrentCharacter, loadResources, saveResources } from './state.js';
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
+import { applyResourceRest, getAllResourceDefs, getTotalHitDice, normalizeResourceMax } from './logic/restResources.js';
 
 const theme = createTheme({
   palette: {
@@ -40,25 +41,6 @@ const theme = createTheme({
   },
 });
 
-function normalizeResourceMax(def) {
-  const raw = def?.maxComputed ?? def?.max ?? 1;
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return raw === Infinity ? Infinity : 1;
-  return Math.max(0, Math.floor(n));
-}
-
-function resourceRestText(def) {
-  return String(def?.recharge || '').toLowerCase();
-}
-
-function shortRestFullyRecovers(def, C) {
-  const recharge = resourceRestText(def);
-  if (!/\b(sr|short)\b/.test(recharge)) return false;
-  const ownerLevel = Number(def?.ownerLevel ?? C?.classLevel ?? C?.level ?? 1);
-  if (def?.srMinLevel && ownerLevel < Number(def.srMinLevel)) return false;
-  return true;
-}
-
 export default function CharacterSheet() {
   const [C, setC] = useState(null);
   const [sheet, setSheet] = useState(null);
@@ -76,13 +58,7 @@ export default function CharacterSheet() {
       const s = loadSheetState(ch);
       setSheet(s);
       const stored = loadResources(ch);
-      const runtime = ch.adapterRuntime || {};
-      const allResDefs = [
-        ...(runtime.classResources || []),
-        ...(runtime.subclassResources || []),
-        ...(runtime.speciesResources || []),
-        ...(runtime.featResources || []),
-      ];
+      const allResDefs = getAllResourceDefs(ch);
       const merged = { ...stored };
       allResDefs.forEach(def => {
         if (def.key && merged[def.key] == null) {
@@ -124,7 +100,7 @@ export default function CharacterSheet() {
   }, [updateCurrentCharacter]);
 
   const openShortRest = useCallback(() => {
-    const totalHD = (C.classLevel || C.level) + (C.extraClasses || []).reduce((s, ec) => s + (ec.level || 1), 0);
+    const totalHD = getTotalHitDice(C);
     const remaining = Math.max(0, totalHD - (sheet.usedHD || 0));
     setHdToSpend(Math.min(1, remaining));
     setShortRestOpen(true);
@@ -132,10 +108,10 @@ export default function CharacterSheet() {
 
   const confirmShortRest = useCallback(() => {
     const s = { ...sheet };
-    const res = { ...resources };
+    let res = { ...resources };
     const conMod = getMod(getFinal(C, 'con'));
     const faces = C.clsSnapshot?.hd?.faces || 8;
-    const n = Math.max(0, Math.min(hdToSpend, Math.max(0, (C.classLevel || C.level) + (C.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0) - (s.usedHD || 0))));
+    const n = Math.max(0, Math.min(hdToSpend, Math.max(0, getTotalHitDice(C) - (s.usedHD || 0))));
 
     let totalHeal = 0;
     const rolls = [];
@@ -151,23 +127,7 @@ export default function CharacterSheet() {
     localStorage.setItem('5e_hd_used', String(s.usedHD));
 
     if (C) {
-      const runtime = C.adapterRuntime || {};
-      const allResDefs = [
-        ...(runtime.classResources || []),
-        ...(runtime.subclassResources || []),
-        ...(runtime.speciesResources || []),
-        ...(runtime.featResources || []),
-      ];
-      allResDefs.forEach(def => {
-        if (!def.key) return;
-        const max = normalizeResourceMax(def);
-        if (shortRestFullyRecovers(def, C)) {
-          res[def.key] = max;
-        } else if (def.srRecover) {
-          const gain = Number(def.srRecover) || 0;
-          res[def.key] = Math.min((Number(res[def.key]) || 0) + gain, max);
-        }
-      });
+      res = applyResourceRest(res, getAllResourceDefs(C), C, 'short');
       setResources(res);
       saveResources(res);
     }
@@ -183,7 +143,7 @@ export default function CharacterSheet() {
 
   const confirmLongRest = useCallback(() => {
     const s = { ...sheet };
-    const res = { ...resources };
+    let res = { ...resources };
     s.currentHP = s.maxHP;
     s.tempHP = 0;
     s.usedHD = 0;
@@ -195,17 +155,7 @@ export default function CharacterSheet() {
     localStorage.setItem('5e_hd_used', '0');
 
     if (C) {
-      const runtime = C.adapterRuntime || {};
-      const allResDefs = [
-        ...(runtime.classResources || []),
-        ...(runtime.subclassResources || []),
-        ...(runtime.speciesResources || []),
-        ...(runtime.featResources || []),
-      ];
-      allResDefs.forEach(def => {
-        if (!def.key) return;
-        res[def.key] = normalizeResourceMax(def);
-      });
+      res = applyResourceRest(res, getAllResourceDefs(C), C, 'long');
       setResources(res);
       saveResources(res);
     }
@@ -217,7 +167,7 @@ export default function CharacterSheet() {
 
   const doRest = useCallback((type) => {
     const s = { ...sheet };
-    const res = { ...resources };
+    let res = { ...resources };
     if (type === 'long') {
       s.currentHP = s.maxHP;
       s.tempHP = 0;
@@ -231,25 +181,7 @@ export default function CharacterSheet() {
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
     localStorage.setItem('5e_hd_used', String(s.usedHD));
     if (C) {
-      const runtime = C.adapterRuntime || {};
-      const allResDefs = [
-        ...(runtime.classResources || []),
-        ...(runtime.subclassResources || []),
-        ...(runtime.speciesResources || []),
-        ...(runtime.featResources || []),
-      ];
-      allResDefs.forEach(def => {
-        if (!def.key) return;
-        const max = normalizeResourceMax(def);
-        if (type === 'long') {
-          res[def.key] = max;
-        } else if (type === 'short' && shortRestFullyRecovers(def, C)) {
-          res[def.key] = max;
-        } else if (type === 'short' && def.srRecover) {
-          const gain = Number(def.srRecover) || 0;
-          res[def.key] = Math.min((Number(res[def.key]) || 0) + gain, max);
-        }
-      });
+      res = applyResourceRest(res, getAllResourceDefs(C), C, type);
       setResources(res);
       saveResources(res);
     }
@@ -473,13 +405,13 @@ export default function CharacterSheet() {
             Spend Hit Dice (d{C.clsSnapshot?.hd?.faces || 8}) to recover HP. You recover CON mod ({getMod(getFinal(C, 'con'))}) per HD spent.
           </Typography>
           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>
-            Available: {Math.max(0, (C.classLevel || C.level) + (C.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0) - (sheet.usedHD || 0))} HD
+            Available: {Math.max(0, getTotalHitDice(C) - (sheet.usedHD || 0))} HD
           </Typography>
           <Slider
             value={hdToSpend}
             onChange={(_, v) => setHdToSpend(v)}
             min={0}
-            max={Math.max(0, (C.classLevel || C.level) + (C.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0) - (sheet.usedHD || 0))}
+            max={Math.max(0, getTotalHitDice(C) - (sheet.usedHD || 0))}
             step={1}
             marks
             valueLabelDisplay="auto"

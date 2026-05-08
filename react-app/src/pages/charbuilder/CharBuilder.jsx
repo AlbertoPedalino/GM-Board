@@ -24,6 +24,7 @@ import { adaptBuilderData } from '../../adapters/adapterPipeline.js';
 import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, extractSheetData, importSheetPayload } from './logic/index.js';
 import { builderReducer, initialBuilderState } from './state.js';
 import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, SpeciesStep } from './steps/index.js';
+import { mergeSheetIntoBuilder } from '../../shared/builderSync.js';
 
 function StepLabel({ step, index }) {
   const Icon = step.icon;
@@ -54,46 +55,6 @@ function ActiveStep({ state, dispatch }) {
     default:
       return null;
   }
-}
-
-function mergeSheetIntoBuilder(builder, sheet) {
-  if (!sheet || typeof sheet !== 'object') return builder;
-  if (builder?.name && sheet.name && builder.name !== sheet.name) return builder;
-  const mapped = {
-    name: sheet.name,
-    xp: sheet.xp,
-    level: sheet.level,
-    classLevel: sheet.classLevel,
-    className: sheet.className,
-    classSource: sheet.classSource,
-    subclassShortName: sheet.subclassShortName || '',
-    extraClasses: sheet.extraClasses,
-    speciesName: sheet.speciesName,
-    speciesSource: sheet.speciesSource,
-    backgroundName: sheet.backgroundName ?? sheet.bgName,
-    backgroundSource: sheet.backgroundSource ?? sheet.bgSource,
-    backgroundAbilities: sheet.backgroundAbilities ?? sheet.bgAbility,
-    scoreMethod: sheet.scoreMethod,
-    hpMode: sheet.hpMode,
-    hpManualRolls: sheet.hpManualRolls,
-    pbScores: sheet.pbScores,
-    arrAssign: sheet.arrAssign,
-    diceAssign: sheet.diceAssign,
-    manualScores: sheet.manualScores,
-    choices: sheet.choices,
-    selectedSkills: sheet.selectedSkills,
-    selectedLanguages: sheet.selectedLanguages,
-    selectedTools: sheet.selectedTools,
-    selectedCantrips: sheet.selectedCantrips,
-    selectedSpells: sheet.selectedSpells,
-    wizardSpellbook: sheet.wizardSpellbook,
-    wizardSpellMastery: sheet.wizardSpellMastery,
-    wizardSignatureSpells: sheet.wizardSignatureSpells,
-    inventory: sheet.inventory,
-    currency: sheet.currency,
-  };
-  const cleaned = Object.fromEntries(Object.entries(mapped).filter(([, value]) => value !== undefined));
-  return { ...(builder || {}), ...cleaned };
 }
 
 function createInitialBuilderState() {

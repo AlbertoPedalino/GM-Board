@@ -6,12 +6,21 @@ import { saveCharacter } from '../logic/persistence.js';
 
 export default function SheetStep({ state, dispatch }) {
   const { character } = state;
-  const ready = Boolean(character.name && character.className && character.speciesName && character.backgroundName);
+  const required = [
+    ['name', 'Name'],
+    ['className', 'Class'],
+    ['speciesName', 'Species'],
+    ['backgroundName', 'Background'],
+  ];
+  const missing = required.filter(([key]) => !character?.[key]).map(([, label]) => label);
+  const ready = missing.length === 0;
 
   return (
     <BuilderPanel id="panel-sheet" title="Generate Sheet" icon={ClipboardList} note="Final save/export from React builder state.">
       <Stack spacing={2} alignItems="center" sx={{ py: 3 }}>
-        {!ready ? <Alert severity="warning">Missing required identity fields before sheet generation.</Alert> : null}
+        {!ready ? (
+          <Alert severity="warning">Missing required identity fields before sheet generation: {missing.join(', ')}.</Alert>
+        ) : null}
         <Typography color="text.secondary" sx={{ textAlign: 'center' }}>
           Finished all choices? Save character payload from reducer state.
         </Typography>
@@ -23,7 +32,7 @@ export default function SheetStep({ state, dispatch }) {
             startIcon={<FileText size={16} />}
             onClick={() => {
               saveCharacter(character, state.data);
-              window.location.search = '?sheet=1';
+              window.location.href = '/sheet';
             }}
           >
             Create Sheet

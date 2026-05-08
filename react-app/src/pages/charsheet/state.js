@@ -1,4 +1,5 @@
 import { getMod, getFinal, calcMaxHP, getSkillProficiency, getSkillBonus, getPB, hasSaveProficiency, getSaveBonus, getLevelFromXp, getXpForNextLevel } from './logic/calculations.js';
+import { mapCharacterToBuilderState } from '../../shared/builderSync.js';
 
 export function loadCharacter() {
   try {
@@ -94,41 +95,8 @@ function syncBuilderState(character) {
   if (!character || typeof character !== 'object') return;
   try {
     const previous = JSON.parse(localStorage.getItem('5e_builder_state') || '{}');
-    const mapped = {
-      name: character.name,
-      xp: character.xp,
-      level: character.level,
-      classLevel: character.classLevel,
-      className: character.className,
-      classSource: character.classSource,
-      subclassShortName: character.subclassShortName || '',
-      extraClasses: character.extraClasses,
-      speciesName: character.speciesName,
-      speciesSource: character.speciesSource,
-      backgroundName: character.backgroundName ?? character.bgName,
-      backgroundSource: character.backgroundSource ?? character.bgSource,
-      backgroundAbilities: character.backgroundAbilities ?? character.bgAbility,
-      scoreMethod: character.scoreMethod,
-      hpMode: character.hpMode,
-      hpManualRolls: character.hpManualRolls,
-      pbScores: character.pbScores,
-      arrAssign: character.arrAssign,
-      diceAssign: character.diceAssign,
-      manualScores: character.manualScores,
-      choices: character.choices,
-      selectedSkills: character.selectedSkills,
-      selectedLanguages: character.selectedLanguages,
-      selectedTools: character.selectedTools,
-      selectedCantrips: character.selectedCantrips,
-      selectedSpells: character.selectedSpells,
-      wizardSpellbook: character.wizardSpellbook,
-      wizardSpellMastery: character.wizardSpellMastery,
-      wizardSignatureSpells: character.wizardSignatureSpells,
-      inventory: character.inventory,
-      currency: character.currency,
-    };
-    const cleaned = Object.fromEntries(Object.entries(mapped).filter(([, value]) => value !== undefined));
-    localStorage.setItem('5e_builder_state', JSON.stringify({ ...previous, ...cleaned }));
+    const mapped = mapCharacterToBuilderState(character);
+    localStorage.setItem('5e_builder_state', JSON.stringify({ ...previous, ...mapped }));
   } catch {}
 }
 
