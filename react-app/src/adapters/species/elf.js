@@ -133,6 +133,11 @@ registerSpeciesAdapter("Elf_XPHB", function (s) {
   return specs;
 });
 
+// Elf Weapon Training: proficiency with longsword, shortsword, shortbow, longbow
+registerSpeciesSheetProficiencies("Elf_XPHB", [
+  { type: "weapon", values: ["Longsword", "Shortsword", "Shortbow", "Longbow"], minLevel: 1 },
+]);
+
 registerSpeciesSheetCommonChoiceMeta("Elf_XPHB", {
   labels: {
     species_version: 'Elven Lineage',

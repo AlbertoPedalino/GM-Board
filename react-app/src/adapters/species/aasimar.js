@@ -157,7 +157,7 @@ registerSpeciesSheetResources("Aasimar_XPHB", [
     name: 'Celestial Revelation',
     icon: 'sparkles',
     recharge: 'LR',
-    max: () => getPB(),
+    max: (lv) => Math.floor((Number(lv) - 1) / 4) + 2,
   },
 ]);
 

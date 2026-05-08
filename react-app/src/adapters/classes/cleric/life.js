@@ -123,6 +123,11 @@ export default function install(registry, context = {}) {
 // L3: Disciple of Life, Preserve Life (CD)
 // L6: Blessed Healer
 // L17: Supreme Healing
+// Life Domain grants Heavy Armor proficiency
+registerSubclassSheetProficiencies("Cleric_Life", [
+  { type: "armor", values: ["Heavy"], minLevel: 1 },
+]);
+
 registerSubclassAdapter("Cleric_Life", function (cls, lv, specs) {
   // nessuna spec
 });
@@ -189,6 +194,24 @@ registerSubclassSheetActions("Cleric_Life", [
   { name: "Supreme Healing", icon: "", cat: "action", uses: "Passive", minLevel: 17,
     desc: "When you would roll dice to restore HP with a spell or Channel Divinity, don't roll — instead use the highest number possible for each die (e.g., d6 = 6, d8 = 8)." },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Cleric_Life", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Aid", minLevel: 3, level: 2 },
+        { name: "Bless", minLevel: 3, level: 1 },
+        { name: "Cure Wounds", minLevel: 3, level: 1 },
+        { name: "Lesser Restoration", minLevel: 3, level: 2 },
+        { name: "Mass Healing Word", minLevel: 5, level: 3 },
+        { name: "Revivify", minLevel: 5, level: 3 },
+        { name: "Aura of Life", minLevel: 7, level: 4 },
+        { name: "Death Ward", minLevel: 7, level: 4 },
+        { name: "Greater Restoration", minLevel: 9, level: 5 },
+        { name: "Mass Cure Wounds", minLevel: 9, level: 5 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

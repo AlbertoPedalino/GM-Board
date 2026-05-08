@@ -177,6 +177,29 @@ registerSubclassSheetActions("Cleric_Knowledge", [
     "desc": "Hold an object or stand in a location to receive visions of events from its recent past (up to WIS score × Cleric level days ago). Concentration for up to 1 minute."
   }
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Cleric_Knowledge", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Command", minLevel: 3, level: 1 },
+        { name: "Comprehend Languages", minLevel: 3, level: 1 },
+        { name: "Detect Magic", minLevel: 3, level: 1 },
+        { name: "Detect Thoughts", minLevel: 3, level: 2 },
+        { name: "Identify", minLevel: 3, level: 1 },
+        { name: "Mind Spike", minLevel: 3, level: 2 },
+        { name: "Dispel Magic", minLevel: 5, level: 3 },
+        { name: "Nondetection", minLevel: 5, level: 3 },
+        { name: "Tongues", minLevel: 5, level: 3 },
+        { name: "Arcane Eye", minLevel: 7, level: 4 },
+        { name: "Banishment", minLevel: 7, level: 4 },
+        { name: "Confusion", minLevel: 7, level: 4 },
+        { name: "Legend Lore", minLevel: 9, level: 5 },
+        { name: "Scrying", minLevel: 9, level: 5 },
+        { name: "Synaptic Static", minLevel: 9, level: 5 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

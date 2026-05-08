@@ -56,6 +56,12 @@ export async function loadClassAdapters(classNames, context = {}) {
   return adapterRegistry;
 }
 
+export async function loadSpellsAdapters(context = {}) {
+  const spellsPaths = Object.keys(adapterModules).filter((path) => path.startsWith('./spells/'));
+  await loadPaths(spellsPaths, context);
+  return adapterRegistry;
+}
+
 export async function loadConvertedAdapters(context = {}) {
   const all = Object.keys(adapterModules);
   await loadPaths(all, context);

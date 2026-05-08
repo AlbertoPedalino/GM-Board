@@ -155,12 +155,11 @@ registerSpeciesSheetActions("Dragonborn_XPHB", [
       const dice = lv >= 17 ? 4 : lv >= 11 ? 3 : lv >= 5 ? 2 : 1;
       return `${dice}d10`;
     },
-    inlinePills: () => {
-      const pb = typeof getPB === 'function' ? getPB() : 0;
-      const con = typeof getMod === 'function' && typeof getFinal === 'function'
-        ? Number(getMod(getFinal('con')) || 0)
-        : 0;
-      return [{ icon: 'shield', label: 'Save DC', value: 8 + pb + con }];
+    inlinePills: ({ character }) => {
+      const pb = Math.floor((Number(character?.level || 1) - 1) / 4) + 2;
+      const conScore = character?.finalScores?.con ?? 10;
+      const conMod = Math.floor((conScore - 10) / 2);
+      return [{ icon: 'shield', label: 'Save DC', value: 8 + pb + conMod }];
     },
     minLevel: 1,
     desc: 'Exhale destructive draconic energy in a 15 ft. cone or 30 ft. line. Each creature makes a CON save (DC = 8 + PB + CON mod); half damage on success. Damage type depends on your Draconic Ancestry.',
@@ -172,7 +171,7 @@ registerSpeciesSheetResources("Dragonborn_XPHB", [
     name: 'Breath Weapon',
     icon: 'flame',
     recharge: 'LR',
-    max: () => getPB(),
+    max: (lv) => Math.floor((Number(lv) - 1) / 4) + 2,
   },
 ]);
 

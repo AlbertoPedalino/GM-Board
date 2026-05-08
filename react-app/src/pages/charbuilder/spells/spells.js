@@ -66,6 +66,14 @@ export function getSpellcastingProfile(character) {
     ...classProfile,
     ...subclassProfile,
     casterProgression: subclassProfile.casterProgression || classProfile.casterProgression || character.cls?.casterProgression || null,
+    alwaysKnownSpells: [
+      ...(classProfile.alwaysKnownSpells || []),
+      ...(subclassProfile.alwaysKnownSpells || []),
+    ],
+    alwaysPreparedSpells: [
+      ...(classProfile.alwaysPreparedSpells || []),
+      ...(subclassProfile.alwaysPreparedSpells || []),
+    ],
   };
 }
 

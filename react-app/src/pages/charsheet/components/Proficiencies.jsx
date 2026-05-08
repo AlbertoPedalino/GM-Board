@@ -1,51 +1,9 @@
 import { Box, Paper, Typography } from '@mui/material';
 import { ScrollText } from 'lucide-react';
-
-function collectProfs(C) {
-  const sp = C.clsSnapshot?.startingProficiencies || {};
-  const armorSet = new Set();
-  const weaponSet = new Set();
-  const toolSet = new Set();
-  const langSet = new Set();
-
-  const normalize = (v) => {
-    if (!v) return '';
-    return String(v).replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1').replace(/[{}]/g, '').replace(/\.$/, '').trim();
-  };
-  const addFixed = (src, set) => {
-    (Array.isArray(src) ? src : [src]).forEach(entry => {
-      if (!entry) return;
-      if (typeof entry === 'string') { entry.split(/[;,]/).map(normalize).filter(Boolean).forEach(v => set.add(v)); return; }
-      Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalize).filter(Boolean).forEach(v => set.add(v));
-    });
-  };
-  addFixed(sp.armor, armorSet);
-  addFixed(sp.weapons, weaponSet);
-  addFixed(sp.tools, toolSet);
-  const bg = C.bgSnapshot || {};
-  if (bg.toolProficiencies) addFixed(bg.toolProficiencies, toolSet);
-  if (bg.languageProficiencies) addFixed(bg.languageProficiencies, langSet);
-  if (C?.choices) {
-    for (const [key, val] of Object.entries(C.choices)) {
-      if (!val) continue;
-      const lk = key.toLowerCase();
-      const vals = Array.isArray(val) ? val : [val];
-      if (lk.includes('tool')) vals.forEach(v => { const n = normalize(v); if (n) toolSet.add(n); });
-      if (lk.includes('language')) vals.forEach(v => { const n = normalize(v); if (n) langSet.add(n); });
-      if (lk.includes('weapon') || lk.includes('mastery')) vals.forEach(v => { const n = normalize(v); if (n) weaponSet.add(n); });
-    }
-  }
-
-  const sections = [];
-  if (armorSet.size) sections.push({ title: 'Armor', items: Array.from(armorSet) });
-  if (weaponSet.size) sections.push({ title: 'Weapons', items: Array.from(weaponSet) });
-  if (toolSet.size) sections.push({ title: 'Tools', items: Array.from(toolSet) });
-  if (langSet.size) sections.push({ title: 'Languages', items: Array.from(langSet) });
-  return sections;
-}
+import { collectAllProficiencies } from '../logic/proficiencies.js';
 
 export default function Proficiencies({ C }) {
-  const sections = collectProfs(C);
+  const sections = collectAllProficiencies(C);
   return (
     <Paper variant="outlined" sx={{ mb: '0.6rem', overflow: 'hidden' }}>
       <Box sx={{ bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, px: '0.8rem', py: '0.48rem', borderLeft: 3, borderLeftColor: 'primary.main' }}>

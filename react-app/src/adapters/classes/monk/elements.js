@@ -141,6 +141,16 @@ registerSubclassSheetActions("Monk_Elements", [
   { name: "Elemental Epitome", icon: "", cat: "action", uses: "Passive", minLevel: 17,
     desc: "While Elemental Attunement is active, also gain — Damage Resistance: choose Acid/Cold/Fire/Lightning/Thunder resistance (can change at the start of each of your turns); Destructive Stride: Step of the Wind gives +20 Speed until end of turn, and creatures within 5 ft that you enter take 1 Martial Arts die elemental damage (once per creature per turn); Empowered Strikes: once per turn, deal extra 1 Martial Arts die elemental damage on an Unarmed Strike hit." },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Monk_Elements", {
+    spellcasting: {
+      ability: "wis",
+      alwaysKnownSpells: [
+        { name: "Elementalism", minLevel: 3, level: 0 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

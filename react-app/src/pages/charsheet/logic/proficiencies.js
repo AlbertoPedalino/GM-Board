@@ -1,0 +1,295 @@
+import { installedRegistry } from '../../../adapters/index.js';
+
+function normKey(v) {
+  return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function normalizeLabel(v) {
+  if (!v) return '';
+  return String(v).replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1').replace(/[{}]/g, '').replace(/\.$/, '').trim();
+}
+
+const SIMPLE_WEAPONS = new Set([
+  'club','dagger','greatclub','handaxe','javelin','lighthammer','mace','quarterstaff','sickle','spear',
+  'dart','lightcrossbow','shortbow','sling','crossbowlight',
+]);
+
+const MARTIAL_WEAPONS = new Set([
+  'battleaxe','flail','glaive','greataxe','greatsword','halberd','lance','longsword','maul','morningstar',
+  'pike','rapier','scimitar','shortsword','trident','warpick','warhammer','whip','blowgun','handcrossbow',
+  'heavycrossbow','longbow','crossbowhand','crossbowheavy','pistol','musket',
+]);
+
+const PROP_ALIASES = {
+  f: ['f', 'finesse'], finesse: ['f', 'finesse'],
+  l: ['l', 'light'], light: ['l', 'light'],
+  h: ['h', 'heavy'], heavy: ['h', 'heavy'],
+  v: ['v', 'versatile'], versatile: ['v', 'versatile'],
+  t: ['t', 'thrown'], thrown: ['t', 'thrown'],
+  '2h': ['2h', 'twohanded'], twohanded: ['2h', 'twohanded'], 'two-handed': ['2h', 'twohanded'],
+  s: ['s', 'stealth', 'disadvantage'], stealth: ['s', 'stealth', 'disadvantage'], disadvantage: ['s', 'stealth', 'disadvantage'],
+};
+
+function itemProps(item) {
+  return [...(Array.isArray(item?.property) ? item.property : []), ...(Array.isArray(item?.properties) ? item.properties : [])].map(p => String(p).toLowerCase());
+}
+
+function itemHasProperty(item, props) {
+  const wanted = new Set((Array.isArray(props) ? props : [props]).flatMap(p => PROP_ALIASES[normKey(p)] || [normKey(p)]));
+  return itemProps(item).some(p => {
+    const k = normKey(p);
+    return wanted.has(k) || wanted.has(normKey(PROP_ALIASES[k]?.[0] || k));
+  });
+}
+
+function weaponNameKeys(item) {
+  const raw = String(item?.name || '').replace(/,\s*\+\d+$/i, '').replace(/\s*\+\d+$/i, '').trim();
+  const key = normKey(raw);
+  const keys = new Set([key]);
+  const aliases = { crossbowhand: 'handcrossbow', handcrossbow: 'crossbowhand', crossbowlight: 'lightcrossbow', lightcrossbow: 'crossbowlight', crossbowheavy: 'heavycrossbow', heavycrossbow: 'crossbowheavy' };
+  if (aliases[key]) keys.add(aliases[key]);
+  Array.from(keys).forEach(k => { if (k.endsWith('s')) keys.add(k.slice(0, -1)); });
+  return keys;
+}
+
+function weaponCategory(item) {
+  const raw = item?.weaponCategory || item?.weaponType || item?.category || item?._weaponCategory || item?.weaponGroup || '';
+  const k = normKey(raw);
+  if (k.includes('simple')) return 'simple';
+  if (k.includes('martial')) return 'martial';
+  const nameKeys = weaponNameKeys(item);
+  for (const nk of nameKeys) {
+    if (SIMPLE_WEAPONS.has(nk)) return 'simple';
+    if (MARTIAL_WEAPONS.has(nk)) return 'martial';
+  }
+  return '';
+}
+
+function weaponMatchesRule(item, rule) {
+  if (!item || !rule || typeof rule !== 'object') return false;
+  if (rule.type && item.type !== rule.type) return false;
+  if (Array.isArray(rule.types) && !rule.types.includes(item.type)) return false;
+  const cat = weaponCategory(item);
+  if (rule.category && cat !== String(rule.category).toLowerCase()) return false;
+  if (rule.melee === true && item.type !== 'M') return false;
+  if (rule.ranged === true && item.type !== 'R') return false;
+  if (Array.isArray(rule.propertiesAny) && rule.propertiesAny.length && !rule.propertiesAny.some(p => itemHasProperty(item, p))) return false;
+  if (Array.isArray(rule.propertiesAll) && rule.propertiesAll.length && !rule.propertiesAll.every(p => itemHasProperty(item, p))) return false;
+  if (Array.isArray(rule.excludeProperties) && rule.excludeProperties.some(p => itemHasProperty(item, p))) return false;
+  return true;
+}
+
+function collectAdapterProfGrants(C) {
+  const grants = [];
+  const push = (list, lv) => {
+    (list || []).forEach(g => {
+      if (!g || typeof g !== 'object') return;
+      if ((lv || 1) < Number(g.minLevel || 1)) return;
+      if (g.requiredChoice) {
+        const rc = g.requiredChoice;
+        const stored = C?.choices?.[rc.key];
+        const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+        if (!vals.includes(rc.value)) return;
+      }
+      grants.push(g);
+    });
+  };
+  const collectEntity = (className, subclassShortName, lv) => {
+    push(installedRegistry.getClassSheetProficiencies(className), lv);
+    push(installedRegistry.getSubclassSheetProficiencies(className, subclassShortName), lv);
+  };
+  collectEntity(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1);
+  for (const ec of (C?.extraClasses || [])) {
+    collectEntity(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1);
+  }
+  push(installedRegistry.getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1);
+  return grants;
+}
+
+function collectFixedFeatureProfs(C, field) {
+  const out = new Set();
+  const features = [...(C?.allClassFeatures || []), ...(C?.allFeatSnapshots || []), ...(C?.bgSnapshot ? [C.bgSnapshot] : [])];
+  features.forEach(f => {
+    const raw = f?.[field];
+    if (!raw) return;
+    const arr = Array.isArray(raw) ? raw : [raw];
+    arr.forEach(entry => {
+      if (typeof entry === 'string') {
+        entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => out.add(v));
+      } else if (entry && typeof entry === 'object') {
+        Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => out.add(v));
+      }
+    });
+  });
+  return out;
+}
+
+export function collectEquipmentProficiencySets(C) {
+  const sp = C?.clsSnapshot?.startingProficiencies || {};
+  const armorSet = new Set();
+  const weaponSet = new Set();
+  const weaponMasterySet = new Set();
+  const weaponRules = [];
+
+  const addFixed = (src, set) => {
+    const arr = Array.isArray(src) ? src : [src];
+    arr.forEach(entry => {
+      if (!entry) return;
+      if (typeof entry === 'string') { entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v)); return; }
+      Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
+    });
+  };
+
+  addFixed(sp.armor, armorSet);
+  addFixed(sp.weapons, weaponSet);
+
+  collectFixedFeatureProfs(C, 'armorProficiencies').forEach(v => armorSet.add(v));
+  collectFixedFeatureProfs(C, 'weaponProficiencies').forEach(v => weaponSet.add(v));
+
+  if (C?.choices) {
+    for (const [key, val] of Object.entries(C.choices)) {
+      if (!val) continue;
+      const lk = key.toLowerCase();
+      const vals = Array.isArray(val) ? val : [val];
+      if (lk.includes('mastery') && lk.includes('weapon')) {
+        vals.forEach(v => { const n = normalizeLabel(v); if (n) weaponMasterySet.add(n); });
+        continue;
+      }
+      if (lk.includes('armor')) vals.forEach(v => { const n = normalizeLabel(v); if (n) armorSet.add(n); });
+      if (lk.includes('weapon')) vals.forEach(v => { const n = normalizeLabel(v); if (n) weaponSet.add(n); });
+    }
+  }
+
+  collectAdapterProfGrants(C)
+    .filter(g => g.type === 'armor' || g.type === 'weapon')
+    .forEach(g => {
+      const vals = Array.isArray(g.values) ? g.values : [g.values];
+      if (g.display !== false) {
+        vals.map(normalizeLabel).filter(Boolean).forEach(v => {
+          if (g.type === 'armor') armorSet.add(v);
+          else weaponSet.add(v);
+        });
+      }
+      if (g.type === 'weapon' && g.match && typeof g.match === 'object') weaponRules.push(g.match);
+    });
+
+  return { armorSet, weaponSet, weaponMasterySet, weaponRules };
+}
+
+export function getWeaponProficiencyInfo(C, item, weaponOverride) {
+  if (!item || !['M', 'R'].includes(item.type)) return { proficient: true, source: '' };
+  if (weaponOverride?.grantsProficiency) return { proficient: true, source: weaponOverride.label || weaponOverride.key || '' };
+
+  const { weaponSet, weaponRules } = collectEquipmentProficiencySets(C);
+  if (weaponRules.some(rule => weaponMatchesRule(item, rule))) return { proficient: true, source: 'Weapon Training' };
+
+  const profKeys = Array.from(weaponSet).map(normKey).filter(Boolean);
+  const hasAny = (...keys) => profKeys.some(k => keys.includes(k));
+
+  const cat = weaponCategory(item);
+  if (cat === 'simple' && hasAny('simple', 'simpleweapon', 'simpleweapons')) return { proficient: true, source: 'Simple Weapons' };
+  if (cat === 'martial' && hasAny('martial', 'martialweapon', 'martialweapons')) return { proficient: true, source: 'Martial Weapons' };
+
+  const nameKeys = weaponNameKeys(item);
+  for (const nk of nameKeys) {
+    if (profKeys.includes(nk) || profKeys.includes(nk + 's')) return { proficient: true, source: item.name || '' };
+  }
+
+  const isMelee = item.type === 'M';
+  const isRanged = item.type === 'R';
+  const isHeavy = itemHasProperty(item, ['h', 'heavy']);
+  const isTwoHanded = itemHasProperty(item, ['2h', 'two-handed', 'twohanded']);
+
+  for (const k of profKeys) {
+    if (k === 'weapons' || k === 'allweapons') return { proficient: true, source: 'Weapons' };
+    if (isMelee && (k === 'meleeweapons' || k === 'meleeweapon')) return { proficient: true, source: 'Melee Weapons' };
+    if (isRanged && (k === 'rangedweapons' || k === 'rangedweapon')) return { proficient: true, source: 'Ranged Weapons' };
+    if (isMelee && cat === 'simple' && k.includes('simple') && k.includes('melee')) return { proficient: true, source: 'Simple Melee Weapons' };
+    if (isRanged && cat === 'simple' && k.includes('simple') && k.includes('ranged')) return { proficient: true, source: 'Simple Ranged Weapons' };
+    if (isMelee && cat === 'martial' && k.includes('martial') && k.includes('melee')) {
+      if (k.includes('withoutheavyortwohanded') || k.includes('withoutheavyortwohandedproperty')) {
+        if (!isHeavy && !isTwoHanded) return { proficient: true, source: 'Melee Martial Weapons' };
+      } else {
+        return { proficient: true, source: 'Melee Martial Weapons' };
+      }
+    }
+    if (isRanged && cat === 'martial' && k.includes('martial') && k.includes('ranged')) return { proficient: true, source: 'Martial Ranged Weapons' };
+  }
+
+  return { proficient: false, source: '' };
+}
+
+export function getArmorTrainingInfo(C, item) {
+  if (!item || !['LA', 'MA', 'HA', 'S'].includes(item.type)) return { trained: true, kind: '' };
+  const { armorSet } = collectEquipmentProficiencySets(C);
+  const keys = Array.from(armorSet).map(normKey).filter(Boolean);
+  const has = (...vals) => keys.some(k => vals.includes(k));
+  if (item.type === 'LA') return { trained: has('light', 'lightarmor'), kind: 'Light Armor' };
+  if (item.type === 'MA') return { trained: has('medium', 'mediumarmor'), kind: 'Medium Armor' };
+  if (item.type === 'HA') return { trained: has('heavy', 'heavyarmor'), kind: 'Heavy Armor' };
+  if (item.type === 'S') return { trained: has('shield', 'shields'), kind: 'Shield' };
+  return { trained: true, kind: '' };
+}
+
+export function getUntrainedArmor(C, inventory) {
+  return (inventory || [])
+    .filter(i => i.equipped && ['LA', 'MA', 'HA', 'S'].includes(i.type))
+    .map(item => ({ item, info: getArmorTrainingInfo(C, item) }))
+    .filter(r => !r.info.trained);
+}
+
+export function hasNonProficientArmor(C, inventory) {
+  return getUntrainedArmor(C, inventory).length > 0;
+}
+
+export function collectAllProficiencies(C) {
+  const sp = C?.clsSnapshot?.startingProficiencies || {};
+  const { armorSet, weaponSet } = collectEquipmentProficiencySets(C);
+  const toolSet = new Set();
+  const langSet = new Set();
+
+  const addFixed = (src, set) => {
+    const arr = Array.isArray(src) ? src : [src];
+    arr.forEach(entry => {
+      if (!entry) return;
+      if (typeof entry === 'string') { entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v)); return; }
+      Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
+    });
+  };
+
+  addFixed(sp.tools, toolSet);
+
+  const bg = C?.bgSnapshot || {};
+  if (bg.toolProficiencies) addFixed(bg.toolProficiencies, toolSet);
+  if (bg.languageProficiencies) addFixed(bg.languageProficiencies, langSet);
+
+  collectFixedFeatureProfs(C, 'toolProficiencies').forEach(v => toolSet.add(v));
+  collectFixedFeatureProfs(C, 'languageProficiencies').forEach(v => langSet.add(v));
+  collectFixedFeatureProfs(C, 'skillToolLanguageProficiencies').forEach(v => toolSet.add(v));
+
+  if (C?.choices) {
+    for (const [key, val] of Object.entries(C.choices)) {
+      if (!val) continue;
+      const lk = key.toLowerCase();
+      const vals = Array.isArray(val) ? val : [val];
+      if (lk.includes('tool')) vals.forEach(v => { const n = normalizeLabel(v); if (n) toolSet.add(n); });
+      if (lk.includes('language')) vals.forEach(v => { const n = normalizeLabel(v); if (n) langSet.add(n); });
+    }
+  }
+
+  collectAdapterProfGrants(C).forEach(g => {
+    if (g.display === false) return;
+    const vals = Array.isArray(g.values) ? g.values : [g.values];
+    vals.map(normalizeLabel).filter(Boolean).forEach(v => {
+      if (g.type === 'tool') toolSet.add(v);
+      else if (g.type === 'language') langSet.add(v);
+    });
+  });
+
+  const sections = [];
+  if (armorSet.size) sections.push({ title: 'Armor', items: Array.from(armorSet) });
+  if (weaponSet.size) sections.push({ title: 'Weapons', items: Array.from(weaponSet) });
+  if (toolSet.size) sections.push({ title: 'Tools', items: Array.from(toolSet) });
+  if (langSet.size) sections.push({ title: 'Languages', items: Array.from(langSet) });
+  return sections;
+}

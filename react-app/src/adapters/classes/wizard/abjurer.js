@@ -138,7 +138,7 @@ registerSubclassSheetActions("Wizard_Abjurer", [
 ]);
 registerSubclassSheetResources("Wizard_Abjurer", [
   { key: "arcane_ward", name: "Arcane Ward", icon: "shield", recharge: "LR",
-    max: (lv) => Math.max(1, (Number(lv) || 0) * 2 + (typeof getMod === "function" && typeof getFinal === "function" ? getMod(getFinal("int")) : 0)) },
+    max: (lv, { int } = {}) => Math.max(1, (Number(lv) || 0) * 2 + (int ?? 0)) },
 ]);
 if (typeof registerSubclassRuntimeConfig === "function") {
   registerSubclassRuntimeConfig("Wizard_Abjurer", {

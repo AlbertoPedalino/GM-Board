@@ -134,7 +134,7 @@ registerSubclassSheetActions("Warlock_Archfey", [
 ]);
 registerSubclassSheetResources("Warlock_Archfey", [
   { key: "archfey_steps",    name: "Steps of the Fey",    icon: "sparkles", recharge: "LR",
-    max: (lv) => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('cha'))) : 3 },
+    max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
   { key: "archfey_beguiling", name: "Beguiling Defenses", icon: "shield",   recharge: "LR", max: () => 1 },
 ]);
 // [SheetRuntime] END

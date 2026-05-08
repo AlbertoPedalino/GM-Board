@@ -175,6 +175,16 @@ registerSubclassSheetActions("Barbarian_Wild Heart", [
     desc: "When you activate your Rage, also choose one — Falcon: Fly Speed = walking Speed (while not wearing armor); Lion: enemies within 5 ft have Disadvantage on attack rolls against targets other than you or another Barbarian with this option; Ram: when you hit a Large or smaller creature with a melee attack, you can knock it Prone."
   }
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Barbarian_Wild Heart", {
+    spellcasting: {
+      ability: "wis",
+      alwaysPreparedSpells: [
+        { name: "Commune with Nature", minLevel: 10, level: 5 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

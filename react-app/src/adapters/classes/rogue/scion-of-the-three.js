@@ -182,7 +182,7 @@ registerSubclassSheetResources("Rogue_Scion of the Three", [
     "name": "Bloodthirst",
     "icon": "crosshair",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   }
 ]);
 // [SheetRuntime] END

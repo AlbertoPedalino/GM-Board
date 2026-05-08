@@ -164,7 +164,7 @@ registerSpeciesSheetResources("Shifter_EFA", [
     name: 'Shift',
     icon: 'moon',
     recharge: 'LR',
-    max: () => getPB(),
+    max: (lv) => Math.floor((Number(lv) - 1) / 4) + 2,
   },
 ]);
 

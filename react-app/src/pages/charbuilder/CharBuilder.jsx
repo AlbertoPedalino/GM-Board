@@ -19,6 +19,7 @@ import ImportSheetFab from './components/ImportSheetFab.jsx';
 import PreviewPane from './components/PreviewPane.jsx';
 import { STEPS } from './constants.js';
 import { adapterRegistry, loadClassAdapters, loadCoreAdapters } from '../../adapters/index.js';
+import { getMod, getFinal } from '../charsheet/logic/calculations.js';
 import { adaptBuilderData } from '../../adapters/adapterPipeline.js';
 import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, extractSheetData, importSheetPayload } from './logic/index.js';
 import { builderReducer, initialBuilderState } from './state.js';
@@ -55,8 +56,61 @@ function ActiveStep({ state, dispatch }) {
   }
 }
 
+function mergeSheetIntoBuilder(builder, sheet) {
+  if (!sheet || typeof sheet !== 'object') return builder;
+  if (builder?.name && sheet.name && builder.name !== sheet.name) return builder;
+  const mapped = {
+    name: sheet.name,
+    xp: sheet.xp,
+    level: sheet.level,
+    classLevel: sheet.classLevel,
+    className: sheet.className,
+    classSource: sheet.classSource,
+    subclassShortName: sheet.subclassShortName || '',
+    extraClasses: sheet.extraClasses,
+    speciesName: sheet.speciesName,
+    speciesSource: sheet.speciesSource,
+    backgroundName: sheet.backgroundName ?? sheet.bgName,
+    backgroundSource: sheet.backgroundSource ?? sheet.bgSource,
+    backgroundAbilities: sheet.backgroundAbilities ?? sheet.bgAbility,
+    scoreMethod: sheet.scoreMethod,
+    hpMode: sheet.hpMode,
+    hpManualRolls: sheet.hpManualRolls,
+    pbScores: sheet.pbScores,
+    arrAssign: sheet.arrAssign,
+    diceAssign: sheet.diceAssign,
+    manualScores: sheet.manualScores,
+    choices: sheet.choices,
+    selectedSkills: sheet.selectedSkills,
+    selectedLanguages: sheet.selectedLanguages,
+    selectedTools: sheet.selectedTools,
+    selectedCantrips: sheet.selectedCantrips,
+    selectedSpells: sheet.selectedSpells,
+    wizardSpellbook: sheet.wizardSpellbook,
+    wizardSpellMastery: sheet.wizardSpellMastery,
+    wizardSignatureSpells: sheet.wizardSignatureSpells,
+    inventory: sheet.inventory,
+    currency: sheet.currency,
+  };
+  const cleaned = Object.fromEntries(Object.entries(mapped).filter(([, value]) => value !== undefined));
+  return { ...(builder || {}), ...cleaned };
+}
+
+function createInitialBuilderState() {
+  if (typeof localStorage === 'undefined') return initialBuilderState;
+  try {
+    const savedBuilder = JSON.parse(localStorage.getItem('5e_builder_state') || 'null');
+    const savedSheet = JSON.parse(localStorage.getItem('5e_current_char') || 'null');
+    const saved = mergeSheetIntoBuilder(savedBuilder, savedSheet);
+    if (saved && typeof saved === 'object') {
+      return { ...initialBuilderState, character: { ...initialBuilderState.character, ...saved } };
+    }
+  } catch (_) {}
+  return initialBuilderState;
+}
+
 export default function CharBuilder() {
-  const [state, dispatch] = useReducer(builderReducer, initialBuilderState);
+  const [state, dispatch] = useReducer(builderReducer, undefined, createInitialBuilderState);
   const activeStep = STEPS[state.tab];
   const ActiveIcon = activeStep.icon;
 
@@ -70,11 +124,6 @@ export default function CharBuilder() {
         dispatch({ type: 'data/load-error', scope, error: error?.message || String(error) });
       }
     };
-
-    try {
-      const saved = JSON.parse(localStorage.getItem('5e_builder_state') || 'null');
-      if (saved && typeof saved === 'object') dispatch({ type: 'character/restore', character: saved });
-    } catch (_) {}
 
     run('classes', loadClassIndex, (result) => ({
       classCache: result.cache,
@@ -96,7 +145,7 @@ export default function CharBuilder() {
     const activeClasses = [state.character.className, ...(state.character.extraClasses || []).map((extra) => extra.name)].filter(Boolean);
     Promise.all([
       loadCoreAdapters({ items: state.data.items }),
-      loadClassAdapters(activeClasses, { items: state.data.items }),
+      loadClassAdapters(activeClasses, { items: state.data.items, getMod, getFinal }),
     ])
       .then(() => {
         if (!cancelled) dispatch({ type: 'adapters/loaded' });
@@ -113,7 +162,7 @@ export default function CharBuilder() {
     if (!state.adaptersLoaded) return;
     const classes = [state.character.className, ...(state.character.extraClasses || []).map((extra) => extra.name)].filter(Boolean);
     if (!classes.length) return;
-    loadClassAdapters(classes, { items: state.data.items });
+    loadClassAdapters(classes, { items: state.data.items, getMod, getFinal });
   }, [state.adaptersLoaded, state.character.className, state.character.extraClasses, state.data.items]);
 
   useEffect(() => {

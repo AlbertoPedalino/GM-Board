@@ -2,7 +2,7 @@ import { Box, Stack, Typography, Button, TextField, InputAdornment } from '@mui/
 import { ArrowLeft, Sun, Moon, Download, Swords } from 'lucide-react';
 import { getLevelFromXp, getXpForNextLevel } from '../logic/calculations.js';
 
-export default function TopBar({ C, sheet, onRest, onDownload, onUpdateXp }) {
+export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, onUpdateXp }) {
   const extra = C.extraClasses || [];
   const pLv = C.classLevel || C.level;
   const sc = C.subclassShortName ? ` (${C.subclassShortName})` : '';
@@ -65,11 +65,11 @@ export default function TopBar({ C, sheet, onRest, onDownload, onUpdateXp }) {
       </Box>
 
       <Button size="small" variant="outlined" color="warning" startIcon={<Sun size={14} />}
-        onClick={() => onRest('short')} sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
+        onClick={onShortRest} sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
         SHORT REST
       </Button>
       <Button size="small" variant="outlined" color="info" startIcon={<Moon size={14} />}
-        onClick={() => onRest('long')} sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
+        onClick={onLongRest} sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
         LONG REST
       </Button>
 

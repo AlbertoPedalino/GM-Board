@@ -167,20 +167,30 @@ registerSubclassSheetActions("Druid_Stars", [
     "desc": "Passive: while in Starry Form, you become partially incorporeal and gain Resistance to Bludgeoning, Piercing, and Slashing damage."
   }
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Druid_Stars", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Guidance", minLevel: 3, level: 0 },
+        { name: "Guiding Bolt", minLevel: 3, level: 1 },
+      ],
+    },
+  });
+}
 registerSubclassSheetResources("Druid_Stars", [
   {
     "key": "stars_guiding_bolt",
     "name": "Guiding Bolt (free)",
     "icon": "star",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1)
+    "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   },
   {
     "key": "stars_cosmic_omen",
     "name": "Cosmic Omen",
     "icon": "sparkles",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1)
+    "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   }
 ]);
 // [SheetRuntime] END

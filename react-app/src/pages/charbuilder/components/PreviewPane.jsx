@@ -226,6 +226,7 @@ function PreviewPaneImpl({ character }) {
   const selectedSpells = [
     ...(character.selectedCantrips || []).map((name) => ({ name, level: 0 })),
     ...Object.entries(character.selectedSpells || {}).flatMap(([level, list]) => (list || []).map((name) => ({ name, level: Number(level) }))),
+    ...collectAutoGrantedSpells(character),
   ];
 
   return (
@@ -403,3 +404,26 @@ function PreviewPaneImpl({ character }) {
 }
 
 export default memo(PreviewPaneImpl, (prev, next) => prev.character === next.character);
+
+function collectAutoGrantedSpells(character) {
+  const out = [];
+  const pushFrom = (className, subclassShortName, level) => {
+    const cfgs = [
+      installedRegistry.getClassRuntimeConfig(className),
+      installedRegistry.getSubclassRuntimeConfig(className, subclassShortName),
+    ];
+    cfgs.forEach((cfg) => {
+      [
+        ...(cfg?.spellcasting?.alwaysKnownSpells || []),
+        ...(cfg?.spellcasting?.alwaysPreparedSpells || []),
+      ].forEach((entry) => {
+        const name = typeof entry === 'string' ? entry : entry?.name;
+        if (!name || Number(level || 1) < Number(entry?.minLevel || 1)) return;
+        out.push({ name, level: Number(entry?.level ?? 0), auto: true });
+      });
+    });
+  };
+  pushFrom(character.className, character.subclassShortName, getPrimaryClassLevel(character));
+  (character.extraClasses || []).forEach((extra) => pushFrom(extra.name, extra.subclassShortName, extra.level || 1));
+  return out;
+}

@@ -167,7 +167,7 @@ registerSubclassSheetResources("Druid_Moon", [
     "name": "Moonlight Step",
     "icon": "moon",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1)
+    "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   }
 ]);
 // [SheetRuntime] END

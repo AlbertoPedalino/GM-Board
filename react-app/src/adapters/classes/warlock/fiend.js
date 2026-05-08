@@ -119,6 +119,8 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
+  const getMod = context?.getMod;
+  const getFinal = context?.getFinal;
 registerSubclassAdapter("Warlock_Fiend", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
@@ -127,7 +129,7 @@ registerSubclassSheetActions("Warlock_Fiend", [
     inlinePills: ({ ownerLevel, character }) => {
       const lv = Number(ownerLevel || 1);
       const cha = typeof getMod === "function" && typeof getFinal === "function"
-        ? Number(getMod(getFinal("cha")) || 0) : 0;
+        ? Number(getMod(getFinal(character, "cha")) || 0) : 0;
       return [{ icon: "skull", label: "Temp HP", value: Math.max(1, lv + cha) }];
     },
     desc: "When you or a creature within 10 ft of you reduces a hostile creature to 0 HP, gain temporary HP equal to your Warlock level + CHA modifier." },
@@ -143,7 +145,7 @@ registerSubclassSheetActions("Warlock_Fiend", [
 ]);
 registerSubclassSheetResources("Warlock_Fiend", [
   { key: "fiend_luck", name: "Dark One's Own Luck", icon: "dice-6", recharge: "LR",
-    max: (lv) => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('cha'))) : 3 },
+    max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
   { key: "fiend_hurl", name: "Hurl Through Hell", icon: "flame", recharge: "LR", max: () => 1 },
 ]);
 // [SheetRuntime] END

@@ -119,6 +119,8 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
+  const getMod = context?.getMod;
+  const getFinal = context?.getFinal;
 
 registerClassAdapter("Monk", function (cls, lv, specs) {
   if (lv >= 1) {
@@ -213,10 +215,10 @@ registerClassSheetActions("Monk", [
     uses: 'Free / 1 FP redirect',
     resKey: 'ki',
     minLevel: 3,
-    damageFormula: ({ ownerLevel }) => {
+    damageFormula: ({ ownerLevel, character }) => {
       const lv = Number(ownerLevel || 1);
       const dex = typeof getMod === 'function' && typeof getFinal === 'function'
-        ? Number(getMod(getFinal('dex')) || 0)
+        ? Number(getMod(getFinal(character, 'dex')) || 0)
         : 0;
       const total = dex + lv;
       return `1d10${total >= 0 ? '+' : ''}${total}`;

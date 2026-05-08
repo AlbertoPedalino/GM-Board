@@ -176,7 +176,7 @@ registerClassSheetActions("Bard", [
 registerClassSheetResources("Bard", [
   { key: 'bardic_insp', name: 'Bardic Inspiration', icon: 'music', recharge: 'SR',
     actionName: 'Bardic Inspiration',
-    max: () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 3) },
+    max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
 ]);
 
 registerClassSheetChoiceMeta("Bard", {

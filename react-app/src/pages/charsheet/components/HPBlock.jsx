@@ -1,11 +1,25 @@
-import { Box, Typography, IconButton, TextField } from '@mui/material';
+import { useState, useRef, useEffect } from 'react';
+import { Box, Typography, IconButton, TextField, Button } from '@mui/material';
 import { HeartPulse, Plus, Minus, Sparkles } from 'lucide-react';
 
 export default function HPBlock({ sheet, onHeal, onDamage, onTempHP, onMaxHPBonus, onSetHP, onDeathSave }) {
+  const [amountStr, setAmountStr] = useState('1');
+  const [editingHP, setEditingHP] = useState(false);
+  const [hpInput, setHpInput] = useState('');
+  const hpRef = useRef(null);
   if (!sheet) return null;
   const dsSuccess = Math.max(0, Math.min(3, sheet.deathSaves.success || 0));
   const dsFail = Math.max(0, Math.min(3, sheet.deathSaves.fail || 0));
   const atZero = sheet.currentHP === 0;
+
+  useEffect(() => {
+    if (editingHP && hpRef.current) {
+      hpRef.current.focus();
+      hpRef.current.select();
+    }
+  }, [editingHP]);
+
+  const hpColor = sheet.currentHP > sheet.maxHP / 2 ? '#58b879' : sheet.currentHP > 0 ? '#d69245' : '#c54a3f';
 
   return (
     <Box sx={{ flex: '0 1 260px', minWidth: 220, maxWidth: 300, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, p: '0.3rem 0.45rem' }}>
@@ -13,27 +27,47 @@ export default function HPBlock({ sheet, onHeal, onDamage, onTempHP, onMaxHPBonu
         HP
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-        <IconButton size="small" onClick={onHeal} sx={{ width: 24, height: 24, border: 1, borderColor: '#58b879', color: '#58b879', borderRadius: 1 }}>
+        <IconButton size="small" onClick={() => onHeal(parseInt(amountStr) || 1)} sx={{ width: 24, height: 24, border: 1, borderColor: '#58b879', color: '#58b879', borderRadius: 1 }}>
           <Plus size={12} />
         </IconButton>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', flex: 1, justifyContent: 'center', whiteSpace: 'nowrap' }}>
-          <Typography
-            component="span"
-            sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: sheet.currentHP > sheet.maxHP / 2 ? '#58b879' : sheet.currentHP > 0 ? '#d69245' : '#c54a3f', lineHeight: 1 }}>
-            {sheet.currentHP}
-          </Typography>
+          {editingHP ? (
+            <TextField
+              inputRef={hpRef}
+              size="small" type="number" value={hpInput}
+              onChange={e => setHpInput(e.target.value)}
+              onBlur={() => { onSetHP(hpInput); setEditingHP(false); }}
+              onKeyDown={e => { if (e.key === 'Enter') { onSetHP(hpInput); setEditingHP(false); } if (e.key === 'Escape') setEditingHP(false); }}
+              InputProps={{ inputProps: { min: 0, max: sheet.maxHP, style: { textAlign: 'center', padding: '2px 4px' } } }}
+              sx={{ width: 60, '& input': { fontSize: '1.1rem', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, color: hpColor } }}
+            />
+          ) : (
+            <Typography
+              component="span" onClick={() => { setHpInput(String(sheet.currentHP)); setEditingHP(true); }}
+              sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: hpColor, lineHeight: 1, cursor: 'pointer', '&:hover': { opacity: 0.7 } }}>
+              {sheet.currentHP}
+            </Typography>
+          )}
           <Typography component="span" sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.875rem', color: 'text.secondary' }}>/</Typography>
           <Typography component="span" sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.875rem', fontWeight: 600, color: 'text.secondary' }}>
             {sheet.maxHP}
           </Typography>
         </Box>
         <TextField
-          size="small" type="number" defaultValue={1}
-          onChange={e => { const v = parseInt(e.target.value); if (v > 0) window._hpAmt = v; }}
+          size="small" type="number" value={amountStr}
+          onChange={e => {
+            const v = e.target.value;
+            if (v === '' || /^-?\d*\.?\d*$/.test(v)) setAmountStr(v);
+          }}
           InputProps={{ inputProps: { min: 1, style: { textAlign: 'center' } } }}
-          sx={{ width: 34, '& input': { py: 0.25, fontSize: '0.625rem', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 600 } }}
+          sx={{
+            width: 68,
+            '& input': { py: 0.25, fontSize: '0.75rem', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 600 },
+            '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 },
+            '& input[type=number]': { MozAppearance: 'textfield' },
+          }}
         />
-        <IconButton size="small" onClick={onDamage} sx={{ width: 24, height: 24, border: 1, borderColor: '#de675f', color: '#de675f', borderRadius: 1 }}>
+        <IconButton size="small" onClick={() => onDamage(parseInt(amountStr) || 1)} sx={{ width: 24, height: 24, border: 1, borderColor: '#de675f', color: '#de675f', borderRadius: 1 }}>
           <Minus size={12} />
         </IconButton>
       </Box>
@@ -56,19 +90,25 @@ export default function HPBlock({ sheet, onHeal, onDamage, onTempHP, onMaxHPBonu
         </Box>
       </Box>
       {atZero && (
-        <Box sx={{ mt: 0.25, pt: 0.25, borderTop: '1px dashed', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary' }}>
-            Death Saves
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
-            {Array.from({ length: 3 }, (_, i) => (
-              <Box key={`s${i}`} sx={{ width: 12, height: 12, borderRadius: '50%', border: 1, borderColor: 'divider', bgcolor: i < dsSuccess ? '#58b879' : 'transparent' }} />
-            ))}
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
-            {Array.from({ length: 3 }, (_, i) => (
-              <Box key={`f${i}`} sx={{ width: 12, height: 12, borderRadius: '50%', border: 1, borderColor: 'divider', bgcolor: i < dsFail ? '#de675f' : 'transparent' }} />
-            ))}
+        <Box sx={{ mt: 0.25, pt: 0.25, borderTop: '1px dashed', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+            <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.secondary' }}>
+              Death Saves
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
+              {Array.from({ length: 3 }, (_, i) => (
+                <Box key={`s${i}`} sx={{ width: 12, height: 12, borderRadius: '50%', border: 1, borderColor: 'divider', bgcolor: i < dsSuccess ? '#58b879' : 'transparent' }} />
+              ))}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.2 }}>
+              {Array.from({ length: 3 }, (_, i) => (
+                <Box key={`f${i}`} sx={{ width: 12, height: 12, borderRadius: '50%', border: 1, borderColor: 'divider', bgcolor: i < dsFail ? '#de675f' : 'transparent' }} />
+              ))}
+            </Box>
+            <Button size="small" variant="outlined" onClick={onDeathSave}
+              sx={{ ml: 'auto', minWidth: 36, height: 22, fontSize: '0.5rem', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 600, letterSpacing: '0.06em', color: 'text.secondary', borderColor: 'divider' }}>
+              Roll
+            </Button>
           </Box>
         </Box>
       )}

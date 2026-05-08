@@ -138,6 +138,24 @@ registerSubclassSheetActions("Cleric_Trickery", [
   { name: "Improved Duplicity", icon: "", cat: "action", uses: "Passive", minLevel: 17,
     desc: "Your Invoke Duplicity illusion gains two upgrades — Shared Distraction: you and your allies have Advantage on attack rolls against any creature within 5 ft of the illusion; Healing Illusion: when the illusion ends, you or one creature of your choice within 5 ft of it regains HP equal to your Cleric level." },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Cleric_Trickery", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Charm Person", minLevel: 3, level: 1 },
+        { name: "Disguise Self", minLevel: 3, level: 1 },
+        { name: "Invisibility", minLevel: 3, level: 2 },
+        { name: "Pass without Trace", minLevel: 3, level: 2 },
+        { name: "Hypnotic Pattern", minLevel: 5, level: 3 },
+        { name: "Nondetection", minLevel: 5, level: 3 },
+        { name: "Confusion", minLevel: 7, level: 4 },
+        { name: "Dimension Door", minLevel: 7, level: 4 },
+        { name: "Dominate Person", minLevel: 9, level: 5 },
+        { name: "Modify Memory", minLevel: 9, level: 5 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

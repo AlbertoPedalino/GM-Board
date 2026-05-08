@@ -8,6 +8,34 @@ function subclassKey(className, subclassShortName) {
   return cls && sub ? `${cls}_${sub}` : '';
 }
 
+function subclassAlias(value) {
+  const raw = normKey(value)
+    .replace(/^(schoolof|collegeof|circleof|oathof|pathof|wayof|domainof|traditionof)/, '');
+  const aliases = {
+    abjuration: 'abjurer',
+    divination: 'diviner',
+    evocation: 'evoker',
+    illusion: 'illusionist',
+    transmutation: 'transmuter',
+    bladesinging: 'bladesinger',
+  };
+  return aliases[raw] || raw;
+}
+
+function getSubclassStore(store, className, subclassShortName) {
+  const exact = subclassKey(className, subclassShortName);
+  if (store.has(exact)) return store.get(exact);
+  const cls = normKey(className);
+  const sub = subclassAlias(subclassShortName);
+  if (!cls || !sub) return null;
+  for (const [key, value] of store.entries()) {
+    if (!key.startsWith(`${cls}_`)) continue;
+    const storedSub = key.slice(cls.length + 1);
+    if (storedSub === sub || storedSub.includes(sub) || sub.includes(storedSub)) return value;
+  }
+  return null;
+}
+
 function speciesKey(speciesName, speciesSource) {
   const name = normKey(speciesName);
   const source = normKey(speciesSource);
@@ -90,7 +118,7 @@ export function createAdapterRegistry() {
       if (typeof fn === 'function') stores.subclassAdapters.set(subclassKey(className, subclassShortName), fn);
     },
     getSubclassAdapter(className, subclassShortName) {
-      return stores.subclassAdapters.get(subclassKey(className, subclassShortName)) || null;
+      return getSubclassStore(stores.subclassAdapters, className, subclassShortName) || null;
     },
     registerSpeciesAdapter(speciesName, speciesSource, fn) {
       if (typeof fn === 'function') stores.speciesAdapters.set(speciesKey(speciesName, speciesSource), fn);
@@ -114,7 +142,7 @@ export function createAdapterRegistry() {
       stores.subclassActions.set(subclassKey(className, subclassShortName), Array.isArray(actions) ? actions : []);
     },
     getSubclassSheetActions(className, subclassShortName) {
-      return stores.subclassActions.get(subclassKey(className, subclassShortName)) || [];
+      return getSubclassStore(stores.subclassActions, className, subclassShortName) || [];
     },
     registerSpeciesSheetActions(speciesName, speciesSource, actions) {
       stores.speciesActions.set(speciesKey(speciesName, speciesSource), Array.isArray(actions) ? actions : []);
@@ -138,7 +166,7 @@ export function createAdapterRegistry() {
       stores.subclassResources.set(subclassKey(className, subclassShortName), Array.isArray(resources) ? resources : []);
     },
     getSubclassSheetResources(className, subclassShortName) {
-      return stores.subclassResources.get(subclassKey(className, subclassShortName)) || [];
+      return getSubclassStore(stores.subclassResources, className, subclassShortName) || [];
     },
     registerSpeciesSheetResources(speciesName, speciesSource, resources) {
       stores.speciesResources.set(speciesKey(speciesName, speciesSource), Array.isArray(resources) ? resources : []);
@@ -162,7 +190,7 @@ export function createAdapterRegistry() {
       stores.subclassEffects.set(subclassKey(className, subclassShortName), Array.isArray(effects) ? effects : []);
     },
     getSubclassSheetEffects(className, subclassShortName) {
-      return stores.subclassEffects.get(subclassKey(className, subclassShortName)) || [];
+      return getSubclassStore(stores.subclassEffects, className, subclassShortName) || [];
     },
     registerSpeciesSheetEffects(speciesName, speciesSource, effects) {
       stores.speciesEffects.set(speciesKey(speciesName, speciesSource), Array.isArray(effects) ? effects : []);
@@ -186,7 +214,7 @@ export function createAdapterRegistry() {
       stores.subclassRuntimeConfigs.set(subclassKey(className, subclassShortName), config && typeof config === 'object' ? config : {});
     },
     getSubclassRuntimeConfig(className, subclassShortName) {
-      return stores.subclassRuntimeConfigs.get(subclassKey(className, subclassShortName)) || {};
+      return getSubclassStore(stores.subclassRuntimeConfigs, className, subclassShortName) || {};
     },
     registerSpeciesRuntimeConfig(speciesName, speciesSource, config) {
       stores.speciesRuntimeConfigs.set(speciesKey(speciesName, speciesSource), config && typeof config === 'object' ? config : {});
@@ -204,7 +232,7 @@ export function createAdapterRegistry() {
       stores.subclassChoiceMeta.set(subclassKey(className, subclassShortName), meta && typeof meta === 'object' ? meta : {});
     },
     getSubclassSheetChoiceMeta(className, subclassShortName) {
-      return stores.subclassChoiceMeta.get(subclassKey(className, subclassShortName)) || {};
+      return getSubclassStore(stores.subclassChoiceMeta, className, subclassShortName) || {};
     },
     registerSpeciesSheetChoiceMeta(speciesName, speciesSource, meta) {
       stores.speciesChoiceMeta.set(speciesKey(speciesName, speciesSource), meta && typeof meta === 'object' ? meta : {});
@@ -226,7 +254,7 @@ export function createAdapterRegistry() {
       stores.subclassFeatureFilters.set(keyName, [...(stores.subclassFeatureFilters.get(keyName) || []), fn]);
     },
     getSubclassSheetFeatureFilters(className, subclassShortName) {
-      return stores.subclassFeatureFilters.get(subclassKey(className, subclassShortName)) || [];
+      return getSubclassStore(stores.subclassFeatureFilters, className, subclassShortName) || [];
     },
     registerSpeciesSheetFeatureFilter(speciesName, speciesSource, fn) {
       if (typeof fn !== 'function') return;
@@ -246,7 +274,7 @@ export function createAdapterRegistry() {
       stores.subclassProficiencies.set(subclassKey(className, subclassShortName), Array.isArray(grants) ? grants : []);
     },
     getSubclassSheetProficiencies(className, subclassShortName) {
-      return stores.subclassProficiencies.get(subclassKey(className, subclassShortName)) || [];
+      return getSubclassStore(stores.subclassProficiencies, className, subclassShortName) || [];
     },
     registerSpeciesSheetProficiencies(speciesName, speciesSource, grants) {
       stores.speciesProficiencies.set(speciesKey(speciesName, speciesSource), Array.isArray(grants) ? grants : []);
@@ -264,7 +292,7 @@ export function createAdapterRegistry() {
       stores.subclassSpellModifiers.set(subclassKey(className, subclassShortName), Array.isArray(modifiers) ? modifiers : []);
     },
     getSubclassSheetSpellModifiers(className, subclassShortName) {
-      return stores.subclassSpellModifiers.get(subclassKey(className, subclassShortName)) || [];
+      return getSubclassStore(stores.subclassSpellModifiers, className, subclassShortName) || [];
     },
     registerSpeciesSheetSpellModifiers(speciesName, speciesSource, modifiers) {
       stores.speciesSpellModifiers.set(speciesKey(speciesName, speciesSource), Array.isArray(modifiers) ? modifiers : []);
@@ -312,7 +340,7 @@ export function createAdapterRegistry() {
       if (typeof fn === 'function') stores.subclassChoiceDetailDataProviders.set(subclassKey(className, subclassShortName), fn);
     },
     getSubclassChoiceDetailDataProvider(className, subclassShortName) {
-      return stores.subclassChoiceDetailDataProviders.get(subclassKey(className, subclassShortName)) || null;
+      return getSubclassStore(stores.subclassChoiceDetailDataProviders, className, subclassShortName) || null;
     },
     registerCantripData(name, data) {
       if (data && typeof data === 'object') setStore(stores.cantripData, name, data);

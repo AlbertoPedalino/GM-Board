@@ -144,11 +144,29 @@ registerSubclassSheetActions("Cleric_Light", [
     desc: "Magic action: emanate an aura of sunlight for 1 minute or until dismissed (no action required). Emit Bright Light in a 60-ft radius and Dim Light for an additional 30 ft. Enemies in the Bright Light have Disadvantage on saving throws against your Radiance of the Dawn and any spell that deals Fire or Radiant damage." },
 ]);
 registerSubclassSheetResources("Cleric_Light", [
-  { key: "warding_flare", name: "Warding Flare", icon: "sun", recharge: "SR",
-    max: (lv) => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1) },
+  { key: "warding_flare", name: "Warding Flare", icon: "sun", recharge: "SR", srMinLevel: 6,
+    max: (lv, { wis } = {}) => Math.max(1, wis ?? 0) },
   { key: "corona_light", name: "Corona of Light", icon: "sun", recharge: "LR",
-    max: (lv) => lv >= 17 ? Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1) : 0 },
+    max: (lv, { wis } = {}) => lv >= 17 ? Math.max(1, wis ?? 0) : 0 },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Cleric_Light", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Burning Hands", minLevel: 3, level: 1 },
+        { name: "Faerie Fire", minLevel: 3, level: 1 },
+        { name: "Scorching Ray", minLevel: 3, level: 2 },
+        { name: "See Invisibility", minLevel: 3, level: 2 },
+        { name: "Daylight", minLevel: 5, level: 3 },
+        { name: "Fireball", minLevel: 5, level: 3 },
+        { name: "Arcane Eye", minLevel: 7, level: 4 },
+        { name: "Wall of Fire", minLevel: 7, level: 4 },
+        { name: "Flame Strike", minLevel: 9, level: 5 },
+        { name: "Scrying", minLevel: 9, level: 5 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

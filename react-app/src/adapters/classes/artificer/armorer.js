@@ -304,21 +304,21 @@ registerSubclassSheetResources("Artificer_Armorer", [
     "name": "Giant Stature",
     "icon": "maximize",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   },
   {
     "key": "perfected_guardian",
     "name": "Perfected Guardian Pull",
     "icon": "magnet",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   },
   {
     "key": "perfected_infiltrator",
     "name": "Infiltrator Fly",
     "icon": "feather",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   }
 ]);
 registerSubclassSheetProficiencies("Artificer_Armorer", [

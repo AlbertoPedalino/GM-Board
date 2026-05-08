@@ -377,7 +377,7 @@ registerClassSheetResources("Artificer", [
     "name": "Flash of Genius",
     "icon": "brain",
     "recharge": "LR",
-    "max": ()=>Math.max(1,getMod(getFinal('int')))
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   }
 ]);
 registerClassSheetChoiceMeta("Artificer", {

@@ -159,6 +159,15 @@ registerSubclassSheetResources("Bard_Moon", [
 registerSubclassSheetProficiencies("Bard_Moon", [
   { type: "language", values: ["Druidic"], minLevel: 3 },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Bard_Moon", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Moonbeam", minLevel: 6, level: 2 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

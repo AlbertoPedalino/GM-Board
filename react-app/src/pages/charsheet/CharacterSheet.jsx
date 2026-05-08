@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Stack, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { Box, Stack, CssBaseline, ThemeProvider, createTheme, Button, Dialog, DialogActions, DialogContent, DialogTitle, Slider, Typography } from '@mui/material';
 import TopBar from './components/TopBar.jsx';
 import AbilityScores from './components/AbilityScores.jsx';
 import SavingThrows from './components/SavingThrows.jsx';
@@ -10,7 +10,7 @@ import Skills from './components/Skills.jsx';
 import RightTop from './components/RightTop.jsx';
 import TabsPanel from './components/TabsPanel.jsx';
 import DiceToast from './components/DiceToast.jsx';
-import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveConditions, loadResources, saveResources } from './state.js';
+import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspiration, saveConditions, saveInventory, saveCurrency, saveCurrentCharacter, loadResources, saveResources } from './state.js';
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
 
 const theme = createTheme({
@@ -40,12 +40,34 @@ const theme = createTheme({
   },
 });
 
+function normalizeResourceMax(def) {
+  const raw = def?.maxComputed ?? def?.max ?? 1;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return raw === Infinity ? Infinity : 1;
+  return Math.max(0, Math.floor(n));
+}
+
+function resourceRestText(def) {
+  return String(def?.recharge || '').toLowerCase();
+}
+
+function shortRestFullyRecovers(def, C) {
+  const recharge = resourceRestText(def);
+  if (!/\b(sr|short)\b/.test(recharge)) return false;
+  const ownerLevel = Number(def?.ownerLevel ?? C?.classLevel ?? C?.level ?? 1);
+  if (def?.srMinLevel && ownerLevel < Number(def.srMinLevel)) return false;
+  return true;
+}
+
 export default function CharacterSheet() {
   const [C, setC] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [tab, setTab] = useState(0);
   const [diceToast, setDiceToast] = useState(null);
   const [resources, setResources] = useState({});
+  const [shortRestOpen, setShortRestOpen] = useState(false);
+  const [longRestOpen, setLongRestOpen] = useState(false);
+  const [hdToSpend, setHdToSpend] = useState(0);
 
   useEffect(() => {
     const ch = loadCharacter();
@@ -53,8 +75,22 @@ export default function CharacterSheet() {
     if (ch) {
       const s = loadSheetState(ch);
       setSheet(s);
-      const res = loadResources(ch);
-      setResources(res);
+      const stored = loadResources(ch);
+      const runtime = ch.adapterRuntime || {};
+      const allResDefs = [
+        ...(runtime.classResources || []),
+        ...(runtime.subclassResources || []),
+        ...(runtime.speciesResources || []),
+        ...(runtime.featResources || []),
+      ];
+      const merged = { ...stored };
+      allResDefs.forEach(def => {
+        if (def.key && merged[def.key] == null) {
+          merged[def.key] = normalizeResourceMax(def);
+        }
+      });
+      setResources(merged);
+      saveResources(merged);
     }
   }, []);
 
@@ -62,8 +98,126 @@ export default function CharacterSheet() {
     setSheet(prev => ({ ...prev, ...updates }));
   }, []);
 
+  const updateCurrentCharacter = useCallback((updater) => {
+    setC(prev => {
+      if (!prev) return prev;
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      saveCurrentCharacter(next);
+      return next;
+    });
+  }, []);
+
+  const updateInventory = useCallback((inventory) => {
+    saveInventory(inventory);
+    setSheet(prev => ({ ...prev, sheetInventory: inventory }));
+    updateCurrentCharacter(prev => ({ ...prev, inventory }));
+  }, [updateCurrentCharacter]);
+
+  const updateCurrency = useCallback((currency) => {
+    saveCurrency(currency);
+    setSheet(prev => ({ ...prev, sheetCurrency: currency }));
+    updateCurrentCharacter(prev => ({ ...prev, currency }));
+  }, [updateCurrentCharacter]);
+
+  const updateSpells = useCallback((nextSpellData) => {
+    updateCurrentCharacter(prev => ({ ...prev, ...nextSpellData }));
+  }, [updateCurrentCharacter]);
+
+  const openShortRest = useCallback(() => {
+    const totalHD = (C.classLevel || C.level) + (C.extraClasses || []).reduce((s, ec) => s + (ec.level || 1), 0);
+    const remaining = Math.max(0, totalHD - (sheet.usedHD || 0));
+    setHdToSpend(Math.min(1, remaining));
+    setShortRestOpen(true);
+  }, [C, sheet]);
+
+  const confirmShortRest = useCallback(() => {
+    const s = { ...sheet };
+    const res = { ...resources };
+    const conMod = getMod(getFinal(C, 'con'));
+    const faces = C.clsSnapshot?.hd?.faces || 8;
+    const n = Math.max(0, Math.min(hdToSpend, Math.max(0, (C.classLevel || C.level) + (C.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0) - (s.usedHD || 0))));
+
+    let totalHeal = 0;
+    const rolls = [];
+    for (let i = 0; i < n; i++) {
+      const v = Math.floor(Math.random() * faces) + 1;
+      rolls.push({ v, faces });
+      totalHeal += v + conMod;
+    }
+
+    s.currentHP = Math.min(s.maxHP, s.currentHP + totalHeal);
+    s.usedHD = (s.usedHD || 0) + n;
+    saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
+    localStorage.setItem('5e_hd_used', String(s.usedHD));
+
+    if (C) {
+      const runtime = C.adapterRuntime || {};
+      const allResDefs = [
+        ...(runtime.classResources || []),
+        ...(runtime.subclassResources || []),
+        ...(runtime.speciesResources || []),
+        ...(runtime.featResources || []),
+      ];
+      allResDefs.forEach(def => {
+        if (!def.key) return;
+        const max = normalizeResourceMax(def);
+        if (shortRestFullyRecovers(def, C)) {
+          res[def.key] = max;
+        } else if (def.srRecover) {
+          const gain = Number(def.srRecover) || 0;
+          res[def.key] = Math.min((Number(res[def.key]) || 0) + gain, max);
+        }
+      });
+      setResources(res);
+      saveResources(res);
+    }
+
+    setSheet(s);
+    setShortRestOpen(false);
+    showDiceToast('Short Rest', `Healed ${totalHeal} HP (${n} HD spent)`, totalHeal, rolls);
+  }, [sheet, resources, C, hdToSpend]);
+
+  const openLongRest = useCallback(() => {
+    setLongRestOpen(true);
+  }, []);
+
+  const confirmLongRest = useCallback(() => {
+    const s = { ...sheet };
+    const res = { ...resources };
+    s.currentHP = s.maxHP;
+    s.tempHP = 0;
+    s.usedHD = 0;
+    s.deathSaves = { success: 0, fail: 0 };
+    s.spellSlotUsed = {};
+    saveDeathSaves(s.deathSaves);
+    localStorage.setItem('5e_slots_used', '{}');
+    saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
+    localStorage.setItem('5e_hd_used', '0');
+
+    if (C) {
+      const runtime = C.adapterRuntime || {};
+      const allResDefs = [
+        ...(runtime.classResources || []),
+        ...(runtime.subclassResources || []),
+        ...(runtime.speciesResources || []),
+        ...(runtime.featResources || []),
+      ];
+      allResDefs.forEach(def => {
+        if (!def.key) return;
+        res[def.key] = normalizeResourceMax(def);
+      });
+      setResources(res);
+      saveResources(res);
+    }
+
+    setSheet(s);
+    setLongRestOpen(false);
+    showDiceToast('Long Rest', 'Fully restored!', 0, []);
+  }, [sheet, resources, C]);
+
   const doRest = useCallback((type) => {
     const s = { ...sheet };
+    const res = { ...resources };
     if (type === 'long') {
       s.currentHP = s.maxHP;
       s.tempHP = 0;
@@ -76,22 +230,46 @@ export default function CharacterSheet() {
     s.usedHD = Math.min(s.usedHD || 0, type === 'short' ? s.usedHD : 0);
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
     localStorage.setItem('5e_hd_used', String(s.usedHD));
+    if (C) {
+      const runtime = C.adapterRuntime || {};
+      const allResDefs = [
+        ...(runtime.classResources || []),
+        ...(runtime.subclassResources || []),
+        ...(runtime.speciesResources || []),
+        ...(runtime.featResources || []),
+      ];
+      allResDefs.forEach(def => {
+        if (!def.key) return;
+        const max = normalizeResourceMax(def);
+        if (type === 'long') {
+          res[def.key] = max;
+        } else if (type === 'short' && shortRestFullyRecovers(def, C)) {
+          res[def.key] = max;
+        } else if (type === 'short' && def.srRecover) {
+          const gain = Number(def.srRecover) || 0;
+          res[def.key] = Math.min((Number(res[def.key]) || 0) + gain, max);
+        }
+      });
+      setResources(res);
+      saveResources(res);
+    }
     setSheet(s);
-  }, [sheet]);
+  }, [sheet, resources, C]);
 
-  const adjustHP = useCallback((dir) => {
+  const adjustHP = useCallback((dir, amount = 1) => {
     if (!sheet) return;
     const s = { ...sheet };
+    const dmg = Math.max(1, Math.floor(amount || 1));
     if (dir > 0) {
-      s.currentHP = Math.min(s.maxHP, s.currentHP + 1);
+      s.currentHP = Math.min(s.maxHP, s.currentHP + dmg);
     } else {
-      let dmg = 1;
+      let remaining = dmg;
       if (s.tempHP > 0) {
-        const absorbed = Math.min(s.tempHP, dmg);
+        const absorbed = Math.min(s.tempHP, remaining);
         s.tempHP -= absorbed;
-        dmg -= absorbed;
+        remaining -= absorbed;
       }
-      s.currentHP = Math.max(0, s.currentHP - dmg);
+      s.currentHP = Math.max(0, s.currentHP - remaining);
     }
     if (s.currentHP > 0) {
       s.deathSaves = { success: 0, fail: 0 };
@@ -178,6 +356,13 @@ export default function CharacterSheet() {
     setSheet({ ...sheet, activeConditions: [] });
   }, [sheet]);
 
+  const toggleInspiration = useCallback(() => {
+    if (!sheet) return;
+    const next = !sheet.sheetInspiration;
+    saveInspiration(next);
+    setSheet({ ...sheet, sheetInspiration: next });
+  }, [sheet]);
+
   const showDiceToast = useCallback((label, detail, total, rolls) => {
     setDiceToast({ label, detail, total, rolls, timestamp: Date.now() });
   }, []);
@@ -248,9 +433,9 @@ export default function CharacterSheet() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
-        <TopBar C={C} sheet={sheet} onRest={doRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
+        <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
         <AbilityScores C={C} sheet={sheet} onRoll={rollD20}
-          onHeal={() => adjustHP(1)} onDamage={() => adjustHP(-1)}
+          onHeal={(amt) => adjustHP(1, amt)} onDamage={(amt) => adjustHP(-1, amt)}
           onTempHP={adjustTempHP} onMaxHPBonus={adjustMaxHpBonus} onSetHP={setCurrentHP} onDeathSave={rollDeathSave} />
         <Box sx={{
           display: 'grid',
@@ -270,14 +455,60 @@ export default function CharacterSheet() {
             <Skills C={C} onRoll={rollSkill} />
           </Box>
           <Box>
-            <RightTop C={C} sheet={sheet} onRoll={rollD20} resources={resources} setResources={setResources}
-              onToggleCondition={toggleCondition} onClearConditions={clearConditions} />
+            <RightTop C={C} sheet={sheet} onRoll={rollD20}
+              onToggleCondition={toggleCondition} onClearConditions={clearConditions}
+              onToggleInspiration={toggleInspiration} />
             <TabsPanel C={C} sheet={sheet} tab={tab} setTab={setTab} onRoll={rollD20}
-              resources={resources} setResources={setResources} />
+              resources={resources} setResources={setResources} onRest={doRest} onShowToast={showDiceToast}
+              onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} />
           </Box>
         </Box>
       </Box>
       {diceToast && <DiceToast toast={diceToast} onClose={() => setDiceToast(null)} />}
+
+      <Dialog open={shortRestOpen} onClose={() => setShortRestOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a' }}>Short Rest</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mb: 2 }}>
+            Spend Hit Dice (d{C.clsSnapshot?.hd?.faces || 8}) to recover HP. You recover CON mod ({getMod(getFinal(C, 'con'))}) per HD spent.
+          </Typography>
+          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>
+            Available: {Math.max(0, (C.classLevel || C.level) + (C.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0) - (sheet.usedHD || 0))} HD
+          </Typography>
+          <Slider
+            value={hdToSpend}
+            onChange={(_, v) => setHdToSpend(v)}
+            min={0}
+            max={Math.max(0, (C.classLevel || C.level) + (C.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0) - (sheet.usedHD || 0))}
+            step={1}
+            marks
+            valueLabelDisplay="auto"
+            sx={{ color: '#caa550' }}
+          />
+          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', textAlign: 'center' }}>
+            Healing: {hdToSpend}d{C.clsSnapshot?.hd?.faces || 8}{getMod(getFinal(C, 'con')) >= 0 ? '+' : ''}{getMod(getFinal(C, 'con'))} × {hdToSpend} HD
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setShortRestOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={confirmShortRest} disabled={hdToSpend === 0}>
+            Take Short Rest
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={longRestOpen} onClose={() => setLongRestOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a' }}>Take a Long Rest?</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+            This will restore all HP, Hit Dice, spell slots, and class resources.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setLongRestOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={confirmLongRest}>Confirm Long Rest</Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 }

@@ -223,6 +223,9 @@ export default function install(registry, context = {}) {
       preparedMode: "known",
       spellsKnown: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11],
       preparedSpellsProgression: _PREP_HALF,
+      alwaysPreparedSpells: [
+        { name: "Hunter's Mark", minLevel: 1, level: 1 },
+      ],
     },
   });
   regClass("Rogue", {
@@ -248,6 +251,9 @@ export default function install(registry, context = {}) {
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
       spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
       preparedSpellsProgression: _PREP_WARLOCK,
+      alwaysPreparedSpells: [
+        { name: "Contact Other Plane", minLevel: 9, level: 5 },
+      ],
       choiceSpellSources: {
         warlock_tome_cantrip_1: { label: "Pact of the Tome", ability: "cha" },
         warlock_tome_cantrip_2: { label: "Pact of the Tome", ability: "cha" },

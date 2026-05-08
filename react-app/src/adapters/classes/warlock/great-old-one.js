@@ -136,9 +136,18 @@ registerSubclassSheetActions("Warlock_Great Old One", [
 ]);
 registerSubclassSheetResources("Warlock_Great Old One", [
   { key: "goo_awakened",   name: "Awakened Mind",        icon: "brain", recharge: "LR",
-    max: (lv) => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('cha'))) : 3 },
+    max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
   { key: "goo_clairvoyant", name: "Clairvoyant Combatant", icon: "eye",   recharge: "SR", max: () => 1 },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Warlock_Great Old One", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Hex", minLevel: 10, level: 1 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

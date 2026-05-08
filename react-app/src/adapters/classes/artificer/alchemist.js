@@ -178,7 +178,7 @@ registerSubclassSheetResources("Artificer_Alchemist", [
     "name": "Restorative Reagents",
     "icon": "flask-conical",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('int')) : 1)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   },
   {
     "key": "chemical_mastery",

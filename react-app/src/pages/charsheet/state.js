@@ -69,8 +69,67 @@ export function saveDeathSaves(deathSaves) {
   localStorage.setItem('5e_death_saves', JSON.stringify(deathSaves));
 }
 
+export function saveInspiration(val) {
+  localStorage.setItem('5e_inspiration', val ? 'true' : 'false');
+}
+
 export function saveConditions(conditions) {
   localStorage.setItem('5e_conditions_active', JSON.stringify(conditions));
+}
+
+export function saveInventory(inventory) {
+  localStorage.setItem('5e_inventory', JSON.stringify(inventory || []));
+}
+
+export function saveCurrency(currency) {
+  localStorage.setItem('5e_currency', JSON.stringify(currency || {}));
+}
+
+export function saveCurrentCharacter(character) {
+  localStorage.setItem('5e_current_char', JSON.stringify(character));
+  syncBuilderState(character);
+}
+
+function syncBuilderState(character) {
+  if (!character || typeof character !== 'object') return;
+  try {
+    const previous = JSON.parse(localStorage.getItem('5e_builder_state') || '{}');
+    const mapped = {
+      name: character.name,
+      xp: character.xp,
+      level: character.level,
+      classLevel: character.classLevel,
+      className: character.className,
+      classSource: character.classSource,
+      subclassShortName: character.subclassShortName || '',
+      extraClasses: character.extraClasses,
+      speciesName: character.speciesName,
+      speciesSource: character.speciesSource,
+      backgroundName: character.backgroundName ?? character.bgName,
+      backgroundSource: character.backgroundSource ?? character.bgSource,
+      backgroundAbilities: character.backgroundAbilities ?? character.bgAbility,
+      scoreMethod: character.scoreMethod,
+      hpMode: character.hpMode,
+      hpManualRolls: character.hpManualRolls,
+      pbScores: character.pbScores,
+      arrAssign: character.arrAssign,
+      diceAssign: character.diceAssign,
+      manualScores: character.manualScores,
+      choices: character.choices,
+      selectedSkills: character.selectedSkills,
+      selectedLanguages: character.selectedLanguages,
+      selectedTools: character.selectedTools,
+      selectedCantrips: character.selectedCantrips,
+      selectedSpells: character.selectedSpells,
+      wizardSpellbook: character.wizardSpellbook,
+      wizardSpellMastery: character.wizardSpellMastery,
+      wizardSignatureSpells: character.wizardSignatureSpells,
+      inventory: character.inventory,
+      currency: character.currency,
+    };
+    const cleaned = Object.fromEntries(Object.entries(mapped).filter(([, value]) => value !== undefined));
+    localStorage.setItem('5e_builder_state', JSON.stringify({ ...previous, ...cleaned }));
+  } catch {}
 }
 
 export function loadResources(C) {

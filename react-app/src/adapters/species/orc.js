@@ -141,7 +141,7 @@ registerSpeciesSheetResources("Orc_XPHB", [
     name: 'Adrenaline Rush',
     icon: 'zap',
     recharge: 'LR',
-    max: () => getPB(),
+    max: (lv) => Math.floor((Number(lv) - 1) / 4) + 2,
   },
 ]);
 

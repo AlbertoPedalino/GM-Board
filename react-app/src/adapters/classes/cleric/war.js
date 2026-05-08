@@ -123,6 +123,12 @@ export default function install(registry, context = {}) {
 // L3: War Priest, Guided Strike (CD)
 // L6: War God's Blessing (CD)
 // L17: Avatar of Battle (resistenze B/P/S)
+// War Domain grants Heavy Armor and Martial Weapon proficiency
+registerSubclassSheetProficiencies("Cleric_War", [
+  { type: "armor", values: ["Heavy"], minLevel: 1 },
+  { type: "weapon", values: ["Martial"], minLevel: 1 },
+]);
+
 registerSubclassAdapter("Cleric_War", function (cls, lv, specs) {
   // nessuna spec
 });
@@ -140,8 +146,26 @@ registerSubclassSheetActions("Cleric_War", [
 ]);
 registerSubclassSheetResources("Cleric_War", [
   { key: "war_priest", name: "War Priest", icon: "swords", recharge: "SR",
-    max: (lv) => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('wis')) : 1) },
+    max: (lv, { wis } = {}) => Math.max(1, wis ?? 0) },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Cleric_War", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Guiding Bolt", minLevel: 3, level: 1 },
+        { name: "Magic Weapon", minLevel: 3, level: 2 },
+        { name: "Shield of Faith", minLevel: 3, level: 1 },
+        { name: "Spiritual Weapon", minLevel: 3, level: 2 },
+        { name: "Crusader's Mantle", minLevel: 5, level: 3 },
+        { name: "Spirit Guardians", minLevel: 5, level: 3 },
+        { name: "Fire Shield", minLevel: 7, level: 4 },
+        { name: "Freedom of Movement", minLevel: 7, level: 4 },
+        { name: "Hold Monster", minLevel: 9, level: 5 },
+        { name: "Steel Wind Strike", minLevel: 9, level: 5 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

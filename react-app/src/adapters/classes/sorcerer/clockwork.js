@@ -166,7 +166,7 @@ registerSubclassSheetResources("Sorcerer_Clockwork", [
     "name": "Restore Balance",
     "icon": "settings",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 1)
+    "max": (lv, { cha } = {}) => Math.max(1, cha ?? 0)
   },
   {
     "key": "clockwork_trance",

@@ -132,6 +132,16 @@ registerSubclassSheetActions("Monk_Shadow", [
   { name: "Cloak of Shadows", icon: "", cat: "action", uses: "3 Focus Points / 1 min", resKey: "ki", minLevel: 17,
     desc: "Magic action while entirely in Dim Light or Darkness: expend 3 Focus Points. For 1 minute, until Incapacitated, or until you end your turn in Bright Light, gain — Invisibility: Invisible condition; Partially Incorporeal: can move through occupied spaces as Difficult Terrain (shunted to last unoccupied space if you end turn in one); Shadow Flurry: use Flurry of Blows without expending Focus Points." },
 ]);
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Monk_Shadow", {
+    spellcasting: {
+      ability: "wis",
+      alwaysKnownSpells: [
+        { name: "Minor Illusion", minLevel: 3, level: 0 },
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

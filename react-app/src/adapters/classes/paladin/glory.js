@@ -136,7 +136,7 @@ registerSubclassSheetActions("Paladin_Glory", [
 ]);
 registerSubclassSheetResources("Paladin_Glory", [
   { key: "glory_glorious_defense", name: "Glorious Defense", icon: "shield", recharge: "LR",
-    max: (lv) => Math.max(1, typeof getMod === 'function' && typeof getFinal === 'function' ? getMod(getFinal('cha')) : 1) },
+    max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
   { key: "glory_living_legend", name: "Living Legend", icon: "crown", recharge: "LR", max: () => 1 },
 ]);
 // [SheetRuntime] END

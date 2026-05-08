@@ -184,7 +184,7 @@ const _wizardBladesingerResources = [
     "name": "Bladesong",
     "icon": "music",
     "recharge": "LR",
-    "max": () => Math.max(1, typeof getMod === "function" && typeof getFinal === "function" ? getMod(getFinal("int")) : 1)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
   }
 ];
 const _wizardBladesingerProficiencies = [

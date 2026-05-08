@@ -292,7 +292,7 @@ registerClassSheetResources("Ranger", [
     "icon": "heart",
     "recharge": "LR",
     "minLevel": 10,
-    "max": () => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('wis'))) : 1
+    "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   },
   {
     "key": "natures_veil",
@@ -300,7 +300,7 @@ registerClassSheetResources("Ranger", [
     "icon": "eye-off",
     "recharge": "LR",
     "minLevel": 14,
-    "max": () => typeof getMod === 'function' && typeof getFinal === 'function' ? Math.max(1, getMod(getFinal('wis'))) : 1
+    "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   }
 ]);
 // [SheetRuntime] END

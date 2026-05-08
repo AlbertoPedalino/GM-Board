@@ -4,7 +4,7 @@ import { Swords, Shield, Sparkles, ListChecks, X } from 'lucide-react';
 import { getMod, getFinal } from '../logic/calculations.js';
 import { CONDITIONS } from '../logic/calculations.js';
 
-export default function RightTop({ C, sheet, onRoll, resources, setResources, onToggleCondition, onClearConditions }) {
+export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearConditions, onToggleInspiration }) {
   const initMod = getMod(getFinal(C, 'dex'));
   const ac = calcAC(C, sheet);
   const active = CONDITIONS.filter(c => sheet.activeConditions.includes(c.key));
@@ -13,7 +13,7 @@ export default function RightTop({ C, sheet, onRoll, resources, setResources, on
     <Box sx={{ display: 'flex', gap: '0.45rem', mb: '0.5rem', flexWrap: 'wrap' }}>
       <CircleStat onClick={() => onRoll(initMod, 'Initiative')} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
       <ACDisplay value={ac} />
-      <InspirationBlock sheet={sheet} />
+      <InspirationBlock sheet={sheet} onToggle={onToggleInspiration} />
       <DefensesBlock C={C} />
       <ConditionsBlock active={active} sheet={sheet} onToggle={onToggleCondition} onClear={onClearConditions} />
     </Box>
@@ -47,10 +47,10 @@ function ACDisplay({ value }) {
   );
 }
 
-function InspirationBlock({ sheet }) {
+function InspirationBlock({ sheet, onToggle }) {
   const insp = sheet.sheetInspiration;
   return (
-    <Box sx={{ minWidth: 90, maxWidth: 110, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: insp ? 'primary.main' : 'divider', borderRadius: 1, p: '0.4rem 0.62rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 0.25, cursor: 'pointer', '&:hover': { borderColor: 'primary.main' }, ...(insp ? { bgcolor: 'rgba(202,165,80,0.14)' } : {}) }}>
+    <Box onClick={onToggle} sx={{ minWidth: 90, maxWidth: 110, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: insp ? 'primary.main' : 'divider', borderRadius: 1, p: '0.4rem 0.62rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 0.25, cursor: 'pointer', '&:hover': { borderColor: 'primary.main' }, ...(insp ? { bgcolor: 'rgba(202,165,80,0.14)' } : {}) }}>
       <Sparkles size={20} style={{ color: insp ? '#edd48a' : 'text.secondary', filter: insp ? 'drop-shadow(0 0 6px rgba(202,165,80,0.6))' : 'none' }} />
       <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: insp ? 'primary.main' : 'text.secondary', textAlign: 'center' }}>
         {insp ? 'Insp.' : 'No Insp.'}

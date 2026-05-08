@@ -119,6 +119,8 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
+  const getMod = context?.getMod;
+  const getFinal = context?.getFinal;
 registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
@@ -132,8 +134,8 @@ registerSubclassSheetActions("Paladin_Devotion", [
   { name: "Holy Nimbus", icon: "", cat: "bonus", uses: "1 / LR or lv5 slot", resKey: "devotion_holy_nimbus", minLevel: 20,
     inlinePills: ({ ownerLevel, character }) => {
       const cha = typeof getMod === "function" && typeof getFinal === "function"
-        ? Number(getMod(getFinal("cha")) || 0) : 0;
-      const pb = typeof getPB === "function" ? getPB() : 4;
+        ? Number(getMod(getFinal(character, "cha")) || 0) : 0;
+      const pb = Math.floor((Number(character?.level || 1) - 1) / 4) + 2;
       return [{ icon: "sun", label: "Radiant/turn", value: cha + pb }];
     },
     desc: "Bonus Action: imbue your Aura of Protection with holy power for 10 minutes (no action to end). Three benefits — Holy Ward: Advantage on saving throws forced by Fiends or Undead; Radiant Damage: enemies starting their turn in the aura take Radiant damage equal to your CHA modifier + Proficiency Bonus; Sunlight: the aura is filled with Bright Light that is sunlight. Recharge: LR, or expend a level 5 spell slot." },

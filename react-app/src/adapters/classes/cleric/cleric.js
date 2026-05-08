@@ -50,6 +50,8 @@ export default function install(registry, context = {}) {
     getSubclassRuntimeConfig,
     registerSpeciesRuntimeConfig,
     getSpeciesRuntimeConfig,
+    registerFeatRuntimeConfig,
+    getFeatRuntimeConfig,
     registerClassSheetChoiceMeta,
     getClassSheetChoiceMeta,
     registerSubclassSheetChoiceMeta,
@@ -119,6 +121,8 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
+  const getMod = context?.getMod;
+  const getFinal = context?.getFinal;
 registerClassAdapter("Cleric", function (cls, lv, specs) {
   if (lv >= 1) {
     specs.push({
@@ -203,7 +207,7 @@ registerClassSheetActions("Cleric", [
     "minLevel": 2,
     "healFormula": ({ character, ownerLevel }) => {
       const wis = typeof getMod === "function" && typeof getFinal === "function"
-        ? Number(getMod(getFinal("wis")) || 0)
+        ? Number(getMod(getFinal(character, "wis")) || 0)
         : 0;
       const lv = Number(ownerLevel || 1);
       const dice = lv >= 18 ? 4 : lv >= 13 ? 3 : lv >= 7 ? 2 : 1;
@@ -220,9 +224,9 @@ registerClassSheetActions("Cleric", [
     "cat": "action",
     "uses": "On Turn Undead",
     "minLevel": 5,
-    "damageFormula": () => {
+    "damageFormula": ({ character }) => {
       const wis = typeof getMod === 'function' && typeof getFinal === 'function'
-        ? Number(getMod(getFinal('wis')) || 1)
+        ? Number(getMod(getFinal(character, 'wis')) || 1)
         : 1;
       return `${Math.max(1, wis)}d8`;
     },
