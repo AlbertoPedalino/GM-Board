@@ -376,6 +376,21 @@ function parseChooseString(value) {
   return out;
 }
 
+function collectChooseEntries(obj) {
+  const entries = [];
+  if (Array.isArray(obj)) {
+    obj.forEach((item) => {
+      if (item && typeof item === 'object') {
+        if (item.choose) entries.push(item);
+        else entries.push(...collectChooseEntries(item));
+      }
+    });
+  } else if (obj && typeof obj === 'object') {
+    Object.values(obj).forEach((v) => entries.push(...collectChooseEntries(v)));
+  }
+  return entries;
+}
+
 function additionalSpellChoices(feat, slotKey, entryIdx = 0) {
   const out = [];
   const additional = Array.isArray(feat?.additionalSpells) ? feat.additionalSpells : [];
@@ -387,17 +402,16 @@ function additionalSpellChoices(feat, slotKey, entryIdx = 0) {
     const section = grant[mode];
     if (!section || typeof section !== 'object') return;
     Object.entries(section).forEach(([scope, list]) => {
-      const items = Array.isArray(list) ? list : list?._;
-      if (!Array.isArray(items)) return;
+      const chooseEntries = collectChooseEntries(list);
+      if (!chooseEntries.length) return;
       const grouped = new Map();
-      items.forEach((entry) => {
-        if (typeof entry === 'object' && entry?.choose) {
-          const parsed = parseChooseString(entry.choose);
-          const sigKey = `${parsed.level ?? '?'}|${parsed.classes.join(',')}|${parsed.schools.join(',')}`;
-          const current = grouped.get(sigKey) || { ...parsed, count: 0 };
-          current.count += 1;
-          grouped.set(sigKey, current);
-        }
+      chooseEntries.forEach((entry) => {
+        if (!entry?.choose) return;
+        const parsed = parseChooseString(entry.choose);
+        const sigKey = `${parsed.level ?? '?'}|${parsed.classes.join(',')}|${parsed.schools.join(',')}`;
+        const current = grouped.get(sigKey) || { ...parsed, count: 0 };
+        current.count += entry.count || 1;
+        grouped.set(sigKey, current);
       });
       grouped.forEach((value, key) => {
         out.push({

@@ -1,0 +1,133 @@
+import { useState } from 'react';
+import { Box, Typography, Chip } from '@mui/material';
+import { Swords, Shield, Sparkles, ListChecks, X } from 'lucide-react';
+import { getMod, getFinal } from '../logic/calculations.js';
+import { CONDITIONS } from '../logic/calculations.js';
+
+export default function RightTop({ C, sheet, onRoll, resources, setResources, onToggleCondition, onClearConditions }) {
+  const initMod = getMod(getFinal(C, 'dex'));
+  const ac = calcAC(C, sheet);
+  const active = CONDITIONS.filter(c => sheet.activeConditions.includes(c.key));
+
+  return (
+    <Box sx={{ display: 'flex', gap: '0.45rem', mb: '0.5rem', flexWrap: 'wrap' }}>
+      <CircleStat onClick={() => onRoll(initMod, 'Initiative')} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
+      <ACDisplay value={ac} />
+      <InspirationBlock sheet={sheet} />
+      <DefensesBlock C={C} />
+      <ConditionsBlock active={active} sheet={sheet} onToggle={onToggleCondition} onClear={onClearConditions} />
+    </Box>
+  );
+}
+
+function CircleStat({ value, label, clickable, onClick, children }) {
+  return (
+    <Box onClick={onClick}
+      sx={{
+        width: 62, height: 62, borderRadius: '50%', border: 2, borderColor: 'divider',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        bgcolor: 'rgba(35,32,26,1)',
+        ...(clickable ? { cursor: 'pointer', '&:hover': { borderColor: 'primary.main' } } : {}),
+      }}>
+      {children || <><Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.25rem', fontWeight: 700, color: '#edd48a', lineHeight: 1 }}>{value}</Typography>
+        <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.44rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary', mt: 0.15 }}>{label}</Typography></>}
+    </Box>
+  );
+}
+
+function ACDisplay({ value }) {
+  return (
+    <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 62, height: 68, flexShrink: 0 }}>
+      <Shield size={62} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', color: 'rgba(202,165,80,0.14)' }} />
+      <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+        <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.25rem', fontWeight: 700, color: '#edd48a', lineHeight: 1 }}>{value}</Typography>
+        <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.44rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>AC</Typography>
+      </Box>
+    </Box>
+  );
+}
+
+function InspirationBlock({ sheet }) {
+  const insp = sheet.sheetInspiration;
+  return (
+    <Box sx={{ minWidth: 90, maxWidth: 110, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: insp ? 'primary.main' : 'divider', borderRadius: 1, p: '0.4rem 0.62rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 0.25, cursor: 'pointer', '&:hover': { borderColor: 'primary.main' }, ...(insp ? { bgcolor: 'rgba(202,165,80,0.14)' } : {}) }}>
+      <Sparkles size={20} style={{ color: insp ? '#edd48a' : 'text.secondary', filter: insp ? 'drop-shadow(0 0 6px rgba(202,165,80,0.6))' : 'none' }} />
+      <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: insp ? 'primary.main' : 'text.secondary', textAlign: 'center' }}>
+        {insp ? 'Insp.' : 'No Insp.'}
+      </Typography>
+    </Box>
+  );
+}
+
+function DefensesBlock({ C }) {
+  const resist = C.speciesSnapshot?.resist || C.clsSnapshot?.resist || [];
+  const immune = C.speciesSnapshot?.immune || C.clsSnapshot?.immune || [];
+  const all = [...resist.map(r => ({ type: r, kind: 'Resist' })), ...immune.map(r => ({ type: r, kind: 'Immune' }))];
+  return (
+    <Box sx={{ flex: 1, minWidth: 140, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, p: '0.4rem 0.62rem' }}>
+      <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'primary.main', mb: 0.4 }}>Defenses</Typography>
+      {all.length === 0 && <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', fontStyle: 'italic' }}>No resistances detected.</Typography>}
+      {all.map((d, i) => (
+        <Chip key={i} size="small" label={`${d.kind} ${d.type}`} variant="outlined" sx={{ fontSize: '0.5rem', m: 0.15 }} />
+      ))}
+    </Box>
+  );
+}
+
+function ConditionsBlock({ active, sheet, onToggle, onClear }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Box sx={{ flex: 1, minWidth: 140, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, p: '0.4rem 0.62rem' }}>
+      <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'primary.main', mb: 0.4 }}>Conditions</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.25 }}>
+          {active.length === 0 && <Chip size="small" label="— None" variant="outlined" sx={{ fontSize: '0.5rem', borderStyle: 'dashed' }} />}
+          {active.map(c => (
+            <Chip key={c.key} size="small" label={c.label} onDelete={() => onToggle(c.key)}
+              sx={{ fontSize: '0.5rem', color: '#d69245', borderColor: '#d69245', bgcolor: 'rgba(213,138,61,0.14)' }} />
+          ))}
+        </Box>
+        <Box sx={{ border: '1px dashed', borderColor: 'divider', borderRadius: 1, p: '3px 6px' }}>
+          <Box component="summary" onClick={() => setOpen(!open)}
+            sx={{ cursor: 'pointer', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', color: 'text.secondary', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: 0.5, userSelect: 'none' }}>
+            <ListChecks size={12} /> Manage ({active.length})
+          </Box>
+          {open && (
+            <Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(108px,1fr))', gap: 0.25, mt: 0.5 }}>
+                {CONDITIONS.map(c => {
+                  const isOn = sheet.activeConditions.includes(c.key);
+                  return (
+                    <Chip key={c.key} size="small" label={c.label} variant={isOn ? 'filled' : 'outlined'}
+                      onClick={() => onToggle(c.key)}
+                      sx={{ fontSize: '0.5rem', cursor: 'pointer', justifyContent: 'flex-start', ...(isOn ? { color: '#d69245', bgcolor: 'rgba(213,138,61,0.14)' } : {}) }} />
+                  );
+                })}
+              </Box>
+              {active.length > 0 && (
+                <Chip size="small" label="Clear" onDelete={onClear} deleteIcon={<X size={12} />} sx={{ mt: 0.5, fontSize: '0.5rem' }} />
+              )}
+            </Box>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+function calcAC(C, sheet) {
+  if (!C) return 10;
+  const dex = getMod(getFinal(C, 'dex'));
+  const inv = sheet?.sheetInventory || [];
+  const equippedArmor = inv.find(i => i.equipped && ['LA', 'MA', 'HA'].includes(i.type));
+  const equippedShield = inv.find(i => i.equipped && i.type === 'S');
+  const shieldBonus = equippedShield ? 2 : 0;
+
+  if (equippedArmor) {
+    const baseAC = equippedArmor.ac || 10;
+    if (equippedArmor.type === 'LA') return baseAC + dex + shieldBonus;
+    if (equippedArmor.type === 'MA') return baseAC + Math.min(2, dex) + shieldBonus;
+    return baseAC + shieldBonus;
+  }
+  return 10 + dex + shieldBonus;
+}

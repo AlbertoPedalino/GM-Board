@@ -2,6 +2,7 @@ import { Chip, Stack, Typography } from '@mui/material';
 import { Sparkles } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
+import { FeatCategorySlot } from '../components/FeatSlots.jsx';
 import SearchList from '../components/SearchList.jsx';
 import { speciesChoiceSpecs } from '../spells/choiceSpecs.js';
 import { renderEntryText } from '../logic/text.js';
@@ -44,9 +45,11 @@ export default function SpeciesStep({ state, dispatch }) {
           Active species: {character.speciesName}
         </Typography>
         <Stack spacing={1.5}>
-          {speciesChoiceSpecs(character).map((spec) => (
-            <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} />
-          ))}
+          {speciesChoiceSpecs(character).map((spec) =>
+            spec.type === 'feat_cat'
+              ? <FeatCategorySlot key={spec.key} spec={spec} feats={state.data.feats} character={character} state={state} dispatch={dispatch} />
+              : <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} />
+          )}
         </Stack>
       </BuilderPanel>
     </Stack>

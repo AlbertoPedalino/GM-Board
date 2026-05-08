@@ -1,0 +1,59 @@
+import { Box, Typography } from '@mui/material';
+import { STATS, SLBL, FULL_LBL, getFinal, getMod, getPB, fbonus } from '../logic/calculations.js';
+import HPBlock from './HPBlock.jsx';
+
+export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTempHP, onMaxHPBonus, onSetHP, onDeathSave }) {
+  const pb = getPB(C);
+
+  return (
+    <Box sx={{
+      display: 'flex', alignItems: 'stretch', gap: '0.6rem', p: '0.55rem 1.1rem',
+      bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap',
+    }}>
+      <Box sx={{
+        display: 'grid', gridTemplateColumns: { xs: 'repeat(4,1fr)', sm: 'repeat(8,minmax(62px,1fr))' },
+        gap: '0.6rem', flex: '1 1 520px', minWidth: 0,
+      }}>
+        {STATS.map(s => {
+          const val = getFinal(C, s);
+          const mod = getMod(val);
+          return (
+            <Box key={s} onClick={() => onRoll(mod, FULL_LBL[s] + ' Check')}
+              sx={{
+                bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', p: '0.4rem 0.25rem',
+                cursor: 'pointer', transition: 'border-color 0.15s',
+                '&:hover': { borderColor: 'primary.main' },
+              }}>
+              <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.14em', color: 'text.secondary', textTransform: 'uppercase', mb: 0.1 }}>
+                {SLBL[s]}
+              </Typography>
+              <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.5rem', fontWeight: 700, color: '#edd48a', lineHeight: 1 }}>
+                {fbonus(mod)}
+              </Typography>
+              <Box sx={{
+                fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', fontWeight: 600, color: 'text.secondary',
+                bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: '50%',
+                width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.25,
+              }}>
+                {val}
+              </Box>
+            </Box>
+          );
+        })}
+        <Box sx={{
+          bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: '0.42rem 0.68rem', textAlign: 'center', minWidth: 64,
+        }}>
+          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.25rem', fontWeight: 700, color: '#58b879', lineHeight: 1 }}>
+            {fbonus(pb)}
+          </Typography>
+          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'text.secondary', mt: 0.25 }}>
+            Prof. Bonus
+          </Typography>
+        </Box>
+      </Box>
+      <HPBlock sheet={sheet} onHeal={onHeal} onDamage={onDamage} onTempHP={onTempHP} onMaxHPBonus={onMaxHPBonus} onSetHP={onSetHP} onDeathSave={onDeathSave} />
+    </Box>
+  );
+}

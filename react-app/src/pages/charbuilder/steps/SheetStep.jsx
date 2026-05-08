@@ -1,5 +1,5 @@
 import { Alert, Button, Paper, Stack, Typography } from '@mui/material';
-import { ClipboardList, Home, Save } from 'lucide-react';
+import { ClipboardList, FileText, Home, Save } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import { DATA_BASE } from '../constants.js';
 import { saveCharacter } from '../logic/persistence.js';
@@ -16,6 +16,18 @@ export default function SheetStep({ state, dispatch }) {
           Finished all choices? Save character payload from reducer state.
         </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent="center">
+          <Button
+            variant="contained"
+            color="success"
+            disabled={!ready}
+            startIcon={<FileText size={16} />}
+            onClick={() => {
+              saveCharacter(character, state.data);
+              window.location.search = '?sheet=1';
+            }}
+          >
+            Create Sheet
+          </Button>
           <Button
             variant="contained"
             disabled={!ready}

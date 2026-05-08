@@ -158,7 +158,8 @@ function partitionChoices(choices) {
       return;
     }
     if (key.startsWith('subclass_')) out.subclass.push(entry);
-    else if (key.startsWith('species_')) out.species.push(entry);
+    else     if (key.startsWith('species_') && key !== 'species_origin_feat') out.species.push(entry);
+    else if (key === 'species_origin_feat') out.feat.push(entry);
     else if (key.startsWith('bg_') || key === 'feat_origin' || key.startsWith('feat_origin_')) out.background.push(entry);
     else if (key.startsWith('feat_')) out.feat.push(entry);
     else if (key.startsWith('class_') || key.startsWith('start_') || key.startsWith('auto_') || key.includes('_skill_') || key.includes('_lang_') || key.includes('_tool_') || key.includes('_opt_') || key.includes('_exp_')) out.class.push(entry);
