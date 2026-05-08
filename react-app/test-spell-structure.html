@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Spell Structure</title>
+</head>
+<body>
+    <pre id="output">Loading...</pre>
+    <script>
+        async function testSpellStructure() {
+            try {
+                // Fetch first spell file
+                const res = await fetch('https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/spells/spells-xphb.json');
+                const data = await res.json();
+                const spells = data.spell || [];
+                
+                if (spells.length === 0) {
+                    document.getElementById('output').textContent = 'No spells found';
+                    return;
+                }
+                
+                // Inspect first 3 spells
+                const output = [];
+                for (let i = 0; i < Math.min(3, spells.length); i++) {
+                    const spell = spells[i];
+                    output.push(`\n=== SPELL ${i+1}: ${spell.name} ===`);
+                    output.push(`Classes field exists: ${!!spell.classes}`);
+                    if (spell.classes) {
+                        output.push(`Classes structure: ${JSON.stringify(spell.classes, null, 2)}`);
+                    }
+                }
+                
+                document.getElementById('output').textContent = output.join('\n');
+            } catch (err) {
+                document.getElementById('output').textContent = `Error: ${err.message}`;
+            }
+        }
+        
+        testSpellStructure();
+    </script>
+</body>
+</html>
