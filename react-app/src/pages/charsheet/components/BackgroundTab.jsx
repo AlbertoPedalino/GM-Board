@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { renderEntries } from '../logic/renderEntries.js';
 
 export default function BackgroundTab({ C }) {
   const bg = C?.bgSnapshot || {};
@@ -34,37 +35,4 @@ export default function BackgroundTab({ C }) {
       )}
     </Box>
   );
-}
-
-function renderEntries(entries) {
-  if (!entries) return '';
-  if (typeof entries === 'string') return cleanText(entries);
-  if (Array.isArray(entries)) return entries.map(e => renderEntries(e)).join('<br/>');
-  if (typeof entries === 'object') {
-    if (entries.type === 'list') {
-      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem">${(entries.items || []).map(i => `<li>${renderEntries(i)}</li>`).join('')}</ul>`;
-    }
-    if (entries.name && entries.entries) {
-      return `<b>${cleanText(entries.name)}.</b> ${renderEntries(entries.entries)}`;
-    }
-    if (entries.entries) return renderEntries(entries.entries);
-  }
-  return '';
-}
-
-function cleanText(s) {
-  if (!s) return '';
-  return String(s)
-    .replace(/\{@hit ([^}]+)\}/g, '<b>$1</b>')
-    .replace(/\{@damage ([^}]+)\}/g, '<b>$1</b>')
-    .replace(/\{@dc ([^}]+)\}/g, 'CD $1')
-    .replace(/\{@spell ([^|}]+)[^}]*\}/g, '<i>$1</i>')
-    .replace(/\{@condition ([^|}]+)[^}]*\}/g, '<b>$1</b>')
-    .replace(/\{@action ([^|}]+)[^}]*\}/g, '<b>$1</b>')
-    .replace(/\{@skill ([^|}]+)[^}]*\}/g, '$1')
-    .replace(/\{@ability ([^|}]+)[^}]*\}/g, '$1')
-    .replace(/\{@b ([^}]+)\}/g, '<b>$1</b>')
-    .replace(/\{@i ([^}]+)\}/g, '<i>$1</i>')
-    .replace(/\{@[a-z]+ ([^|}]+)[^}]*\}/gi, '$1')
-    .replace(/\{[^}]+\}/g, '');
 }

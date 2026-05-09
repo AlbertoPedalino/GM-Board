@@ -2,6 +2,7 @@ import { SHEET_KEYS } from '../constants.js';
 import { calcMaxHp, getAllFinalScores, getPrimaryClassLevel, getSelectedFeatNames } from './calculations.js';
 import { getMod, getFinal } from '../../charsheet/logic/calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
+import { getStorageItem, removeStorageItem, setStorageItem, setStorageJson } from '../../../shared/storage.js';
 
 export function extractSheetData(text) {
   try {
@@ -163,6 +164,7 @@ export function makeSheetPayload(character, data) {
       subclassLevel: character.cls?.subclassLevel || 3,
       subclassTitle: character.cls?.subclassTitle || '',
       startingProficiencies: character.cls?.startingProficiencies || {},
+      multiclassProficienciesGained: character.cls?.multiclassProficienciesGained || {},
       startingEquipment: character.cls?.startingEquipment || null,
     },
     speciesSnapshot: {
@@ -171,12 +173,16 @@ export function makeSheetPayload(character, data) {
       darkvision: character.speciesObj?.darkvision || 0,
       resist: character.speciesObj?.resist || [],
       immune: character.speciesObj?.immune || [],
+      armorProficiencies: character.speciesObj?.armorProficiencies,
+      weaponProficiencies: character.speciesObj?.weaponProficiencies,
       entries: character.speciesObj?.entries || [],
     },
     bgSnapshot: {
       skillProficiencies: character.backgroundObj?.skillProficiencies || [],
       languageProficiencies: character.backgroundObj?.languageProficiencies || [],
       toolProficiencies: character.backgroundObj?.toolProficiencies || [],
+      armorProficiencies: character.backgroundObj?.armorProficiencies,
+      weaponProficiencies: character.backgroundObj?.weaponProficiencies,
       feats: character.backgroundObj?.feats || [],
       startingEquipment: character.backgroundObj?.startingEquipment || null,
       entries: character.backgroundObj?.entries || [],
@@ -190,6 +196,8 @@ export function makeSheetPayload(character, data) {
         categories: feat.categories,
         entries: feat.entries,
         prerequisite: feat.prerequisite,
+        armorProficiencies: feat.armorProficiencies,
+        weaponProficiencies: feat.weaponProficiencies,
       })),
     allClassFeatures: character.allFeatures || [],
     allSubFeatures: character.allSubFeatures || [],
@@ -248,24 +256,24 @@ function collectAutoGrantedSpells(character) {
 
 export function saveCharacter(character, data) {
   const payload = makeSheetPayload(character, data);
-  localStorage.setItem('5e_current_char', JSON.stringify(payload));
-  localStorage.setItem('5e_inventory', JSON.stringify(character.inventory || []));
-  localStorage.setItem('5e_currency', JSON.stringify(character.currency || {}));
-  localStorage.setItem('5e_xp', String(character.xp || 0));
-  localStorage.setItem('5e_builder_state', JSON.stringify(character));
+  setStorageJson('5e_current_char', payload);
+  setStorageJson('5e_inventory', character.inventory || []);
+  setStorageJson('5e_currency', character.currency || {});
+  setStorageItem('5e_xp', character.xp || 0);
+  setStorageJson('5e_builder_state', character);
   return payload;
 }
 
 export function importSheetPayload(payload, confirmOverwrite = () => true) {
   if (!payload || typeof payload !== 'object') throw new Error('Formato file non riconosciuto');
   const allowed = new Set(SHEET_KEYS);
-  const hasExisting = localStorage.getItem('5e_builder_state') != null;
+  const hasExisting = getStorageItem('5e_builder_state') != null;
   if (hasExisting && !confirmOverwrite()) return 0;
-  SHEET_KEYS.forEach((key) => localStorage.removeItem(key));
+  SHEET_KEYS.forEach((key) => removeStorageItem(key));
   let count = 0;
   Object.entries(payload).forEach(([key, value]) => {
     if (allowed.has(key) && typeof value === 'string') {
-      localStorage.setItem(key, value);
+      setStorageItem(key, value);
       count += 1;
     }
   });

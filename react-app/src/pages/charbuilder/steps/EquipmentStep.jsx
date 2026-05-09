@@ -277,13 +277,13 @@ export default function EquipmentStep({ state, dispatch }) {
             value={localQuery}
             placeholder="Search items"
             onChange={(event) => setLocalQuery(event.target.value)}
-            InputProps={{
+            slotProps={{ input: {
               startAdornment: (
                 <InputAdornment position="start">
                   <Search size={18} />
                 </InputAdornment>
               ),
-            }}
+            } }}
           />
           <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
             {ITEM_FILTERS.map((filter) => (

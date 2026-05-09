@@ -9,13 +9,13 @@ export default function SearchList({ value, onSearch, placeholder, items, select
         value={value}
         placeholder={placeholder}
         onChange={(event) => onSearch(event.target.value)}
-        InputProps={{
+        slotProps={{ input: {
           startAdornment: (
             <InputAdornment position="start">
               <Search size={18} />
             </InputAdornment>
           ),
-        }}
+        } }}
       />
       <Paper variant="outlined" sx={{ maxHeight: 460, overflow: 'auto' }}>
         <List dense disablePadding>

@@ -17,6 +17,7 @@ import { SCHOOL_LABELS, SLBL, getFinal, getMod, getPB } from '../logic/calculati
 import { loadSpells } from '../../charbuilder/logic/dataLoaders.js';
 import { spellMatchesAnyClass } from '../../charbuilder/spells/spells.js';
 import { installedRegistry, loadClassAdapters, loadCoreAdapters, loadSpellsAdapters } from '../../../adapters/index.js';
+import { setStorageJson } from '../../../shared/storage.js';
 import {
   buildSpellInfo,
   canManageSpells,
@@ -147,7 +148,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
     const nextUsed = index < used ? Math.max(0, index) : index + 1;
     const next = { ...slotUsed, [level]: nextUsed };
     setSlotUsed(next);
-    localStorage.setItem('5e_slots_used', JSON.stringify(next));
+    setStorageJson('5e_slots_used', next);
   };
 
   const addSpell = (spell) => {
@@ -241,7 +242,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
               placeholder={spellDb.length ? 'Search spells...' : 'Loading spells...'}
               value={pickerSearch}
               onChange={(event) => setPickerSearch(event.target.value)}
-              InputProps={{ startAdornment: <Search size={14} /> }}
+              slotProps={{ input: { startAdornment: <Search size={14} /> } }}
               sx={compactInputSx}
             />
           </Box>

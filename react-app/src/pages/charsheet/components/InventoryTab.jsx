@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, IconButton, TextField, Tooltip, Typography } from '@mui/material';
-import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2 } from 'lucide-react';
+import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, Stack } from '@mui/material';
+import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle } from 'lucide-react';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import { getFinal } from '../logic/calculations.js';
+import { getArmorPenalties } from '../logic/armorPenalties.js';
+import { renderEntries } from '../logic/renderEntries.js';
 
 const CURRENCY_TYPES = [
   { key: 'cp', label: 'CP' },
@@ -284,7 +286,7 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
           <Box key={group.key}>
             <SectionHeader icon={group.icon} label={group.label} />
             {inGroup.map(({ item, index }) => (
-              <InventoryRow key={`${item.name}-${item.source}-${index}`} item={item} index={index} onQty={adjustQty} onRemove={removeItem} onEquip={toggleEquipped} />
+              <InventoryRow key={`${item.name}-${item.source}-${index}`} item={item} index={index} onQty={adjustQty} onRemove={removeItem} onEquip={toggleEquipped} C={C} />
             ))}
           </Box>
         );
@@ -303,7 +305,7 @@ function SectionHeader({ icon: Icon, label }) {
   );
 }
 
-function InventoryRow({ item, index, onQty, onRemove, onEquip }) {
+function InventoryRow({ item, index, onQty, onRemove, onEquip, C }) {
   const [open, setOpen] = useState(false);
   const type = String(item.type || '').toUpperCase();
   const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI', 'WEAPON', 'ARMOR'].includes(type);
@@ -316,11 +318,31 @@ function InventoryRow({ item, index, onQty, onRemove, onEquip }) {
     item.ac ? `AC ${item.ac}` : null,
     Array.isArray(item.property) && item.property.length ? item.property.join(', ') : null,
   ].filter(Boolean).join(' - ');
+  
+  const isArmor = ['LA', 'MA', 'HA', 'S'].includes(item.type);
+  const armorPenalty = isArmor && item.equipped && C ? getArmorPenalties(C, item) : null;
+  const penaltyMsg = armorPenalty?.hasPenalty ? (() => {
+    const parts = [];
+    if (armorPenalty.penalties) {
+      armorPenalty.penalties.forEach(p => {
+        if (p.type === 'disadvantage') {
+          const abbr = p.applies.map(x => x.split('-')[0].toUpperCase()).join('/');
+          parts.push(`Disadvantage on ${abbr}`);
+        } else if (p.type === 'speed-penalty') {
+          parts.push(`Speed -${Math.abs(p.amount)} ft`);
+        } else if (p.type === 'ac-penalty') {
+          parts.push(`AC ${p.amount}`);
+        }
+      });
+    }
+    return parts.join(' • ');
+  })() : '';
+  
   const body = renderEntries(item.entries);
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: '7px', px: '10px', py: '6px', bgcolor: item.equipped ? 'rgba(26,188,156,0.06)' : 'rgba(35,32,26,1)', border: 1, borderColor: item.equipped ? '#2ca797' : 'divider', borderRadius: 1, mb: '3px', '&:hover': { borderColor: 'rgba(202,165,80,0.34)' } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: '7px', px: '10px', py: '6px', bgcolor: item.equipped ? 'rgba(26,188,156,0.06)' : 'rgba(35,32,26,1)', border: 1, borderColor: penaltyMsg ? 'warning.main' : (item.equipped ? '#2ca797' : 'divider'), borderRadius: 1, mb: '3px', '&:hover': { borderColor: 'rgba(202,165,80,0.34)' } }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0, minWidth: 52 }}>
           <Box sx={{ color, border: 1, borderColor: color, borderRadius: '3px', px: '5px', py: '1px', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', lineHeight: 1.35, textTransform: 'uppercase', textAlign: 'center' }}>{typeLabel}</Box>
         </Box>
@@ -329,6 +351,11 @@ function InventoryRow({ item, index, onQty, onRemove, onEquip }) {
             {item.name} {item.custom ? <Box component="span" sx={{ fontSize: '0.56rem', color: 'text.secondary' }}>[custom]</Box> : null}
           </Typography>
           {meta ? <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</Typography> : null}
+          {penaltyMsg && (
+            <Typography sx={{ fontSize: '0.6rem', color: 'warning.main', mt: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <AlertTriangle size={10} /> {penaltyMsg}
+            </Typography>
+          )}
         </Box>
         {canEquip ? (
           <Button size="small" onClick={() => onEquip(index)} startIcon={item.equipped ? <Check size={11} /> : null}
@@ -374,28 +401,3 @@ const statPillSx = {
   color: 'text.secondary',
   '& b': { color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif' },
 };
-
-function renderEntries(entries) {
-  if (!entries) return '';
-  if (typeof entries === 'string') return cleanTags(entries);
-  if (Array.isArray(entries)) return entries.map((entry) => renderEntries(entry)).join('<br/>');
-  if (typeof entries === 'object') {
-    if (entries.type === 'list') {
-      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem">${(entries.items || []).map((item) => `<li>${renderEntries(item)}</li>`).join('')}</ul>`;
-    }
-    if (entries.name && entries.entries) return `<b>${cleanTags(entries.name)}.</b> ${renderEntries(entries.entries)}`;
-    if (entries.entries) return renderEntries(entries.entries);
-  }
-  return '';
-}
-
-function cleanTags(text) {
-  return String(text)
-    .replace(/\{@spell ([^|}]+)[^}]*\}/g, '<i>$1</i>')
-    .replace(/\{@item ([^|}]+)[^}]*\}/g, '<i>$1</i>')
-    .replace(/\{@dice ([^|}]+)[^}]*\}/g, '$1')
-    .replace(/\{@damage ([^|}]+)[^}]*\}/g, '$1')
-    .replace(/\{@hit ([^|}]+)[^}]*\}/g, '+$1')
-    .replace(/\{@condition ([^|}]+)[^}]*\}/g, '<i>$1</i>')
-    .replace(/\{@[^}]+\}/g, '');
-}

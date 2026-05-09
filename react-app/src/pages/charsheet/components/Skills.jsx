@@ -1,7 +1,11 @@
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, Tooltip } from '@mui/material';
+import { AlertCircle } from 'lucide-react';
 import { SKILLS, getSkillProficiency, getSkillBonus, fbonus, SLBL } from '../logic/calculations.js';
+import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 
 export default function Skills({ C, onRoll }) {
+  const armorPenalties = getEquippedArmorPenalties(C, C?.inventory || []);
+  
   return (
     <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
       <Box sx={{ bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', px: '0.8rem', py: '0.48rem', borderLeft: 3, borderLeftColor: 'primary.main' }}>
@@ -19,7 +23,8 @@ export default function Skills({ C, onRoll }) {
         const prof = getSkillProficiency(C, sk.n);
         const bonus = getSkillBonus(C, sk);
         const dotColor = prof === 'exp' ? 'secondary.main' : prof === 'prof' ? 'primary.main' : 'divider';
-        const dotStyle = prof === 'prof' ? {} : prof === 'exp' ? {} : {};
+        const hasDisadv = armorPenalties.hasPenalty && armorPenalties.disadvantageOn.includes(`${sk.a}-checks`);
+        
         return (
           <Box key={sk.n} onClick={() => onRoll(sk.n, bonus)}
             sx={{ display: 'grid', gridTemplateColumns: '20px 30px 1fr auto', gap: '4px', px: '0.9rem', py: '3px', alignItems: 'center', cursor: 'pointer', transition: 'background 0.1s', '&:hover': { bgcolor: 'rgba(202,165,80,0.05)' } }}>
@@ -35,6 +40,11 @@ export default function Skills({ C, onRoll }) {
               <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', textAlign: 'right' }}>
                 {fbonus(bonus)}
               </Typography>
+              {hasDisadv && (
+                <Tooltip title="Disadvantage from armor">
+                  <AlertCircle size={10} style={{ color: '#ff9800', marginLeft: '2px' }} />
+                </Tooltip>
+              )}
             </Box>
           </Box>
         );

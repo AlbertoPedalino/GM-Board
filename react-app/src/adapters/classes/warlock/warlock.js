@@ -1,4 +1,5 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
+import { setStorageJson } from '../../../shared/storage.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -472,7 +473,7 @@ if (typeof registerResourceSideEffect === 'function') {
     const recover = Math.ceil(ps.n / 2);
     if (typeof spellSlotUsed !== 'undefined') {
       spellSlotUsed[ps.l] = Math.max(0, (spellSlotUsed[ps.l] || 0) - recover);
-      localStorage.setItem('5e_slots_used', JSON.stringify(spellSlotUsed));
+      setStorageJson('5e_slots_used', spellSlotUsed);
     }
     if (typeof renderSpellsTab === 'function') renderSpellsTab();
   });

@@ -1,10 +1,11 @@
 import { Box, Button, Chip, List, ListItemButton, ListItemText, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { Plus, Sword, Trash2 } from 'lucide-react';
+import { AlertCircle, Plus, Sword, Trash2 } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
 import { getFinalScore } from '../logic/calculations.js';
+import { checkMulticlassPrerequisite, checkSpellcastingMulticlass, getMulticlassProficienciesGained } from '../logic/multiclassRules.js';
 import { installedRegistry } from '../../../adapters/index.js';
 
-function ClassRow({ cls, selected, onSelect, prereqMet = true }) {
+function ClassRow({ cls, selected, onSelect, prereqMet = true, prereqReason = '', warningMsg = '' }) {
   const Icon = cls.icon || Sword;
   const hitDie = cls.hitDie || `d${cls.hd?.faces || '?'}`;
   const saves = (cls.proficiency || []).map((save) => save.toUpperCase()).join(', ');
@@ -14,40 +15,44 @@ function ClassRow({ cls, selected, onSelect, prereqMet = true }) {
       divider
       disabled={!prereqMet}
       onClick={onSelect}
-      sx={{ alignItems: 'flex-start', gap: 1.25, opacity: prereqMet ? 1 : 0.45 }}
+      sx={{ alignItems: 'flex-start', gap: 1.25, opacity: prereqMet ? 1 : 0.45, flexDirection: 'column' }}
     >
-      <Box sx={{ pt: 0.35 }}>
-        <Icon size={20} />
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, width: '100%' }}>
+        <Box sx={{ pt: 0.35 }}>
+          <Icon size={20} />
+        </Box>
+        <ListItemText
+          primary={<Typography fontWeight={selected ? 700 : 500}>{cls.name}</Typography>}
+          secondary={(
+            <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 0.75 }}>
+              <Chip size="small" label={`Hit Die ${hitDie}`} />
+              {cls.primary ? <Chip size="small" label={`Primary ${cls.primary}`} /> : null}
+              {saves ? <Chip size="small" label={`Saves ${saves}`} /> : null}
+              {!prereqMet ? <Chip size="small" color="warning" label="Prereq NO" /> : null}
+            </Stack>
+          )}
+          secondaryTypographyProps={{ component: 'div' }}
+        />
+        <Chip size="small" label={cls.source} />
       </Box>
-      <ListItemText
-        primary={<Typography fontWeight={selected ? 700 : 500}>{cls.name}</Typography>}
-        secondary={(
-          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 0.75 }}>
-            <Chip size="small" label={`Hit Die ${hitDie}`} />
-            {cls.primary ? <Chip size="small" label={`Primary ${cls.primary}`} /> : null}
-            {saves ? <Chip size="small" label={`Saves ${saves}`} /> : null}
-            {!prereqMet ? <Chip size="small" color="warning" label="Prereq NO" /> : null}
-          </Stack>
-        )}
-        secondaryTypographyProps={{ component: 'div' }}
-      />
-      <Chip size="small" label={cls.source} />
+      {prereqReason && (
+        <Typography variant="caption" sx={{ color: 'warning.main', ml: 3, mb: 0.5 }}>
+          {prereqReason}
+        </Typography>
+      )}
+      {warningMsg && (
+        <Stack direction="row" spacing={0.5} sx={{ ml: 3, alignItems: 'flex-start', color: 'info.main', fontSize: '0.75rem' }}>
+          <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+          <Typography variant="caption" sx={{ color: 'info.main' }}>{warningMsg}</Typography>
+        </Stack>
+      )}
     </ListItemButton>
   );
 }
 
 function checkMcPrereq(character, className) {
-  const reqs = installedRegistry.getClassRuntimeConfig(className)?.multiclassPrerequisites;
-  if (!reqs) return true;
-  const scores = {
-    str: getFinalScore(character, 'str'),
-    dex: getFinalScore(character, 'dex'),
-    con: getFinalScore(character, 'con'),
-    int: getFinalScore(character, 'int'),
-    wis: getFinalScore(character, 'wis'),
-    cha: getFinalScore(character, 'cha'),
-  };
-  return reqs.some((group) => Object.entries(group).every(([ability, min]) => scores[ability] >= min));
+  const { met, reason } = checkMulticlassPrerequisite(character, className);
+  return { met, reason };
 }
 
 export default function ClassPanel({ state, character, dispatch }) {
@@ -88,15 +93,24 @@ export default function ClassPanel({ state, character, dispatch }) {
               const selected = activeExtra
                 ? activeExtra.name === cls.name && activeExtra.source === cls.source
                 : character.className === cls.name && character.classSource === cls.source;
-              const prereqMet = isExtraTab && !selected
-                ? !takenNames.has(cls.name) && checkMcPrereq(character, cls.name)
-                : true;
+              const { met: prereqMet, reason: prereqReason } = isExtraTab && !selected
+                ? !takenNames.has(cls.name) ? checkMcPrereq(character, cls.name) : { met: false, reason: 'Class already taken' }
+                : { met: true, reason: '' };
+              const { warning: warningMsg } = isExtraTab && !selected && prereqMet
+                ? checkSpellcastingMulticlass(character, cls.name)
+                : { warning: false, message: '' };
+              const profGained = isExtraTab && !selected ? getMulticlassProficienciesGained(cls.name) : null;
+              const profText = profGained && (profGained.armor?.length || profGained.weapons?.length)
+                ? `Gains: ${[...((profGained.armor || []).slice(0, 2).join(', ') ? [profGained.armor.slice(0, 2).join(', ')] : []), ...((profGained.weapons || []).slice(0, 2).join(', ') ? [profGained.weapons.slice(0, 2).join(', ')] : [])].join(' + ')}`
+                : '';
               return (
                 <ClassRow
                   key={`${cls.name}-${cls.source}`}
                   cls={cls}
                   selected={selected}
                   prereqMet={prereqMet}
+                  prereqReason={prereqReason}
+                  warningMsg={warningMsg.message || (profText ? `MC Profs: ${profText}` : '')}
                   onSelect={() => dispatch({ type: 'class/select', className: cls.name, source: cls.source, classObject: cls })}
                 />
               );

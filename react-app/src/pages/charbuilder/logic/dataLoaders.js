@@ -13,6 +13,12 @@ async function getJson(path) {
   return response.json();
 }
 
+const DEBUG_LOADERS = import.meta.env.DEV;
+
+function debugLog(...args) {
+  if (DEBUG_LOADERS) console.log(...args);
+}
+
 export async function loadClassIndex() {
   const entries = await Promise.allSettled(CLASS_FILES.map((file) => getJson(`class/${file}`)));
   const cache = {};
@@ -66,11 +72,11 @@ export async function loadSpells() {
   const entries = await Promise.allSettled(SPELL_FILES.map((file) => getJson(`spells/${file}`)));
   const spells = entries.flatMap((entry) => (entry.status === 'fulfilled' ? entry.value.spell || [] : []));
 
-  console.log('[loadSpells] Loaded', spells.length, 'spells total');
+  debugLog('[loadSpells] Loaded', spells.length, 'spells total');
   
   // Log first spell structure to understand format
   if (spells.length > 0) {
-    console.log('[loadSpells] First spell:', spells[0].name, 'classes:', spells[0].classes);
+    debugLog('[loadSpells] First spell:', spells[0].name, 'classes:', spells[0].classes);
   }
 
   let classSpellIndex = {};
@@ -78,21 +84,21 @@ export async function loadSpells() {
   // Try to load gendata first (if it exists)
   try {
     const lookup = await getJson('generated/gendata-spell-source-lookup.json');
-    console.log('[loadSpells] Using gendata');
+    debugLog('[loadSpells] Using gendata');
     classSpellIndex = buildClassSpellIndex(lookup);
   } catch (err) {
-    console.log('[loadSpells] gendata not found, error:', err.message);
-    console.log('[loadSpells] building from spell metadata');
+    debugLog('[loadSpells] gendata not found, error:', err.message);
+    debugLog('[loadSpells] building from spell metadata');
     // If gendata doesn't exist, build index from spell metadata
     classSpellIndex = buildClassSpellIndexFromSpells(spells);
   }
 
-  console.log('[loadSpells] Final classSpellIndex keys:', Object.keys(classSpellIndex));
+  debugLog('[loadSpells] Final classSpellIndex keys:', Object.keys(classSpellIndex));
   
   // Store in window for debugging
-  if (typeof window !== 'undefined') {
+  if (DEBUG_LOADERS && typeof window !== 'undefined') {
     window.__DEBUG_CLASS_SPELL_INDEX__ = classSpellIndex;
-    console.log('[loadSpells] Stored in window.__DEBUG_CLASS_SPELL_INDEX__');
+    debugLog('[loadSpells] Stored in window.__DEBUG_CLASS_SPELL_INDEX__');
   }
 
   return {
@@ -105,7 +111,7 @@ function buildClassSpellIndexFromSpells(spells) {
   const out = {};
   const CASTERS = ['artificer', 'bard', 'cleric', 'druid', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard', 'monk', 'rogue', 'fighter'];
   
-  console.log('[buildClassSpellIndexFromSpells] START - Processing', spells.length, 'spells');
+  debugLog('[buildClassSpellIndexFromSpells] START - Processing', spells.length, 'spells');
   
   spells.forEach((spell) => {
     if (!spell.classes || typeof spell.classes !== 'object') return;
@@ -140,7 +146,7 @@ function buildClassSpellIndexFromSpells(spells) {
   });
   
   const result = Object.fromEntries(Object.entries(out).map(([key, value]) => [key, [...value]]));
-  console.log('[buildClassSpellIndexFromSpells] RESULT:', result);
+  debugLog('[buildClassSpellIndexFromSpells] RESULT:', result);
   return result;
 }
 
@@ -148,11 +154,11 @@ function buildClassSpellIndex(node) {
   const out = {};
   const CASTERS = ['artificer', 'bard', 'cleric', 'druid', 'paladin', 'ranger', 'sorcerer', 'warlock', 'wizard', 'monk', 'rogue', 'fighter'];
   if (!node || typeof node !== 'object') {
-    console.log('[buildClassSpellIndex] Invalid node');
+    debugLog('[buildClassSpellIndex] Invalid node');
     return out;
   }
   
-  console.log('[buildClassSpellIndex] Processing gendata with', Object.keys(node).length, 'sources');
+  debugLog('[buildClassSpellIndex] Processing gendata with', Object.keys(node).length, 'sources');
   
   const collect = (className, spellName) => {
     const key = normalizeName(className);
@@ -204,7 +210,7 @@ function buildClassSpellIndex(node) {
   });
   
   const result = Object.fromEntries(Object.entries(out).map(([key, value]) => [key, [...value]]));
-  console.log('[buildClassSpellIndex] Final result keys:', Object.keys(result), 'total spells by class:', result);
+  debugLog('[buildClassSpellIndex] Final result keys:', Object.keys(result), 'total spells by class:', result);
   return result;
 }
 

@@ -1,4 +1,4 @@
-import { Box, Stack, Typography, Button, TextField, InputAdornment } from '@mui/material';
+import { Box, Stack, Typography, Button, TextField } from '@mui/material';
 import { ArrowLeft, Sun, Moon, Download, Swords } from 'lucide-react';
 import { getLevelFromXp, getXpForNextLevel } from '../logic/calculations.js';
 
@@ -60,7 +60,7 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
           size="small" type="number" value={sheet.xpStored}
           onChange={e => onUpdateXp(e.target.value)}
           sx={{ width: 100, '& input': { textAlign: 'center', fontSize: '0.75rem', py: 0.5, color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 600 } }}
-          InputProps={{ sx: { '& fieldset': { borderColor: 'transparent', borderBottom: '1px solid', borderBottomColor: 'primary.main' } } }}
+          slotProps={{ input: { sx: { '& fieldset': { borderColor: 'transparent', borderBottom: '1px solid', borderBottomColor: 'primary.main' } } } }}
         />
       </Box>
 

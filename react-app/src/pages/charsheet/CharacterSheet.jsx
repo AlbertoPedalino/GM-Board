@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Box, Stack, CssBaseline, ThemeProvider, createTheme, Button, Dialog, DialogActions, DialogContent, DialogTitle, Slider, Typography } from '@mui/material';
+import { Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, Slider, Typography } from '@mui/material';
 import TopBar from './components/TopBar.jsx';
 import AbilityScores from './components/AbilityScores.jsx';
 import SavingThrows from './components/SavingThrows.jsx';
@@ -13,33 +13,7 @@ import DiceToast from './components/DiceToast.jsx';
 import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspiration, saveConditions, saveInventory, saveCurrency, saveCurrentCharacter, loadResources, saveResources } from './state.js';
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
 import { applyResourceRest, getAllResourceDefs, getTotalHitDice, normalizeResourceMax } from './logic/restResources.js';
-
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    background: { default: '#12100e', paper: '#1a1713' },
-    primary: { main: '#caa550', contrastText: '#17120d' },
-    secondary: { main: '#70b7a6' },
-    error: { main: '#de675f' },
-    warning: { main: '#d69245' },
-    success: { main: '#58b879' },
-    text: { primary: '#efe6d4', secondary: '#c4b393' },
-    divider: 'rgba(202, 165, 80, 0.22)',
-  },
-  shape: { borderRadius: 8 },
-  typography: {
-    fontFamily: 'Georgia, "Times New Roman", serif',
-    h1: { fontSize: '1.5rem', fontWeight: 700 },
-    h2: { fontSize: '1.15rem', fontWeight: 700 },
-    button: { textTransform: 'none', letterSpacing: 0, fontWeight: 700 },
-  },
-  components: {
-    MuiButton: { defaultProps: { disableElevation: true } },
-    MuiCard: { styleOverrides: { root: { backgroundImage: 'none', border: '1px solid rgba(202, 165, 80, 0.18)' } } },
-    MuiChip: { styleOverrides: { root: { maxWidth: '100%', minWidth: 0, flexShrink: 1 } } },
-    MuiPaper: { styleOverrides: { root: { minWidth: 0 } } },
-  },
-});
+import { setStorageItem, setStorageJson } from '../../shared/storage.js';
 
 export default function CharacterSheet() {
   const [C, setC] = useState(null);
@@ -124,7 +98,7 @@ export default function CharacterSheet() {
     s.currentHP = Math.min(s.maxHP, s.currentHP + totalHeal);
     s.usedHD = (s.usedHD || 0) + n;
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
-    localStorage.setItem('5e_hd_used', String(s.usedHD));
+    setStorageItem('5e_hd_used', s.usedHD);
 
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'short');
@@ -150,9 +124,9 @@ export default function CharacterSheet() {
     s.deathSaves = { success: 0, fail: 0 };
     s.spellSlotUsed = {};
     saveDeathSaves(s.deathSaves);
-    localStorage.setItem('5e_slots_used', '{}');
+    setStorageJson('5e_slots_used', {});
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
-    localStorage.setItem('5e_hd_used', '0');
+    setStorageItem('5e_hd_used', 0);
 
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'long');
@@ -175,11 +149,11 @@ export default function CharacterSheet() {
       s.deathSaves = { success: 0, fail: 0 };
       s.spellSlotUsed = {};
       saveDeathSaves(s.deathSaves);
-      localStorage.setItem('5e_slots_used', '{}');
+      setStorageJson('5e_slots_used', {});
     }
     s.usedHD = Math.min(s.usedHD || 0, type === 'short' ? s.usedHD : 0);
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
-    localStorage.setItem('5e_hd_used', String(s.usedHD));
+    setStorageItem('5e_hd_used', s.usedHD);
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, type);
       setResources(res);
@@ -329,12 +303,12 @@ export default function CharacterSheet() {
 
   const updateXp = useCallback((val) => {
     const xp = parseInt(val) || 0;
-    localStorage.setItem('5e_xp', String(xp));
+    setStorageItem('5e_xp', xp);
     setSheet(prev => ({ ...prev, xpStored: xp }));
   }, []);
 
   const updateNotes = useCallback((val) => {
-    localStorage.setItem('5e_notes', val);
+    setStorageItem('5e_notes', val);
     setSheet(prev => ({ ...prev, notes: val }));
   }, []);
 
@@ -352,19 +326,14 @@ export default function CharacterSheet() {
 
   if (!C || !sheet) {
     return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary', fontSize: '1.1rem' }}>
-          No character found. Go back to the builder to create a character.
-        </Box>
-      </ThemeProvider>
+      <Box sx={{ p: 4, textAlign: 'center', color: 'text.secondary', fontSize: '1.1rem' }}>
+        No character found. Go back to the builder to create a character.
+      </Box>
     );
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
         <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
         <AbilityScores C={C} sheet={sheet} onRoll={rollD20}
           onHeal={(amt) => adjustHP(1, amt)} onDamage={(amt) => adjustHP(-1, amt)}
@@ -395,7 +364,6 @@ export default function CharacterSheet() {
               onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} />
           </Box>
         </Box>
-      </Box>
       {diceToast && <DiceToast toast={diceToast} onClose={() => setDiceToast(null)} />}
 
       <Dialog open={shortRestOpen} onClose={() => setShortRestOpen(false)} maxWidth="xs" fullWidth>
@@ -441,6 +409,6 @@ export default function CharacterSheet() {
           <Button variant="contained" onClick={confirmLongRest}>Confirm Long Rest</Button>
         </DialogActions>
       </Dialog>
-    </ThemeProvider>
+    </Box>
   );
 }

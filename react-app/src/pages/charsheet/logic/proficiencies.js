@@ -143,6 +143,20 @@ export function collectEquipmentProficiencySets(C) {
   addFixed(sp.armor, armorSet);
   addFixed(sp.weapons, weaponSet);
 
+  // Multiclass proficiencies gained (2024 format)
+  if (C?.clsSnapshot?.multiclassProficienciesGained) {
+    addFixed(C.clsSnapshot.multiclassProficienciesGained.armor, armorSet);
+    addFixed(C.clsSnapshot.multiclassProficienciesGained.weapons, weaponSet);
+  }
+
+  // Species proficiencies (2024 format)
+  if (C?.speciesSnapshot?.armorProficiencies) addFixed(C.speciesSnapshot.armorProficiencies, armorSet);
+  if (C?.speciesSnapshot?.weaponProficiencies) addFixed(C.speciesSnapshot.weaponProficiencies, weaponSet);
+
+  // Background proficiencies (2024 format)
+  if (C?.bgSnapshot?.armorProficiencies) addFixed(C.bgSnapshot.armorProficiencies, armorSet);
+  if (C?.bgSnapshot?.weaponProficiencies) addFixed(C.bgSnapshot.weaponProficiencies, weaponSet);
+
   collectFixedFeatureProfs(C, 'armorProficiencies').forEach(v => armorSet.add(v));
   collectFixedFeatureProfs(C, 'weaponProficiencies').forEach(v => weaponSet.add(v));
 

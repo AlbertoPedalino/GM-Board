@@ -68,13 +68,13 @@ export default function SpellSelectionPanel({ state, dispatch }) {
               value={state.search.spells}
               placeholder="Search spells"
               onChange={(event) => dispatch({ type: 'search/set', scope: 'spells', value: event.target.value })}
-              InputProps={{
+              slotProps={{ input: {
                 startAdornment: (
                   <InputAdornment position="start">
                     <Search size={18} />
                   </InputAdornment>
                 ),
-              }}
+              } }}
             />
             <ToggleButtonGroup size="small" exclusive value={level} onChange={(_, next) => next != null && dispatch({ type: 'field/set', field: 'activeSpellLevel', value: next })}>
               {levels.map((spellLevel) => (

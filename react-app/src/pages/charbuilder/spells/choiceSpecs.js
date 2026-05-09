@@ -273,28 +273,34 @@ export function classChoiceSpecs(character, context = {}) {
   if (!cls) return [];
   const primaryLv = getPrimaryClassLevel(character);
   const all = [];
+  const activeTab = character.activeClassTab || 0;
 
-  all.push(...buildClassSpecs(cls, primaryLv, {
-    className: character.className,
-    subclassShortName: character.subclassShortName,
-    classFeatures: character.allFeatures || [],
-    subclassFeatures: character.allSubFeatures || [],
-    keyPrefix: '',
-    context,
-  }));
-
-  (character.extraClasses || []).forEach((extra, index) => {
-    if (!extra?.cls) return;
-    const ecPrefix = `mc${index}_`;
-    all.push(...buildClassSpecs(extra.cls, extra.level || 1, {
-      className: extra.name,
-      subclassShortName: extra.subclassShortName,
-      classFeatures: extra.allFeatures || [],
-      subclassFeatures: extra.allSubFeatures || [],
-      keyPrefix: ecPrefix,
+  // Only build specs for the active tab
+  if (activeTab === 0) {
+    // Primary class tab
+    all.push(...buildClassSpecs(cls, primaryLv, {
+      className: character.className,
+      subclassShortName: character.subclassShortName,
+      classFeatures: character.allFeatures || [],
+      subclassFeatures: character.allSubFeatures || [],
+      keyPrefix: '',
       context,
     }));
-  });
+  } else {
+    // Multiclass tab
+    const extra = character.extraClasses?.[activeTab - 1];
+    if (extra?.cls) {
+      const ecPrefix = `mc${activeTab - 1}_`;
+      all.push(...buildClassSpecs(extra.cls, extra.level || 1, {
+        className: extra.name,
+        subclassShortName: extra.subclassShortName,
+        classFeatures: extra.allFeatures || [],
+        subclassFeatures: extra.allSubFeatures || [],
+        keyPrefix: ecPrefix,
+        context,
+      }));
+    }
+  }
 
   return dedupSpecs(all);
 }

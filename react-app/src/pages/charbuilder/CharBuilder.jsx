@@ -25,6 +25,7 @@ import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loa
 import { builderReducer, initialBuilderState } from './state.js';
 import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, SpeciesStep } from './steps/index.js';
 import { mergeSheetIntoBuilder } from '../../shared/builderSync.js';
+import { getStorageJson } from '../../shared/storage.js';
 
 function StepLabel({ step, index }) {
   const Icon = step.icon;
@@ -58,10 +59,9 @@ function ActiveStep({ state, dispatch }) {
 }
 
 function createInitialBuilderState() {
-  if (typeof localStorage === 'undefined') return initialBuilderState;
   try {
-    const savedBuilder = JSON.parse(localStorage.getItem('5e_builder_state') || 'null');
-    const savedSheet = JSON.parse(localStorage.getItem('5e_current_char') || 'null');
+    const savedBuilder = getStorageJson('5e_builder_state', null);
+    const savedSheet = getStorageJson('5e_current_char', null);
     const saved = mergeSheetIntoBuilder(savedBuilder, savedSheet);
     if (saved && typeof saved === 'object') {
       return { ...initialBuilderState, character: { ...initialBuilderState.character, ...saved } };

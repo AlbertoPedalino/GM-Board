@@ -4,6 +4,7 @@ import { Sword, Cross } from 'lucide-react';
 import { getMod, getFinal } from '../logic/calculations.js';
 import { loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
 import { fbonus } from '../logic/calculations.js';
+import { setStorageJson } from '../../../shared/storage.js';
 import {
   FILTERS,
   CAT_COLORS,
@@ -51,7 +52,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     const res = { ...resources };
     res[key] = Math.max(0, Math.min(max, (res[key] || 0) + delta));
     setResources(res);
-    localStorage.setItem('5e_resources', JSON.stringify(res));
+    setStorageJson('5e_resources', res);
   };
 
   return (

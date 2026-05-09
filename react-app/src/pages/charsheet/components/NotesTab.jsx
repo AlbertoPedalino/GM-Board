@@ -1,4 +1,5 @@
 import { TextField, Box } from '@mui/material';
+import { setStorageItem } from '../../../shared/storage.js';
 
 export default function NotesTab({ sheet }) {
   return (
@@ -8,7 +9,7 @@ export default function NotesTab({ sheet }) {
         placeholder="Write your notes here…"
         defaultValue={sheet?.notes || ''}
         onChange={e => {
-          localStorage.setItem('5e_notes', e.target.value);
+          setStorageItem('5e_notes', e.target.value);
         }}
         sx={{
           '& .MuiInputBase-root': { bgcolor: 'rgba(35,32,26,1)', color: 'text.primary', fontFamily: 'Georgia, serif', fontSize: '0.875rem' },

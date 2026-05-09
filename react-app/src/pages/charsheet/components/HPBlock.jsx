@@ -38,7 +38,7 @@ export default function HPBlock({ sheet, onHeal, onDamage, onTempHP, onMaxHPBonu
               onChange={e => setHpInput(e.target.value)}
               onBlur={() => { onSetHP(hpInput); setEditingHP(false); }}
               onKeyDown={e => { if (e.key === 'Enter') { onSetHP(hpInput); setEditingHP(false); } if (e.key === 'Escape') setEditingHP(false); }}
-              InputProps={{ inputProps: { min: 0, max: sheet.maxHP, style: { textAlign: 'center', padding: '2px 4px' } } }}
+              slotProps={{ htmlInput: { min: 0, max: sheet.maxHP, style: { textAlign: 'center', padding: '2px 4px' } } }}
               sx={{ width: 60, '& input': { fontSize: '1.1rem', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, color: hpColor } }}
             />
           ) : (
@@ -59,7 +59,7 @@ export default function HPBlock({ sheet, onHeal, onDamage, onTempHP, onMaxHPBonu
             const v = e.target.value;
             if (v === '' || /^-?\d*\.?\d*$/.test(v)) setAmountStr(v);
           }}
-          InputProps={{ inputProps: { min: 1, style: { textAlign: 'center' } } }}
+          slotProps={{ htmlInput: { min: 1, style: { textAlign: 'center' } } }}
           sx={{
             width: 68,
             '& input': { py: 0.25, fontSize: '0.75rem', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 600 },
