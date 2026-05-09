@@ -15,6 +15,7 @@ import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspira
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
 import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax } from './logic/restResources.js';
 import { setStorageItem, setStorageJson } from '../../shared/storage.js';
+import { loadCoreAdapters, loadClassAdapters } from '../../adapters/index.js';
 
 export default function CharacterSheet() {
   const [C, setC] = useState(null);
@@ -27,22 +28,34 @@ export default function CharacterSheet() {
   const [hdToSpend, setHdToSpend] = useState({});
 
   useEffect(() => {
+    let alive = true;
     const ch = loadCharacter();
-    setC(ch);
-    if (ch) {
-      const s = loadSheetState(ch);
-      setSheet(s);
-      const stored = loadResources(ch);
-      const allResDefs = getAllResourceDefs(ch);
-      const merged = { ...stored };
-      allResDefs.forEach(def => {
-        if (def.key && merged[def.key] == null) {
-          merged[def.key] = normalizeResourceMax(def);
-        }
-      });
-      setResources(merged);
-      saveResources(merged);
-    }
+    const classNames = [ch?.className, ...(ch?.extraClasses || []).map((extra) => extra.name)].filter(Boolean);
+    const context = { getMod, getFinal, getPB };
+
+    Promise.all([
+      loadCoreAdapters(context),
+      loadClassAdapters(classNames, context),
+    ]).finally(() => {
+      if (!alive) return;
+      setC(ch);
+      if (ch) {
+        const s = loadSheetState(ch);
+        setSheet(s);
+        const stored = loadResources(ch);
+        const allResDefs = getAllResourceDefs(ch);
+        const merged = { ...stored };
+        allResDefs.forEach(def => {
+          if (def.key && merged[def.key] == null) {
+            merged[def.key] = normalizeResourceMax(def, ch);
+          }
+        });
+        setResources(merged);
+        saveResources(merged);
+      }
+    });
+
+    return () => { alive = false; };
   }, []);
 
   const syncSheet = useCallback((updates) => {
@@ -385,7 +398,7 @@ export default function CharacterSheet() {
               onToggleInspiration={toggleInspiration} />
             <TabsPanel C={C} sheet={sheet} tab={tab} setTab={setTab} onRoll={rollD20}
               resources={resources} setResources={setResources} onRest={doRest} onShowToast={showDiceToast}
-              onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} />
+              onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} onUpdateSheet={syncSheet} />
           </Box>
         </Box>
       {diceToast && <DiceToast toast={diceToast} onClose={() => setDiceToast(null)} />}

@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Monk_Mercy", function (cls, lv, specs) {});
+registerSubclassAdapter("Monk_Mercy", function (cls, lv, specs, ctx = {}) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Monk_Mercy", [

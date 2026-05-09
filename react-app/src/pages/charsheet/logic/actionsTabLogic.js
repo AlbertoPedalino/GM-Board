@@ -11,12 +11,80 @@ export const SECTION_DEFS = [
   { key: 'reaction', title: 'Reactions', cats: ['reaction'] },
 ];
 
-export function normalizeResourceMax(def) {
+function resourceOwnerLevel(def, C) {
+  return Number(def?.ownerLevel ?? C?.classLevel ?? C?.level ?? 1);
+}
+
+function resourceAbilityMods(C) {
+  return {
+    str: getMod(getFinal(C, 'str')),
+    dex: getMod(getFinal(C, 'dex')),
+    con: getMod(getFinal(C, 'con')),
+    int: getMod(getFinal(C, 'int')),
+    wis: getMod(getFinal(C, 'wis')),
+    cha: getMod(getFinal(C, 'cha')),
+  };
+}
+
+export function normalizeResourceMax(def, C = null) {
   const raw = def?.maxComputed ?? def?.max ?? 1;
-  if (typeof raw === 'function') return 1;
+  if (typeof raw === 'function') {
+    try {
+      const value = raw(resourceOwnerLevel(def, C), resourceAbilityMods(C), { character: C, resource: def });
+      const n = Number(value);
+      if (!Number.isFinite(n)) return value === Infinity ? Infinity : 1;
+      return Math.max(0, Math.floor(n));
+    } catch {
+      return 1;
+    }
+  }
   const n = Number(raw);
   if (!Number.isFinite(n)) return raw === Infinity ? Infinity : 1;
   return Math.max(0, Math.floor(n));
+}
+
+function hasCondition(def, C) {
+  if (typeof def?.condition !== 'function') return true;
+  try { return !!def.condition(C); } catch { return false; }
+}
+
+function getClassEntities(C) {
+  if (!C) return [];
+  const out = [];
+  if (C.className) {
+    out.push({
+      className: C.className,
+      subclassShortName: C.subclassShortName || '',
+      level: Number(C.classLevel || C.level || 1),
+      ownerName: C.className,
+    });
+  }
+  (C.extraClasses || []).forEach((extra) => {
+    if (!extra?.name) return;
+    out.push({
+      className: extra.name,
+      subclassShortName: extra.subclassShortName || '',
+      level: Number(extra.level || 1),
+      ownerName: extra.name,
+    });
+  });
+  return out;
+}
+
+function selectedFeatNames(C) {
+  return (C?.allFeatSnapshots || []).map((feat) => feat?.name).filter(Boolean);
+}
+
+function uniqBySignature(items) {
+  const out = [];
+  const seen = new Set();
+  items.forEach((item) => {
+    const key = [item.name || item.key || '', item.resKey || '', item.ownerName || item._source || '', item.minLevel || ''].join('|');
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(item);
+  });
+  return out;
 }
 
 function hasExplicitActionText(action) {
@@ -44,44 +112,58 @@ export function resolveActionFormulas(action, C) {
   if (!action) return action;
   const ownerLv = action.ownerLevel ?? C?.classLevel ?? C?.level ?? 1;
   const ctx = { character: C, ownerLevel: ownerLv };
-  const name = action.name;
-  const allRaw = [];
-  const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
-  classNames.forEach((cls) => {
-    (installedRegistry.getClassSheetActions(cls) || []).forEach((a) => { if (a.name === name) allRaw.push(a); });
-    (installedRegistry.getSubclassSheetActions(cls, C?.subclassShortName) || []).forEach((a) => { if (a.name === name) allRaw.push(a); });
-  });
-  (installedRegistry.getSpeciesSheetActions(C?.speciesName, C?.speciesSource) || []).forEach((a) => { if (a.name === name) allRaw.push(a); });
-  const raw = allRaw[0];
-  if (!raw) return action;
   const patch = {};
-  if (typeof raw.healFormula === 'function') patch.healFormula = raw.healFormula(ctx);
-  if (typeof raw.damageFormula === 'function') patch.damageFormula = raw.damageFormula(ctx);
-  if (typeof raw.damageButtonLabel === 'function') patch.damageButtonLabel = raw.damageButtonLabel(ctx);
-  return { ...action, ...patch };
+
+  if (typeof action.healFormula === 'function') patch.healFormula = action.healFormula(ctx);
+  if (typeof action.damageFormula === 'function') patch.damageFormula = action.damageFormula(ctx);
+  if (typeof action.damageButtonLabel === 'function') patch.damageButtonLabel = action.damageButtonLabel(ctx);
+  if (Object.keys(patch).length) return { ...action, ...patch };
+
+  return action;
 }
 
 export function collectAdapterActions(C) {
-  const runtime = C?.adapterRuntime || {};
-  const clsName = C?.className || '';
-  const subName = C?.subclassShortName || '';
-  const speciesName = C?.speciesName || '';
   const out = [];
-  const pushFiltered = (arr, source) => {
+  const pushFiltered = (arr, source, ownerLevel = C?.level ?? 1) => {
     (arr || []).forEach(a => {
       if (!a || !a.name) return;
-      const lv = Number(a.ownerLevel ?? C?.level ?? 1);
+      const lv = Number(a.ownerLevel ?? ownerLevel ?? C?.level ?? 1);
       if (a.minLevel && lv < Number(a.minLevel)) return;
+      if (!hasCondition(a, C)) return;
       if (!isExecutableAction(a)) return;
-      out.push({ ...a, _source: a.ownerName || source });
+      out.push({ ...a, ownerLevel: lv, ownerName: a.ownerName || source, _source: a.ownerName || source });
     });
   };
-  pushFiltered(runtime.classActions, clsName);
-  pushFiltered(runtime.subclassActions, `${subName} (${clsName})`);
-  pushFiltered(runtime.speciesActions, speciesName);
-  pushFiltered(runtime.featActions, 'Feat');
-  return out;
+
+  // Prefer live registry data so function properties such as condition/max/formula survive
+  // after the character has been serialized to localStorage.
+  getClassEntities(C).forEach((entity) => {
+    pushFiltered(installedRegistry.getClassSheetActions(entity.className), entity.ownerName, entity.level);
+    if (entity.subclassShortName) {
+      pushFiltered(
+        installedRegistry.getSubclassSheetActions(entity.className, entity.subclassShortName),
+        `${entity.subclassShortName} (${entity.className})`,
+        entity.level,
+      );
+    }
+  });
+  if (C?.speciesName) {
+    pushFiltered(installedRegistry.getSpeciesSheetActions(C.speciesName, C.speciesSource), C.speciesName, C.level || 1);
+  }
+  selectedFeatNames(C).forEach((featName) => {
+    pushFiltered(installedRegistry.getFeatSheetActions(featName), featName, C.level || 1);
+  });
+
+  // Fallback for older exported characters that already contain adapterRuntime.
+  const runtime = C?.adapterRuntime || {};
+  pushFiltered(runtime.classActions, C?.className || '', C?.classLevel || C?.level || 1);
+  pushFiltered(runtime.subclassActions, C?.subclassShortName ? `${C.subclassShortName} (${C.className})` : '', C?.classLevel || C?.level || 1);
+  pushFiltered(runtime.speciesActions, C?.speciesName || '', C?.level || 1);
+  pushFiltered(runtime.featActions, 'Feat', C?.level || 1);
+
+  return uniqBySignature(out);
 }
+
 
 function classLevel(C, className) {
   if (String(C?.className || '').toLowerCase() === String(className).toLowerCase()) return Number(C?.classLevel || C?.level || 1);

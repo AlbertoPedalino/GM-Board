@@ -123,7 +123,21 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
   const getMod = context?.getMod;
   const getFinal = context?.getFinal;
-registerClassAdapter("Cleric", function (cls, lv, specs) {
+registerClassAdapter("Cleric", function (cls, lv, specs, ctx = {}) {
+  const character = ctx.character || {};
+  const choices = ctx.choices || character.choices || {};
+  const keyPrefix = ctx.keyPrefix || '';
+  const choiceValue = function (key) {
+    const direct = choices[key];
+    if (direct !== undefined) return direct;
+    return choices[keyPrefix + key];
+  };
+  const hasChoice = function (key, value) {
+    const raw = choiceValue(key);
+    const vals = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    return vals.some(function (v) { return String(v).split('|')[0].trim().toLowerCase() === String(value).toLowerCase(); });
+  };
+
   if (lv >= 1) {
     specs.push({
       key: 'cleric_divine_order',
@@ -133,8 +147,7 @@ registerClassAdapter("Cleric", function (cls, lv, specs) {
       count: 1,
       level: 1
     });
-    var _divOrder = typeof char !== 'undefined' && char.choices && char.choices.cleric_divine_order;
-    if (Array.isArray(_divOrder) ? _divOrder.includes('Thaumaturge') : _divOrder === 'Thaumaturge') {
+    if (hasChoice('cleric_divine_order', 'Thaumaturge')) {
       specs.push({
         key: 'cleric_thaumaturge_cantrip',
         label: 'Thaumaturge — Extra Cantrip',
@@ -154,6 +167,16 @@ registerClassAdapter("Cleric", function (cls, lv, specs) {
       count: 1,
       level: 7
     });
+    if (hasChoice('cleric_blessed_strikes', 'Divine Strike')) {
+      specs.push({
+        key: 'cleric_divine_strike_damage_type',
+        label: 'Divine Strike Damage Type',
+        type: 'generic_choice',
+        from: ['Necrotic', 'Radiant'],
+        count: 1,
+        level: 7
+      });
+    }
   }
   if (lv >= 19) {
     specs.push({

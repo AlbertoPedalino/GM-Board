@@ -121,7 +121,7 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
   const getMod = context?.getMod;
   const getFinal = context?.getFinal;
-registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs) {});
+registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs, ctx = {}) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Paladin_Devotion", [

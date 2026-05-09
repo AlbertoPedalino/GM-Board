@@ -359,11 +359,31 @@ export function speciesChoiceSpecs(character) {
 function backgroundOriginFeat(background) {
   if (!background) return null;
   if (background.feat) return { fixed: background.feat };
+
   const feats = Array.isArray(background.feats) ? background.feats : [];
   const first = feats[0];
   if (!first) return null;
-  const keys = Object.keys(first).filter((key) => key !== 'choose');
+
+  if (typeof first === 'string') {
+    const parts = first.split('|');
+    return { fixed: camelToTitle(parts[0]), classHint: parts[2] ? parts[2].toLowerCase().replace(/[^a-z]/g, '') : null };
+  }
+
+  if (first.choose) {
+    const choose = first.choose;
+    const categories = Array.isArray(choose.from)
+      ? choose.from
+      : Array.isArray(choose.category)
+        ? choose.category
+        : choose.category
+          ? [choose.category]
+          : ['O'];
+    return { categories: categories.map((cat) => String(cat || 'O')).filter(Boolean), count: choose.count || 1 };
+  }
+
+  const keys = Object.keys(first).filter((key) => key !== 'choose' && first[key] !== false);
   if (!keys.length) return null;
+
   const raw = String(keys[0] || '').split(';')[0].trim().split('|')[0];
   const classHint = (() => {
     const semicol = String(keys[0] || '').split(';').slice(1).map((value) => value.trim().split('|')[0]).find(Boolean);
@@ -372,33 +392,100 @@ function backgroundOriginFeat(background) {
     if (pipeParts.length >= 3) return pipeParts[2].toLowerCase().replace(/[^a-z]/g, '');
     return null;
   })();
-  const camelToTitle = (value) => String(value || '').replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase()).trim();
+
   return { fixed: camelToTitle(raw), classHint };
 }
 
 export function backgroundChoiceSpecs(character) {
   const background = character.backgroundObj;
   if (!background) return [];
+
   const specs = [];
   const origin = backgroundOriginFeat(background);
+
   if (origin?.fixed) {
-    specs.push({ key: 'feat_origin', label: 'Origin Feat', type: 'feat_fixed', fixed: origin.fixed, classHint: origin.classHint || null, count: 1, level: 0 });
+    specs.push({
+      key: 'feat_origin',
+      label: 'Origin Feat',
+      type: 'feat_fixed',
+      fixed: origin.fixed,
+      classHint: origin.classHint || null,
+      count: 1,
+      level: 0,
+    });
+  } else if (origin?.categories?.length) {
+    specs.push({
+      key: 'feat_origin',
+      label: 'Origin Feat',
+      type: 'feat_cat',
+      categories: origin.categories,
+      count: origin.count || 1,
+      level: 0,
+    });
   }
+
   (background.skillProficiencies || []).forEach((block, index) => {
     const spec = choiceFromBlock(`bg_skill_${index}`, 'Background Skill', block, ALL_SKILLS);
     if (spec) specs.push({ ...spec, type: 'skill_choice' });
   });
+
   (background.toolProficiencies || []).forEach((block, index) => {
     const spec = choiceFromBlock(`bg_tool_${index}`, 'Background Tool', block, ALL_TOOLS);
     if (spec) specs.push({ ...spec, type: 'tool_choice' });
     else if (block.anyTool) specs.push({ key: `bg_tool_${index}`, label: 'Background Tool', type: 'tool_choice', from: ALL_TOOLS, count: block.anyTool });
   });
+
   (background.languageProficiencies || []).forEach((block, index) => {
     const spec = choiceFromBlock(`bg_language_${index}`, 'Background Language', block, STD_LANGS);
     if (spec) specs.push({ ...spec, type: 'language_choice' });
     else if (block.anyStandard) specs.push({ key: `bg_language_${index}`, label: 'Background Language', type: 'language_choice', from: STD_LANGS, count: block.anyStandard });
   });
+
+  (background.skillToolLanguageProficiencies || []).forEach((block, blockIndex) => {
+    const choices = Array.isArray(block?.choose) ? block.choose : block?.choose ? [block.choose] : [];
+    choices.forEach((choice, choiceIndex) => {
+      const count = Number(choice?.count || 0);
+      const rawFrom = Array.isArray(choice?.from) ? choice.from : [];
+      if (!count || !rawFrom.length) return;
+
+      let from = [];
+      if (rawFrom.includes('anySkill')) from = from.concat(ALL_SKILLS);
+      if (rawFrom.includes('anyTool')) from = from.concat(ALL_TOOLS);
+      if (rawFrom.includes('anyLanguage')) from = from.concat(ALL_LANGS);
+      from = from.concat(rawFrom.filter((value) => !['anySkill', 'anyTool', 'anyLanguage'].includes(value)));
+      from = specUniq(from);
+      if (!from.length) return;
+
+      const lower = from.map((value) => String(value).toLowerCase());
+      const skillSet = new Set(ALL_SKILLS.map((value) => value.toLowerCase()));
+      const langSet = new Set(ALL_LANGS.map((value) => value.toLowerCase()));
+      const type = lower.every((value) => skillSet.has(value))
+        ? 'skill_choice'
+        : lower.every((value) => langSet.has(value))
+          ? 'language_choice'
+          : 'generic_choice';
+
+      specPush(specs, {
+        key: `bg_stl_${blockIndex}_${choiceIndex}`,
+        label: 'Background Proficiency',
+        type,
+        from,
+        count,
+        level: 1,
+      });
+    });
+  });
+
   return specs;
+}
+
+function camelToTitle(value) {
+  return String(value || '')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function parseChooseString(value) {
@@ -469,36 +556,190 @@ function additionalSpellChoices(feat, slotKey, entryIdx = 0) {
   return out;
 }
 
+function uiChoiceOptions(config) {
+  const options = Array.isArray(config?.options) ? config.options : [];
+  return options
+    .map((option) => ({
+      value: option?.value ?? option?.key ?? option?.label,
+      label: option?.label ?? option?.value ?? option?.key,
+    }))
+    .filter((option) => option.value != null && option.label != null);
+}
+
+function uiChoiceFrom(config, fallback = []) {
+  if (Array.isArray(config?.from) && config.from.length) return config.from;
+  if (Array.isArray(config?.weapons) && config.weapons.length) return config.weapons;
+  if (Array.isArray(config?.tools) && config.tools.length) return config.tools;
+  if (Array.isArray(config?.armor) && config.armor.length) return config.armor;
+  return fallback;
+}
+
+function pushUiChoice(specs, slotKey, feat, config, defaults = {}) {
+  if (!config || typeof config !== 'object') return;
+  const options = uiChoiceOptions(config);
+  const from = options.length ? [] : uiChoiceFrom(config, defaults.from || []);
+  const spec = {
+    key: `${slotKey}_${config.keySuffix || defaults.keySuffix}`,
+    label: config.label || defaults.label || `${feat.name} Choice`,
+    type: defaults.type || 'generic_choice',
+    count: config.count || defaults.count || 1,
+  };
+  if (options.length) spec.options = options;
+  else spec.from = from;
+  specPush(specs, spec);
+}
+
+function pushAbilityChoices(specs, slotKey, feat, config, fallbackFrom = STATS) {
+  if (!config || typeof config !== 'object') return;
+  const from = Array.isArray(config.from) && config.from.length ? config.from : fallbackFrom;
+  const count = Number(config.count || 1);
+  const modes = Array.isArray(config.modes) ? config.modes : ['single'];
+  const split = count >= 2 || modes.includes('double') || modes.includes('split');
+
+  if (split) {
+    specs.push({ key: `${slotKey}_first_asi`, label: `${feat.name} Ability +1`, type: 'ability_choice', from, count: 1 });
+    specs.push({ key: `${slotKey}_second_asi`, label: `${feat.name} Ability +1`, type: 'ability_choice', from, count: 1 });
+  } else {
+    specs.push({ key: `${slotKey}_asi`, label: `${feat.name} Ability`, type: 'ability_choice', from, count: 1 });
+  }
+}
+
+function pushRawChooseSpecs(specs, slotKey, feat) {
+  if (!feat || typeof feat !== 'object') return;
+
+  if (!feat.choiceUi?.skillProficiency) {
+    (feat.skillProficiencies || []).forEach((block, index) => {
+      const spec = choiceFromBlock(`${slotKey}_raw_skill_${index}`, `${feat.name} Skill`, block, ALL_SKILLS);
+      if (spec) specs.push({ ...spec, type: 'skill_choice' });
+    });
+  }
+
+  if (!feat.choiceUi?.toolProficiency) {
+    (feat.toolProficiencies || []).forEach((block, index) => {
+      const spec = choiceFromBlock(`${slotKey}_raw_tool_${index}`, `${feat.name} Tool`, block, ALL_TOOLS);
+      if (spec) specs.push({ ...spec, type: 'generic_choice' });
+    });
+  }
+
+  if (!feat.choiceUi?.languageProficiency) {
+    (feat.languageProficiencies || []).forEach((block, index) => {
+      const spec = choiceFromBlock(`${slotKey}_raw_language_${index}`, `${feat.name} Language`, block, ALL_LANGS);
+      if (spec) specs.push({ ...spec, type: 'language_choice' });
+    });
+  }
+
+  (feat.skillToolLanguageProficiencies || []).forEach((block, blockIndex) => {
+    const choices = Array.isArray(block?.choose) ? block.choose : block?.choose ? [block.choose] : [];
+    choices.forEach((choice, choiceIndex) => {
+      const count = Number(choice?.count || 0);
+      const rawFrom = Array.isArray(choice?.from) ? choice.from : [];
+      if (!count || !rawFrom.length) return;
+
+      let from = [];
+      if (rawFrom.includes('anySkill')) from = from.concat(ALL_SKILLS);
+      if (rawFrom.includes('anyTool')) from = from.concat(ALL_TOOLS);
+      if (rawFrom.includes('anyLanguage')) from = from.concat(ALL_LANGS);
+      from = from.concat(rawFrom.filter((value) => !['anySkill', 'anyTool', 'anyLanguage'].includes(value)));
+      from = specUniq(from);
+      if (!from.length) return;
+
+      const lower = from.map((value) => String(value).toLowerCase());
+      const skillSet = new Set(ALL_SKILLS.map((value) => value.toLowerCase()));
+      const langSet = new Set(ALL_LANGS.map((value) => value.toLowerCase()));
+      const type = lower.every((value) => skillSet.has(value))
+        ? 'skill_choice'
+        : lower.every((value) => langSet.has(value))
+          ? 'language_choice'
+          : 'generic_choice';
+
+      specPush(specs, {
+        key: `${slotKey}_raw_stl_${blockIndex}_${choiceIndex}`,
+        label: `${feat.name} Proficiency`,
+        type,
+        from,
+        count,
+      });
+    });
+  });
+}
+
 export function featChoiceSpecs(feat, options = {}) {
   const specs = [];
   const ui = feat?.choiceUi || {};
   const slotKey = options.slotKey || `feat_${feat.name}`;
   const asiUi = ui.abilityScoreIncrease;
+
   if (asiUi) {
-    const from = asiUi.from?.length ? asiUi.from : STATS;
-    const modes = asiUi.modes || ['single'];
-    if (modes.includes('double') || modes.includes('split')) {
-      specs.push({ key: `${slotKey}_first_asi`, label: `${feat.name} Ability +1`, type: 'ability_choice', from, count: 1 });
-      specs.push({ key: `${slotKey}_second_asi`, label: `${feat.name} Ability +1`, type: 'ability_choice', from, count: 1 });
-    } else {
-      specs.push({ key: `${slotKey}_asi`, label: `${feat.name} Ability`, type: 'ability_choice', from, count: 1 });
-    }
-  } else if (feat?.ability?.some((block) => block.choose)) {
-    specs.push({ key: `${slotKey}_asi`, label: `${feat.name} Ability`, type: 'ability_choice', from: STATS, count: 1 });
+    pushAbilityChoices(specs, slotKey, feat, asiUi);
+  } else if (feat?.ability?.some((block) => block?.choose)) {
+    const firstChoose = feat.ability.find((block) => block?.choose)?.choose || {};
+    pushAbilityChoices(specs, slotKey, feat, firstChoose, Array.isArray(firstChoose.from) && firstChoose.from.length ? firstChoose.from : STATS);
   }
-  if (ui.skillProficiency) specs.push({ key: `${slotKey}_skill`, label: `${feat.name} Skill`, type: 'skill_choice', from: ALL_SKILLS, count: ui.skillProficiency.count || 1 });
-  if (ui.languageProficiency) specs.push({ key: `${slotKey}_language`, label: `${feat.name} Language`, type: 'language_choice', from: STD_LANGS, count: ui.languageProficiency.count || 1 });
-  if (ui.spellAbility) {
-    specs.push({
-      key: `${slotKey}_${ui.spellAbility.keySuffix || 'spell_ability'}`,
-      label: ui.spellAbility.label || `${feat.name} Spellcasting Ability`,
-      type: 'ability_choice',
-      options: ui.spellAbility.options || STATS.map((stat) => ({ value: stat, label: STAT_LABELS[stat] || stat })),
-      count: 1,
-    });
-  }
-  if (ui.damageType) specs.push({ key: `${slotKey}_damage`, label: ui.damageType.label || `${feat.name} Damage Type`, type: 'generic_choice', from: ui.damageType.options || [], count: 1 });
-  if (ui.weaponProficiency) specs.push({ key: `${slotKey}_weapon`, label: ui.weaponProficiency.label || `${feat.name} Weapon`, type: 'generic_choice', from: ui.weaponProficiency.options || [], count: ui.weaponProficiency.count || 1 });
+
+  pushUiChoice(specs, slotKey, feat, ui.skillProficiency, {
+    keySuffix: 'skill',
+    label: `${feat.name} Skill`,
+    type: 'skill_choice',
+    from: ALL_SKILLS,
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.toolProficiency, {
+    keySuffix: 'tool',
+    label: `${feat.name} Tool`,
+    type: 'generic_choice',
+    from: ALL_TOOLS,
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.languageProficiency, {
+    keySuffix: 'language',
+    label: `${feat.name} Language`,
+    type: 'language_choice',
+    from: STD_LANGS,
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.saveProficiency, {
+    keySuffix: 'save_prof',
+    label: `${feat.name} Saving Throw`,
+    type: 'generic_choice',
+    from: STATS,
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.spellAbility, {
+    keySuffix: 'spell_ability',
+    label: `${feat.name} Spellcasting Ability`,
+    type: 'ability_choice',
+    from: STATS,
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.damageType, {
+    keySuffix: 'damage',
+    label: `${feat.name} Damage Type`,
+    type: 'generic_choice',
+    from: [],
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.weaponProficiency, {
+    keySuffix: 'weapon',
+    label: `${feat.name} Weapon`,
+    type: 'generic_choice',
+    from: [],
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.weaponMastery, {
+    keySuffix: 'weapon_mastery',
+    label: `${feat.name} Weapon Mastery`,
+    type: 'generic_choice',
+    from: [],
+  });
+
+  pushUiChoice(specs, slotKey, feat, ui.armorProficiency, {
+    keySuffix: 'armor',
+    label: `${feat.name} Armor`,
+    type: 'generic_choice',
+    from: ['Light Armor', 'Medium Armor', 'Heavy Armor', 'Shield'],
+  });
+
+  pushRawChooseSpecs(specs, slotKey, feat);
 
   specs.push(...additionalSpellChoices(feat, slotKey, options.entryIdx || 0));
   return specs;

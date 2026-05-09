@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Fighter_Psi Warrior", function (cls, lv, specs) {});
+registerSubclassAdapter("Fighter_Psi Warrior", function (cls, lv, specs, ctx = {}) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Fighter_Psi Warrior", [

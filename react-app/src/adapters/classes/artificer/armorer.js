@@ -1,4 +1,5 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
+import { getArtificerConditionalBonusToolCount } from './artificerTools.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -119,7 +120,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Artificer_Armorer", function (cls, lv, specs) {
+registerSubclassAdapter("Artificer_Armorer", function (cls, lv, specs, ctx = {}) {
   if (lv < 3) return;
 
   specs.push({
@@ -131,9 +132,7 @@ registerSubclassAdapter("Artificer_Armorer", function (cls, lv, specs) {
     level: 3
   });
 
-  const bonusCount = typeof _artificerGetConditionalBonusCount === 'function'
-    ? _artificerGetConditionalBonusCount(["Smith's Tools"])
-    : 0;
+  const bonusCount = getArtificerConditionalBonusToolCount(ctx, ["Smith's Tools"], cls);
   if (!bonusCount) return;
   specs.push({
     key: 'armorer_bonus_tool',

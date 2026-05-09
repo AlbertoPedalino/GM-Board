@@ -1,4 +1,5 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
+import { addWizardSavantSpellChoices } from './wizardSavant.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -120,9 +121,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
 registerSubclassAdapter("Wizard_Abjurer", function (cls, lv, specs) {
-  if (typeof addWizardSavantSpellChoices === "function") {
-    addWizardSavantSpellChoices(specs, lv, { key: "abjurer", label: "Abjuration", school: "A" });
-  }
+  addWizardSavantSpellChoices(specs, lv, { key: "abjurer", label: "Abjuration", school: "A" });
 });
 
 // [SheetRuntime] START

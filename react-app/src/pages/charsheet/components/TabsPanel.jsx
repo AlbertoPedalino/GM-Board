@@ -11,7 +11,7 @@ const TABS = ['Actions', 'Spells', 'Inventory', 'Features', 'Background', 'Notes
 
 export default function TabsPanel({
   C, sheet, tab, setTab, onRoll, resources, setResources, onRest, onShowToast,
-  onUpdateInventory, onUpdateCurrency, onUpdateSpells,
+  onUpdateInventory, onUpdateCurrency, onUpdateSpells, onUpdateSheet,
 }) {
   const handleChange = (_, v) => setTab(v);
 
@@ -24,7 +24,7 @@ export default function TabsPanel({
         </Tabs>
       </Box>
       <Box sx={{ p: '0.62rem' }}>
-        {tab === 0 && <ActionsTab C={C} sheet={sheet} onRoll={onRoll} resources={resources} setResources={setResources} onRest={onRest} onShowToast={onShowToast} />}
+        {tab === 0 && <ActionsTab C={C} sheet={sheet} onRoll={onRoll} resources={resources} setResources={setResources} onRest={onRest} onShowToast={onShowToast} onUpdateSheet={onUpdateSheet} />}
         {tab === 1 && <SpellsTab C={C} sheet={sheet} resources={resources} setResources={setResources} onUpdateSpells={onUpdateSpells} onShowToast={onShowToast} />}
         {tab === 2 && <InventoryTab C={C} sheet={sheet} onUpdateInventory={onUpdateInventory} onUpdateCurrency={onUpdateCurrency} />}
         {tab === 3 && <FeaturesTab C={C} />}

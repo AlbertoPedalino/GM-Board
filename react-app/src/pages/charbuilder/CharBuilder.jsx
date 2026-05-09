@@ -175,11 +175,6 @@ export default function CharBuilder() {
               D&D 5e 2024
             </Typography>
           </Box>
-          <Tooltip title={state.adaptersLoaded ? 'Adapters loaded' : 'Loading adapters'}>
-            <Button size="small" disabled={!state.adaptersLoaded} sx={{ fontSize: '0.58rem', px: 0.9, py: 0.25 }}>
-              {state.adaptersLoaded ? 'Adapters ready' : 'Adapters...'}
-            </Button>
-          </Tooltip>
         </Toolbar>
       </AppBar>
 

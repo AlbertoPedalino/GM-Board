@@ -121,20 +121,34 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
 registerSpeciesAdapter("Dragonborn_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);
-  specs = specs.filter(function (x) { return !x.key.startsWith('species_resist'); });
-  if (s._versions) {
-    const opts = [];
+  // Draconic Resistance is determined by the ancestry choice; do not render a separate resistance choice.
+  specs = specs.filter(function (x) { return !String(x.key || '').startsWith('species_resist'); });
+
+  const fallbackAncestries = [
+    'Black Dragon', 'Blue Dragon', 'Brass Dragon', 'Bronze Dragon', 'Copper Dragon',
+    'Gold Dragon', 'Green Dragon', 'Red Dragon', 'Silver Dragon', 'White Dragon',
+  ];
+  const opts = [];
+
+  if (Array.isArray(s._versions)) {
     s._versions.forEach(function (v) {
-      if (v._abstract && v._implementations) {
+      if (v && v._abstract && Array.isArray(v._implementations)) {
         v._implementations.forEach(function (impl) {
-          if (impl._variables) {
-            opts.push({ key: impl.name || Object.values(impl._variables)[0], label: Object.values(impl._variables)[0] });
-          }
+          const vars = impl && impl._variables ? Object.values(impl._variables).filter(Boolean) : [];
+          const label = vars[0] || impl?.name;
+          if (label) opts.push({ key: impl?.name || label, label });
         });
       }
     });
-    specs.push({ key: 'species_version', label: 'Draconic Ancestry', type: 'option', options: opts, count: 1, level: 1 });
   }
+
+  fallbackAncestries.forEach(function (name) {
+    if (!opts.some(function (opt) { return String(opt.label || opt.key).toLowerCase() === name.toLowerCase(); })) {
+      opts.push({ key: name, label: name });
+    }
+  });
+
+  specs.push({ key: 'species_version', label: 'Draconic Ancestry', type: 'option', options: opts, count: 1, level: 1 });
   return specs;
 });
 

@@ -135,6 +135,7 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
       key: 'subclass_banneret_language',
       label: 'Knightly Envoy — Polyglot (Language)',
       type: 'language_choice',
+      from: _ALL_LANGS || [],
       count: 1,
       level: 3
     });

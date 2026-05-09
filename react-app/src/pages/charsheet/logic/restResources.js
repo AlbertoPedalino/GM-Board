@@ -1,9 +1,87 @@
-export function normalizeResourceMax(def) {
+import { installedRegistry } from '../../../adapters/index.js';
+import { getFinal, getMod } from './calculations.js';
+function resourceOwnerLevel(def, character) {
+  return Number(def?.ownerLevel ?? character?.classLevel ?? character?.level ?? 1);
+}
+
+function resourceAbilityMods(character) {
+  return {
+    str: getMod(getFinal(character, 'str')),
+    dex: getMod(getFinal(character, 'dex')),
+    con: getMod(getFinal(character, 'con')),
+    int: getMod(getFinal(character, 'int')),
+    wis: getMod(getFinal(character, 'wis')),
+    cha: getMod(getFinal(character, 'cha')),
+  };
+}
+
+export function normalizeResourceMax(def, character = null) {
   const raw = def?.maxComputed ?? def?.max ?? 1;
-  if (typeof raw === 'function') return 1;
+  if (typeof raw === 'function') {
+    try {
+      const value = raw(resourceOwnerLevel(def, character), resourceAbilityMods(character), { character, resource: def });
+      const n = Number(value);
+      if (!Number.isFinite(n)) return value === Infinity ? Infinity : 1;
+      return Math.max(0, Math.floor(n));
+    } catch {
+      return 1;
+    }
+  }
   const n = Number(raw);
   if (!Number.isFinite(n)) return raw === Infinity ? Infinity : 1;
   return Math.max(0, Math.floor(n));
+}
+
+function hasCondition(def, character) {
+  if (typeof def?.condition !== 'function') return true;
+  try { return !!def.condition(character); } catch { return false; }
+}
+
+function getClassEntities(character) {
+  if (!character) return [];
+  const out = [];
+  if (character.className) {
+    out.push({
+      className: character.className,
+      subclassShortName: character.subclassShortName || '',
+      level: Number(character.classLevel || character.level || 1),
+      ownerName: character.className,
+    });
+  }
+  (character.extraClasses || []).forEach((extra) => {
+    if (!extra?.name) return;
+    out.push({
+      className: extra.name,
+      subclassShortName: extra.subclassShortName || '',
+      level: Number(extra.level || 1),
+      ownerName: extra.name,
+    });
+  });
+  return out;
+}
+
+function selectedFeatNames(character) {
+  return (character?.allFeatSnapshots || []).map((feat) => feat?.name).filter(Boolean);
+}
+
+function pushResource(out, def, character, ownerName, ownerLevel) {
+  if (!def?.key) return;
+  const lv = Number(def.ownerLevel ?? ownerLevel ?? character?.level ?? 1);
+  if (def.minLevel && lv < Number(def.minLevel)) return;
+  if (!hasCondition(def, character)) return;
+  out.push({ ...def, ownerName: def.ownerName || ownerName, ownerLevel: lv });
+}
+
+function uniqResources(resources) {
+  const out = [];
+  const seen = new Set();
+  resources.forEach((def) => {
+    const key = `${def.key}|${def.ownerName || ''}|${def.minLevel || ''}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(def);
+  });
+  return out;
 }
 
 function resourceRestText(def) {
@@ -19,13 +97,37 @@ function shortRestFullyRecovers(def, character) {
 }
 
 export function getAllResourceDefs(character) {
+  const out = [];
+
+  getClassEntities(character).forEach((entity) => {
+    (installedRegistry.getClassSheetResources(entity.className) || [])
+      .forEach((def) => pushResource(out, def, character, entity.ownerName, entity.level));
+    if (entity.subclassShortName) {
+      (installedRegistry.getSubclassSheetResources(entity.className, entity.subclassShortName) || [])
+        .forEach((def) => pushResource(out, def, character, `${entity.subclassShortName} (${entity.className})`, entity.level));
+    }
+  });
+
+  if (character?.speciesName) {
+    (installedRegistry.getSpeciesSheetResources(character.speciesName, character.speciesSource) || [])
+      .forEach((def) => pushResource(out, def, character, character.speciesName, character.level || 1));
+  }
+
+  selectedFeatNames(character).forEach((featName) => {
+    (installedRegistry.getFeatSheetResources(featName) || [])
+      .forEach((def) => pushResource(out, def, character, featName, character?.level || 1));
+  });
+
+  // Fallback for older exported characters that already contain adapterRuntime.
   const runtime = character?.adapterRuntime || {};
-  return [
+  [
     ...(runtime.classResources || []),
     ...(runtime.subclassResources || []),
     ...(runtime.speciesResources || []),
     ...(runtime.featResources || []),
-  ];
+  ].forEach((def) => pushResource(out, def, character, def.ownerName || 'Runtime', def.ownerLevel || character?.level || 1));
+
+  return uniqResources(out);
 }
 
 export function getTotalHitDice(character) {
@@ -75,7 +177,7 @@ export function applyResourceRest(resources, defs, character, type) {
   const next = { ...resources };
   defs.forEach(def => {
     if (!def.key) return;
-    const max = normalizeResourceMax(def);
+    const max = normalizeResourceMax(def, character);
     if (type === 'long') {
       next[def.key] = max;
       return;

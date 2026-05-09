@@ -2,6 +2,33 @@ import { Box, Paper, Typography, Tooltip } from '@mui/material';
 import { Dice5, AlertCircle } from 'lucide-react';
 import { STATS, SLBL, FULL_LBL, hasSaveProficiency, getSaveBonus, fbonus } from '../logic/calculations.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
+import { installedRegistry } from '../../../adapters/index.js';
+
+
+function collectSaveEffects(C, stat) {
+  const out = [];
+  const push = (list, ownerLevel) => {
+    (list || []).forEach((effect) => {
+      if (!effect) return;
+      if (effect.minLevel && Number(ownerLevel || 1) < Number(effect.minLevel)) return;
+      if (effect.target !== 'save') return;
+      if (effect.ability && String(effect.ability).toLowerCase() !== String(stat).toLowerCase()) return;
+      if (typeof effect.condition === 'function') {
+        try { if (!effect.condition(C)) return; } catch { return; }
+      }
+      out.push(effect);
+    });
+  };
+  const primaryLevel = Number(C?.classLevel || C?.level || 1);
+  push(installedRegistry.getClassSheetEffects(C?.className), primaryLevel);
+  push(installedRegistry.getSubclassSheetEffects(C?.className, C?.subclassShortName), primaryLevel);
+  (C?.extraClasses || []).forEach((extra) => {
+    const level = Number(extra?.level || 1);
+    push(installedRegistry.getClassSheetEffects(extra?.name), level);
+    push(installedRegistry.getSubclassSheetEffects(extra?.name, extra?.subclassShortName), level);
+  });
+  return out;
+}
 
 export default function SavingThrows({ C, sheet, onRoll }) {
   const armorPenalties = getEquippedArmorPenalties(C, sheet?.sheetInventory || C?.inventory || []);
@@ -19,10 +46,12 @@ export default function SavingThrows({ C, sheet, onRoll }) {
           const bonus = getSaveBonus(C, st);
           const prof = hasSaveProficiency(C, st);
           const hasDisadv = armorPenalties.hasPenalty && armorPenalties.disadvantageOn.includes(`${st}-saves`);
-          const tooltipText = hasDisadv ? 'Disadvantage from armor' : '';
+          const saveEffects = collectSaveEffects(C, st);
+          const hasAdv = saveEffects.some((effect) => effect.type === 'advantage');
+          const tooltipText = hasDisadv ? 'Disadvantage from armor' : hasAdv ? saveEffects.map((effect) => effect.note).filter(Boolean).join(' • ') || 'Advantage' : '';
           
           return (
-            <Box key={st} onClick={() => onRoll(st, { disadvantage: hasDisadv })}
+            <Box key={st} onClick={() => onRoll(st, { disadvantage: hasDisadv, advantage: hasAdv && !hasDisadv })}
               sx={{ display: 'flex', alignItems: 'center', gap: 1, py: '3px', cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'rgba(202,165,80,0.04)' } }}>
               <Box sx={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, transition: 'all 0.1s', border: 1, borderColor: 'divider', bgcolor: prof ? 'primary.main' : 'transparent' }} />
               <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 600, color: 'text.secondary', letterSpacing: '0.08em', width: 28, flexShrink: 0 }}>
@@ -34,9 +63,9 @@ export default function SavingThrows({ C, sheet, onRoll }) {
               <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', ml: 'auto' }}>
                 {fbonus(bonus)}
               </Typography>
-              {hasDisadv && (
+              {(hasDisadv || hasAdv) && (
                 <Tooltip title={tooltipText}>
-                  <AlertCircle size={12} style={{ color: '#ff9800', flexShrink: 0 }} />
+                  <AlertCircle size={12} style={{ color: hasDisadv ? '#ff9800' : '#70b7a6', flexShrink: 0 }} />
                 </Tooltip>
               )}
             </Box>

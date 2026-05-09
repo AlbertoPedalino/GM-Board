@@ -119,7 +119,21 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerClassAdapter("Druid", function (cls, lv, specs) {
+registerClassAdapter("Druid", function (cls, lv, specs, ctx = {}) {
+  const character = ctx.character || {};
+  const choices = ctx.choices || character.choices || {};
+  const keyPrefix = ctx.keyPrefix || '';
+  const choiceValue = function (key) {
+    const direct = choices[key];
+    if (direct !== undefined) return direct;
+    return choices[keyPrefix + key];
+  };
+  const hasChoice = function (key, value) {
+    const raw = choiceValue(key);
+    const vals = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    return vals.some(function (v) { return String(v).split('|')[0].trim().toLowerCase() === String(value).toLowerCase(); });
+  };
+
   if (lv >= 1) {
     specs.push({
       key: 'druid_primal_order',
@@ -129,9 +143,7 @@ registerClassAdapter("Druid", function (cls, lv, specs) {
       count: 1,
       level: 1
     });
-    var _order = typeof char !== 'undefined' && char.choices && char.choices.druid_primal_order;
-    var _isMagician = Array.isArray(_order) ? _order.includes('Magician') : _order === 'Magician';
-    if (_isMagician) {
+    if (hasChoice('druid_primal_order', 'Magician')) {
       specs.push({
         key: 'druid_magician_cantrip',
         label: 'Magician — Extra Cantrip',
@@ -151,6 +163,16 @@ registerClassAdapter("Druid", function (cls, lv, specs) {
       count: 1,
       level: 7
     });
+    if (hasChoice('druid_elemental_fury', 'Primal Strike')) {
+      specs.push({
+        key: 'druid_primal_strike_damage_type',
+        label: 'Primal Strike Damage Type',
+        type: 'generic_choice',
+        from: ['Cold', 'Fire', 'Lightning', 'Thunder'],
+        count: 1,
+        level: 7
+      });
+    }
   }
   if (lv >= 19) {
     specs.push({ key: 'druid_epic_boon', label: 'Epic Boon', type: 'feat_cat', categories: ['EB'], count: 1, level: 19 });

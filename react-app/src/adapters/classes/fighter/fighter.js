@@ -119,19 +119,20 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerClassAdapter("Fighter", function (cls, lv, specs) {
+registerClassAdapter("Fighter", function (cls, lv, specs, ctx = {}) {
   if (lv >= 1) {
     const weapons = typeof allItemsDb !== 'undefined'
       ? allItemsDb
-          .filter(i => (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'))
-          .map(i => i.name)
+          .filter(function (i) { return (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'); })
+          .map(function (i) { return i.name; })
       : [];
+    const masteryCount = lv >= 16 ? 6 : lv >= 10 ? 5 : lv >= 4 ? 4 : 3;
     specs.push({
       key: 'fighter_weapon_mastery',
-      label: 'Weapon Mastery (choose 3)',
+      label: 'Weapon Mastery (Fighter)',
       type: 'generic_choice',
       from: weapons,
-      count: 3,
+      count: masteryCount,
       level: 1
     });
     specs.push({

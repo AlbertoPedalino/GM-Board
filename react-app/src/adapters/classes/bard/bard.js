@@ -119,27 +119,63 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerClassAdapter("Bard", function (cls, lv, specs) {
+registerClassAdapter("Bard", function (cls, lv, specs, ctx = {}) {
+  const instruments = _MUSICAL_INSTRUMENTS || [];
+  const skills = typeof SKILLS !== 'undefined'
+    ? SKILLS.map(function (s) { return s.n; })
+    : ['Acrobatics','Animal Handling','Arcana','Athletics','Deception','History','Insight','Intimidation','Investigation','Medicine','Nature','Perception','Performance','Persuasion','Religion','Sleight of Hand','Stealth','Survival'];
+
   if (lv >= 1) {
-    specs.push({ key: 'bard_instrument_1', label: 'Musical Instrument 1 (Bard)', type: 'generic_choice', from: _MUSICAL_INSTRUMENTS || [], count: 1, level: 1 });
-    specs.push({ key: 'bard_instrument_2', label: 'Musical Instrument 2 (Bard)', type: 'generic_choice', from: _MUSICAL_INSTRUMENTS || [], count: 1, level: 1 });
-    specs.push({ key: 'bard_instrument_3', label: 'Musical Instrument 3 (Bard)', type: 'generic_choice', from: _MUSICAL_INSTRUMENTS || [], count: 1, level: 1 });
+    specs.push({
+      key: 'bard_instruments',
+      label: 'Musical Instruments (Bard)',
+      type: 'generic_choice',
+      from: instruments,
+      count: 3,
+      level: 1
+    });
   }
   if (lv >= 2) {
-    specs.push({ key: 'bard_expertise_1', label: 'Expertise 1 (Bard)', type: 'expertise', from: [], count: 1, level: 2 });
-    specs.push({ key: 'bard_expertise_2', label: 'Expertise 2 (Bard)', type: 'expertise', from: [], count: 1, level: 2 });
+    specs.push({
+      key: 'bard_expertise_lv2',
+      label: 'Expertise (Bard Lv.2)',
+      type: 'expertise',
+      from: skills,
+      count: 2,
+      level: 2,
+      requiresProficiency: true
+    });
   }
   if (lv >= 9) {
-    specs.push({ key: 'bard_expertise_3', label: 'Expertise 3 (Bard)', type: 'expertise', from: [], count: 1, level: 9 });
-    specs.push({ key: 'bard_expertise_4', label: 'Expertise 4 (Bard)', type: 'expertise', from: [], count: 1, level: 9 });
+    specs.push({
+      key: 'bard_expertise_lv9',
+      label: 'Expertise (Bard Lv.9)',
+      type: 'expertise',
+      from: skills,
+      count: 2,
+      level: 9,
+      requiresProficiency: true
+    });
   }
   if (lv >= 10) {
-    specs.push({ key: 'bard_magical_secrets_1', label: 'Magical Secrets 1 (Lv.10)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 10 });
-    specs.push({ key: 'bard_magical_secrets_2', label: 'Magical Secrets 2 (Lv.10)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 10 });
+    specs.push({
+      key: 'bard_magical_secrets_lv10',
+      label: 'Magical Secrets (Lv.10)',
+      type: 'spell_choice',
+      spellFilter: { spellLevel: null, classes: null, allSpells: true },
+      count: 2,
+      level: 10
+    });
   }
   if (lv >= 18) {
-    specs.push({ key: 'bard_magical_secrets_3', label: 'Magical Secrets 3 (Lv.18)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 18 });
-    specs.push({ key: 'bard_magical_secrets_4', label: 'Magical Secrets 4 (Lv.18)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: null, allSpells: true }, count: 1, level: 18 });
+    specs.push({
+      key: 'bard_magical_secrets_lv18',
+      label: 'Magical Secrets (Lv.18)',
+      type: 'spell_choice',
+      spellFilter: { spellLevel: null, classes: null, allSpells: true },
+      count: 2,
+      level: 18
+    });
   }
   if (lv >= 19) {
     specs.push({ key: 'bard_epic_boon', label: 'Epic Boon', type: 'feat_cat', categories: ['EB'], count: 1, level: 19 });
@@ -182,6 +218,13 @@ registerClassSheetResources("Bard", [
 registerClassSheetChoiceMeta("Bard", {
   sectionTitle: "Bard Choices",
   labels: {
+    bard_instruments: "Musical Instruments",
+    bard_expertise_lv2: "Expertise (Lv.2)",
+    bard_expertise_lv9: "Expertise (Lv.9)",
+    bard_magical_secrets_lv10: "Magical Secrets (Lv.10)",
+    bard_magical_secrets_lv18: "Magical Secrets (Lv.18)",
+    subclass_lore_bonus_skills: "Bonus Proficiencies (Lore)",
+    subclass_lore_magical_discoveries: "Magical Discoveries (Lore)",
     bard_instrument_1: "Musical Instrument 1",
     bard_instrument_2: "Musical Instrument 2",
     bard_instrument_3: "Musical Instrument 3",

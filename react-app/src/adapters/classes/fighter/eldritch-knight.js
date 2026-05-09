@@ -133,22 +133,14 @@ registerSubclassRuntimeConfig("Fighter", "Eldritch Knight", {
   },
 });
 
-registerSubclassAdapter("Fighter_Eldritch Knight", function (cls, lv, specs) {
+registerSubclassAdapter("Fighter_Eldritch Knight", function (cls, lv, specs, ctx = {}) {
   if (lv >= 3) {
     specs.push({
-      key: 'subclass_ek_cantrip_1',
-      label: 'Eldritch Knight — Cantrip Wizard 1',
+      key: 'subclass_ek_cantrips',
+      label: 'Eldritch Knight Cantrips',
       type: 'spell_choice',
       spellFilter: { spellLevel: 0, classes: ['Wizard'] },
-      count: 1,
-      level: 3
-    });
-    specs.push({
-      key: 'subclass_ek_cantrip_2',
-      label: 'Eldritch Knight — Cantrip Wizard 2',
-      type: 'spell_choice',
-      spellFilter: { spellLevel: 0, classes: ['Wizard'] },
-      count: 1,
+      count: 2,
       level: 3
     });
   }

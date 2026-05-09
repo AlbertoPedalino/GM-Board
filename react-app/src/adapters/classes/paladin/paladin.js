@@ -119,7 +119,22 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerClassAdapter("Paladin", function (cls, lv, specs) {
+registerClassAdapter("Paladin", function (cls, lv, specs, ctx = {}) {
+  if (lv >= 1) {
+    const weapons = typeof allItemsDb !== 'undefined'
+      ? allItemsDb
+          .filter(function (i) { return (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'); })
+          .map(function (i) { return i.name; })
+      : [];
+    specs.push({
+      key: 'paladin_weapon_mastery',
+      label: 'Weapon Mastery (Paladin)',
+      type: 'generic_choice',
+      from: weapons,
+      count: 2,
+      level: 1
+    });
+  }
   if (lv >= 2) {
     specs.push({
       key: 'paladin_fighting_style',

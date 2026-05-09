@@ -121,9 +121,15 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
 registerSpeciesAdapter("Aasimar_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);
-  specs = specs.filter(function (x) { return !x.key.startsWith('species_resist'); });
+  // Aasimar XPHB has fixed Celestial Resistance; avoid showing it as a build choice.
+  // Also remove a generic size spec, if parsed from the raw JSON, so we do not show it twice.
+  specs = specs.filter(function (x) {
+    return !String(x.key || '').startsWith('species_resist') && x.key !== 'species_size';
+  });
+
   specs.push({ key: 'species_size', label: 'Choose Size', type: 'generic_choice', from: ['Medium', 'Small'], count: 1, level: 1 });
   specs.push({ key: 'species_spell_ability', label: 'Spellcasting Ability (Aasimar)', type: 'ability_choice', from: ['int', 'wis', 'cha'], count: 1, level: 1 });
+
   const revelationOpts = [
     { key: 'Heavenly Wings',    label: 'Heavenly Wings (Flight)' },
     { key: 'Inner Radiance',    label: 'Inner Radiance (Light)' },

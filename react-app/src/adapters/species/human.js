@@ -119,9 +119,24 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-// Human XPHB: Versatile — extra Origin Feat + lingua bonus
+// Human XPHB: Skillful + Versatile — one skill proficiency and one extra Origin Feat.
 registerSpeciesAdapter("Human_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);
+  const skillNames = typeof SKILLS !== 'undefined'
+    ? SKILLS.map(function (skill) { return skill.n; })
+    : ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
+
+  if (!specs.some(function (spec) { return spec.type === 'skill_choice' || String(spec.key || '').startsWith('species_skill_'); })) {
+    specs.push({
+      key: 'human_skillful_skill',
+      label: 'Skillful — Skill Proficiency',
+      type: 'skill_choice',
+      from: skillNames,
+      count: 1,
+      level: 1,
+    });
+  }
+
   specs.push({
     key: 'species_origin_feat',
     label: 'Versatile — Extra Origin Feat',
@@ -135,6 +150,7 @@ registerSpeciesAdapter("Human_XPHB", function (s) {
 
 registerSpeciesSheetCommonChoiceMeta("Human_XPHB", {
   labels: {
+    human_skillful_skill: 'Skillful — Skill Proficiency',
     species_origin_feat: 'Origin Feat (Human Versatile)',
   },
 });

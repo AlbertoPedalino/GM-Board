@@ -1,4 +1,5 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
+import { getArtificerConditionalBonusToolCount } from './artificerTools.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -119,11 +120,9 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Artificer_Cartographer", function (cls, lv, specs) {
+registerSubclassAdapter("Artificer_Cartographer", function (cls, lv, specs, ctx = {}) {
   if (lv < 3) return;
-  const bonusCount = typeof _artificerGetConditionalBonusCount === 'function'
-    ? _artificerGetConditionalBonusCount(["Calligrapher's Supplies", "Cartographer's Tools"])
-    : 0;
+  const bonusCount = getArtificerConditionalBonusToolCount(ctx, ["Calligrapher's Supplies", "Cartographer's Tools"], cls);
   if (!bonusCount) return;
   specs.push({
     key: 'cartographer_bonus_tool',

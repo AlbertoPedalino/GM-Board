@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
+registerSubclassAdapter("Bard_Lore", function (cls, lv, specs, ctx = {}) {
   if (lv >= 3) {
     const allSkills = typeof SKILLS !== 'undefined'
       ? SKILLS.map(function (s) { return s.n; })
@@ -128,20 +128,24 @@ registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
          'Nature','Perception','Performance','Persuasion','Religion',
          'Sleight of Hand','Stealth','Survival'];
 
-    [1, 2, 3].forEach(function (i) {
-      specs.push({
-        key: 'subclass_lore_bonus_skill_' + i,
-        label: 'Bonus Proficiency ' + i + ' (Lore)',
-        type: 'skill_choice',
-        from: allSkills,
-        count: 1,
-        level: 3
-      });
+    specs.push({
+      key: 'subclass_lore_bonus_skills',
+      label: 'Bonus Proficiencies (Lore)',
+      type: 'skill_choice',
+      from: allSkills,
+      count: 3,
+      level: 3
     });
   }
   if (lv >= 6) {
-    specs.push({ key: 'subclass_lore_magical_discovery_1', label: 'Magical Discoveries 1 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
-    specs.push({ key: 'subclass_lore_magical_discovery_2', label: 'Magical Discoveries 2 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
+    specs.push({
+      key: 'subclass_lore_magical_discoveries',
+      label: 'Magical Discoveries (Lore Lv.6)',
+      type: 'spell_choice',
+      spellFilter: { spellLevel: null, classes: ['Cleric', 'Druid', 'Wizard'] },
+      count: 2,
+      level: 6
+    });
   }
 });
 

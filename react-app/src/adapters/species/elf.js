@@ -121,14 +121,26 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
 registerSpeciesAdapter("Elf_XPHB", function (s) {
   let specs = getGenericSpeciesChoiceSpecs(s);
-  if (s._versions) {
-    const opts = s._versions
-      .filter(function (v) { return v.name !== 'Elf' && !v.name.endsWith('; Elf'); })
+  const fallbackLineages = ['Drow', 'High Elf', 'Wood Elf'];
+  let opts = [];
+
+  if (Array.isArray(s._versions)) {
+    opts = s._versions
+      .filter(function (v) { return v.name !== 'Elf' && !String(v.name || '').endsWith('; Elf'); })
       .map(function (v) {
-        return { key: v.name, label: v.name.includes(';') ? v.name.split(';')[1].trim() : v.name };
-      });
-    specs.push({ key: 'species_version', label: 'Elven Lineage', type: 'option', options: opts, count: 1, level: 1 });
+        const label = String(v.name || '').includes(';') ? String(v.name).split(';')[1].trim() : v.name;
+        return { key: v.name, label };
+      })
+      .filter(function (opt) { return opt.key && opt.label; });
   }
+
+  fallbackLineages.forEach(function (name) {
+    if (!opts.some(function (opt) { return String(opt.label || opt.key).toLowerCase() === name.toLowerCase(); })) {
+      opts.push({ key: name, label: name });
+    }
+  });
+
+  specs.push({ key: 'species_version', label: 'Elven Lineage', type: 'option', options: opts, count: 1, level: 1 });
   specs.push({ key: 'species_spell_ability', label: 'Spellcasting Ability (Elf)', type: 'ability_choice', from: ['int', 'wis', 'cha'], count: 1, level: 1 });
   return specs;
 });

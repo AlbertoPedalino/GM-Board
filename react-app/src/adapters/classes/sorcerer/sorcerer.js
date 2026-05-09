@@ -133,19 +133,18 @@ const _MM_SLOTS = [
   { idx: 5, level: 17 }, { idx: 6, level: 17 },
 ];
 
-registerClassAdapter("Sorcerer", function (cls, lv, specs) {
-  _MM_SLOTS.forEach(function (slot) {
-    if (lv >= slot.level) {
-      specs.push({
-        key: 'sorcerer_metamagic_' + slot.idx,
-        label: 'Metamagic ' + slot.idx,
-        type: 'generic_choice',
-        from: _METAMAGIC,
-        count: 1,
-        level: slot.level
-      });
-    }
-  });
+registerClassAdapter("Sorcerer", function (cls, lv, specs, ctx = {}) {
+  if (lv >= 2) {
+    const count = lv >= 17 ? 6 : lv >= 10 ? 4 : 2;
+    specs.push({
+      key: 'sorcerer_metamagic',
+      label: 'Metamagic',
+      type: 'generic_choice',
+      from: _METAMAGIC,
+      count,
+      level: 2
+    });
+  }
   if (lv >= 19) {
     specs.push({ key: 'sorcerer_epic_boon', label: 'Epic Boon', type: 'feat_cat', categories: ['EB'], count: 1, level: 19 });
   }

@@ -119,53 +119,34 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerClassAdapter("Rogue", function (cls, lv, specs) {
+registerClassAdapter("Rogue", function (cls, lv, specs, ctx = {}) {
+  const expertiseFrom = typeof SKILLS !== 'undefined'
+    ? SKILLS.map(function (s) { return s.n; }).concat(["Thieves' Tools"])
+    : ["Thieves' Tools"];
+  const weapons = typeof allItemsDb !== 'undefined'
+    ? allItemsDb
+        .filter(function (i) { return (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'); })
+        .map(function (i) { return i.name; })
+    : [];
+
   if (lv >= 1) {
-    // Expertise (L1): 2 slot; uno può essere Thieves' Tools
-    const expertiseFrom = typeof SKILLS !== 'undefined'
-      ? SKILLS.map(function (s) { return s.n; }).concat(["Thieves' Tools"])
-      : ["Thieves' Tools"];
     specs.push({
-      key: 'rogue_expertise_1',
-      label: 'Expertise 1 (Rogue)',
+      key: 'rogue_expertise_lv1',
+      label: 'Expertise (Rogue Lv.1)',
       type: 'expertise',
       from: expertiseFrom,
-      count: 1,
-      level: 1
+      count: 2,
+      level: 1,
+      requiresProficiency: true
     });
     specs.push({
-      key: 'rogue_expertise_2',
-      label: 'Expertise 2 (Rogue)',
-      type: 'expertise',
-      from: expertiseFrom,
-      count: 1,
-      level: 1
-    });
-
-    // Weapon Mastery: 2 armi con cui sei competente
-    const weapons = typeof allItemsDb !== 'undefined'
-      ? allItemsDb
-          .filter(function (i) { return (i.type === 'M' || i.type === 'R') && (!i.rarity || i.rarity === 'none'); })
-          .map(function (i) { return i.name; })
-      : [];
-    specs.push({
-      key: 'rogue_weapon_mastery_1',
-      label: 'Weapon Mastery 1',
+      key: 'rogue_weapon_mastery',
+      label: 'Weapon Mastery (Rogue)',
       type: 'generic_choice',
       from: weapons,
-      count: 1,
+      count: 2,
       level: 1
     });
-    specs.push({
-      key: 'rogue_weapon_mastery_2',
-      label: 'Weapon Mastery 2',
-      type: 'generic_choice',
-      from: weapons,
-      count: 1,
-      level: 1
-    });
-
-    // Thieves' Cant: linguaggio bonus oltre al Gergo dei Ladri
     specs.push({
       key: 'rogue_thieves_cant_lang',
       label: "Bonus Language (Thieves' Cant)",
@@ -176,24 +157,14 @@ registerClassAdapter("Rogue", function (cls, lv, specs) {
     });
   }
   if (lv >= 6) {
-    const expertiseFrom6 = typeof SKILLS !== 'undefined'
-      ? SKILLS.map(function (s) { return s.n; }).concat(["Thieves' Tools"])
-      : ["Thieves' Tools"];
     specs.push({
-      key: 'rogue_expertise_3',
-      label: 'Expertise 3 (Rogue)',
+      key: 'rogue_expertise_lv6',
+      label: 'Expertise (Rogue Lv.6)',
       type: 'expertise',
-      from: expertiseFrom6,
-      count: 1,
-      level: 6
-    });
-    specs.push({
-      key: 'rogue_expertise_4',
-      label: 'Expertise 4 (Rogue)',
-      type: 'expertise',
-      from: expertiseFrom6,
-      count: 1,
-      level: 6
+      from: expertiseFrom,
+      count: 2,
+      level: 6,
+      requiresProficiency: true
     });
   }
   if (lv >= 19) {

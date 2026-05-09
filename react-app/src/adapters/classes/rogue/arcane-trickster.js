@@ -127,28 +127,21 @@ registerSubclassRuntimeConfig("Rogue", "Arcane Trickster", {
     spellsKnown: [0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13],
     preparedSpellsProgression: [0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13],
     choiceSpellSources: {
+      subclass_at_cantrips: { label: "Arcane Trickster", ability: "int" },
       subclass_at_cantrip_1: { label: "Arcane Trickster", ability: "int" },
       subclass_at_cantrip_2: { label: "Arcane Trickster", ability: "int" },
     },
   },
 });
 
-registerSubclassAdapter("Rogue_Arcane Trickster", function (cls, lv, specs) {
+registerSubclassAdapter("Rogue_Arcane Trickster", function (cls, lv, specs, ctx = {}) {
   if (lv >= 3) {
     specs.push({
-      key: "subclass_at_cantrip_1",
-      label: "Arcane Trickster - Cantrip Wizard 1",
+      key: "subclass_at_cantrips",
+      label: "Arcane Trickster Cantrips",
       type: "spell_choice",
       spellFilter: { spellLevel: 0, classes: ["Wizard"] },
-      count: 1,
-      level: 3
-    });
-    specs.push({
-      key: "subclass_at_cantrip_2",
-      label: "Arcane Trickster - Cantrip Wizard 2",
-      type: "spell_choice",
-      spellFilter: { spellLevel: 0, classes: ["Wizard"] },
-      count: 1,
+      count: 2,
       level: 3
     });
   }

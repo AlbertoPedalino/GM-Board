@@ -81,30 +81,38 @@ function weaponMatchesRule(item, rule) {
   return true;
 }
 
+function choiceMatches(C, requiredChoice, prefix = '') {
+  if (!requiredChoice?.key) return true;
+  const choices = C?.choices || {};
+  const keys = [requiredChoice.key, `${prefix || ''}${requiredChoice.key}`].filter(Boolean);
+  const wanted = Array.isArray(requiredChoice.value) ? requiredChoice.value : [requiredChoice.value];
+  const wantedNorm = wanted.map((value) => normKey(String(value).split('|')[0]));
+  return keys.some((key) => {
+    const stored = choices[key];
+    const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
+    return vals.some((value) => wantedNorm.includes(normKey(String(value).split('|')[0])));
+  });
+}
+
 function collectAdapterProfGrants(C) {
   const grants = [];
-  const push = (list, lv) => {
+  const push = (list, lv, prefix = '') => {
     (list || []).forEach(g => {
       if (!g || typeof g !== 'object') return;
       if ((lv || 1) < Number(g.minLevel || 1)) return;
-      if (g.requiredChoice) {
-        const rc = g.requiredChoice;
-        const stored = C?.choices?.[rc.key];
-        const vals = Array.isArray(stored) ? stored : (stored ? [stored] : []);
-        if (!vals.includes(rc.value)) return;
-      }
+      if (g.requiredChoice && !choiceMatches(C, g.requiredChoice, prefix)) return;
       grants.push(g);
     });
   };
-  const collectEntity = (className, subclassShortName, lv) => {
-    push(installedRegistry.getClassSheetProficiencies(className), lv);
-    push(installedRegistry.getSubclassSheetProficiencies(className, subclassShortName), lv);
+  const collectEntity = (className, subclassShortName, lv, prefix = '') => {
+    push(installedRegistry.getClassSheetProficiencies(className), lv, prefix);
+    push(installedRegistry.getSubclassSheetProficiencies(className, subclassShortName), lv, prefix);
   };
-  collectEntity(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1);
-  for (const ec of (C?.extraClasses || [])) {
-    collectEntity(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1);
+  collectEntity(C?.className || '', C?.subclassShortName || '', C?.classLevel || C?.level || 1, '');
+  for (const [index, ec] of (C?.extraClasses || []).entries()) {
+    collectEntity(ec?.name || '', ec?.subclassShortName || '', ec?.level || 1, `mc${index}_`);
   }
-  push(installedRegistry.getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1);
+  push(installedRegistry.getSpeciesSheetProficiencies(C?.speciesName || '', C?.speciesSource || ''), C?.level || 1, '');
   return grants;
 }
 

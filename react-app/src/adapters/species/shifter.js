@@ -121,23 +121,32 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
 registerSpeciesAdapter("Shifter_EFA", function (s) {
   const specs = getGenericSpeciesChoiceSpecs(s);
+  const fallbackLineages = ['Beasthide', 'Longtooth', 'Swiftstride', 'Wildhunt'];
+  let opts = [];
 
   if (Array.isArray(s._versions) && s._versions.length) {
-    const opts = s._versions.map(v => ({
+    opts = s._versions.map(v => ({
       key: v.name,
       label: String(v.name || '').includes(';')
         ? String(v.name).split(';')[1].trim()
         : v.name,
-    }));
-    specs.push({
-      key: 'species_version',
-      label: 'Shifter Lineage',
-      type: 'option',
-      options: opts,
-      count: 1,
-      level: 1,
-    });
+    })).filter(function (opt) { return opt.key && opt.label; });
   }
+
+  fallbackLineages.forEach(function (name) {
+    if (!opts.some(function (opt) { return String(opt.label || opt.key).toLowerCase() === name.toLowerCase(); })) {
+      opts.push({ key: name, label: name });
+    }
+  });
+
+  specs.push({
+    key: 'species_version',
+    label: 'Shifter Lineage',
+    type: 'option',
+    options: opts,
+    count: 1,
+    level: 1,
+  });
 
   return specs;
 });

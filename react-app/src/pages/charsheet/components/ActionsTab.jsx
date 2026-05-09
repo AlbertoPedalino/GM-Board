@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Box, Chip, Typography, Button } from '@mui/material';
 import { Sword, Cross } from 'lucide-react';
 import { getMod, getFinal } from '../logic/calculations.js';
-import { loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
+import { installedRegistry, loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
 import { fbonus } from '../logic/calculations.js';
 import { setStorageJson } from '../../../shared/storage.js';
+import { PACT_SLOTS } from '../../charbuilder/constants.js';
 import {
   FILTERS,
   CAT_COLORS,
@@ -18,7 +19,7 @@ import {
   rollFormula,
 } from '../logic/actionsTabLogic.js';
 
-export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast }) {
+export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast, onUpdateSheet }) {
   const [filter, setFilter] = useState('all');
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
 
@@ -44,7 +45,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   const runtime = C?.adapterRuntime || {};
   const allResDefs = [...(runtime.classResources || []), ...(runtime.subclassResources || []), ...(runtime.speciesResources || []), ...(runtime.featResources || [])];
   const resMaxMap = {};
-  allResDefs.forEach(def => { if (def.key) resMaxMap[def.key] = normalizeResourceMax(def); });
+  allResDefs.forEach(def => { if (def.key) resMaxMap[def.key] = normalizeResourceMax(def, C); });
 
   const handleResChange = (key, delta) => {
     if (!resources || !setResources) return;
@@ -53,6 +54,23 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     res[key] = Math.max(0, Math.min(max, (res[key] || 0) + delta));
     setResources(res);
     setStorageJson('5e_resources', res);
+
+    if (delta < 0) {
+      const sideEffect = installedRegistry.getResourceSideEffect(key);
+      if (typeof sideEffect === 'function') {
+        const result = sideEffect({ character: C, C, sheet, resources: res, PACT_SLOTS });
+        if (result?.type === 'recover_pact_slots' && result.recover > 0) {
+          const level = Number(result.slotLevel || 1);
+          const used = { ...(sheet?.spellSlotUsed || {}) };
+          const before = Number(used[level] || 0);
+          const after = Math.max(0, before - Number(result.recover || 0));
+          used[level] = after;
+          setStorageJson('5e_slots_used', used);
+          onUpdateSheet?.({ spellSlotUsed: used });
+          onShowToast?.('Magical Cunning', `Recovered ${before - after} Pact Magic slot${before - after === 1 ? '' : 's'}`, before - after, []);
+        }
+      }
+    }
   };
 
   return (
@@ -113,6 +131,10 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
   const [open, setOpen] = useState(false);
   const hasRes = action.resKey && resources && resources[action.resKey] != null;
   const resCur = hasRes ? (resources[action.resKey] ?? 0) : 0;
+  const ownerLevel = action.ownerLevel ?? C?.classLevel ?? C?.level ?? 1;
+  const inlinePills = typeof action.inlinePills === 'function'
+    ? action.inlinePills({ character: C, ownerLevel })
+    : (Array.isArray(action.inlinePills) ? action.inlinePills : []);
 
   const rollFormulaButton = (kind) => {
     const formula = resolveFormula(kind === 'heal' ? action.healFormula : action.damageFormula, action, C);
@@ -173,6 +195,10 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
         {action._source && (
           <Typography sx={{ fontSize: '0.5rem', color: 'text.secondary', fontStyle: 'italic', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>{action._source}</Typography>
         )}
+        {inlinePills.map((pill, idx) => (
+          <Chip key={`${pill.label || 'pill'}-${idx}`} size="small" label={`${pill.label || ''}${pill.value != null ? ` ${pill.value}` : ''}`.trim()}
+            sx={{ fontSize: '0.46rem', height: 16, color: '#edd48a', borderColor: 'rgba(237,212,138,0.4)', bgcolor: 'rgba(237,212,138,0.12)' }} />
+        ))}
         {action.uses && (
           <Typography sx={{ fontSize: '0.5rem', color: 'text.secondary', flexShrink: 0 }}>{action.uses}</Typography>
         )}

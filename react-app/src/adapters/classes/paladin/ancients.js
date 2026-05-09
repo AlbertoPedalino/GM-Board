@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Paladin_Ancients", function (cls, lv, specs) {});
+registerSubclassAdapter("Paladin_Ancients", function (cls, lv, specs, ctx = {}) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Paladin_Ancients", [

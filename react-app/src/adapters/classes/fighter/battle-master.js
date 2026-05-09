@@ -140,7 +140,7 @@ const _BM_SLOTS = [
   { idx: 8, level: 15 }, { idx: 9, level: 15 },
 ];
 
-registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
+registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs, ctx = {}) {
   if (lv >= 3) {
     specs.push({
       key: 'subclass_bm_student_tool',
@@ -158,19 +158,16 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
       count: 1,
       level: 3
     });
+    const maneuverCount = lv >= 15 ? 9 : lv >= 10 ? 7 : lv >= 7 ? 5 : 3;
+    specs.push({
+      key: 'subclass_bm_maneuvers',
+      label: 'Battle Maneuvers',
+      type: 'generic_choice',
+      from: _BM_MANEUVERS,
+      count: maneuverCount,
+      level: 3
+    });
   }
-  _BM_SLOTS.forEach(function (slot) {
-    if (lv >= slot.level) {
-      specs.push({
-        key: 'subclass_bm_maneuver_' + slot.idx,
-        label: 'Battle Maneuver ' + slot.idx,
-        type: 'generic_choice',
-        from: _BM_MANEUVERS,
-        count: 1,
-        level: slot.level
-      });
-    }
-  });
 });
 
 // [SheetRuntime] START

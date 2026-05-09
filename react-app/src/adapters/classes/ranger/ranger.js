@@ -119,7 +119,10 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerClassAdapter("Ranger", function (cls, lv, specs) {
+registerClassAdapter("Ranger", function (cls, lv, specs, ctx = {}) {
+  const skills = typeof SKILLS !== 'undefined'
+    ? SKILLS.map(function (s) { return s.n; })
+    : ['Acrobatics','Animal Handling','Arcana','Athletics','Deception','History','Insight','Intimidation','Investigation','Medicine','Nature','Perception','Performance','Persuasion','Religion','Sleight of Hand','Stealth','Survival'];
   if (lv >= 1) {
     const weapons = typeof allItemsDb !== 'undefined'
       ? allItemsDb
@@ -127,29 +130,30 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
           .map(function (i) { return i.name; })
       : [];
     specs.push({
-      key: 'ranger_weapon_mastery_1',
-      label: 'Weapon Mastery 1',
+      key: 'ranger_weapon_mastery',
+      label: 'Weapon Mastery (Ranger)',
       type: 'generic_choice',
       from: weapons,
-      count: 1,
-      level: 1
-    });
-    specs.push({
-      key: 'ranger_weapon_mastery_2',
-      label: 'Weapon Mastery 2',
-      type: 'generic_choice',
-      from: weapons,
-      count: 1,
+      count: 2,
       level: 1
     });
   }
   if (lv >= 2) {
     specs.push({
-      key: 'ranger_expertise_1',
-      label: 'Expertise 1 (Ranger)',
+      key: 'ranger_expertise_lv2',
+      label: 'Deft Explorer — Expertise',
       type: 'expertise',
-      from: [],
+      from: skills,
       count: 1,
+      level: 2,
+      requiresProficiency: true
+    });
+    specs.push({
+      key: 'ranger_deft_explorer_languages',
+      label: 'Deft Explorer — Languages',
+      type: 'language_choice',
+      from: _ALL_LANGS || [],
+      count: 2,
       level: 2
     });
     specs.push({
@@ -163,20 +167,13 @@ registerClassAdapter("Ranger", function (cls, lv, specs) {
   }
   if (lv >= 9) {
     specs.push({
-      key: 'ranger_expertise_2',
-      label: 'Expertise 2 (Ranger)',
+      key: 'ranger_expertise_lv9',
+      label: 'Expertise (Ranger Lv.9)',
       type: 'expertise',
-      from: [],
-      count: 1,
-      level: 9
-    });
-    specs.push({
-      key: 'ranger_expertise_3',
-      label: 'Expertise 3 (Ranger)',
-      type: 'expertise',
-      from: [],
-      count: 1,
-      level: 9
+      from: skills,
+      count: 2,
+      level: 9,
+      requiresProficiency: true
     });
   }
   if (lv >= 19) {
