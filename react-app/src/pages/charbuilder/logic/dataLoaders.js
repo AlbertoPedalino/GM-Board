@@ -215,27 +215,59 @@ function buildClassSpellIndex(node) {
 }
 
 const ITEM_SOURCES_2024 = ['XPHB', 'XDMG', 'EFA', 'FRAiF', 'FRHoF'];
+const PHB_2024_EQUIPMENT_TYPES = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'A', 'G', 'AT', 'GS', 'INS', 'SCF', 'WD', 'RD', 'ST'];
+
+function itemSource(item) {
+  return String(item?.source || '').trim();
+}
+
+function reprintedSource(item, allowedSources = ITEM_SOURCES_2024) {
+  if (!Array.isArray(item?.reprintedAs)) return '';
+  const allowed = new Set(allowedSources);
+  const found = item.reprintedAs
+    .map((entry) => String(entry || '').split('|')[1] || '')
+    .find((source) => allowed.has(source));
+  return found || '';
+}
+
+function canonicalItemSource(item) {
+  const source = itemSource(item);
+  if (ITEM_SOURCES_2024.includes(source)) return source;
+  return reprintedSource(item);
+}
 
 function isItem2024(item) {
-  if (!item) return false;
-  if (ITEM_SOURCES_2024.includes(item.source)) return true;
-  return false;
+  return Boolean(canonicalItemSource(item));
 }
 
 function isAllowedPhbEquipment(item) {
   if (!item) return false;
-  if (item.source !== 'PHB') return false;
+  if (itemSource(item) !== 'PHB') return false;
   const type = String(item.type || '').split('|')[0].toUpperCase();
-  if (!['M', 'R', 'LA', 'MA', 'HA', 'S', 'A', 'G', 'AT', 'GS', 'INS', 'SCF', 'WD', 'RD', 'ST'].includes(type)) return false;
+  if (!PHB_2024_EQUIPMENT_TYPES.includes(type)) return false;
   if (item.rarity && item.rarity !== 'none') return false;
-  return itemReprintsToSource(item, 'XPHB');
+  return canonicalItemSource(item) === 'XPHB';
 }
 
-function itemReprintsToSource(item, source) {
-  return Array.isArray(item?.reprintedAs) && item.reprintedAs.some((entry) => {
-    const parts = String(entry || '').split('|');
-    return parts[1] === source;
-  });
+function isAllowedMagicVariant(variant) {
+  if (!variant) return false;
+  const inherited = variant.inherits || {};
+  return Boolean(
+    canonicalItemSource(variant)
+    || canonicalItemSource(inherited)
+    || reprintedSource(variant, ['XDMG', 'XPHB', 'EFA', 'FRAiF', 'FRHoF'])
+  );
+}
+
+function withCanonicalSource(item) {
+  const canonical = canonicalItemSource(item);
+  if (!canonical) return item;
+  const source = itemSource(item);
+  return {
+    ...item,
+    source: canonical,
+    legacySource: source && source !== canonical ? source : item.legacySource || null,
+  };
 }
 
 export async function loadItems() {
@@ -244,41 +276,64 @@ export async function loadItems() {
     getJson('items.json'),
     getJson('magicvariants.json'),
   ]);
+
   const baseItems = base.status === 'fulfilled'
-    ? (base.value.baseitem || []).filter((item) => isItem2024(item) || isAllowedPhbEquipment(item))
+    ? (base.value.baseitem || [])
+        .filter((item) => isItem2024(item) || isAllowedPhbEquipment(item))
+        .map(withCanonicalSource)
     : [];
+
   const magicItems = magic.status === 'fulfilled'
-    ? (magic.value.item || []).filter(isItem2024)
+    ? (magic.value.item || [])
+        .filter(isItem2024)
+        .map(withCanonicalSource)
     : [];
+
   const magicVariants = variants.status === 'fulfilled'
-    ? expandMagicVariants(variants.value.magicvariant || [], baseItems).map((item) => ({
-      ...item,
-      source: ITEM_SOURCES_2024.includes(item.source) ? item.source : 'XDMG',
-    }))
+    ? expandMagicVariants(
+        (variants.value.magicvariant || []).filter(isAllowedMagicVariant),
+        baseItems,
+      ).map(withCanonicalSource)
     : [];
-  const all = [...ITEM_SUMMARIES, ...baseItems, ...magicItems, ...magicVariants];
+
+  const all = [
+    ...ITEM_SUMMARIES.map(withCanonicalSource),
+    ...baseItems,
+    ...magicItems,
+    ...magicVariants,
+  ].filter(isItem2024);
+
   const byName = new Map();
   all.forEach((item) => {
     if (!item?.name) return;
-    const key = item.name.toLowerCase();
+    const key = normalizeName(formatLeadingBonusName(item.name));
     const existing = byName.get(key);
     if (!existing) { byName.set(key, item); return; }
     if (shouldReplaceItem(existing, item)) byName.set(key, item);
   });
-  const items = [...byName.values()]
+
+  return [...byName.values()]
     .map(normalizeItem)
     .sort((a, b) => a.name.localeCompare(b.name));
-  return items;
+}
+
+function sourcePriority(item) {
+  const source = canonicalItemSource(item);
+  const order = ['XPHB', 'XDMG', 'EFA', 'FRAiF', 'FRHoF'];
+  const idx = order.indexOf(source);
+  return idx === -1 ? 999 : idx;
 }
 
 function shouldReplaceItem(existing, incoming) {
-  const existing2024 = ITEM_SOURCES_2024.includes(existing.source);
-  const incoming2024 = ITEM_SOURCES_2024.includes(incoming.source);
-  const existingRichness = itemRichness(existing);
+  const incomingPriority = sourcePriority(incoming);
+  const existingPriority = sourcePriority(existing);
+  if (incomingPriority !== existingPriority) return incomingPriority < existingPriority;
+
   const incomingRichness = itemRichness(incoming);
-  if (incomingRichness > existingRichness) return true;
-  if (incoming2024 && !existing2024) return true;
-  return false;
+  const existingRichness = itemRichness(existing);
+  if (incomingRichness !== existingRichness) return incomingRichness > existingRichness;
+
+  return Boolean(incoming.legacySource) === false && Boolean(existing.legacySource);
 }
 
 function itemRichness(item) {
@@ -296,7 +351,8 @@ function normalizeItem(item) {
   const rawType = item.type ? String(item.type).split('|')[0] : '';
   return {
     name: formatLeadingBonusName(item.name),
-    source: item.source || '',
+    source: canonicalItemSource(item) || item.source || '',
+    legacySource: item.legacySource || null,
     type: rawType || 'gear',
     rarity: item.rarity || 'none',
     weight: Number(item.weight || 0),
@@ -321,18 +377,29 @@ function expandMagicVariants(variants, baseItems) {
   variants.forEach((variant) => {
     const inherits = variant.inherits || {};
     const requires = variant.requires || [];
+    const variantSource = canonicalItemSource(variant)
+      || canonicalItemSource(inherits)
+      || reprintedSource(variant, ['XDMG', 'XPHB', 'EFA', 'FRAiF', 'FRHoF']);
+
+    if (!variantSource) return;
+
     if (!requires.length && variant.name) {
-      expanded.push({ ...inherits, name: formatLeadingBonusName(variant.name), source: variant.source || inherits.source || 'XDMG' });
+      expanded.push(withCanonicalSource({
+        ...inherits,
+        name: formatLeadingBonusName(variant.name),
+        source: variantSource,
+      }));
       return;
     }
+
     baseItems.forEach((base) => {
       if (!matchesRequires(base, requires)) return;
-      expanded.push({
+      expanded.push(withCanonicalSource({
         ...base,
         ...inherits,
         name: formatVariantName(base.name, inherits),
-        source: variant.source || inherits.source || base.source,
-      });
+        source: variantSource || base.source,
+      }));
     });
   });
   return expanded;

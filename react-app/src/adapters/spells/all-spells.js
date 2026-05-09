@@ -140,10 +140,13 @@ export default function install(registry, context = {}) {
     if (d.saveAbility != null) out.saveAbility = d.saveAbility;
     if (d.baseDie     != null) out.baseDie     = d.baseDie;
     if (d.upcastDie   != null) out.upcastDie   = d.upcastDie;
-    if (d.heal        != null) out.heal        = d.heal;
-    if (d.range       != null) out.rangeText   = d.range;
-    if (d.aoe         != null) out.aoe         = d.aoe;
-    if (d.notes       != null) out.notes       = d.notes;
+    if (d.heal          != null) out.heal          = d.heal;
+    if (d.concentration != null) out.concentration = d.concentration;
+    if (d.castingTime   != null) out.castingTime   = d.castingTime;
+    if (d.duration      != null) out.durationText  = d.duration;
+    if (d.range         != null) out.rangeText     = d.range;
+    if (d.aoe           != null) out.aoe           = d.aoe;
+    if (d.notes         != null) out.notes         = d.notes;
 
     return out;
   });

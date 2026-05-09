@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, Stack } from '@mui/material';
 import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle } from 'lucide-react';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
@@ -76,8 +76,149 @@ function formatGp(value) {
   return `${Number.isInteger(gp) ? gp : gp.toFixed(2)} GP`;
 }
 
+function normalizeSearch(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9+ ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function itemSearchText(item) {
+  return normalizeSearch([
+    item?.name,
+    item?.source,
+    item?.legacySource,
+    item?.type,
+    item?.rarity,
+    item?.weaponCategory,
+    item?.dmgType,
+    Array.isArray(item?.property) ? item.property.join(' ') : '',
+    Array.isArray(item?.properties) ? item.properties.join(' ') : '',
+    Array.isArray(item?.mastery) ? item.mastery.join(' ') : '',
+  ].filter(Boolean).join(' '));
+}
+
+function itemMatchesSearch(item, query) {
+  const q = normalizeSearch(query);
+  if (!q) return true;
+  const haystack = itemSearchText(item);
+  return q.split(' ').every((part) => haystack.includes(part));
+}
+
+function sourcePriority(source) {
+  const order = ['XPHB', 'XDMG', 'EFA', 'FRAiF', 'FRHoF', 'Custom'];
+  const idx = order.indexOf(String(source || ''));
+  return idx === -1 ? 999 : idx;
+}
+
+function rarityPriority(rarity) {
+  const order = ['none', 'common', 'uncommon', 'rare', 'very rare', 'legendary', 'artifact'];
+  const idx = order.indexOf(String(rarity || 'none').toLowerCase());
+  return idx === -1 ? 999 : idx;
+}
+
+function compareItemsBySearch(query) {
+  const q = normalizeSearch(query);
+  return (a, b) => {
+    if (q) {
+      const an = a._searchName || normalizeSearch(a?.name);
+      const bn = b._searchName || normalizeSearch(b?.name);
+      const score = (name) => {
+        if (name === q) return 0;
+        if (name.startsWith(`${q} `) || name.startsWith(`${q},`) || name.startsWith(`${q}+`)) return 1;
+        if (name.startsWith(q)) return 2;
+        if (name.split(' ').some((part) => part.startsWith(q))) return 3;
+        if (name.includes(q)) return 4;
+        return 5;
+      };
+      const as = score(an);
+      const bs = score(bn);
+      if (as !== bs) return as - bs;
+    }
+
+    const ap = a._sourcePriority ?? sourcePriority(a?.source);
+    const bp = b._sourcePriority ?? sourcePriority(b?.source);
+    if (ap !== bp) return ap - bp;
+
+    const ar = a._rarityPriority ?? rarityPriority(a?.rarity);
+    const br = b._rarityPriority ?? rarityPriority(b?.rarity);
+    if (ar !== br) return ar - br;
+
+    return String(a?.name || '').localeCompare(String(b?.name || ''));
+  };
+}
+
+function prepareSearchItem(item) {
+  return {
+    ...item,
+    _itemType: itemType(item),
+    _searchName: normalizeSearch(item?.name),
+    _searchText: itemSearchText(item),
+    _sourcePriority: sourcePriority(item?.source),
+    _rarityPriority: rarityPriority(item?.rarity),
+  };
+}
+
+function itemMatchesPreparedSearch(item, query) {
+  const q = normalizeSearch(query);
+  if (!q) return true;
+  const haystack = item._searchText || itemSearchText(item);
+  return q.split(' ').every((part) => haystack.includes(part));
+}
+
+const SEARCH_ROW_HEIGHT = 34;
+const SEARCH_OVERSCAN = 8;
+
+let itemsCachePromise = null;
+
+function loadItemsCached() {
+  if (!itemsCachePromise) {
+    itemsCachePromise = loadItems().then((items) => (items || []).map(prepareSearchItem));
+  }
+  return itemsCachePromise;
+}
+
+const SearchResultsList = memo(function SearchResultsList({ items, itemsDbCount, onAddItem }) {
+  const [scrollTop, setScrollTop] = useState(0);
+  const viewportHeight = 260;
+  const visibleCount = Math.ceil(viewportHeight / SEARCH_ROW_HEIGHT) + SEARCH_OVERSCAN * 2;
+  const start = Math.max(0, Math.floor(scrollTop / SEARCH_ROW_HEIGHT) - SEARCH_OVERSCAN);
+  const end = Math.min(items.length, start + visibleCount);
+  const visibleItems = items.slice(start, end);
+  const topPad = start * SEARCH_ROW_HEIGHT;
+  const bottomPad = Math.max(0, (items.length - end) * SEARCH_ROW_HEIGHT);
+
+  return (
+    <Box
+      onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+      sx={{ maxHeight: viewportHeight, overflowY: 'auto', mb: 0.75, border: 1, borderColor: 'divider', borderRadius: 1, bgcolor: 'rgba(18,16,14,0.65)' }}
+    >
+      {topPad ? <Box sx={{ height: topPad }} /> : null}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', p: '2px' }}>
+        {visibleItems.map((item) => (
+          <Box key={`${item.name}-${item.source}`} onClick={() => onAddItem(item)}
+            sx={{ height: SEARCH_ROW_HEIGHT - 2, display: 'flex', alignItems: 'center', gap: 1, px: '10px', py: '4px', bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, cursor: 'pointer', '&:hover': { borderColor: '#caa550', bgcolor: 'rgba(44,40,33,1)' } }}>
+            <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</Typography>
+            <Typography sx={{ fontSize: '0.62rem', color: '#edd48a', flexShrink: 0, fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>{item.source || '—'}</Typography>
+            <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', flexShrink: 0 }}>{item.type || 'gear'}</Typography>
+            <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{formatGp(item.value)}</Typography>
+          </Box>
+        ))}
+      </Box>
+      {bottomPad ? <Box sx={{ height: bottomPad }} /> : null}
+      {!items.length && (
+        <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', fontStyle: 'italic', py: 0.75, px: 1 }}>
+          {itemsDbCount ? 'No items found.' : 'Loading items.'}
+        </Typography>
+      )}
+    </Box>
+  );
+});
+
 export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurrency }) {
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [filter, setFilter] = useState('all');
   const [itemsDb, setItemsDb] = useState([]);
   const [customName, setCustomName] = useState('');
@@ -85,10 +226,15 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
   const [customValue, setCustomValue] = useState('');
   const inv = sheet?.sheetInventory || [];
   const currency = sheet?.sheetCurrency || {};
+  const invRef = useRef(inv);
+
+  useEffect(() => {
+    invRef.current = inv;
+  }, [inv]);
 
   useEffect(() => {
     let alive = true;
-    loadItems().then((items) => {
+    loadItemsCached().then((items) => {
       if (alive) setItemsDb(items);
     }).catch(() => {
       if (alive) setItemsDb([]);
@@ -96,33 +242,48 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
     return () => { alive = false; };
   }, []);
 
-  const resolvedInv = useMemo(() => inv.map((item, index) => ({ item, index })), [inv]);
-  const totalItems = inv.reduce((sum, item) => sum + qty(item), 0);
-  const totalWeight = inv.reduce((sum, item) => sum + Number(item.weight || item.weightLb || 0) * qty(item), 0);
-  const totalGp = inv.reduce((sum, item) => sum + (Number(item.value || 0) / 100) * qty(item), 0);
-  const maxCarry = Math.max(1, getFinal(C, 'str') * 15);
+  const resolvedInv = useMemo(() => inv.map((item, index) => ({ item, index, type: itemType(item) })), [inv]);
+  const groupedInventory = useMemo(() => {
+    const groups = Object.fromEntries(GROUPS.map((group) => [group.key, []]));
+    resolvedInv.forEach((entry) => {
+      if (groups[entry.type]) groups[entry.type].push(entry);
+    });
+    return groups;
+  }, [resolvedInv]);
+  const inventoryStats = useMemo(() => {
+    const totalItems = inv.reduce((sum, item) => sum + qty(item), 0);
+    const totalWeight = inv.reduce((sum, item) => sum + Number(item.weight || item.weightLb || 0) * qty(item), 0);
+    const totalGp = inv.reduce((sum, item) => sum + (Number(item.value || 0) / 100) * qty(item), 0);
+    return { totalItems, totalWeight, totalGp };
+  }, [inv]);
+  const { totalItems, totalWeight, totalGp } = inventoryStats;
+  const maxCarry = useMemo(() => Math.max(1, getFinal(C, 'str') * 15), [C]);
   const carryPct = Math.min(100, (totalWeight / maxCarry) * 100);
   const overloaded = totalWeight > maxCarry;
 
   const searchResults = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = deferredSearch.trim();
     let items = itemsDb;
-    if (q) items = items.filter((item) => (item.name || '').toLowerCase().includes(q));
-    if (filter !== 'all') items = items.filter((item) => itemType(item) === filter);
-    return items.slice(0, 45);
-  }, [itemsDb, search, filter]);
+    if (filter !== 'all') items = items.filter((item) => item._itemType === filter);
+    if (q) {
+      items = items.filter((item) => itemMatchesPreparedSearch(item, q));
+      return [...items].sort(compareItemsBySearch(q));
+    }
+    return items;
+  }, [itemsDb, deferredSearch, filter]);
 
-  const updateInv = (next) => onUpdateInventory?.(next);
+  const updateInv = useCallback((next) => onUpdateInventory?.(next), [onUpdateInventory]);
 
-  const addItem = (item) => {
+  const addItem = useCallback((item) => {
     if (!item?.name) return;
+    const current = invRef.current || [];
     const stored = normalizeStoredItem(item);
-    const idx = inv.findIndex((entry) => entry.name === stored.name && entry.source === stored.source);
+    const idx = current.findIndex((entry) => entry.name === stored.name && entry.source === stored.source);
     const next = idx === -1
-      ? [...inv, stored]
-      : inv.map((entry, index) => (index === idx ? { ...entry, qty: qty(entry) + 1 } : entry));
+      ? [...current, stored]
+      : current.map((entry, index) => (index === idx ? { ...entry, qty: qty(entry) + 1 } : entry));
     updateInv(next);
-  };
+  }, [updateInv]);
 
   const addCustom = () => {
     const name = customName.trim();
@@ -140,35 +301,40 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
     setCustomValue('');
   };
 
-  const adjustQty = (index, delta) => {
-    const next = inv.flatMap((item, idx) => {
+  const adjustQty = useCallback((index, delta) => {
+    const current = invRef.current || [];
+    const next = current.flatMap((item, idx) => {
       if (idx !== index) return [item];
       const nextQty = Math.max(0, qty(item) + delta);
       return nextQty > 0 ? [{ ...item, qty: nextQty }] : [];
     });
     updateInv(next);
-  };
+  }, [updateInv]);
 
-  const removeItem = (index) => updateInv(inv.filter((_, idx) => idx !== index));
+  const removeItem = useCallback((index) => {
+    const current = invRef.current || [];
+    updateInv(current.filter((_, idx) => idx !== index));
+  }, [updateInv]);
 
-  const toggleEquipped = (index) => {
-    const target = inv[index];
+  const toggleEquipped = useCallback((index) => {
+    const current = invRef.current || [];
+    const target = current[index];
     if (!target) return;
     const targetType = String(target.type || '').toUpperCase();
-    const next = inv.map((item, idx) => {
+    const next = current.map((item, idx) => {
       if (idx === index) return { ...item, equipped: !item.equipped };
       const type = String(item.type || '').toUpperCase();
-      if (['LA', 'MA', 'HA'].includes(targetType) && ['LA', 'MA', 'HA'].includes(type)) return { ...item, equipped: false };
-      if (targetType === 'S' && type === 'S') return { ...item, equipped: false };
+      if (['LA', 'MA', 'HA'].includes(targetType) && ['LA', 'MA', 'HA'].includes(type) && item.equipped) return { ...item, equipped: false };
+      if (targetType === 'S' && type === 'S' && item.equipped) return { ...item, equipped: false };
       return item;
     });
     updateInv(next);
-  };
+  }, [updateInv]);
 
-  const updateCoin = (coin, value) => {
+  const updateCoin = useCallback((coin, value) => {
     const next = { ...currency, [coin]: Math.max(0, Number(value || 0)) };
     onUpdateCurrency?.(next);
-  };
+  }, [currency, onUpdateCurrency]);
 
   return (
     <Box>
@@ -210,7 +376,7 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
       <TextField
         size="small"
         fullWidth
-        placeholder="Search items to add (e.g. Sword, Potion, Torch...)"
+        placeholder="Search 2024 items by name, source, type, property..."
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         sx={{ ...compactInputSx, mb: 0.5 }}
@@ -247,19 +413,12 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
         })}
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: 180, overflowY: 'auto', mb: 0.75 }}>
-        {searchResults.map((item) => (
-          <Box key={`${item.name}-${item.source}`} onClick={() => addItem(item)}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1, px: '10px', py: '6px', bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, cursor: 'pointer', '&:hover': { borderColor: '#caa550', bgcolor: 'rgba(44,40,33,1)' } }}>
-            <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</Typography>
-            <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', flexShrink: 0 }}>{item.type || 'gear'}</Typography>
-            <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{formatGp(item.value)}</Typography>
-          </Box>
-        ))}
-        {!searchResults.length && (
-          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', fontStyle: 'italic', py: 0.5 }}>{itemsDb.length ? 'No items found.' : 'Loading items.'}</Typography>
-        )}
-      </Box>
+      {deferredSearch !== search ? (
+        <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', fontStyle: 'italic', mb: 0.3 }}>
+          Updating results...
+        </Typography>
+      ) : null}
+      <SearchResultsList items={searchResults} itemsDbCount={itemsDb.length} onAddItem={addItem} />
 
       <Box sx={{ display: 'flex', gap: '6px', mb: 0.75, flexWrap: 'wrap' }}>
         <TextField size="small" value={customName} placeholder="Add custom item..." onChange={(event) => setCustomName(event.target.value)}
@@ -280,13 +439,21 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
       <SectionHeader icon={Package} label={`Inventory (${totalItems} items)`} />
 
       {GROUPS.map((group) => {
-        const inGroup = resolvedInv.filter(({ item }) => itemType(item) === group.key);
+        const inGroup = groupedInventory[group.key] || [];
         if (!inGroup.length) return null;
         return (
           <Box key={group.key}>
             <SectionHeader icon={group.icon} label={group.label} />
             {inGroup.map(({ item, index }) => (
-              <InventoryRow key={`${item.name}-${item.source}-${index}`} item={item} index={index} onQty={adjustQty} onRemove={removeItem} onEquip={toggleEquipped} C={C} />
+              <InventoryRow
+                key={`${item.name}-${item.source}-${index}`}
+                item={item}
+                index={index}
+                onQty={adjustQty}
+                onRemove={removeItem}
+                onEquip={toggleEquipped}
+                penaltyMsg={getPenaltyMessage(C, item)}
+              />
             ))}
           </Box>
         );
@@ -305,7 +472,44 @@ function SectionHeader({ icon: Icon, label }) {
   );
 }
 
-function InventoryRow({ item, index, onQty, onRemove, onEquip, C }) {
+const getPenaltyMessage = (() => {
+  let lastC = null;
+  let cache = new WeakMap();
+
+  return function getPenaltyMessage(C, item) {
+    if (lastC !== C) {
+      lastC = C;
+      cache = new WeakMap();
+    }
+    if (!item || !item.equipped || !['LA', 'MA', 'HA', 'S'].includes(item.type) || !C) return '';
+    if (cache.has(item)) return cache.get(item);
+
+    const armorPenalty = getArmorPenalties(C, item);
+    const msg = armorPenalty?.hasPenalty ? (() => {
+      const parts = [];
+      if (armorPenalty.penalties) {
+        armorPenalty.penalties.forEach((p) => {
+          if (p.type === 'disadvantage') {
+            const labels = p.applies.map((x) => x === 'dex-stealth' ? 'Stealth' : x.split('-')[0].toUpperCase());
+            parts.push(`Disadvantage on ${labels.join('/')}`);
+          } else if (p.type === 'speed-penalty') {
+            parts.push(`Speed -${Math.abs(p.amount)} ft`);
+          } else if (p.type === 'no-shield-ac') {
+            parts.push('No shield AC');
+          } else if (p.type === 'no-spellcasting') {
+            parts.push("Can't cast spells");
+          }
+        });
+      }
+      return parts.join(' • ');
+    })() : '';
+
+    cache.set(item, msg);
+    return msg;
+  };
+})();
+
+const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, penaltyMsg }) {
   const [open, setOpen] = useState(false);
   const type = String(item.type || '').toUpperCase();
   const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI', 'WEAPON', 'ARMOR'].includes(type);
@@ -319,28 +523,7 @@ function InventoryRow({ item, index, onQty, onRemove, onEquip, C }) {
     Array.isArray(item.property) && item.property.length ? item.property.join(', ') : null,
   ].filter(Boolean).join(' - ');
   
-  const isArmor = ['LA', 'MA', 'HA', 'S'].includes(item.type);
-  const armorPenalty = isArmor && item.equipped && C ? getArmorPenalties(C, item) : null;
-  const penaltyMsg = armorPenalty?.hasPenalty ? (() => {
-    const parts = [];
-    if (armorPenalty.penalties) {
-      armorPenalty.penalties.forEach(p => {
-        if (p.type === 'disadvantage') {
-          const labels = p.applies.map(x => x === 'dex-stealth' ? 'Stealth' : x.split('-')[0].toUpperCase());
-          parts.push(`Disadvantage on ${labels.join('/')}`);
-        } else if (p.type === 'speed-penalty') {
-          parts.push(`Speed -${Math.abs(p.amount)} ft`);
-        } else if (p.type === 'no-shield-ac') {
-          parts.push('No shield AC');
-        } else if (p.type === 'no-spellcasting') {
-          parts.push("Can't cast spells");
-        }
-      });
-    }
-    return parts.join(' • ');
-  })() : '';
-  
-  const body = renderEntries(item.entries);
+  const body = useMemo(() => (open ? renderEntries(item.entries) : ''), [open, item.entries]);
 
   return (
     <Box>
@@ -381,7 +564,7 @@ function InventoryRow({ item, index, onQty, onRemove, onEquip, C }) {
       ) : null}
     </Box>
   );
-}
+});
 
 function QtyButton({ children, danger = false, onClick }) {
   return (

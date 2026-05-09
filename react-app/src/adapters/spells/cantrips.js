@@ -206,10 +206,10 @@ export default function install(registry, context = {}) {
   });
   registerCantripData("True Strike", {
     icon: "target",
-    die: "1d6", dmgType: "radiant",
-    range: "5 ft",
+    die: "1d6", dmgType: "radiant/weapon",
+    range: "Self",
     toHit: true, hasSave: false,
-    notes: "Use action — then weapon attack as bonus action"
+    notes: "Make one attack with the weapon used in the spell's casting. Use your spellcasting ability for attack and damage; damage can be Radiant or the weapon's normal type. Extra Radiant damage at lv.5/11/17."
   });
 
   /* ── Damaging — saving throw ────────────────────────────────── */
@@ -231,8 +231,8 @@ export default function install(registry, context = {}) {
     icon: "circle",
     die: "1d12", dmgType: "poison",
     range: "30 ft",
-    toHit: false, hasSave: true,
-    notes: "CON save negates"
+    toHit: true, hasSave: false,
+    notes: "Ranged spell attack. On hit, target takes Poison damage."
   });
   registerCantripData("Vicious Mockery", {
     icon: "masks",
@@ -262,14 +262,16 @@ export default function install(registry, context = {}) {
     die: "", dmgType: "",
     range: "Self",
     toHit: false, hasSave: false,
-    notes: "Resistance to Slashing/Bludgeoning/Piercing until next turn"
+    concentration: true,
+    notes: "Concentration, up to 1 minute. Until the spell ends, any creature that makes an attack roll against you subtracts 1d4 from the roll."
   });
   registerCantripData("Guidance", {
     icon: "hand-helping",
     die: "", dmgType: "",
     range: "Touch",
     toHit: false, hasSave: false,
-    notes: "Target adds 1d4 to one ability check of its choice"
+    concentration: true,
+    notes: "Choose a skill. Until the spell ends, the willing creature adds 1d4 to ability checks using that skill."
   });
   registerCantripData("Light", {
     icon: "sun",
@@ -353,14 +355,15 @@ export default function install(registry, context = {}) {
     die: "", dmgType: "",
     range: "Touch",
     toHit: false, hasSave: false,
-    notes: "Target adds 1d4 to one saving throw of its choice. Concentration, 1 min."
+    concentration: true,
+    notes: "Choose a damage type. Until the spell ends, the willing creature reduces damage of that type by 1d4 the first time it takes it each turn."
   });
   registerCantripData("Shillelagh", {
     icon: "tree-deciduous",
-    die: "1d8", dmgType: "magical bludgeoning",
+    die: "1d8", dmgType: "force/weapon",
     range: "Self",
     toHit: true, hasSave: false,
-    notes: "Club/quarterstaff uses WIS for attack+damage instead of STR"
+    notes: "Club/quarterstaff uses your spellcasting ability instead of STR. Weapon damage die becomes d8, then d10 at lv.5, d12 at lv.11, 2d6 at lv.17; damage can be Force or normal type."
   });
   registerCantripData("Word of Radiance", {
     icon: "sun",

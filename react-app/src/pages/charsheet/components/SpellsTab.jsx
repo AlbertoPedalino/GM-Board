@@ -42,6 +42,8 @@ import {
   addButtonSx,
   compactInputSx,
   levelToggleSx,
+  panelRootSx,
+  panelToolbarSx,
 } from './spellsTabStyles.js';
 import SpellEntry from './SpellEntry.jsx';
 import { Empty, SlotPanel, SpellSection, StatBox } from './SpellsUiParts.jsx';
@@ -287,8 +289,8 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', gap: 1, mb: 0.75, flexWrap: 'wrap' }}>
+    <Box sx={panelRootSx}>
+      <Box sx={panelToolbarSx}>
         <StatBox value={dc} label="Spell DC" />
         <StatBox value={formatBonus(atk)} label="Spell Attack" />
         <StatBox value={SLBL[ability] || ability.toUpperCase()} label="Spell Ability" />
@@ -302,7 +304,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
 
       <SlotPanel slots={slots} used={slotUsed} onToggle={toggleSlot} />
 
-      <SpellSection title="Cantrip">
+      <SpellSection title="Cantrips">
         {spellInfo.cantrips.map((entry) => <SpellEntry key={entry.name} entry={entry} onShowToast={onShowToast} atk={atk} spellMod={spellMod} C={C} installedRegistry={installedRegistry} />)}
         {!spellInfo.cantrips.length ? <Empty text="None" /> : null}
       </SpellSection>
@@ -322,7 +324,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
       {!spellInfo.cantrips.length && !Object.keys(spellInfo.leveled).length && !spellInfo.atWill.length ? <Empty text="No spells selected." /> : null}
 
       {canManageSpellList ? (
-        <Box sx={{ mt: 0.75 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
           <Button onClick={() => setPickerOpen(true)} startIcon={<Plus size={15} />} sx={addButtonSx}>
             Add / Remove Spell
           </Button>

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Chip, Typography, Button } from '@mui/material';
-import { Sword, Cross } from 'lucide-react';
-import { getMod, getFinal } from '../logic/calculations.js';
+import { Box, Button, Chip, Typography } from '@mui/material';
+import { Cross, Sword } from 'lucide-react';
+import { getMod, getFinal, fbonus } from '../logic/calculations.js';
 import { installedRegistry, loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
-import { fbonus } from '../logic/calculations.js';
 import { setStorageJson } from '../../../shared/storage.js';
 import { PACT_SLOTS } from '../../charbuilder/constants.js';
+import { getAllResourceDefs } from '../logic/restResources.js';
 import {
   FILTERS,
   CAT_COLORS,
@@ -18,17 +18,34 @@ import {
   resolveButtonLabel,
   rollFormula,
 } from '../logic/actionsTabLogic.js';
+import {
+  filterChipSx,
+  inlineButtonSx,
+  levelHeaderSx,
+  panelRootSx,
+  panelToolbarSx,
+  spellBodySx,
+  spellRowSx,
+  tinyMetaChipSx,
+} from './spellsTabStyles.js';
+import { Empty } from './SpellsUiParts.jsx';
+
+function actionLabel(value) {
+  if (value === 'all') return 'All';
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast, onUpdateSheet }) {
   const [filter, setFilter] = useState('all');
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
+  const classNamesKey = classNames.join('|');
 
   useEffect(() => {
     Promise.all([
       loadCoreAdapters(),
       loadClassAdapters(classNames, { getMod, getFinal }),
     ]);
-  }, [classNames]);
+  }, [classNamesKey]);
 
   const inv = sheet?.sheetInventory || [];
   const attacks = inv.filter(i => i.equipped && ['M', 'R'].includes(String(i.type || '').toUpperCase()));
@@ -42,10 +59,8 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     }))
     .filter(section => section.actions.length > 0);
 
-  const runtime = C?.adapterRuntime || {};
-  const allResDefs = [...(runtime.classResources || []), ...(runtime.subclassResources || []), ...(runtime.speciesResources || []), ...(runtime.featResources || [])];
   const resMaxMap = {};
-  allResDefs.forEach(def => { if (def.key) resMaxMap[def.key] = normalizeResourceMax(def, C); });
+  getAllResourceDefs(C).forEach(def => { if (def.key) resMaxMap[def.key] = normalizeResourceMax(def, C); });
 
   const handleResChange = (key, delta) => {
     if (!resources || !setResources) return;
@@ -74,20 +89,27 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3, mb: '0.75rem' }}>
+    <Box sx={panelRootSx}>
+      <Box sx={panelToolbarSx}>
+        <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.66rem', fontWeight: 700, letterSpacing: '0.12em', color: '#edd48a', textTransform: 'uppercase', mr: 0.25 }}>
+          Filter
+        </Typography>
         {FILTERS.map(f => (
-          <Chip key={f} size="small" label={f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
-            variant={filter === f ? 'filled' : 'outlined'} color={filter === f ? 'primary' : 'default'}
-            onClick={() => setFilter(f)} sx={{ fontSize: '0.56rem', textTransform: 'uppercase', letterSpacing: '0.09em' }} />
+          <Chip
+            key={f}
+            size="small"
+            label={actionLabel(f)}
+            variant={filter === f ? 'filled' : 'outlined'}
+            color={filter === f ? 'primary' : 'default'}
+            onClick={() => setFilter(f)}
+            sx={filterChipSx}
+          />
         ))}
       </Box>
 
       {showAttacks && (
-        <Box sx={{ overflow: 'auto', mb: 1 }}>
-          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'text.secondary', borderBottom: 1, borderColor: 'divider', pb: 0.25, mb: 0.25 }}>
-            Attacks
-          </Typography>
+        <Box sx={{ overflow: 'auto' }}>
+          <Typography sx={levelHeaderSx}>Attacks</Typography>
           <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
             <Box component="thead">
               <Box component="tr" sx={{ '& th': { fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'text.secondary', borderBottom: 1, borderColor: 'divider', p: '4px 6px', textAlign: 'left' } }}>
@@ -114,15 +136,28 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
       )}
 
       {actionSections.map(section => (
-        <Box key={section.key} sx={{ mb: 1 }}>
-          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'primary.main', borderBottom: 1, borderColor: 'divider', pb: 0.25, mb: 0.25 }}>
+        <Box key={section.key} sx={{ minWidth: 0 }}>
+          <Typography sx={{ ...levelHeaderSx, color: 'primary.main' }}>
             {section.title}
           </Typography>
-          {section.actions.map((action, i) => (
-            <AdapterActionCard key={`${section.key}-${i}`} C={C} action={action} resources={resources} onResChange={handleResChange} onRoll={onRoll} onShowToast={onShowToast} resMax={resMaxMap[action.resKey]} />
-          ))}
+          <Box sx={{ display: 'grid', gap: '4px', minWidth: 0 }}>
+            {section.actions.map((action, i) => (
+              <AdapterActionCard
+                key={`${section.key}-${i}`}
+                C={C}
+                action={action}
+                resources={resources}
+                onResChange={handleResChange}
+                onRoll={onRoll}
+                onShowToast={onShowToast}
+                resMax={resMaxMap[action.resKey]}
+              />
+            ))}
+          </Box>
         </Box>
       ))}
+
+      {!actionSections.length ? <Empty text="No actions for this filter." /> : null}
     </Box>
   );
 }
@@ -131,6 +166,7 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
   const [open, setOpen] = useState(false);
   const hasRes = action.resKey && resources && resources[action.resKey] != null;
   const resCur = hasRes ? (resources[action.resKey] ?? 0) : 0;
+  const safeMax = resMax === Infinity ? Infinity : Math.max(0, Number(resMax ?? 1) || 1);
   const ownerLevel = action.ownerLevel ?? C?.classLevel ?? C?.level ?? 1;
   const inlinePills = typeof action.inlinePills === 'function'
     ? action.inlinePills({ character: C, ownerLevel })
@@ -145,88 +181,128 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
   };
 
   return (
-    <Box sx={{ bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, mb: 0.25, overflow: 'hidden' }}>
-      <Box onClick={() => setOpen(!open)}
-        sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: '10px', py: '7px', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(46,42,34,1)' } }}>
+    <Box sx={{ overflow: 'hidden' }}>
+      <Box onClick={() => setOpen(!open)} sx={{ ...spellRowSx, mb: 0, py: '7px' }}>
         {action.cat && CAT_COLORS[action.cat] && (
-          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: CAT_COLORS[action.cat], flexShrink: 0 }} />
+          <Box sx={{ width: 6, height: 28, borderRadius: 1, bgcolor: CAT_COLORS[action.cat], flexShrink: 0, opacity: 0.95 }} />
         )}
-        <Typography sx={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {action.name}
-        </Typography>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {action.name}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', mt: 0.25 }}>
+            {action._source ? (
+              <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontStyle: 'italic', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{action._source}</Typography>
+            ) : null}
+            {action.uses ? (
+              <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary' }}>{action.uses}</Typography>
+            ) : null}
+          </Box>
+        </Box>
+
         {(Number.isFinite(action.attackBonus) || action.damageFormula || action.healFormula) ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, mr: '6px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {Number.isFinite(action.attackBonus) ? (
-              <Button size="small" variant="outlined"
+              <Button
+                size="small"
+                variant="outlined"
                 onClick={(e) => { e.stopPropagation(); onRoll?.(action.attackBonus, `${action.name} Attack`, action._disadvantage ? false : undefined); }}
-                sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: action._notProficient ? 'rgba(222,103,95,0.4)' : 'rgba(77,149,214,0.4)', color: action._notProficient ? '#de675f' : '#4d95d6' }}>
+                sx={{ ...inlineButtonSx, borderColor: action._notProficient ? 'rgba(222,103,95,0.4)' : 'rgba(77,149,214,0.4)', color: action._notProficient ? '#de675f' : '#4d95d6' }}
+              >
                 <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(action.attackBonus)}{action._disadvantage ? ' DIS' : ''}
               </Button>
             ) : null}
             {action.damageFormula ? (
-              <Button size="small" variant="outlined"
+              <Button
+                size="small"
+                variant="outlined"
                 onClick={(e) => { e.stopPropagation(); rollFormulaButton('damage'); }}
-                sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
+                sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}
+              >
                 <Sword size={12} style={{ marginRight: 2 }} /> Dmg {resolveFormula(action.damageFormula, action, C)}
               </Button>
             ) : null}
             {action.healFormula ? (
-              <Button size="small" variant="outlined" color="success"
+              <Button
+                size="small"
+                variant="outlined"
+                color="success"
                 onClick={(e) => { e.stopPropagation(); rollFormulaButton('heal'); }}
-                sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
+                sx={{ ...inlineButtonSx, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}
+              >
                 <Cross size={12} style={{ marginRight: 2 }} /> Heal {resolveFormula(action.healFormula, action, C)}
               </Button>
             ) : null}
           </Box>
         ) : null}
-        {action.cat && (
-          <Chip size="small" label={action.cat}
-            sx={{ fontSize: '0.46rem', height: 16, textTransform: 'uppercase', letterSpacing: '0.06em', color: CAT_COLORS[action.cat] || 'text.secondary', borderColor: CAT_COLORS[action.cat] || 'divider', bgcolor: `${CAT_COLORS[action.cat] || 'transparent'}14` }} />
-        )}
-        {action.minLevel && (
-          <Chip size="small" label={`Lv${action.minLevel}`} variant="outlined" sx={{ fontSize: '0.44rem', height: 16, color: 'text.secondary' }} />
-        )}
-        {action._notProficient && (
-          <Chip size="small" label="NO PROF" sx={{ fontSize: '0.44rem', height: 16, color: '#de675f', borderColor: '#de675f', bgcolor: 'rgba(222,103,95,0.14)' }} />
-        )}
-        {action._disadvantage && (
-          <Chip size="small" label="DIS (armor)" sx={{ fontSize: '0.44rem', height: 16, color: '#d69245', borderColor: '#d69245', bgcolor: 'rgba(213,138,61,0.14)' }} />
-        )}
-        {action._source && (
-          <Typography sx={{ fontSize: '0.5rem', color: 'text.secondary', fontStyle: 'italic', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>{action._source}</Typography>
-        )}
-        {inlinePills.map((pill, idx) => (
-          <Chip key={`${pill.label || 'pill'}-${idx}`} size="small" label={`${pill.label || ''}${pill.value != null ? ` ${pill.value}` : ''}`.trim()}
-            sx={{ fontSize: '0.46rem', height: 16, color: '#edd48a', borderColor: 'rgba(237,212,138,0.4)', bgcolor: 'rgba(237,212,138,0.12)' }} />
-        ))}
-        {action.uses && (
-          <Typography sx={{ fontSize: '0.5rem', color: 'text.secondary', flexShrink: 0 }}>{action.uses}</Typography>
-        )}
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0 }}>
+          {action.cat ? (
+            <Chip
+              size="small"
+              label={action.cat}
+              variant="outlined"
+              sx={{ ...tinyMetaChipSx, color: CAT_COLORS[action.cat] || 'text.secondary', borderColor: CAT_COLORS[action.cat] || 'divider', bgcolor: `${CAT_COLORS[action.cat] || 'transparent'}14` }}
+            />
+          ) : null}
+          {action.minLevel ? (
+            <Chip size="small" label={`Lv${action.minLevel}`} variant="outlined" sx={{ ...tinyMetaChipSx, color: 'text.secondary' }} />
+          ) : null}
+          {action._notProficient ? (
+            <Chip size="small" label="NO PROF" variant="outlined" sx={{ ...tinyMetaChipSx, color: '#de675f', borderColor: '#de675f', bgcolor: 'rgba(222,103,95,0.14)' }} />
+          ) : null}
+          {action._disadvantage ? (
+            <Chip size="small" label="DIS" variant="outlined" sx={{ ...tinyMetaChipSx, color: '#d69245', borderColor: '#d69245', bgcolor: 'rgba(213,138,61,0.14)' }} />
+          ) : null}
+          {inlinePills.map((pill, idx) => (
+            <Chip
+              key={`${pill.label || 'pill'}-${idx}`}
+              size="small"
+              variant="outlined"
+              label={`${pill.label || ''}${pill.value != null ? ` ${pill.value}` : ''}`.trim()}
+              sx={{ ...tinyMetaChipSx, color: '#edd48a', borderColor: 'rgba(237,212,138,0.4)', bgcolor: 'rgba(237,212,138,0.12)' }}
+            />
+          ))}
+        </Box>
       </Box>
-      {hasRes && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', px: '10px', py: '4px', borderTop: '1px dashed', borderColor: 'divider', bgcolor: 'rgba(202,165,80,0.06)' }}>
-          <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontFamily: '"Cinzel", Georgia, serif', mr: 0.5 }}>Uses:</Typography>
-          {resMax === Infinity ? (
+
+      {hasRes ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', px: '10px', py: '5px', border: 1, borderTop: 'none', borderColor: 'divider', borderRadius: '0 0 8px 8px', bgcolor: 'rgba(202,165,80,0.06)', mb: open ? 0 : '4px' }}>
+          <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontFamily: '"Cinzel", Georgia, serif', mr: 0.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Uses</Typography>
+          {safeMax === Infinity ? (
             <Typography sx={{ fontSize: '0.7rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700 }}>∞</Typography>
           ) : (
-            Array.from({ length: resMax }, (_, i) => {
+            Array.from({ length: safeMax }, (_, i) => {
               const available = i < resCur;
               return (
-              <Box key={i} title={available ? 'Available' : 'Used'} onClick={(e) => { e.stopPropagation(); onResChange(action.resKey, available ? -1 : 1); }}
-                sx={{ width: 10, height: 10, borderRadius: '50%', cursor: 'pointer', border: '1.5px solid', flexShrink: 0,
-                  bgcolor: available ? 'transparent' : '#edd48a',
-                  borderColor: available ? 'rgba(202,165,80,0.35)' : '#edd48a',
-                  '&:hover': { borderColor: '#edd48a' } }} />
-            );})
+                <Box
+                  key={i}
+                  title={available ? 'Available' : 'Used'}
+                  onClick={(e) => { e.stopPropagation(); onResChange(action.resKey, available ? -1 : 1); }}
+                  sx={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    border: '1.5px solid',
+                    flexShrink: 0,
+                    bgcolor: available ? 'transparent' : '#edd48a',
+                    borderColor: available ? 'rgba(202,165,80,0.35)' : '#edd48a',
+                    '&:hover': { borderColor: '#edd48a' },
+                  }}
+                />
+              );
+            })
           )}
         </Box>
-      )}
+      ) : null}
 
-      {open && (
-        <Box sx={{ px: '10px', py: '6px 8px', borderTop: 1, borderColor: 'divider', fontSize: '0.75rem', color: 'text.secondary', lineHeight: 1.5 }}>
+      {open ? (
+        <Box sx={{ ...spellBodySx, mt: hasRes ? 0 : '-1px', mb: '4px' }}>
           {action.desc}
         </Box>
-      )}
+      ) : null}
     </Box>
   );
 }

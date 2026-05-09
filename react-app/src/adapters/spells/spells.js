@@ -205,12 +205,12 @@ export default function install(registry, context = {}) {
   });
   registerSpellData("Inflict Wounds", {
     icon: "skull",
-    toHit: true, hasSave: false, saveAbility: null,
+    toHit: false, hasSave: true, saveAbility: "con",
     dmgType: "necrotic",
     baseDie: "2d10", upcastDie: "1d10",
     range: "Touch", aoe: "",
     heal: false, concentration: false,
-    notes: ""
+    notes: "CON save. Full damage on failed save, half on success."
   });
   registerSpellData("Guiding Bolt", {
     icon: "sparkles",
@@ -249,17 +249,17 @@ export default function install(registry, context = {}) {
     dmgType: "force",
     baseDie: "1d8", upcastDie: "1d8",
     range: "60 ft", aoe: "",
-    heal: false, concentration: false,
-    notes: "Bonus Action ogni turno per attaccare. +1d8 ogni 2 livelli sopra il 2°. Non concentrazione."
+    heal: false, concentration: true,
+    notes: "Concentration, up to 1 minute. Create the spectral force and immediately make a melee spell attack. On later turns, Bonus Action to move it up to 20 ft and repeat the attack. +1d8 per slot level above 2."
   });
   registerSpellData("Prayer of Healing", {
     icon: "heart-pulse",
     toHit: false, hasSave: false, saveAbility: null,
     dmgType: "",
-    baseDie: "2d8", upcastDie: "2d8",
+    baseDie: "2d8", upcastDie: "1d8",
     range: "30 ft", aoe: "",
     heal: true, concentration: false,
-    notes: "Fino a 6 creature. 10 minuti di casting. +2d8 per slot superiore al 2°."
+    notes: "10-minute casting. Up to 5 creatures that remain within range gain the benefits of a Short Rest and regain 2d8 HP. A creature can't benefit again until it finishes a Long Rest. +1d8 per slot above 2."
   });
 
   /* ════════════════════════════
@@ -287,10 +287,10 @@ export default function install(registry, context = {}) {
     icon: "heart",
     toHit: false, hasSave: false, saveAbility: null,
     dmgType: "",
-    baseDie: "1d4", upcastDie: "1d4",
+    baseDie: "2d4", upcastDie: "1d4",
     range: "60 ft", aoe: "",
     heal: true, concentration: false,
-    notes: "Bonus Action. Fino a 6 creature. Cura 1d4 + mod. spellcasting ciascuna. +1d4 per slot superiore al 3°."
+    notes: "Bonus Action. Up to 6 visible creatures regain 2d4 + spellcasting modifier HP. +1d4 per slot level above 3."
   });
 
   /* ════════════════════════════

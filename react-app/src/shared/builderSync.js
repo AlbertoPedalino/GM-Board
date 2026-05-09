@@ -1,3 +1,5 @@
+import { normalizeCharacterChoices } from './choiceNormalization.js';
+
 const BUILDER_FIELD_MAP = [
   ['name', ['name']],
   ['xp', ['xp']],
@@ -49,11 +51,27 @@ export function mapCharacterToBuilderState(source) {
   if (source.subclassShortName !== undefined || mapped.subclassShortName === undefined) {
     mapped.subclassShortName = mapped.subclassShortName || '';
   }
+
+  mapped.normalizedChoices = normalizeCharacterChoices(mapped);
   return mapped;
 }
 
 export function mergeSheetIntoBuilder(builder, sheet) {
   if (!sheet || typeof sheet !== 'object') return builder;
   if (builder?.name && sheet.name && builder.name !== sheet.name) return builder;
-  return { ...(builder || {}), ...mapCharacterToBuilderState(sheet) };
+  const merged = { ...(builder || {}), ...mapCharacterToBuilderState(sheet) };
+  merged.normalizedChoices = normalizeCharacterChoices(merged);
+  return merged;
+}
+
+export function prepareCharacterForSheet(character) {
+  const mapped = mapCharacterToBuilderState(character);
+  return {
+    ...(character || {}),
+    ...mapped,
+    normalizedChoices: normalizeCharacterChoices({
+      ...(character || {}),
+      ...mapped,
+    }),
+  };
 }

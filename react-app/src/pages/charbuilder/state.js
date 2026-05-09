@@ -124,6 +124,22 @@ function findByNameSource(list, name, source) {
   return list.find((item) => item.name === name && (!source || item.source === source)) || null;
 }
 
+function isSpeciesChoiceKey(key) {
+  const k = String(key || '');
+  return (
+    k.startsWith('species_') ||
+    k === 'khoravar_skill_versatility'
+  );
+}
+
+function clearSpeciesChoices(choices = {}) {
+  const next = { ...choices };
+  Object.keys(next).forEach((key) => {
+    if (isSpeciesChoiceKey(key)) delete next[key];
+  });
+  return next;
+}
+
 export function builderReducer(state, action) {
   switch (action.type) {
     case 'data/load-start':
@@ -265,12 +281,19 @@ export function builderReducer(state, action) {
       const total = (state.character.classLevel || 1) + extraClasses.reduce((sum, ec) => sum + (ec.level || 1), 0);
       return updateCharacter(state, { extraClasses, level: total });
     }
-    case 'species/select':
+    case 'species/select': {
+      const speciesObj = action.speciesObj || findByNameSource(state.data.species, action.name, action.source);
+      const sameSpecies = state.character.speciesName === action.name
+        && (!action.source || state.character.speciesSource === action.source);
+
       return updateCharacter(state, {
         speciesName: action.name,
         speciesSource: action.source,
-        speciesObj: action.speciesObj || findByNameSource(state.data.species, action.name, action.source),
+        speciesObj,
+        choices: sameSpecies ? state.character.choices : clearSpeciesChoices(state.character.choices),
+        normalizedChoices: undefined,
       });
+    }
     case 'background/select': {
       return handleBackgroundSelect(state, action, { findByNameSource, updateCharacter });
     }

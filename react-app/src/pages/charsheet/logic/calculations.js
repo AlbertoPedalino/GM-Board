@@ -100,6 +100,9 @@ export function normSkill(s) {
 
 export function getSkillProficiency(C, skillName) {
   const nsk = normSkill(skillName);
+  const normalized = C?.normalizedChoices || {};
+  if ((normalized.expertise || []).some(s => normSkill(s) === nsk)) return 'exp';
+  if ((normalized.skills || []).some(s => normSkill(s) === nsk)) return 'prof';
   const skillData = C?.selectedSkills || {};
   const profList = Array.isArray(skillData) ? skillData : (skillData.proficient || []);
   const expList = Array.isArray(skillData) ? [] : (skillData.expert || []);

@@ -153,6 +153,7 @@ export function makeSheetPayload(character, data) {
     diceAssign: { ...character.diceAssign },
     manualScores: { ...character.manualScores },
     choices: { ...(character.choices || {}) },
+    normalizedChoices: character.normalizedChoices || null,
     selectedSkills: character.selectedSkills || [],
     selectedLanguages: character.selectedLanguages || [],
     selectedTools: character.selectedTools || [],

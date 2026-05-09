@@ -141,6 +141,11 @@ export function collectEquipmentProficiencySets(C) {
   const weaponMasterySet = new Set();
   const weaponRules = [];
 
+  (C?.normalizedChoices?.weaponMasteries || [])
+    .map(normalizeLabel)
+    .filter(Boolean)
+    .forEach(v => weaponMasterySet.add(v));
+
   const addFixed = (src, set) => {
     const arr = Array.isArray(src) ? src : [src];
     arr.forEach(entry => {
@@ -271,6 +276,15 @@ export function collectAllProficiencies(C) {
   const { armorSet, weaponSet } = collectEquipmentProficiencySets(C);
   const toolSet = new Set();
   const langSet = new Set();
+
+  (C?.normalizedChoices?.tools || [])
+    .map(normalizeLabel)
+    .filter(Boolean)
+    .forEach(v => toolSet.add(v));
+  (C?.normalizedChoices?.languages || [])
+    .map(normalizeLabel)
+    .filter(Boolean)
+    .forEach(v => langSet.add(v));
 
   const addFixed = (src, set) => {
     const arr = Array.isArray(src) ? src : [src];
