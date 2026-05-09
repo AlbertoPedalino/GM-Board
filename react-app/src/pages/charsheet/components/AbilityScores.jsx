@@ -1,9 +1,11 @@
 import { Box, Typography } from '@mui/material';
+import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { STATS, SLBL, FULL_LBL, getFinal, getMod, getPB, fbonus } from '../logic/calculations.js';
 import HPBlock from './HPBlock.jsx';
 
 export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTempHP, onMaxHPBonus, onSetHP, onDeathSave }) {
   const pb = getPB(C);
+  const armorPenalties = getEquippedArmorPenalties(C, sheet?.sheetInventory || C?.inventory || []);
 
   return (
     <Box sx={{
@@ -17,10 +19,11 @@ export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTe
         {STATS.map(s => {
           const val = getFinal(C, s);
           const mod = getMod(val);
+          const hasDisadv = armorPenalties.hasPenalty && armorPenalties.disadvantageOn.includes(`${s}-checks`);
           return (
-            <Box key={s} onClick={() => onRoll(mod, FULL_LBL[s] + ' Check')}
+            <Box key={s} onClick={() => onRoll(mod, FULL_LBL[s] + ' Check', hasDisadv ? false : undefined)}
               sx={{
-                bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1,
+                bgcolor: 'background.paper', border: 1, borderColor: hasDisadv ? 'warning.main' : 'divider', borderRadius: 1,
                 display: 'flex', flexDirection: 'column', alignItems: 'center', p: '0.4rem 0.25rem',
                 cursor: 'pointer', transition: 'border-color 0.15s',
                 '&:hover': { borderColor: 'primary.main' },
@@ -38,6 +41,11 @@ export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTe
               }}>
                 {val}
               </Box>
+              {hasDisadv ? (
+                <Typography sx={{ mt: 0.2, fontSize: '0.44rem', color: 'warning.main', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.08em' }}>
+                  DIS
+                </Typography>
+              ) : null}
             </Box>
           );
         })}

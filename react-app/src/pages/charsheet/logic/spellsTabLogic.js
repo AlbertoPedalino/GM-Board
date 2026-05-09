@@ -191,7 +191,7 @@ export function canManageSpells(C, limits) {
   return getSpellEntities(C).some((entity) => hasSpellcastingProfile(getSpellcastingProfile(entity)));
 }
 
-function getSpellEntities(C) {
+export function getSpellEntities(C) {
   if (!C) return [];
   return [
     {
@@ -209,7 +209,7 @@ function getSpellEntities(C) {
   ].filter((entity) => entity.className);
 }
 
-function getSpellcastingProfile(entity) {
+export function getSpellcastingProfile(entity) {
   const classCfg = installedRegistry.getClassRuntimeConfig(entity.className)?.spellcasting || {};
   const subCfg = installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName)?.spellcasting || {};
   return {
@@ -229,7 +229,7 @@ function getSpellcastingProfile(entity) {
   };
 }
 
-function hasSpellcastingProfile(profile) {
+export function hasSpellcastingProfile(profile) {
   return Boolean(
     normalizeProgression(profile?.casterProgression)
     || profile?.cantripKnown
@@ -263,11 +263,23 @@ function pactSlots(level) {
   return { count: row.slots || row.n || 0, level: row.level || row.l || 1 };
 }
 
-function normalizeProgression(value) {
+export function normalizeProgression(value) {
   const v = String(value || '').toLowerCase();
   if (v === '1/2') return 'half';
   if (v === '1/3') return 'third';
   return v;
+}
+
+export function getMaxLearnableSpellLevelForEntity(entity) {
+  const profile = getSpellcastingProfile(entity);
+  const level = clampLevel(entity?.level);
+  const prog = normalizeProgression(profile.casterProgression);
+  if (prog === 'pact') return Math.max(0, Number(pactSlots(level).level || 0));
+  if (prog === 'full') return getMaxCastableSpellLevel({ regular: FULL_SLOTS[level] || [] });
+  if (prog === 'half') return getMaxCastableSpellLevel({ regular: HALF_SLOTS[level] || [] });
+  if (prog === 'third') return getMaxCastableSpellLevel({ regular: THIRD_SLOTS[level] || [] });
+  if (prog === 'artificer') return getMaxCastableSpellLevel({ regular: HALF_SLOTS[level] || [] });
+  return 0;
 }
 
 export function getCastBadge(spell) {

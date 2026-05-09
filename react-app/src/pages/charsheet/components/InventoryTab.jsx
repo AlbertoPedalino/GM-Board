@@ -326,12 +326,14 @@ function InventoryRow({ item, index, onQty, onRemove, onEquip, C }) {
     if (armorPenalty.penalties) {
       armorPenalty.penalties.forEach(p => {
         if (p.type === 'disadvantage') {
-          const abbr = p.applies.map(x => x.split('-')[0].toUpperCase()).join('/');
-          parts.push(`Disadvantage on ${abbr}`);
+          const labels = p.applies.map(x => x === 'dex-stealth' ? 'Stealth' : x.split('-')[0].toUpperCase());
+          parts.push(`Disadvantage on ${labels.join('/')}`);
         } else if (p.type === 'speed-penalty') {
           parts.push(`Speed -${Math.abs(p.amount)} ft`);
-        } else if (p.type === 'ac-penalty') {
-          parts.push(`AC ${p.amount}`);
+        } else if (p.type === 'no-shield-ac') {
+          parts.push('No shield AC');
+        } else if (p.type === 'no-spellcasting') {
+          parts.push("Can't cast spells");
         }
       });
     }

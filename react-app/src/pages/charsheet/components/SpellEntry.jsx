@@ -54,7 +54,8 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
   const rollAtk = (e) => {
     e.stopPropagation();
     const r = Math.floor(Math.random() * 20) + 1;
-    onShowToast(`${entry.name} — Spell Attack`, `d20 + ${atk}`, r + atk, [{ v: r, faces: 20 }]);
+    const bonusText = atk >= 0 ? `+${atk}` : `${atk}`;
+    onShowToast(`${entry.name} — Spell Attack`, `d20 ${bonusText} = ${r + atk}`, r + atk, [{ v: r, faces: 20, kept: true }], { bonus: atk, kept: r });
   };
 
   const rollDmg = (e, formula, label) => {
@@ -101,21 +102,21 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
               <Button size="small" variant="outlined" color="warning"
                 onClick={rollAtk}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(245,166,35,0.4)', color: '#f5a623' }}>
-                <Dices size={12} style={{ marginRight: 2 }} /> +{atk}
+                <Dices size={12} style={{ marginRight: 2 }} /> Hit +{atk}
               </Button>
             ) : null}
             {scaledDamages.map((dmg, i) => (
               <Button key={i} size="small" variant="outlined"
                 onClick={(e) => rollDmg(e, dmg.formula, dmg.label)}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
-                <Flame size={12} style={{ marginRight: 2 }} /> {dmg.formula}
+                <Flame size={12} style={{ marginRight: 2 }} /> Dmg {dmg.formula}
               </Button>
             ))}
             {hasHeal ? (
               <Button size="small" variant="outlined" color="success"
                 onClick={(e) => rollHeal(e, healDisplayFormula)}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
-                <Cross size={12} style={{ marginRight: 2 }} /> {healDisplayFormula}
+                <Cross size={12} style={{ marginRight: 2 }} /> Heal {healDisplayFormula}
               </Button>
             ) : null}
           </Box>

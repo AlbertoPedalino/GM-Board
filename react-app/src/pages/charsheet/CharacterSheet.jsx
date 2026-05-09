@@ -7,12 +7,13 @@ import Senses from './components/Senses.jsx';
 import Proficiencies from './components/Proficiencies.jsx';
 import HitDice from './components/HitDice.jsx';
 import Skills from './components/Skills.jsx';
+import Movement from './components/Movement.jsx';
 import RightTop from './components/RightTop.jsx';
 import TabsPanel from './components/TabsPanel.jsx';
 import DiceToast from './components/DiceToast.jsx';
 import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspiration, saveConditions, saveInventory, saveCurrency, saveCurrentCharacter, loadResources, saveResources } from './state.js';
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
-import { applyResourceRest, getAllResourceDefs, getTotalHitDice, normalizeResourceMax } from './logic/restResources.js';
+import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax } from './logic/restResources.js';
 import { setStorageItem, setStorageJson } from '../../shared/storage.js';
 
 export default function CharacterSheet() {
@@ -23,7 +24,7 @@ export default function CharacterSheet() {
   const [resources, setResources] = useState({});
   const [shortRestOpen, setShortRestOpen] = useState(false);
   const [longRestOpen, setLongRestOpen] = useState(false);
-  const [hdToSpend, setHdToSpend] = useState(0);
+  const [hdToSpend, setHdToSpend] = useState({});
 
   useEffect(() => {
     const ch = loadCharacter();
@@ -74,9 +75,9 @@ export default function CharacterSheet() {
   }, [updateCurrentCharacter]);
 
   const openShortRest = useCallback(() => {
-    const totalHD = getTotalHitDice(C);
-    const remaining = Math.max(0, totalHD - (sheet.usedHD || 0));
-    setHdToSpend(Math.min(1, remaining));
+    const pools = getHitDicePools(C, sheet.usedHDPools, sheet.usedHD);
+    const firstAvailable = pools.find((pool) => pool.remaining > 0);
+    setHdToSpend(firstAvailable ? { [firstAvailable.key]: 1 } : {});
     setShortRestOpen(true);
   }, [C, sheet]);
 
@@ -84,21 +85,32 @@ export default function CharacterSheet() {
     const s = { ...sheet };
     let res = { ...resources };
     const conMod = getMod(getFinal(C, 'con'));
-    const faces = C.clsSnapshot?.hd?.faces || 8;
-    const n = Math.max(0, Math.min(hdToSpend, Math.max(0, getTotalHitDice(C) - (s.usedHD || 0))));
+    const pools = getHitDicePools(C, s.usedHDPools, s.usedHD);
+    const spendByPool = {};
 
     let totalHeal = 0;
     const rolls = [];
-    for (let i = 0; i < n; i++) {
-      const v = Math.floor(Math.random() * faces) + 1;
-      rolls.push({ v, faces });
-      totalHeal += v + conMod;
-    }
+    pools.forEach((pool) => {
+      const n = Math.max(0, Math.min(Number(hdToSpend[pool.key] || 0), pool.remaining));
+      spendByPool[pool.key] = n;
+      for (let i = 0; i < n; i++) {
+        const v = Math.floor(Math.random() * pool.faces) + 1;
+        rolls.push({ v, faces: pool.faces, label: pool.label });
+        totalHeal += v + conMod;
+      }
+    });
+    const totalSpent = getUsedHitDiceTotal(spendByPool);
 
     s.currentHP = Math.min(s.maxHP, s.currentHP + totalHeal);
-    s.usedHD = (s.usedHD || 0) + n;
+    const nextUsedPools = {};
+    pools.forEach((pool) => {
+      nextUsedPools[pool.key] = pool.used + (spendByPool[pool.key] || 0);
+    });
+    s.usedHDPools = nextUsedPools;
+    s.usedHD = getUsedHitDiceTotal(nextUsedPools);
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
     setStorageItem('5e_hd_used', s.usedHD);
+    setStorageJson('5e_hd_used_pools', s.usedHDPools);
 
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'short');
@@ -108,7 +120,7 @@ export default function CharacterSheet() {
 
     setSheet(s);
     setShortRestOpen(false);
-    showDiceToast('Short Rest', `Healed ${totalHeal} HP (${n} HD spent)`, totalHeal, rolls);
+    showDiceToast('Short Rest', `Healed ${totalHeal} HP (${totalSpent} HD spent)`, totalHeal, rolls);
   }, [sheet, resources, C, hdToSpend]);
 
   const openLongRest = useCallback(() => {
@@ -121,12 +133,14 @@ export default function CharacterSheet() {
     s.currentHP = s.maxHP;
     s.tempHP = 0;
     s.usedHD = 0;
+    s.usedHDPools = {};
     s.deathSaves = { success: 0, fail: 0 };
     s.spellSlotUsed = {};
     saveDeathSaves(s.deathSaves);
     setStorageJson('5e_slots_used', {});
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
     setStorageItem('5e_hd_used', 0);
+    setStorageJson('5e_hd_used_pools', {});
 
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'long');
@@ -148,12 +162,14 @@ export default function CharacterSheet() {
       s.usedHD = 0;
       s.deathSaves = { success: 0, fail: 0 };
       s.spellSlotUsed = {};
+      s.usedHDPools = {};
       saveDeathSaves(s.deathSaves);
       setStorageJson('5e_slots_used', {});
     }
     s.usedHD = Math.min(s.usedHD || 0, type === 'short' ? s.usedHD : 0);
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
     setStorageItem('5e_hd_used', s.usedHD);
+    setStorageJson('5e_hd_used_pools', s.usedHDPools || {});
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, type);
       setResources(res);
@@ -269,36 +285,38 @@ export default function CharacterSheet() {
     setSheet({ ...sheet, sheetInspiration: next });
   }, [sheet]);
 
-  const showDiceToast = useCallback((label, detail, total, rolls) => {
-    setDiceToast({ label, detail, total, rolls, timestamp: Date.now() });
+  const showDiceToast = useCallback((label, detail, total, rolls, meta) => {
+    setDiceToast({ label, detail, total, rolls, meta, timestamp: Date.now() });
   }, []);
 
   const rollD20 = useCallback((bonus, label, advantage) => {
+    const b = Number(bonus) || 0;
+    const bonusText = b >= 0 ? `+${b}` : `${b}`;
     if (advantage === true) {
       const r1 = Math.floor(Math.random() * 20) + 1;
       const r2 = Math.floor(Math.random() * 20) + 1;
       const best = Math.max(r1, r2);
-      showDiceToast(label, `Advantage: ${r1} / ${r2}`, best + bonus, [{ v: r1, faces: 20 }, { v: r2, faces: 20 }]);
+      showDiceToast(label, `Advantage: keep ${best}; d20 ${bonusText} = ${best + b}`, best + b, [{ v: r1, faces: 20, kept: r1 >= r2 }, { v: r2, faces: 20, kept: r2 > r1 }], { bonus: b, mode: 'advantage', kept: best });
     } else if (advantage === false) {
       const r1 = Math.floor(Math.random() * 20) + 1;
       const r2 = Math.floor(Math.random() * 20) + 1;
       const worst = Math.min(r1, r2);
-      showDiceToast(label, `Disadvantage: ${r1} / ${r2}`, worst + bonus, [{ v: r1, faces: 20 }, { v: r2, faces: 20 }]);
+      showDiceToast(label, `Disadvantage: keep ${worst}; d20 ${bonusText} = ${worst + b}`, worst + b, [{ v: r1, faces: 20, kept: r1 <= r2 }, { v: r2, faces: 20, kept: r2 < r1 }], { bonus: b, mode: 'disadvantage', kept: worst });
     } else {
       const r = Math.floor(Math.random() * 20) + 1;
-      showDiceToast(label, '', r + bonus, [{ v: r, faces: 20 }]);
+      showDiceToast(label, `d20 ${bonusText} = ${r + b}`, r + b, [{ v: r, faces: 20, kept: true }], { bonus: b, kept: r });
     }
   }, [showDiceToast]);
 
-  const rollSave = useCallback((stat) => {
+  const rollSave = useCallback((stat, options = {}) => {
     if (!C) return;
     const bonus = getSaveBonus(C, stat);
     const lbl = stat.charAt(0).toUpperCase() + stat.slice(1) + ' Save';
-    rollD20(bonus, lbl);
+    rollD20(bonus, lbl, options.disadvantage ? false : options.advantage);
   }, [C, rollD20]);
 
-  const rollSkill = useCallback((skillName, bonus) => {
-    rollD20(bonus, skillName + ' Check');
+  const rollSkill = useCallback((skillName, bonus, options = {}) => {
+    rollD20(bonus, skillName + ' Check', options.disadvantage ? false : options.advantage);
   }, [rollD20]);
 
   const updateXp = useCallback((val) => {
@@ -332,6 +350,11 @@ export default function CharacterSheet() {
     );
   }
 
+  const hitDicePools = getHitDicePools(C, sheet.usedHDPools, sheet.usedHD);
+  const totalHitDiceRemaining = hitDicePools.reduce((sum, pool) => sum + pool.remaining, 0);
+  const totalHitDiceToSpend = getUsedHitDiceTotal(hdToSpend);
+  const conMod = getMod(getFinal(C, 'con'));
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
         <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
@@ -347,13 +370,14 @@ export default function CharacterSheet() {
           alignItems: 'start',
         }}>
           <Box>
-            <SavingThrows C={C} onRoll={rollSave} />
+            <SavingThrows C={C} sheet={sheet} onRoll={rollSave} />
             <Senses C={C} />
+            <Movement C={C} sheet={sheet} />
             <Proficiencies C={C} />
             <HitDice C={C} sheet={sheet} />
           </Box>
           <Box>
-            <Skills C={C} onRoll={rollSkill} />
+            <Skills C={C} sheet={sheet} onRoll={rollSkill} />
           </Box>
           <Box>
             <RightTop C={C} sheet={sheet} onRoll={rollD20}
@@ -366,45 +390,66 @@ export default function CharacterSheet() {
         </Box>
       {diceToast && <DiceToast toast={diceToast} onClose={() => setDiceToast(null)} />}
 
-      <Dialog open={shortRestOpen} onClose={() => setShortRestOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a' }}>Short Rest</DialogTitle>
-        <DialogContent>
+      <Dialog open={shortRestOpen} onClose={() => setShortRestOpen(false)} maxWidth="xs" fullWidth slotProps={sheetDialogSlotProps}>
+        <DialogTitle sx={sheetDialogTitleSx}>Short Rest</DialogTitle>
+        <DialogContent sx={sheetDialogContentSx}>
           <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mb: 2 }}>
-            Spend Hit Dice (d{C.clsSnapshot?.hd?.faces || 8}) to recover HP. You recover CON mod ({getMod(getFinal(C, 'con'))}) per HD spent.
+            Spend Hit Dice by class to recover HP. Each die adds CON mod ({conMod}).
           </Typography>
           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>
-            Available: {Math.max(0, getTotalHitDice(C) - (sheet.usedHD || 0))} HD
+            Available: {totalHitDiceRemaining} HD
           </Typography>
-          <Slider
-            value={hdToSpend}
-            onChange={(_, v) => setHdToSpend(v)}
-            min={0}
-            max={Math.max(0, getTotalHitDice(C) - (sheet.usedHD || 0))}
-            step={1}
-            marks
-            valueLabelDisplay="auto"
-            sx={{ color: '#caa550' }}
-          />
-          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', textAlign: 'center' }}>
-            Healing: {hdToSpend}d{C.clsSnapshot?.hd?.faces || 8}{getMod(getFinal(C, 'con')) >= 0 ? '+' : ''}{getMod(getFinal(C, 'con'))} × {hdToSpend} HD
+          <Stack spacing={1.25}>
+            {hitDicePools.map((pool) => {
+              const value = Math.max(0, Math.min(Number(hdToSpend[pool.key] || 0), pool.remaining));
+              return (
+                <Box key={pool.key} sx={{ border: 1, borderColor: 'divider', borderRadius: 1, p: 1, bgcolor: 'rgba(35,32,26,0.72)' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.72rem', color: 'primary.main', flex: 1 }}>
+                      {pool.label} d{pool.faces}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.66rem', color: 'text.secondary' }}>
+                      {pool.remaining}/{pool.total} left
+                    </Typography>
+                  </Box>
+                  <Slider
+                    value={value}
+                    onChange={(_, next) => setHdToSpend((prev) => ({ ...prev, [pool.key]: next }))}
+                    min={0}
+                    max={Math.max(1, pool.remaining)}
+                    step={1}
+                    marks
+                    disabled={pool.remaining === 0}
+                    valueLabelDisplay="auto"
+                    sx={{ color: '#caa550', my: 0.25 }}
+                  />
+                  <Typography sx={{ fontSize: '0.66rem', color: 'text.secondary', textAlign: 'right' }}>
+                    Spend: {value}d{pool.faces}{conMod >= 0 ? '+' : ''}{conMod} each
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Stack>
+          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', textAlign: 'center', mt: 1.25 }}>
+            Spending {totalHitDiceToSpend} HD
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={sheetDialogActionsSx}>
           <Button onClick={() => setShortRestOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
-          <Button variant="contained" onClick={confirmShortRest} disabled={hdToSpend === 0}>
+          <Button variant="contained" onClick={confirmShortRest} disabled={totalHitDiceToSpend === 0}>
             Take Short Rest
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={longRestOpen} onClose={() => setLongRestOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a' }}>Take a Long Rest?</DialogTitle>
-        <DialogContent>
+      <Dialog open={longRestOpen} onClose={() => setLongRestOpen(false)} maxWidth="xs" fullWidth slotProps={sheetDialogSlotProps}>
+        <DialogTitle sx={sheetDialogTitleSx}>Take a Long Rest?</DialogTitle>
+        <DialogContent sx={sheetDialogContentSx}>
           <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
             This will restore all HP, Hit Dice, spell slots, and class resources.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={sheetDialogActionsSx}>
           <Button onClick={() => setLongRestOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
           <Button variant="contained" onClick={confirmLongRest}>Confirm Long Rest</Button>
         </DialogActions>
@@ -412,3 +457,39 @@ export default function CharacterSheet() {
     </Box>
   );
 }
+
+const sheetDialogSlotProps = {
+  paper: {
+    sx: {
+      bgcolor: 'rgba(26,23,19,0.98)',
+      border: 1,
+      borderColor: 'divider',
+      borderRadius: 1,
+      backgroundImage: 'none',
+      boxShadow: '0 18px 52px rgba(0,0,0,0.62)',
+    },
+  },
+};
+
+const sheetDialogTitleSx = {
+  fontFamily: '"Cinzel", Georgia, serif',
+  color: '#edd48a',
+  bgcolor: 'rgba(35,32,26,1)',
+  borderBottom: 1,
+  borderColor: 'divider',
+  fontSize: '1rem',
+  letterSpacing: '0.06em',
+};
+
+const sheetDialogContentSx = {
+  bgcolor: 'rgba(26,23,19,0.98)',
+  pt: 2,
+};
+
+const sheetDialogActionsSx = {
+  px: 3,
+  pb: 2,
+  bgcolor: 'rgba(26,23,19,0.98)',
+  borderTop: 1,
+  borderColor: 'divider',
+};

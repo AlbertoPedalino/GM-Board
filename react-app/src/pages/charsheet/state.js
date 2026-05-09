@@ -23,6 +23,8 @@ export function loadSheetState(C) {
   };
 
   const usedHD = parseInt(getStorageItem('5e_hd_used')) || 0;
+  const usedHDPoolsRaw = getStorageJson('5e_hd_used_pools', {});
+  const usedHDPools = usedHDPoolsRaw && typeof usedHDPoolsRaw === 'object' && !Array.isArray(usedHDPoolsRaw) ? usedHDPoolsRaw : {};
 
   const spellSlotUsed = getStorageJson('5e_slots_used', {});
 
@@ -43,7 +45,7 @@ export function loadSheetState(C) {
   const notes = getStorageItem('5e_notes', '');
 
   return {
-    currentHP, maxHP, maxHPBonus, tempHP, deathSaves, usedHD, spellSlotUsed,
+    currentHP, maxHP, maxHPBonus, tempHP, deathSaves, usedHD, usedHDPools, spellSlotUsed,
     sheetInventory, sheetCurrency, sheetInspiration, activeConditions, xpStored, notes,
   };
 }

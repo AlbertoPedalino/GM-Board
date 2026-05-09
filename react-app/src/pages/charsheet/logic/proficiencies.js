@@ -253,7 +253,7 @@ export function getUntrainedArmor(C, inventory) {
 }
 
 export function hasNonProficientArmor(C, inventory) {
-  return getUntrainedArmor(C, inventory).length > 0;
+  return getUntrainedArmor(C, inventory).some(({ item }) => ['LA', 'MA', 'HA'].includes(item.type));
 }
 
 export function collectAllProficiencies(C) {

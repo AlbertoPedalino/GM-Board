@@ -3,8 +3,8 @@ import { AlertCircle } from 'lucide-react';
 import { SKILLS, getSkillProficiency, getSkillBonus, fbonus, SLBL } from '../logic/calculations.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 
-export default function Skills({ C, onRoll }) {
-  const armorPenalties = getEquippedArmorPenalties(C, C?.inventory || []);
+export default function Skills({ C, sheet, onRoll }) {
+  const armorPenalties = getEquippedArmorPenalties(C, sheet?.sheetInventory || C?.inventory || []);
   
   return (
     <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
@@ -23,10 +23,14 @@ export default function Skills({ C, onRoll }) {
         const prof = getSkillProficiency(C, sk.n);
         const bonus = getSkillBonus(C, sk);
         const dotColor = prof === 'exp' ? 'secondary.main' : prof === 'prof' ? 'primary.main' : 'divider';
-        const hasDisadv = armorPenalties.hasPenalty && armorPenalties.disadvantageOn.includes(`${sk.a}-checks`);
+        const isStealth = String(sk.n || '').toLowerCase() === 'stealth';
+        const hasDisadv = armorPenalties.hasPenalty && (
+          armorPenalties.disadvantageOn.includes(`${sk.a}-checks`)
+          || (isStealth && armorPenalties.disadvantageOn.includes('dex-stealth'))
+        );
         
         return (
-          <Box key={sk.n} onClick={() => onRoll(sk.n, bonus)}
+          <Box key={sk.n} onClick={() => onRoll(sk.n, bonus, { disadvantage: hasDisadv })}
             sx={{ display: 'grid', gridTemplateColumns: '20px 30px 1fr auto', gap: '4px', px: '0.9rem', py: '3px', alignItems: 'center', cursor: 'pointer', transition: 'background 0.1s', '&:hover': { bgcolor: 'rgba(202,165,80,0.05)' } }}>
             <Box />
             <Box sx={{ width: 9, height: 9, borderRadius: '50%', border: 1, borderColor: dotColor, bgcolor: prof ? dotColor : 'transparent' }} />

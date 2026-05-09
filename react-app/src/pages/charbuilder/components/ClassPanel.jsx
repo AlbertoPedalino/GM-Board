@@ -15,16 +15,16 @@ function ClassRow({ cls, selected, onSelect, prereqMet = true, prereqReason = ''
       divider
       disabled={!prereqMet}
       onClick={onSelect}
-      sx={{ alignItems: 'flex-start', gap: 1.25, opacity: prereqMet ? 1 : 0.45, flexDirection: 'column' }}
+      sx={{ alignItems: 'flex-start', gap: 0.55, opacity: prereqMet ? 1 : 0.45, flexDirection: 'column' }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, width: '100%' }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, width: '100%' }}>
         <Box sx={{ pt: 0.35 }}>
-          <Icon size={20} />
+          <Icon size={15} />
         </Box>
         <ListItemText
-          primary={<Typography fontWeight={selected ? 700 : 500}>{cls.name}</Typography>}
+          primary={<Typography fontWeight={selected ? 700 : 500} sx={{ fontSize: '0.76rem' }}>{cls.name}</Typography>}
           secondary={(
-            <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 0.75 }}>
+            <Stack direction="row" spacing={0.45} flexWrap="wrap" useFlexGap sx={{ mt: 0.35 }}>
               <Chip size="small" label={`Hit Die ${hitDie}`} />
               {cls.primary ? <Chip size="small" label={`Primary ${cls.primary}`} /> : null}
               {saves ? <Chip size="small" label={`Saves ${saves}`} /> : null}
@@ -66,7 +66,7 @@ export default function ClassPanel({ state, character, dispatch }) {
       icon={Sword}
       note={activeExtra ? 'Selecting multiclass class' : 'Selecting primary class'}
       action={
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
+        <Stack direction="row" spacing={0.55} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
           {activeExtra ? (
             <Button size="small" color="error" startIcon={<Trash2 size={16} />} onClick={() => dispatch({ type: 'multiclass/remove', index: character.activeClassTab - 1 })}>
               Remove
@@ -78,7 +78,7 @@ export default function ClassPanel({ state, character, dispatch }) {
         </Stack>
       }
     >
-      <Stack spacing={2}>
+      <Stack spacing={0.85}>
         <ToggleButtonGroup value={character.activeClassTab} exclusive size="small" onChange={(_, tab) => tab != null && dispatch({ type: 'class-tab/set', tab })}>
           <ToggleButton value={0}>{character.className || 'Primary'}</ToggleButton>
           {character.extraClasses.map((extraClass, index) => (
@@ -87,7 +87,7 @@ export default function ClassPanel({ state, character, dispatch }) {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <Paper variant="outlined" sx={{ maxHeight: 440, overflow: 'auto' }}>
+        <Paper variant="outlined" sx={{ maxHeight: 390, overflow: 'auto' }}>
           <List dense disablePadding>
             {classes.map((cls) => {
               const selected = activeExtra

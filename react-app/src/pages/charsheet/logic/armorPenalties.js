@@ -1,28 +1,15 @@
 /**
- * 5e 2024 Armor Proficiency Penalties
- * 
- * Rules (from PHB 2024):
- * - Heavy armor NOT proficient:
- *   1. Disadvantage on ALL STR/DEX ability checks and saving throws
- *   2. -5 penalty to movement speed (stacks with other penalties)
- * 
- * - Medium armor NOT proficient:
- *   1. Disadvantage on DEX ability checks and saving throws (not STR)
- *   2. No speed penalty
- * 
- * - Light armor NOT proficient:
- *   1. No mechanical penalties (light armor doesn't restrict movement)
- * 
- * - Heavy armor (even if proficient):
- *   1. Disadvantage on DEX checks and saves (inherent property of heavy armor)
- *   2. -10 ft to speed if movement speed is based on ability checks
- * 
- * - Shield (no proficiency):
- *   1. Disadvantage on DEX ability checks and saving throws
- *   2. No AC bonus
+ * 5e 2024 armor training penalties.
+ *
+ * XPHB armor rules:
+ * - Light/Medium/Heavy without training: Disadvantage on any Strength/Dexterity D20 Test, and can't cast spells.
+ * - Shield without training: no Shield AC bonus.
+ * - Armor Strength requirement: speed -10 ft unless STR meets requirement.
+ * - Heavy armor always gives Stealth disadvantage. Other armor can also set it via the armor table property.
  */
 
 import { getArmorTrainingInfo } from './proficiencies.js';
+import { getFinal } from './calculations.js';
 
 function normKey(v) {
   return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -30,49 +17,36 @@ function normKey(v) {
 
 export function getArmorPenalties(C, item) {
   if (!item || !['LA', 'MA', 'HA', 'S'].includes(item.type)) {
-    return { hasPenalty: false, penalties: [] };
+    return { hasPenalty: false, penalties: [], cannotCastSpells: false };
   }
 
-  const { trained } = getArmorTrainingInfo(C, item);
-  if (trained) {
-    // Even with proficiency, heavy armor gives DEX disadvantage
-    if (item.type === 'HA') {
-      return {
-        hasPenalty: true,
-        penalties: [
-          { type: 'disadvantage', applies: ['dex-checks', 'dex-saves'], reason: 'Heavy Armor Property' },
-          { type: 'speed-penalty', amount: -10, reason: 'Heavy Armor Property' },
-        ],
-      };
-    }
-    return { hasPenalty: false, penalties: [] };
-  }
-
-  // NOT PROFICIENT
   const penalties = [];
-  
-  if (item.type === 'HA') {
-    // Heavy armor not proficient: disadvantage on all STR/DEX checks/saves + speed penalty
+  const { trained } = getArmorTrainingInfo(C, item);
+
+  if (!trained && ['LA', 'MA', 'HA'].includes(item.type)) {
     penalties.push(
-      { type: 'disadvantage', applies: ['str-checks', 'str-saves', 'dex-checks', 'dex-saves'], reason: 'Not Proficient in Heavy Armor' },
-      { type: 'speed-penalty', amount: -10, reason: 'Not Proficient in Heavy Armor' }
-    );
-  } else if (item.type === 'MA') {
-    // Medium armor not proficient: disadvantage on DEX checks/saves only
-    penalties.push(
-      { type: 'disadvantage', applies: ['dex-checks', 'dex-saves'], reason: 'Not Proficient in Medium Armor' }
-    );
-  } else if (item.type === 'S') {
-    // Shield not proficient: disadvantage on DEX checks/saves
-    penalties.push(
-      { type: 'disadvantage', applies: ['dex-checks', 'dex-saves'], reason: 'Not Proficient with Shields' },
-      { type: 'ac-penalty', amount: -2, reason: 'Shield grants no AC bonus' }
+      { type: 'disadvantage', applies: ['str-checks', 'str-saves', 'dex-checks', 'dex-saves'], reason: `No ${getArmorTrainingInfo(C, item).kind} Training` },
+      { type: 'no-spellcasting', reason: `No ${getArmorTrainingInfo(C, item).kind} Training` },
     );
   }
-  
+
+  if (!trained && item.type === 'S') {
+    penalties.push({ type: 'no-shield-ac', amount: -2, reason: 'No Shield Training' });
+  }
+
+  if (item.type === 'HA' || item.stealth) {
+    penalties.push({ type: 'disadvantage', applies: ['dex-stealth'], reason: item.type === 'HA' ? 'Heavy Armor Stealth Disadvantage' : 'Armor Stealth Disadvantage' });
+  }
+
+  const requiredStrength = Number(item.strength || 0);
+  if (requiredStrength > 0 && getFinal(C, 'str') < requiredStrength) {
+    penalties.push({ type: 'speed-penalty', amount: -10, reason: `Requires STR ${requiredStrength}` });
+  }
+
   return {
     hasPenalty: penalties.length > 0,
     penalties,
+    cannotCastSpells: penalties.some(p => p.type === 'no-spellcasting'),
   };
 }
 
@@ -92,6 +66,8 @@ export function getEquippedArmorPenalties(C, inventory) {
     disadvantageOn: new Set(),
     speedPenalty: 0,
     acPenalty: 0,
+    cannotCastSpells: false,
+    noShieldAc: false,
     details: allPenalties,
   };
 
@@ -100,8 +76,11 @@ export function getEquippedArmorPenalties(C, inventory) {
       penalty.applies.forEach(app => result.disadvantageOn.add(app));
     } else if (penalty.type === 'speed-penalty') {
       result.speedPenalty = Math.min(result.speedPenalty, penalty.amount);
-    } else if (penalty.type === 'ac-penalty') {
+    } else if (penalty.type === 'no-shield-ac') {
+      result.noShieldAc = true;
       result.acPenalty += penalty.amount;
+    } else if (penalty.type === 'no-spellcasting') {
+      result.cannotCastSpells = true;
     }
   });
 
@@ -115,8 +94,10 @@ export function formatArmorPenaltyMessage(penalties) {
   const parts = [];
   
   if (penalties.disadvantageOn.length > 0) {
+    const stealth = penalties.disadvantageOn.includes('dex-stealth');
     const checks = penalties.disadvantageOn.filter(x => x.includes('checks')).map(x => x.split('-')[0].toUpperCase()).join('/');
     const saves = penalties.disadvantageOn.filter(x => x.includes('saves')).map(x => x.split('-')[0].toUpperCase()).join('/');
+    if (stealth) parts.push('Disadvantage on Stealth');
     if (checks) parts.push(`Disadvantage on ${checks} checks`);
     if (saves && saves !== checks) parts.push(`Disadvantage on ${saves} saves`);
   }
@@ -126,7 +107,11 @@ export function formatArmorPenaltyMessage(penalties) {
   }
   
   if (penalties.acPenalty < 0) {
-    parts.push(`AC ${penalties.acPenalty}`);
+    parts.push(`Shield AC ${penalties.acPenalty}`);
+  }
+
+  if (penalties.cannotCastSpells) {
+    parts.push("Can't cast spells");
   }
   
   return parts.join(' • ');

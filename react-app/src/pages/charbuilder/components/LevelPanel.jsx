@@ -27,7 +27,7 @@ export default function LevelPanel({ character, dispatch }) {
       note={isExtra ? `Lv ${currentLevel} (max ${maxLv}) - Hit Die ${faces}` : `HP ${hp || '-'} - PB +${getProficiencyBonus(character.level)} - Hit Die ${faces}`}
     >
       <Grid container spacing={1.5} alignItems="center">
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} sx={{ display: { xs: 'block', md: 'none' } }}>
           <Select fullWidth value={currentLevel} onChange={(event) => setLevel(Number(event.target.value))}>
             {Array.from({ length: maxLv }, (_, index) => index + 1).map((level) => (
               <MenuItem key={level} value={level}>Level {level}</MenuItem>
@@ -42,7 +42,7 @@ export default function LevelPanel({ character, dispatch }) {
             </ToggleButtonGroup>
           </Grid>
         ) : null}
-        <Grid item xs={12} md={isExtra ? 12 : 8}>
+        <Grid item xs={12} md={isExtra ? 12 : 8} sx={{ display: { xs: 'none', md: 'block' } }}>
           <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
             {Array.from({ length: maxLv }, (_, index) => index + 1).map((level) => (
               <Chip

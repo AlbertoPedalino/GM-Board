@@ -32,6 +32,45 @@ export function getTotalHitDice(character) {
   return (character.classLevel || character.level) + (character.extraClasses || []).reduce((sum, ec) => sum + (ec.level || 1), 0);
 }
 
+export function getHitDicePools(character, usedPools = {}, legacyUsed = 0) {
+  if (!character) return [];
+  const pools = [];
+  pools.push({
+    key: 'primary',
+    label: character.className || 'Class',
+    faces: getHitDieFaces(character.clsSnapshot?.hd),
+    total: Math.max(0, Number(character.classLevel || character.level || 1)),
+  });
+  (character.extraClasses || []).forEach((ec, index) => {
+    pools.push({
+      key: `extra_${index}`,
+      label: ec.name || 'Class',
+      faces: getHitDieFaces(ec.clsSnapshot?.hd),
+      total: Math.max(0, Number(ec.level || 1)),
+    });
+  });
+
+  const hasPoolState = usedPools && typeof usedPools === 'object' && Object.keys(usedPools).length > 0;
+  let remainingLegacy = Math.max(0, Math.floor(Number(legacyUsed) || 0));
+  return pools.map((pool) => {
+    const rawUsed = hasPoolState ? Number(usedPools[pool.key] || 0) : Math.min(pool.total, remainingLegacy);
+    if (!hasPoolState) remainingLegacy -= rawUsed;
+    const used = Math.max(0, Math.min(pool.total, Math.floor(rawUsed)));
+    return { ...pool, used, remaining: Math.max(0, pool.total - used) };
+  });
+}
+
+export function getUsedHitDiceTotal(usedPools = {}) {
+  return Object.values(usedPools || {}).reduce((sum, value) => sum + Math.max(0, Math.floor(Number(value) || 0)), 0);
+}
+
+function getHitDieFaces(hd) {
+  if (hd?.faces) return Number(hd.faces) || 8;
+  if (Array.isArray(hd) && hd[0]?.faces) return Number(hd[0].faces) || 8;
+  const parsed = String(hd || '').match(/d(\d+)/i);
+  return parsed ? Number(parsed[1]) || 8 : 8;
+}
+
 export function applyResourceRest(resources, defs, character, type) {
   const next = { ...resources };
   defs.forEach(def => {

@@ -30,9 +30,9 @@ import { getStorageJson } from '../../shared/storage.js';
 function StepLabel({ step, index }) {
   const Icon = step.icon;
   return (
-    <Stack direction="row" spacing={1} alignItems="center">
-      <Chip size="small" label={index + 1} />
-      <Icon size={18} />
+    <Stack direction="row" spacing={0.65} alignItems="center" sx={{ minWidth: 0 }}>
+      <Chip size="small" label={index + 1} sx={{ height: 18, fontSize: '0.56rem' }} />
+      <Icon size={14} />
       <span>{step.label}</span>
     </Stack>
   );
@@ -148,7 +148,7 @@ export default function CharBuilder() {
   }, [state.data.classes, state.data.species, state.data.backgrounds, state.character]);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={builderRootSx}>
       <ImportSheetFab
         message={state.importMessage}
         onMessage={(message) => dispatch({ type: 'import/message', message })}
@@ -164,27 +164,27 @@ export default function CharBuilder() {
         }}
       />
 
-      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Toolbar sx={{ gap: 1.5, pr: { xs: 14, md: 18 } }}>
-          <Wand2 size={24} />
+      <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'rgba(26,23,19,0.98)', backgroundImage: 'none' }}>
+        <Toolbar sx={{ gap: 1, minHeight: '52px !important', pr: { xs: 12, md: 16 } }}>
+          <Wand2 size={19} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h1" noWrap>
+            <Typography variant="h1" noWrap sx={{ fontSize: '1.12rem', letterSpacing: '0.04em', color: '#edd48a' }}>
               Character Builder
             </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              D&D 5e 2024 - React JSX, Material UI, lucide-react
+            <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.64rem' }}>
+              D&D 5e 2024
             </Typography>
           </Box>
           <Tooltip title={state.adaptersLoaded ? 'Adapters loaded' : 'Loading adapters'}>
-            <Button size="small" disabled={!state.adaptersLoaded}>
+            <Button size="small" disabled={!state.adaptersLoaded} sx={{ fontSize: '0.58rem', px: 0.9, py: 0.25 }}>
               {state.adaptersLoaded ? 'Adapters ready' : 'Adapters...'}
             </Button>
           </Tooltip>
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ maxWidth: 1360, mx: 'auto', px: { xs: 1.5, md: 3 }, py: 3 }}>
-        <Paper variant="outlined" sx={{ mb: 2 }}>
+      <Box sx={{ maxWidth: 1360, mx: 'auto', px: { xs: 0.75, md: 1.1 }, py: 1.1 }}>
+        <Paper variant="outlined" sx={{ mb: 1, bgcolor: 'rgba(35,32,26,1)', overflow: 'hidden' }}>
           <Tabs
             value={state.tab}
             onChange={(_, tab) => dispatch({ type: 'tab/set', tab })}
@@ -201,21 +201,21 @@ export default function CharBuilder() {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 340px', xl: 'minmax(0, 1fr) 380px' },
+            gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 320px', xl: 'minmax(0, 1fr) 360px' },
             alignItems: 'start',
-            gap: 2.5,
+            gap: 1,
           }}
         >
           <Box sx={{ minWidth: 0 }}>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-              <ActiveIcon size={22} />
-              <Typography variant="h2">{activeStep.label}</Typography>
-              <Chip size="small" label={`${state.tab + 1} / ${STEPS.length}`} />
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.75, color: 'primary.main' }}>
+              <ActiveIcon size={16} />
+              <Typography variant="h2" sx={{ fontSize: '0.86rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'primary.main' }}>{activeStep.label}</Typography>
+              <Chip size="small" label={`${state.tab + 1} / ${STEPS.length}`} sx={{ height: 18, fontSize: '0.54rem' }} />
             </Stack>
 
             <ActiveStep state={state} dispatch={dispatch} />
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 1 }} />
             <Stack direction="row" justifyContent="space-between">
               <Button
                 startIcon={<ChevronLeft size={16} />}
@@ -240,7 +240,7 @@ export default function CharBuilder() {
           </Box>
         </Box>
 
-        <Typography component="footer" variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3, textAlign: 'center' }}>
+        <Typography component="footer" variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.4, textAlign: 'center', fontSize: '0.58rem' }}>
           Data from 5etools via GitHub mirror - D&D 5e is a trademark of Wizards of the Coast
         </Typography>
       </Box>
@@ -249,3 +249,97 @@ export default function CharBuilder() {
     </Box>
   );
 }
+
+const builderRootSx = {
+  minHeight: '100vh',
+  bgcolor: 'background.default',
+  '& .MuiPaper-root, & .MuiCard-root': {
+    bgcolor: 'rgba(35,32,26,1)',
+    backgroundImage: 'none',
+    borderColor: 'divider',
+    borderRadius: 1,
+  },
+  '& .MuiTypography-h1': {
+    fontFamily: '"Cinzel", Georgia, serif',
+    fontSize: '1.08rem',
+    lineHeight: 1.15,
+    fontWeight: 800,
+  },
+  '& .MuiTypography-h2': {
+    fontFamily: '"Cinzel", Georgia, serif',
+    fontSize: '0.82rem',
+    lineHeight: 1.2,
+    fontWeight: 800,
+    color: 'text.primary',
+  },
+  '& .MuiTypography-body1': { fontSize: '0.8rem' },
+  '& .MuiTypography-body2': { fontSize: '0.72rem' },
+  '& .MuiTypography-caption': { fontSize: '0.62rem' },
+  '& .MuiTypography-overline': {
+    fontFamily: '"Cinzel", Georgia, serif',
+    fontSize: '0.56rem',
+    lineHeight: 1.6,
+    fontWeight: 800,
+  },
+  '& .MuiChip-root': {
+    height: 19,
+    borderRadius: '3px',
+    fontFamily: '"Cinzel", Georgia, serif',
+    fontSize: '0.54rem',
+    letterSpacing: '0.04em',
+    bgcolor: 'rgba(202,165,80,0.08)',
+    borderColor: 'rgba(202,165,80,0.28)',
+  },
+  '& .MuiButton-root': {
+    minHeight: 0,
+    borderRadius: 1,
+    fontFamily: '"Cinzel", Georgia, serif',
+    fontSize: '0.62rem',
+    letterSpacing: '0.04em',
+    px: 1,
+    py: 0.38,
+  },
+  '& .MuiTab-root': {
+    minHeight: 0,
+    py: 0.75,
+    px: 1.05,
+    fontFamily: '"Cinzel", Georgia, serif',
+    fontSize: '0.6rem',
+    letterSpacing: '0.06em',
+    color: 'text.secondary',
+  },
+  '& .MuiTabs-indicator': { bgcolor: 'primary.main' },
+  '& .MuiListItemButton-root': {
+    py: 0.55,
+    px: 0.9,
+    bgcolor: 'rgba(35,32,26,1)',
+    '&.Mui-selected': {
+      bgcolor: 'rgba(202,165,80,0.12)',
+      borderLeft: '3px solid #caa550',
+    },
+    '&:hover': {
+      bgcolor: 'rgba(46,42,34,1)',
+    },
+  },
+  '& .MuiInputBase-root': {
+    bgcolor: 'rgba(26,23,19,1)',
+    borderRadius: 1,
+    fontSize: '0.74rem',
+  },
+  '& .MuiInputBase-input': {
+    py: '7px',
+    fontSize: '0.74rem',
+  },
+  '& .MuiAlert-root': {
+    py: 0.35,
+    px: 1,
+    fontSize: '0.7rem',
+    bgcolor: 'rgba(35,32,26,1)',
+    border: '1px solid rgba(215,173,82,0.18)',
+    color: 'text.secondary',
+  },
+  '& .MuiCardContent-root': {
+    p: 0.75,
+    '&:last-child': { pb: 0.75 },
+  },
+};

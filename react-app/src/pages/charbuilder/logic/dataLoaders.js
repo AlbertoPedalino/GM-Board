@@ -219,14 +219,23 @@ const ITEM_SOURCES_2024 = ['XPHB', 'XDMG', 'EFA', 'FRAiF', 'FRHoF'];
 function isItem2024(item) {
   if (!item) return false;
   if (ITEM_SOURCES_2024.includes(item.source)) return true;
-  if (Array.isArray(item.reprintedAs) && item.reprintedAs.some((entry) => {
-    const src = String(entry || '').split('|')[1] || '';
-    return ITEM_SOURCES_2024.includes(src);
-  })) return false;
-  if (item.edition === 'one') return true;
-  if (item.srd52 || item.freeRules2024 || item.basicRules2024) return true;
-  if (Array.isArray(item.otherSources) && item.otherSources.some((entry) => ITEM_SOURCES_2024.includes(String(entry?.source || entry || '')))) return true;
   return false;
+}
+
+function isAllowedPhbEquipment(item) {
+  if (!item) return false;
+  if (item.source !== 'PHB') return false;
+  const type = String(item.type || '').split('|')[0].toUpperCase();
+  if (!['M', 'R', 'LA', 'MA', 'HA', 'S', 'A', 'G', 'AT', 'GS', 'INS', 'SCF', 'WD', 'RD', 'ST'].includes(type)) return false;
+  if (item.rarity && item.rarity !== 'none') return false;
+  return itemReprintsToSource(item, 'XPHB');
+}
+
+function itemReprintsToSource(item, source) {
+  return Array.isArray(item?.reprintedAs) && item.reprintedAs.some((entry) => {
+    const parts = String(entry || '').split('|');
+    return parts[1] === source;
+  });
 }
 
 export async function loadItems() {
@@ -236,7 +245,7 @@ export async function loadItems() {
     getJson('magicvariants.json'),
   ]);
   const baseItems = base.status === 'fulfilled'
-    ? (base.value.baseitem || []).filter(isItem2024)
+    ? (base.value.baseitem || []).filter((item) => isItem2024(item) || isAllowedPhbEquipment(item))
     : [];
   const magicItems = magic.status === 'fulfilled'
     ? (magic.value.item || []).filter(isItem2024)
@@ -254,9 +263,7 @@ export async function loadItems() {
     const key = item.name.toLowerCase();
     const existing = byName.get(key);
     if (!existing) { byName.set(key, item); return; }
-    const existing2024 = ITEM_SOURCES_2024.includes(existing.source);
-    const incoming2024 = ITEM_SOURCES_2024.includes(item.source);
-    if (incoming2024 && !existing2024) byName.set(key, item);
+    if (shouldReplaceItem(existing, item)) byName.set(key, item);
   });
   const items = [...byName.values()]
     .map(normalizeItem)
@@ -264,10 +271,31 @@ export async function loadItems() {
   return items;
 }
 
+function shouldReplaceItem(existing, incoming) {
+  const existing2024 = ITEM_SOURCES_2024.includes(existing.source);
+  const incoming2024 = ITEM_SOURCES_2024.includes(incoming.source);
+  const existingRichness = itemRichness(existing);
+  const incomingRichness = itemRichness(incoming);
+  if (incomingRichness > existingRichness) return true;
+  if (incoming2024 && !existing2024) return true;
+  return false;
+}
+
+function itemRichness(item) {
+  let score = 0;
+  if (item.dmg1) score += 4;
+  if (item.ac) score += 4;
+  if (Array.isArray(item.property) && item.property.length) score += 2;
+  if (item.weaponCategory) score += 2;
+  if (Array.isArray(item.entries) && item.entries.length) score += 1;
+  if (item.type && !['weapon', 'armor', 'gear', 'magic'].includes(String(item.type).toLowerCase())) score += 1;
+  return score;
+}
+
 function normalizeItem(item) {
   const rawType = item.type ? String(item.type).split('|')[0] : '';
   return {
-    name: item.name,
+    name: formatLeadingBonusName(item.name),
     source: item.source || '',
     type: rawType || 'gear',
     rarity: item.rarity || 'none',
@@ -278,6 +306,8 @@ function normalizeItem(item) {
     dmg1: item.dmg1 || null,
     dmgType: item.dmgType || null,
     ac: item.ac || null,
+    strength: item.strength || null,
+    stealth: !!item.stealth,
     bonusWeapon: item.bonusWeapon || null,
     bonusAc: item.bonusAc || null,
     property: Array.isArray(item.property) ? item.property.map((p) => String(p).split('|')[0]) : [],
@@ -292,7 +322,7 @@ function expandMagicVariants(variants, baseItems) {
     const inherits = variant.inherits || {};
     const requires = variant.requires || [];
     if (!requires.length && variant.name) {
-      expanded.push({ ...inherits, name: variant.name, source: variant.source || inherits.source || 'XDMG' });
+      expanded.push({ ...inherits, name: formatLeadingBonusName(variant.name), source: variant.source || inherits.source || 'XDMG' });
       return;
     }
     baseItems.forEach((base) => {
@@ -300,7 +330,7 @@ function expandMagicVariants(variants, baseItems) {
       expanded.push({
         ...base,
         ...inherits,
-        name: `${inherits.namePrefix || ''}${base.name}${inherits.nameSuffix || ''}`.trim(),
+        name: formatVariantName(base.name, inherits),
         source: variant.source || inherits.source || base.source,
       });
     });
@@ -308,12 +338,38 @@ function expandMagicVariants(variants, baseItems) {
   return expanded;
 }
 
+function formatVariantName(baseName, inherits) {
+  const prefix = String(inherits.namePrefix || '').trim();
+  const suffix = String(inherits.nameSuffix || '').trim();
+  if (/^\+\d+$/.test(prefix)) return `${baseName} ${prefix}${suffix ? ` ${suffix}` : ''}`.trim();
+  return `${prefix ? `${prefix} ` : ''}${baseName}${suffix ? ` ${suffix}` : ''}`.trim();
+}
+
 function matchesRequires(item, requires) {
   if (!requires.length) return true;
   return requires.some((requirement) => {
-    if (requirement.type && requirement.type !== item.type) return false;
+    const type = String(item.type || '').split('|')[0].toUpperCase();
+    if (requirement.type) {
+      const reqType = String(requirement.type || '').split('|')[0].toUpperCase();
+      if (reqType === 'WEAPON' && !isWeaponType(type)) return false;
+      else if (reqType === 'ARMOR' && !isArmorType(type)) return false;
+      else if (!['WEAPON', 'ARMOR'].includes(reqType) && reqType !== type) return false;
+    }
+    if (requirement.weapon && !isWeaponType(type)) return false;
     if (requirement.weaponCategory && requirement.weaponCategory !== item.weaponCategory) return false;
-    if (requirement.armor && !String(item.type || '').includes('A')) return false;
+    if (requirement.armor && !isArmorType(type)) return false;
     return true;
   });
+}
+
+function formatLeadingBonusName(name) {
+  return String(name || '').replace(/^(\+\d+)\s+(.+)$/i, '$2 $1').trim();
+}
+
+function isWeaponType(type) {
+  return ['M', 'R'].includes(type);
+}
+
+function isArmorType(type) {
+  return ['LA', 'MA', 'HA', 'S'].includes(type);
 }

@@ -138,21 +138,21 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
               <Button size="small" variant="outlined"
                 onClick={(e) => { e.stopPropagation(); onRoll?.(action.attackBonus, `${action.name} Attack`, action._disadvantage ? false : undefined); }}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: action._notProficient ? 'rgba(222,103,95,0.4)' : 'rgba(77,149,214,0.4)', color: action._notProficient ? '#de675f' : '#4d95d6' }}>
-                <Sword size={12} style={{ marginRight: 2 }} /> {fbonus(action.attackBonus)}
+                <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(action.attackBonus)}{action._disadvantage ? ' DIS' : ''}
               </Button>
             ) : null}
             {action.damageFormula ? (
               <Button size="small" variant="outlined"
                 onClick={(e) => { e.stopPropagation(); rollFormulaButton('damage'); }}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
-                <Sword size={12} style={{ marginRight: 2 }} /> {resolveFormula(action.damageFormula, action, C)}
+                <Sword size={12} style={{ marginRight: 2 }} /> Dmg {resolveFormula(action.damageFormula, action, C)}
               </Button>
             ) : null}
             {action.healFormula ? (
               <Button size="small" variant="outlined" color="success"
                 onClick={(e) => { e.stopPropagation(); rollFormulaButton('heal'); }}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
-                <Cross size={12} style={{ marginRight: 2 }} /> {resolveFormula(action.healFormula, action, C)}
+                <Cross size={12} style={{ marginRight: 2 }} /> Heal {resolveFormula(action.healFormula, action, C)}
               </Button>
             ) : null}
           </Box>

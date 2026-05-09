@@ -11,15 +11,17 @@ export default function DiceToast({ toast, onClose }) {
 
   if (!toast) return null;
 
-  const isCrit = toast.total >= 20;
-  const isFail = toast.total <= 1;
+  const d20Rolls = (toast.rolls || []).filter((r) => r.faces === 20);
+  const keptD20 = d20Rolls.find((r) => r.kept) || d20Rolls[0];
+  const isCrit = keptD20?.v >= 20;
+  const isFail = keptD20?.v <= 1;
   const totalClass = isCrit ? '#edd48a' : isFail ? '#de675f' : 'text.primary';
 
   return (
     <Box sx={{
       position: 'fixed', bottom: '1.2rem', right: '1.2rem', zIndex: 999,
       bgcolor: 'rgba(26,23,19,0.97)', border: 2, borderColor: 'divider', borderRadius: 2,
-      p: '1rem 1.2rem', minWidth: 220, maxWidth: 300,
+      p: '1rem 1.2rem', minWidth: 240, maxWidth: 340,
       boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
       backdropFilter: 'blur(8px)',
     }}>
@@ -33,7 +35,7 @@ export default function DiceToast({ toast, onClose }) {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3, my: 0.4, alignItems: 'center' }}>
           {toast.rolls.map((r, i) => (
             <Box key={i} sx={{
-              bgcolor: 'rgba(46,42,34,1)', border: 1, borderColor: 'divider', borderRadius: 1,
+              bgcolor: r.kept ? 'rgba(202,165,80,0.16)' : 'rgba(46,42,34,1)', border: 1, borderColor: r.kept ? 'primary.main' : 'divider', borderRadius: 1,
               width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.875rem', fontWeight: 700,
               color: r.v >= (r.faces || 20) ? '#edd48a' : r.v <= 1 ? '#de675f' : 'text.primary',
@@ -51,6 +53,11 @@ export default function DiceToast({ toast, onClose }) {
           {toast.detail}
         </Typography>
       )}
+      {Number.isFinite(toast.meta?.bonus) ? (
+        <Typography sx={{ fontSize: '0.56rem', color: 'text.secondary', textAlign: 'center', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Modifier {toast.meta.bonus >= 0 ? `+${toast.meta.bonus}` : toast.meta.bonus}
+        </Typography>
+      ) : null}
     </Box>
   );
 }

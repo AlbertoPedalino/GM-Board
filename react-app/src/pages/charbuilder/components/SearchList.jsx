@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 
 export default function SearchList({ value, onSearch, placeholder, items, selectedName, onSelect, meta }) {
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={0.65}>
       <TextField
         fullWidth
         value={value}
@@ -12,12 +12,12 @@ export default function SearchList({ value, onSearch, placeholder, items, select
         slotProps={{ input: {
           startAdornment: (
             <InputAdornment position="start">
-              <Search size={18} />
+              <Search size={14} />
             </InputAdornment>
           ),
         } }}
       />
-      <Paper variant="outlined" sx={{ maxHeight: 460, overflow: 'auto' }}>
+      <Paper variant="outlined" sx={{ maxHeight: 390, overflow: 'auto' }}>
         <List dense disablePadding>
         {items.map((item) => {
           const selected = selectedName === item.name;
@@ -27,10 +27,10 @@ export default function SearchList({ value, onSearch, placeholder, items, select
               selected={selected}
               divider
                 onClick={() => onSelect(item)}
-              sx={{ alignItems: 'flex-start', gap: 1.5 }}
+              sx={{ alignItems: 'flex-start', gap: 1, py: 0.55 }}
               >
               <ListItemText
-                primary={<Typography fontWeight={selected ? 700 : 500}>{item.name}</Typography>}
+                primary={<Typography fontWeight={selected ? 700 : 500} sx={{ fontSize: '0.76rem' }}>{item.name}</Typography>}
                 secondary={meta?.(item)}
                 secondaryTypographyProps={{ component: 'div' }}
               />

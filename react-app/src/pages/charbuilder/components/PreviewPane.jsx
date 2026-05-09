@@ -230,21 +230,21 @@ function PreviewPaneImpl({ character }) {
   ];
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, position: { md: 'sticky' }, top: 16, maxHeight: { md: '90vh' }, overflow: 'auto', minWidth: 0 }}>
-      <Stack spacing={2} sx={{ minWidth: 0 }}>
-        <Stack spacing={0.5}>
-          <Typography variant="h2">Preview</Typography>
-          <Typography variant="h1" noWrap>{character.name || 'Unnamed Character'}</Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
+    <Paper variant="outlined" sx={{ p: 1, position: { md: 'sticky' }, top: 64, maxHeight: { md: 'calc(100vh - 76px)' }, overflow: 'auto', minWidth: 0 }}>
+      <Stack spacing={1} sx={{ minWidth: 0 }}>
+        <Stack spacing={0.25}>
+          <Typography variant="h2" sx={{ color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Preview</Typography>
+          <Typography variant="h1" noWrap sx={{ color: '#edd48a' }}>{character.name || 'Unnamed Character'}</Typography>
+          <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.66rem' }}>
             Lv {character.level} {character.speciesName} {character.className} - {hp || '-'} HP
           </Typography>
         </Stack>
 
-        <Grid container spacing={1}>
+        <Grid container spacing={0.55}>
           {STATS.map((stat) => (
             <Grid key={stat} item xs={4}>
               <Card variant="outlined" sx={{ textAlign: 'center' }}>
-                <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                <CardContent sx={{ p: 0.55, '&:last-child': { pb: 0.55 } }}>
                   <Typography variant="caption" color="text.secondary" display="block">{STAT_LABELS[stat]}</Typography>
                   <Typography variant="h2">{scores[stat] ?? '-'}</Typography>
                   <Typography variant="caption" color="text.secondary" display="block">{formatMod(scores[stat])}</Typography>
