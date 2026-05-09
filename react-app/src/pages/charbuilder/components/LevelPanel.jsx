@@ -15,6 +15,10 @@ export default function LevelPanel({ character, dispatch }) {
   const primaryLv = getPrimaryClassLevel(character);
   const maxLv = isExtra ? Math.max(1, 20 - primaryLv - otherExtra) : 20;
   const currentLevel = isExtra ? (extraClass?.level || 1) : character.level;
+  const rollLevels = isExtra
+    ? Array.from({ length: currentLevel }, (_, index) => index + 1)
+    : Array.from({ length: Math.max(0, primaryLv - 1) }, (_, index) => index + 2);
+  const rollKeyFor = (level) => (isExtra ? `extra_${extraIdx}_${level}` : level);
   const setLevel = (value) => {
     if (isExtra) dispatch({ type: 'extra-class/level', index: extraIdx, level: value });
     else dispatch({ type: 'field/set', field: 'level', value });
@@ -34,14 +38,12 @@ export default function LevelPanel({ character, dispatch }) {
             ))}
           </Select>
         </Grid>
-        {!isExtra ? (
-          <Grid item xs={12} md={8}>
-            <ToggleButtonGroup value={character.hpMode} exclusive size="small" onChange={(_, mode) => mode && dispatch({ type: 'hp/mode', mode })}>
-              <ToggleButton value="average">Average HP</ToggleButton>
-              <ToggleButton value="rolled">Manual HP</ToggleButton>
-            </ToggleButtonGroup>
-          </Grid>
-        ) : null}
+        <Grid item xs={12} md={4}>
+          <ToggleButtonGroup value={character.hpMode} exclusive size="small" onChange={(_, mode) => mode && dispatch({ type: 'hp/mode', mode })}>
+            <ToggleButton value="average">Average HP</ToggleButton>
+            <ToggleButton value="rolled">Manual HP</ToggleButton>
+          </ToggleButtonGroup>
+        </Grid>
         <Grid item xs={12} md={isExtra ? 12 : 8} sx={{ display: { xs: 'none', md: 'block' } }}>
           <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
             {Array.from({ length: maxLv }, (_, index) => index + 1).map((level) => (
@@ -54,19 +56,19 @@ export default function LevelPanel({ character, dispatch }) {
             ))}
           </Stack>
         </Grid>
-        {!isExtra && character.hpMode === 'rolled' ? (
+        {character.hpMode === 'rolled' && rollLevels.length ? (
           <Grid item xs={12}>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              {Array.from({ length: Math.max(0, primaryLv - 1) }, (_, index) => index + 2).map((level) => (
+              {rollLevels.map((level) => (
                 <TextField
                   key={level}
                   size="small"
                   type="number"
-                  label={`Lv ${level}`}
-                  value={character.hpManualRolls[level] || ''}
-                  inputProps={{ min: 1, max: character.cls?.hd?.faces || 12 }}
+                  label={isExtra ? `${extraClass?.name || 'MC'} Lv ${level}` : `Lv ${level}`}
+                  value={character.hpManualRolls[rollKeyFor(level)] || ''}
+                  inputProps={{ min: 1, max: faces || 12 }}
                   sx={{ width: 92 }}
-                  onChange={(event) => dispatch({ type: 'hp/roll', key: level, value: Number(event.target.value) || 0 })}
+                  onChange={(event) => dispatch({ type: 'hp/roll', key: rollKeyFor(level), value: Number(event.target.value) || 0 })}
                 />
               ))}
             </Stack>

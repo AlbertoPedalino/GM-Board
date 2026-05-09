@@ -3,6 +3,7 @@ import { calcMaxHp, getAllFinalScores, getPrimaryClassLevel, getSelectedFeatName
 import { getMod, getFinal } from '../../charsheet/logic/calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { getStorageItem, removeStorageItem, setStorageItem, setStorageJson } from '../../../shared/storage.js';
+import { collectAutoGrantedSpells as collectEntityAutoGrantedSpells } from '../spells/spells.js';
 
 export function extractSheetData(text) {
   try {
@@ -173,6 +174,8 @@ export function makeSheetPayload(character, data) {
       darkvision: character.speciesObj?.darkvision || 0,
       resist: character.speciesObj?.resist || [],
       immune: character.speciesObj?.immune || [],
+      languageProficiencies: [{ common: true }, ...(character.speciesObj?.languageProficiencies || [])],
+      toolProficiencies: character.speciesObj?.toolProficiencies || [],
       armorProficiencies: character.speciesObj?.armorProficiencies,
       weaponProficiencies: character.speciesObj?.weaponProficiencies,
       entries: character.speciesObj?.entries || [],
@@ -232,25 +235,29 @@ export function makeSheetPayload(character, data) {
 }
 
 function collectAutoGrantedSpells(character) {
-  const out = [];
-  const pushCfg = (cfg, source, sourceType, level) => {
-    [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((entry) => {
-      const name = typeof entry === 'string' ? entry : entry?.name;
-      if (!name || level < Number(entry?.minLevel || 1)) return;
-      if (!out.some((spell) => spell.name === name && spell.source === source)) out.push({ name, source, sourceType, level: entry?.level });
-    });
-  };
-
   const primaryLevel = getPrimaryClassLevel(character);
-  pushCfg(installedRegistry.getClassRuntimeConfig(character.className), character.className || 'Class', 'class', primaryLevel);
-  pushCfg(installedRegistry.getSubclassRuntimeConfig(character.className, character.subclassShortName), character.subclassShortName || 'Subclass', 'subclass', primaryLevel);
-
-  (character.extraClasses || []).forEach((extra) => {
-    const level = Number(extra.level || 1);
-    pushCfg(installedRegistry.getClassRuntimeConfig(extra.name), extra.name || 'Class', 'class', level);
-    pushCfg(installedRegistry.getSubclassRuntimeConfig(extra.name, extra.subclassShortName), extra.subclassShortName || 'Subclass', 'subclass', level);
+  const entities = [
+    { ...character, classLevel: primaryLevel },
+    ...(character.extraClasses || []).map((extra) => ({
+      ...character,
+      className: extra.name,
+      classSource: extra.source,
+      classLevel: Number(extra.level || 1),
+      level: Number(extra.level || 1),
+      cls: extra.cls,
+      subclassShortName: extra.subclassShortName || '',
+      allSubFeatures: extra.allSubFeatures || [],
+      extraClasses: [],
+    })),
+  ];
+  const out = [];
+  entities.forEach((entity) => {
+    collectEntityAutoGrantedSpells(entity).forEach((spell) => {
+      const key = `${String(spell.name || '').toLowerCase()}-${spell.source || ''}`;
+      if (!spell.name || out.some((entry) => `${String(entry.name || '').toLowerCase()}-${entry.source || ''}` === key)) return;
+      out.push(spell);
+    });
   });
-
   return out;
 }
 

@@ -1,5 +1,6 @@
 import { installedRegistry } from '../../../adapters/index.js';
-import { getFinalScore, getPrimaryClassLevel, getSpellSlots, statMod } from '../logic/calculations.js';
+import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../constants.js';
+import { getFinalScore, getPrimaryClassLevel, statMod } from '../logic/calculations.js';
 
 export function normClassKey(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -77,6 +78,108 @@ export function getSpellcastingProfile(character) {
   };
 }
 
+function getClassSpellLevel(character) {
+  return Math.max(1, Math.min(20, Number(character.classLevel || getPrimaryClassLevel(character) || character.level || 1)));
+}
+
+function getSpellTagName(value) {
+  return String(value || '').split('|')[0].trim();
+}
+
+function pushSpellTags(text, out) {
+  const regex = /\{@spell\s+([^}]+)\}/gi;
+  let match = regex.exec(String(text || ''));
+  while (match) {
+    const name = getSpellTagName(match[1]);
+    if (name) out.push(name);
+    match = regex.exec(String(text || ''));
+  }
+}
+
+function getRowMinLevel(row) {
+  const first = Array.isArray(row) ? row[0] : row?.row?.[0];
+  if (first == null) return null;
+  const match = String(first).match(/\d+/);
+  const level = match ? Number(match[0]) : null;
+  return level && level >= 1 && level <= 20 ? level : null;
+}
+
+function collectSpellTags(node, classLevel, out = []) {
+  if (!node) return out;
+  if (typeof node === 'string') {
+    pushSpellTags(node, out);
+    return out;
+  }
+  if (Array.isArray(node)) {
+    const rowLevel = getRowMinLevel(node);
+    if (rowLevel && rowLevel > classLevel) return out;
+    node.forEach((item) => collectSpellTags(item, classLevel, out));
+    return out;
+  }
+  if (typeof node !== 'object') return out;
+
+  if (node.type === 'table' && Array.isArray(node.rows)) {
+    node.rows.forEach((row) => collectSpellTags(row, classLevel, out));
+    return out;
+  }
+
+  ['entries', 'entry', 'items', 'rows', 'row'].forEach((key) => collectSpellTags(node[key], classLevel, out));
+  return out;
+}
+
+function collectSubclassFeatureSpells(character) {
+  const classLevel = getClassSpellLevel(character);
+  const subclassShortName = String(character.subclassShortName || '');
+  if (!subclassShortName) return [];
+
+  const out = [];
+  (character.allSubFeatures || [])
+    .filter((feature) => !feature?.isReprinted)
+    .filter((feature) => !feature?.subclassShortName || feature.subclassShortName === subclassShortName)
+    .filter((feature) => Number(feature?.level || 1) <= classLevel)
+    .filter((feature) => /spells?/i.test(String(feature?.name || '')))
+    .forEach((feature) => {
+      collectSpellTags(feature.entries, classLevel).forEach((name) => {
+        out.push({
+          name,
+          minLevel: Number(feature.level || 1),
+          level: null,
+          mode: 'prepared',
+          source: feature.name || subclassShortName,
+          sourceType: 'subclass',
+        });
+      });
+    });
+  return out;
+}
+
+export function collectAutoGrantedSpells(character, profile = getSpellcastingProfile(character)) {
+  const classLevel = getClassSpellLevel(character);
+  const out = [
+    ...(profile.alwaysKnownSpells || []).map((spell) => ({ spell, mode: 'known' })),
+    ...(profile.alwaysPreparedSpells || []).map((spell) => ({ spell, mode: 'prepared' })),
+  ]
+    .map(({ spell, mode }) => ({
+      name: typeof spell === 'string' ? spell : spell?.name,
+      minLevel: Number(spell?.minLevel || 1),
+      level: spell?.level ?? null,
+      mode,
+      source: spell?.source || (mode === 'known' ? 'Class' : 'Subclass'),
+      sourceType: spell?.sourceType || mode,
+    }))
+    .filter((spell) => spell.name && classLevel >= spell.minLevel);
+
+  collectSubclassFeatureSpells(character).forEach((spell) => out.push(spell));
+
+  const seen = new Set();
+  return out.filter((spell) => {
+    const key = `${String(spell.name || '').toLowerCase()}-${spell.mode || ''}`;
+    if (!spell.name || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function applyPreparedFormula(formula, abilityMod, level) {
   if (!formula || typeof formula !== 'object') return null;
   const divisor = Number(formula.levelDivisor || 1) || 1;
@@ -86,31 +189,49 @@ export function applyPreparedFormula(formula, abilityMod, level) {
   return Math.max(Number(formula.min || 0), total);
 }
 
+function normalizeCasterProgression(value) {
+  const progression = String(value || '').toLowerCase();
+  if (progression === '1/3' || progression === 'third') return 'third';
+  if (progression === 'half' || progression === 'artificer' || progression === 'full' || progression === 'pact') return progression;
+  return null;
+}
+
+function slotsForProgression(progression, level) {
+  const normalized = normalizeCasterProgression(progression);
+  if (normalized === 'full') return FULL_SLOTS[level] || [];
+  if (normalized === 'half' || normalized === 'artificer') return HALF_SLOTS[level] || [];
+  if (normalized === 'third') return THIRD_SLOTS[level] || [];
+  return [];
+}
+
 export function getSpellCounts(character) {
-  const level = getPrimaryClassLevel(character);
+  const level = getClassSpellLevel(character);
   const profile = getSpellcastingProfile(character);
 
   const rawCantrips = character.cls?.cantripProgression;
   const rawSpellsKnown = character.cls?.spellsKnownProgression;
   const rawPrepared = character.cls?.preparedSpellsProgression;
 
-  const cantrips = rawCantrips?.[level - 1] ?? profile.cantripKnown?.[level - 1] ?? 0;
+  const cantrips = profile.cantripKnown?.[level - 1] ?? profile.cantripProgression?.[level - 1] ?? rawCantrips?.[level - 1] ?? 0;
 
-  let spells = rawPrepared?.[level - 1] ?? rawSpellsKnown?.[level - 1] ?? profile.preparedSpellsProgression?.[level - 1] ?? 0;
+  let prepared = profile.preparedSpellsProgression?.[level - 1] ?? rawPrepared?.[level - 1] ?? null;
+  const known = profile.spellsKnown?.[level - 1] ?? rawSpellsKnown?.[level - 1] ?? null;
 
-  if (rawSpellsKnown == null) {
-    if (profile.spellsKnown) {
-      spells = profile.spellsKnown[level - 1] ?? spells;
-    } else if (profile.preparedFormula) {
-      const ability = profile.preparedFormula.ability || profile.ability || 'int';
-      spells = applyPreparedFormula(profile.preparedFormula, statMod(getFinalScore(character, ability)), level) ?? spells;
-    }
+  if (profile.preparedFormula) {
+    const ability = profile.preparedFormula.ability || profile.ability || 'int';
+    prepared = applyPreparedFormula(profile.preparedFormula, statMod(getFinalScore(character, ability)), level) ?? prepared;
   }
+
+  const spells = profile.preparedMode === 'known'
+    ? (known ?? prepared ?? 0)
+    : (prepared ?? known ?? 0);
   return { cantrips, spells, profile };
 }
 
 export function maxSpellLevel(character) {
-  const slotData = getSpellSlots(character);
-  const fromSlots = (slotData.slots || []).reduce((max, count, index) => (count ? index + 1 : max), 0);
-  return Math.max(fromSlots, slotData.pact?.level || slotData.pact?.l || 0);
+  const level = getClassSpellLevel(character);
+  const profile = getSpellcastingProfile(character);
+  const progression = normalizeCasterProgression(profile.casterProgression);
+  if (progression === 'pact') return PACT_SLOTS[level]?.level || 0;
+  return slotsForProgression(progression, level).reduce((max, count, index) => (count ? index + 1 : max), 0);
 }

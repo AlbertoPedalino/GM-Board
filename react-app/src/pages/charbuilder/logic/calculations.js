@@ -61,13 +61,61 @@ export function getBackgroundBonus(character, stat) {
   return pattern[idx] || 0;
 }
 
-export function getFinalScore(character, stat) {
+function normalizeStat(value) {
+  const key = String(value || '').toLowerCase().replace(/[^a-z]/g, '');
+  const aliases = {
+    strength: 'str',
+    dexterity: 'dex',
+    constitution: 'con',
+    intelligence: 'int',
+    wisdom: 'wis',
+    charisma: 'cha',
+  };
+  return aliases[key] || key;
+}
+
+function abilityBonusSourceLabel(key) {
+  const value = String(key || '');
+  const levelMatch = value.match(/lv(\d+)/i);
+  if (levelMatch) return `Feat Lv.${levelMatch[1]}`;
+  if (value.includes('origin')) return 'Origin Feat';
+  return 'Feat';
+}
+
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  return value ? [value] : [];
+}
+
+export function getBaseScore(character, stat) {
   let base = 8;
   if (character.scoreMethod === 'standard') base = character.arrAssign[stat] ?? 8;
   else if (character.scoreMethod === 'manual') base = character.manualScores[stat] ?? 8;
   else if (character.scoreMethod === 'dice') base = character.diceAssign[stat] ?? 8;
   else base = character.pbScores[stat] ?? 8;
-  return Number(base) + getBackgroundBonus(character, stat);
+  return Number(base);
+}
+
+export function getAbilityScoreBonusBreakdown(character, stat) {
+  const bonuses = [];
+  const backgroundBonus = getBackgroundBonus(character, stat);
+  if (backgroundBonus) bonuses.push({ source: 'Background', value: backgroundBonus });
+
+  Object.entries(character?.choices || {}).forEach(([key, value]) => {
+    if (!String(key).toLowerCase().endsWith('_asi')) return;
+    const bonus = asArray(value).filter((entry) => normalizeStat(entry) === stat).length;
+    if (bonus) bonuses.push({ source: abilityBonusSourceLabel(key), value: bonus });
+  });
+
+  return bonuses;
+}
+
+export function getAbilityScoreBonus(character, stat) {
+  return getAbilityScoreBonusBreakdown(character, stat).reduce((sum, bonus) => sum + bonus.value, 0);
+}
+
+export function getFinalScore(character, stat) {
+  return getBaseScore(character, stat) + getAbilityScoreBonus(character, stat);
 }
 
 export function getAllFinalScores(character) {

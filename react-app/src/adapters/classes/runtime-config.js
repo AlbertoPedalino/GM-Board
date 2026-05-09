@@ -220,8 +220,7 @@ export default function install(registry, context = {}) {
     spellcasting: {
       ability: "wis",
       casterProgression: "half",
-      preparedMode: "known",
-      spellsKnown: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11],
+      preparedMode: "prepared",
       preparedSpellsProgression: _PREP_HALF,
       alwaysPreparedSpells: [
         { name: "Hunter's Mark", minLevel: 1, level: 1 },
@@ -286,8 +285,10 @@ export default function install(registry, context = {}) {
       casterProgression: "artificer",
       preparedMode: "prepared",
       preparedSpellsProgression: _PREP_HALF,
-      preparedFormula: { ability: "int", addLevel: true, levelDivisor: 2, levelRound: "ceil", min: 1 },
-      cantripKnown: [2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3],
+      cantripKnown: [2,2,2,2,2,2,2,2,2,3,3,3,3,4,4,4,4,4,4,4],
+      alwaysKnownSpells: [
+        { name: "Mending", minLevel: 1, level: 0, source: "Tinker's Magic", sourceType: "class" },
+      ],
       ritualCasting: true,
     },
   });

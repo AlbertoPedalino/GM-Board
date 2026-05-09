@@ -1,10 +1,11 @@
 import { memo } from 'react';
-import { Box, Card, CardContent, Chip, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
-import { Backpack, BookOpen, Feather, Layers, Shield, Sparkles, Sword, Wand2 } from 'lucide-react';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, Chip, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
+import { ChevronDown, Feather, Languages, Layers, Shield, Sparkles, Sword } from 'lucide-react';
 import { STAT_LABELS, STATS } from '../constants.js';
 import { calcMaxHp, formatMod, getAllFinalScores, getPrimaryClassLevel } from '../logic/calculations.js';
 import { renderEntryText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
+import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
 
 const SOURCE_COLOR = {
   class: '#d7ad52',
@@ -14,6 +15,28 @@ const SOURCE_COLOR = {
   feat: '#de675f',
 };
 
+const darkChipText = '#17120d';
+
+function filledChipSx(bg) {
+  return {
+    backgroundColor: bg,
+    color: darkChipText,
+    fontWeight: 700,
+    border: '1px solid rgba(255, 232, 176, 0.65)',
+    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.28) inset',
+    '& .MuiChip-label': { color: darkChipText },
+  };
+}
+
+function outlinedChipSx(color) {
+  return {
+    color,
+    borderColor: color,
+    fontWeight: 700,
+    '& .MuiChip-label': { color },
+  };
+}
+
 function FeatureCard({ name, level, source, body, sublabel }) {
   const tone = SOURCE_COLOR[source] || '#d7ad52';
   return (
@@ -21,9 +44,9 @@ function FeatureCard({ name, level, source, body, sublabel }) {
       <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
         <Stack spacing={0.5} sx={{ minWidth: 0 }}>
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
-            {level != null ? <Chip size="small" label={`Lv ${level}`} sx={{ bgcolor: tone, color: '#17120d', height: 18, fontSize: '0.65rem' }} /> : null}
+            {level != null ? <Chip size="small" label={`Lv ${level}`} sx={{ ...filledChipSx(tone), height: 18, fontSize: '0.65rem' }} /> : null}
             <Typography variant="body2" fontWeight={700} sx={{ flex: 1, minWidth: 0, color: tone, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</Typography>
-            {sublabel ? <Chip size="small" variant="outlined" label={sublabel} sx={{ height: 18, fontSize: '0.6rem' }} /> : null}
+            {sublabel ? <Chip size="small" variant="outlined" label={sublabel} sx={{ ...outlinedChipSx(tone), height: 18, fontSize: '0.6rem' }} /> : null}
           </Stack>
           {body ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -38,39 +61,59 @@ function FeatureCard({ name, level, source, body, sublabel }) {
 
 function FeatureWithChips({ entry, source, extraSublabel }) {
   const { feature, runtimeChips } = entry;
+  const tone = SOURCE_COLOR[source] || SOURCE_COLOR.class;
+  const body = renderEntryText(feature.entries);
   return (
-    <Card variant="outlined" sx={{ minWidth: 0, borderLeft: `3px solid ${SOURCE_COLOR[source] || SOURCE_COLOR.class}` }}>
-      <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-        <Stack spacing={0.5} sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }} flexWrap="wrap" useFlexGap>
-            <Typography variant="body2" fontWeight={700} sx={{ flex: '1 1 auto', minWidth: 0, color: SOURCE_COLOR[source] || SOURCE_COLOR.class, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{feature.name}</Typography>
-            {extraSublabel ? <Chip size="small" variant="outlined" label={extraSublabel} sx={{ height: 20, fontSize: '0.62rem' }} /> : null}
-          </Stack>
+    <Accordion
+      disableGutters
+      square
+      variant="outlined"
+      sx={{
+        minWidth: 0,
+        bgcolor: 'transparent',
+        backgroundImage: 'none',
+        borderLeft: `3px solid ${tone}`,
+        '&:before': { display: 'none' },
+        '&.Mui-expanded': { my: 0 },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ChevronDown size={14} />}
+        sx={{
+          minHeight: 32,
+          px: 1,
+          py: 0,
+          '&.Mui-expanded': { minHeight: 32 },
+          '& .MuiAccordionSummary-content': { my: 0.5, minWidth: 0 },
+          '& .MuiAccordionSummary-content.Mui-expanded': { my: 0.5 },
+        }}
+      >
+        <Typography variant="body2" fontWeight={700} sx={{ minWidth: 0, color: tone, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {feature.name}
+        </Typography>
+      </AccordionSummary>
+      <AccordionDetails sx={{ px: 1, pt: 0, pb: 1 }}>
+        <Stack spacing={0.75} sx={{ minWidth: 0 }}>
+          {extraSublabel ? <Chip size="small" variant="outlined" label={extraSublabel} sx={{ ...outlinedChipSx(tone), alignSelf: 'flex-start', height: 20, fontSize: '0.62rem' }} /> : null}
           {runtimeChips?.length ? (
             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
               {runtimeChips.map((chip, idx) => (
-                <Chip key={`rt-${idx}`} size="small" label={chip} sx={{ height: 20, fontSize: '0.62rem', bgcolor: 'rgba(215, 173, 82, 0.12)' }} />
+                <Chip key={`rt-${idx}`} size="small" label={chip} sx={{ ...outlinedChipSx('#edd48a'), height: 20, fontSize: '0.62rem', bgcolor: 'rgba(215, 173, 82, 0.12)' }} />
               ))}
             </Stack>
           ) : null}
-          <Typography variant="caption" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {renderEntryText(feature.entries).slice(0, 280)}
+          <Typography variant="caption" component="div" color="text.secondary" sx={{ lineHeight: 1.45, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
+            {body || 'No description.'}
           </Typography>
         </Stack>
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   );
 }
 
-function LevelGroup({ level, classFeatures, subFeatures, subclassName }) {
+function LevelGroup({ classFeatures, subFeatures }) {
   return (
     <Stack spacing={0.5} sx={{ minWidth: 0 }}>
-      <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap>
-        <Chip size="small" label={`Lv ${level}`} sx={{ bgcolor: SOURCE_COLOR.class, color: '#17120d', fontWeight: 700 }} />
-        {subFeatures.length && subclassName ? (
-          <Chip size="small" label={subclassName} sx={{ bgcolor: SOURCE_COLOR.subclass, color: '#17120d', fontWeight: 700, maxWidth: '100%' }} />
-        ) : null}
-      </Stack>
       <Stack spacing={0.5} sx={{ minWidth: 0 }}>
         {classFeatures.map((entry) => (
           <FeatureWithChips key={`c-${entry.feature.name}-${entry.feature.level}`} entry={entry} source="class" />
@@ -79,6 +122,116 @@ function LevelGroup({ level, classFeatures, subFeatures, subclassName }) {
           <FeatureWithChips key={`s-${entry.feature.name}-${entry.feature.level}`} entry={entry} source="subclass" extraSublabel="sub" />
         ))}
       </Stack>
+    </Stack>
+  );
+}
+
+function normalizeListValue(value) {
+  return String(value || '')
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .replace(/[{}]/g, '')
+    .replace(/\.$/, '')
+    .trim();
+}
+
+function uniqueClean(values) {
+  const seen = new Set();
+  const out = [];
+  (values || []).flat().forEach((value) => {
+    const label = normalizeListValue(value);
+    const key = label.toLowerCase();
+    if (!label || seen.has(key)) return;
+    seen.add(key);
+    out.push(label);
+  });
+  return out.sort((a, b) => a.localeCompare(b));
+}
+
+function collectSkillProficiencies(character) {
+  const fromSelected = Array.isArray(character.selectedSkills)
+    ? character.selectedSkills
+    : [
+      ...(character.selectedSkills?.proficient || []),
+      ...(character.selectedSkills?.expertise || []),
+    ];
+  const fromChoices = Object.entries(character.choices || [])
+    .filter(([key]) => {
+      const lk = key.toLowerCase();
+      return lk.includes('skill') || lk.includes('exp_');
+    })
+    .flatMap(([, value]) => (Array.isArray(value) ? value : [value]));
+  return uniqueClean([...fromSelected, ...fromChoices]);
+}
+
+function collectPreviewProficiencies(character) {
+  const sheetLike = {
+    ...character,
+    clsSnapshot: character.clsSnapshot || character.cls || {},
+    bgSnapshot: character.bgSnapshot || character.backgroundObj || {},
+    speciesSnapshot: {
+      ...(character.speciesSnapshot || character.speciesObj || {}),
+      languageProficiencies: [{ common: true }, ...((character.speciesSnapshot || character.speciesObj || {}).languageProficiencies || [])],
+    },
+    allClassFeatures: [
+      ...(character.allFeatures || []),
+      ...(character.allSubFeatures || []),
+      ...(character.extraClasses || []).flatMap((extra) => [
+        ...(extra.allFeatures || []),
+        ...(extra.allSubFeatures || []),
+      ]),
+    ],
+  };
+  const sections = collectAllProficiencies(sheetLike).map((section) => ({
+    title: section.title,
+    items: uniqueClean(section.items),
+  }));
+  const skillItems = collectSkillProficiencies(character);
+  if (skillItems.length) sections.unshift({ title: 'Skills', items: skillItems });
+  return sections.filter((section) => section.items.length);
+}
+
+function ProficiencySection({ sections }) {
+  if (!sections.length) return null;
+  return (
+    <Stack spacing={1} sx={{ minWidth: 0 }}>
+      <Stack direction="row" spacing={0.75} alignItems="center">
+        <Languages size={16} color={SOURCE_COLOR.subclass} />
+        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.subclass }}>
+          Proficiencies / Languages
+        </Typography>
+      </Stack>
+      {sections.map((section) => (
+        <Box key={section.title} sx={{ minWidth: 0 }}>
+          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 700 }}>
+            {section.title}
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, width: '100%', minWidth: 0, maxWidth: '100%', overflowX: 'hidden' }}>
+            {section.items.map((item) => (
+              <Chip
+                key={`${section.title}-${item}`}
+                size="small"
+                variant="outlined"
+                label={item}
+                sx={{
+                  ...outlinedChipSx(section.title === 'Languages' ? SOURCE_COLOR.subclass : '#edd48a'),
+                  flex: '0 1 auto',
+                  minWidth: 0,
+                  height: 21,
+                  maxWidth: '100%',
+                  '& .MuiChip-label': {
+                    color: section.title === 'Languages' ? SOURCE_COLOR.subclass : '#edd48a',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                  },
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      ))}
     </Stack>
   );
 }
@@ -132,10 +285,8 @@ function ClassSection({ icon: Icon, title, classFeatures, subFeatures, subclassN
       {levels.map((lv) => (
         <LevelGroup
           key={`lvg-${lv}`}
-          level={lv}
           classFeatures={byLevel[lv].c}
           subFeatures={byLevel[lv].s}
-          subclassName={subclassName}
         />
       ))}
       {choiceCards}
@@ -202,6 +353,7 @@ function PreviewPaneImpl({ character }) {
   const hp = calcMaxHp(character);
   const primaryLv = getPrimaryClassLevel(character);
   const partitioned = partitionChoices(character.choices);
+  const proficiencySections = collectPreviewProficiencies(character);
 
   const classActions = installedRegistry
     .getClassSheetActions(character.className)
@@ -222,12 +374,6 @@ function PreviewPaneImpl({ character }) {
   const speciesActions = character.speciesName
     ? installedRegistry.getSpeciesSheetActions(character.speciesName, character.speciesSource)
     : [];
-
-  const selectedSpells = [
-    ...(character.selectedCantrips || []).map((name) => ({ name, level: 0 })),
-    ...Object.entries(character.selectedSpells || {}).flatMap(([level, list]) => (list || []).map((name) => ({ name, level: Number(level) }))),
-    ...collectAutoGrantedSpells(character),
-  ];
 
   return (
     <Paper variant="outlined" sx={{ p: 1, position: { md: 'sticky' }, top: 64, maxHeight: { md: 'calc(100vh - 76px)' }, overflow: 'auto', minWidth: 0 }}>
@@ -255,6 +401,8 @@ function PreviewPaneImpl({ character }) {
         </Grid>
 
         <Divider />
+        <ProficiencySection sections={proficiencySections} />
+        {proficiencySections.length ? <Divider /> : null}
 
         {character.cls ? (
           <ClassSection
@@ -363,67 +511,9 @@ function PreviewPaneImpl({ character }) {
           </>
         ) : null}
 
-        {selectedSpells.length ? (
-          <>
-            <Divider />
-            <Stack spacing={1} sx={{ minWidth: 0 }}>
-              <Stack direction="row" spacing={0.75} alignItems="center">
-                <BookOpen size={16} />
-                <Typography variant="overline" sx={{ letterSpacing: 1 }}>Spells ({selectedSpells.length})</Typography>
-              </Stack>
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((lv) => {
-                const list = selectedSpells.filter((spell) => spell.level === lv);
-                if (!list.length) return null;
-                return (
-                  <Box key={`spl-${lv}`} sx={{ minWidth: 0 }}>
-                    <Typography variant="caption" sx={{ color: 'secondary.main', fontWeight: 700 }}>
-                      {lv === 0 ? 'Cantrips' : `Level ${lv}`}
-                    </Typography>
-                    <Box component="ul" sx={{ m: 0, pl: 2.25, color: 'text.secondary' }}>
-                      {list.map((spell) => (
-                        <Typography key={spell.name} component="li" variant="caption" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {spell.name}
-                        </Typography>
-                      ))}
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Stack>
-          </>
-        ) : null}
-
-        <Divider />
-        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
-          <Chip icon={<Backpack size={14} />} size="small" label={`${character.inventory.length} items`} />
-          <Chip icon={<Wand2 size={14} />} size="small" label={`${character.selectedCantrips?.length || 0} cantrip`} />
-        </Stack>
       </Stack>
     </Paper>
   );
 }
 
 export default memo(PreviewPaneImpl, (prev, next) => prev.character === next.character);
-
-function collectAutoGrantedSpells(character) {
-  const out = [];
-  const pushFrom = (className, subclassShortName, level) => {
-    const cfgs = [
-      installedRegistry.getClassRuntimeConfig(className),
-      installedRegistry.getSubclassRuntimeConfig(className, subclassShortName),
-    ];
-    cfgs.forEach((cfg) => {
-      [
-        ...(cfg?.spellcasting?.alwaysKnownSpells || []),
-        ...(cfg?.spellcasting?.alwaysPreparedSpells || []),
-      ].forEach((entry) => {
-        const name = typeof entry === 'string' ? entry : entry?.name;
-        if (!name || Number(level || 1) < Number(entry?.minLevel || 1)) return;
-        out.push({ name, level: Number(entry?.level ?? 0), auto: true });
-      });
-    });
-  };
-  pushFrom(character.className, character.subclassShortName, getPrimaryClassLevel(character));
-  (character.extraClasses || []).forEach((extra) => pushFrom(extra.name, extra.subclassShortName, extra.level || 1));
-  return out;
-}

@@ -10,6 +10,14 @@ import {
 import { getBackgroundPattern, getLevelFromXp } from './logic/calculations.js';
 import { handleBackgroundSelect, handleClassSelect, handleSpellToggle } from './stateHandlers.js';
 
+function normChoice(value) {
+  return String(value || '')
+    .split('|')[0]
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
 export const initialCharacter = {
   name: '',
   xp: 0,
@@ -362,6 +370,7 @@ export function builderReducer(state, action) {
     case 'choice/toggle-item': {
       const current = Array.isArray(state.character.choices[action.key]) ? state.character.choices[action.key] : [];
       const exists = current.includes(action.value);
+      if (!exists && Array.isArray(action.blockedValues) && action.blockedValues.includes(normChoice(action.value))) return state;
       const max = action.max || 1;
       const next = exists
         ? current.filter((item) => item !== action.value)

@@ -1,12 +1,32 @@
 import { Box, Button, Chip, List, ListItemButton, ListItemText, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
-import { AlertCircle, Plus, Sword, Trash2 } from 'lucide-react';
+import { AlertCircle, Axe, BookOpen, Compass, Cross, Dumbbell, Eye, Feather, Flame, Hammer, Music, Plus, Shield, Sparkles, Sword, Trash2, Wand2 } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
 import { getFinalScore } from '../logic/calculations.js';
 import { checkMulticlassPrerequisite, checkSpellcastingMulticlass, getMulticlassProficienciesGained } from '../logic/multiclassRules.js';
 import { installedRegistry } from '../../../adapters/index.js';
 
+const CLASS_ICONS = {
+  Artificer: Hammer,
+  Barbarian: Axe,
+  Bard: Music,
+  Cleric: Cross,
+  Druid: Feather,
+  Fighter: Sword,
+  Monk: Dumbbell,
+  Paladin: Shield,
+  Ranger: Compass,
+  Rogue: Eye,
+  Sorcerer: Sparkles,
+  Warlock: Flame,
+  Wizard: BookOpen,
+};
+
+function classIcon(className) {
+  return CLASS_ICONS[className] || Wand2;
+}
+
 function ClassRow({ cls, selected, onSelect, prereqMet = true, prereqReason = '', warningMsg = '' }) {
-  const Icon = cls.icon || Sword;
+  const Icon = classIcon(cls.name);
   const hitDie = cls.hitDie || `d${cls.hd?.faces || '?'}`;
   const saves = (cls.proficiency || []).map((save) => save.toUpperCase()).join(', ');
   return (
@@ -60,10 +80,11 @@ export default function ClassPanel({ state, character, dispatch }) {
   const activeExtra = character.activeClassTab > 0 ? character.extraClasses[character.activeClassTab - 1] : null;
   const isExtraTab = !!activeExtra;
   const takenNames = new Set([character.className, ...character.extraClasses.map((extra) => extra.name)]);
+  const PanelIcon = classIcon(activeExtra?.name || character.className);
   return (
     <BuilderPanel
       title="Class"
-      icon={Sword}
+      icon={PanelIcon}
       note={activeExtra ? 'Selecting multiclass class' : 'Selecting primary class'}
       action={
         <Stack direction="row" spacing={0.55} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>

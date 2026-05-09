@@ -56,6 +56,28 @@ export const theme = createTheme({
         disableElevation: true,
       },
     },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          minHeight: 0,
+        },
+        scrollButtons: {
+          width: 28,
+          minHeight: 0,
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          minHeight: 0,
+          minWidth: 0,
+          padding: '6px 10px',
+          fontSize: '0.62rem',
+          lineHeight: 1.2,
+        },
+      },
+    },
     MuiCard: {
       styleOverrides: {
         root: {

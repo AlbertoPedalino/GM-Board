@@ -9,6 +9,8 @@ function normalizeLabel(v) {
   return String(v).replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1').replace(/[{}]/g, '').replace(/\.$/, '').trim();
 }
 
+const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
+
 const SIMPLE_WEAPONS = new Set([
   'club','dagger','greatclub','handaxe','javelin','lighthammer','mace','quarterstaff','sickle','spear',
   'dart','lightcrossbow','shortbow','sling','crossbowlight',
@@ -117,7 +119,7 @@ function collectFixedFeatureProfs(C, field) {
       if (typeof entry === 'string') {
         entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => out.add(v));
       } else if (entry && typeof entry === 'object') {
-        Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => out.add(v));
+        Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => out.add(v));
       }
     });
   });
@@ -136,7 +138,7 @@ export function collectEquipmentProficiencySets(C) {
     arr.forEach(entry => {
       if (!entry) return;
       if (typeof entry === 'string') { entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v)); return; }
-      Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
+      Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
     });
   };
 
@@ -267,13 +269,16 @@ export function collectAllProficiencies(C) {
     arr.forEach(entry => {
       if (!entry) return;
       if (typeof entry === 'string') { entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v)); return; }
-      Object.keys(entry).filter(k => !['choose', 'any'].includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
+      Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
     });
   };
 
   addFixed(sp.tools, toolSet);
 
   const bg = C?.bgSnapshot || {};
+  const species = C?.speciesSnapshot || {};
+  if (species.toolProficiencies) addFixed(species.toolProficiencies, toolSet);
+  if (species.languageProficiencies) addFixed(species.languageProficiencies, langSet);
   if (bg.toolProficiencies) addFixed(bg.toolProficiencies, toolSet);
   if (bg.languageProficiencies) addFixed(bg.languageProficiencies, langSet);
 

@@ -1,8 +1,8 @@
-import { Alert, Button, Grid, Paper, Slider, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Grid, Paper, Slider, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
 import { Dice5, Dumbbell } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import { PB_COST, STANDARD_ARRAY, STAT_LABELS, STATS } from '../constants.js';
-import { getFinalScore, pointBuySpent } from '../logic/calculations.js';
+import { getAbilityScoreBonusBreakdown, getBaseScore, getFinalScore, pointBuySpent } from '../logic/calculations.js';
 import { getActiveScores } from '../state.js';
 
 function scoreMod(value) {
@@ -62,49 +62,91 @@ export default function ScoresStep({ state, dispatch }) {
         ) : null}
 
         <Grid container spacing={1.5}>
-          {STATS.map((stat) => (
-            <Grid key={stat} item xs={12} md={6}>
-              <Paper variant="outlined" sx={{ p: 1.5 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h2">{STAT_LABELS[stat]}</Typography>
-                  <Typography color="text.secondary">
-                    {getFinalScore(character, stat) ?? '-'} ({scoreMod(getFinalScore(character, stat))})
-                  </Typography>
-                </Stack>
-                {character.scoreMethod === 'dice' ? (
-                  <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
-                    <Button disabled={character.selDiceIdx == null || scores[stat] != null} onClick={() => dispatch({ type: 'dice/assign', stat })}>
-                      Assign
-                    </Button>
-                    <Button disabled={scores[stat] == null} onClick={() => dispatch({ type: 'dice/unassign', stat })}>
-                      Clear
-                    </Button>
+          {STATS.map((stat) => {
+            const baseScore = getBaseScore(character, stat);
+            const finalScore = getFinalScore(character, stat);
+            const bonusBreakdown = getAbilityScoreBonusBreakdown(character, stat);
+
+            return (
+              <Grid key={stat} item xs={12} md={6}>
+                <Paper variant="outlined" sx={{ p: 1.5, height: '100%' }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1.25}>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="h2" sx={{ lineHeight: 1.15 }}>{STAT_LABELS[stat]}</Typography>
+                      <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                        <Chip size="small" label={`Base ${baseScore}`} variant="outlined" />
+                        {bonusBreakdown.map((bonus, index) => (
+                          <Chip
+                            key={`${bonus.source}-${index}`}
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            label={`${bonus.source} +${bonus.value}`}
+                          />
+                        ))}
+                      </Stack>
+                    </Box>
+                    <Box
+                      sx={{
+                        minWidth: 58,
+                        px: 1,
+                        py: 0.75,
+                        borderRadius: 1,
+                        bgcolor: 'action.selected',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '1.15rem', fontWeight: 800, lineHeight: 1 }}>{finalScore ?? '-'}</Typography>
+                      <Typography color="text.secondary" sx={{ fontSize: '0.72rem', mt: 0.35 }}>
+                        {scoreMod(finalScore)}
+                      </Typography>
+                    </Box>
                   </Stack>
-                ) : null}
-                {character.scoreMethod === 'manual' ? (
-                  <TextField
-                    fullWidth
-                    type="number"
-                    value={scores[stat] ?? ''}
-                    inputProps={{ min: 1, max: 30 }}
-                    onChange={(event) => dispatch({ type: 'score/set', bucket, stat, value: Number(event.target.value) || 1 })}
-                    sx={{ mt: 1.5 }}
-                  />
-                ) : (
-                  <Slider
-                    value={scores[stat] ?? 8}
-                    min={character.scoreMethod === 'manual' ? 1 : 8}
-                    max={character.scoreMethod === 'pointbuy' ? 15 : 20}
-                    marks={[
-                      { value: 8, label: '8' },
-                      { value: character.scoreMethod === 'pointbuy' ? 15 : 20, label: character.scoreMethod === 'pointbuy' ? '15' : '20' },
-                    ]}
-                    onChange={(_, value) => dispatch({ type: 'score/set', bucket, stat, value })}
-                  />
-                )}
-              </Paper>
-            </Grid>
-          ))}
+                  {character.scoreMethod === 'dice' ? (
+                    <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+                      <Button disabled={character.selDiceIdx == null || scores[stat] != null} onClick={() => dispatch({ type: 'dice/assign', stat })}>
+                        Assign
+                      </Button>
+                      <Button disabled={scores[stat] == null} onClick={() => dispatch({ type: 'dice/unassign', stat })}>
+                        Clear
+                      </Button>
+                    </Stack>
+                  ) : null}
+                  {character.scoreMethod === 'manual' ? (
+                    <TextField
+                      fullWidth
+                      type="number"
+                      value={scores[stat] ?? ''}
+                      inputProps={{ min: 1, max: 30 }}
+                      onChange={(event) => dispatch({ type: 'score/set', bucket, stat, value: Number(event.target.value) || 1 })}
+                      sx={{ mt: 1.5 }}
+                    />
+                  ) : (
+                    <Box sx={{ px: 0.75, pt: 2.25, pb: 0.25 }}>
+                      <Slider
+                        value={scores[stat] ?? 8}
+                        min={character.scoreMethod === 'manual' ? 1 : 8}
+                        max={character.scoreMethod === 'pointbuy' ? 15 : 20}
+                        marks={[
+                          { value: 8, label: '8' },
+                          { value: character.scoreMethod === 'pointbuy' ? 15 : 20, label: character.scoreMethod === 'pointbuy' ? '15' : '20' },
+                        ]}
+                        onChange={(_, value) => dispatch({ type: 'score/set', bucket, stat, value })}
+                        sx={{
+                          '& .MuiSlider-markLabel': {
+                            fontSize: '0.68rem',
+                            color: 'text.secondary',
+                          },
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            );
+          })}
         </Grid>
       </Stack>
     </BuilderPanel>

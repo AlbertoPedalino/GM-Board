@@ -43,7 +43,7 @@ function renderGrantSpec({ grant, character, state, dispatch }) {
   if (grant.type === 'spell_choice' || grant.type === 'spell_grant') {
     return <SpellChoiceList key={grant.key} spec={grant} state={state} dispatch={dispatch} />;
   }
-  return <ChoiceBlock key={grant.key} spec={grant} choices={character.choices} dispatch={dispatch} />;
+  return <ChoiceBlock key={grant.key} spec={grant} choices={character.choices} dispatch={dispatch} character={character} />;
 }
 
 export function FeatFixedSlot({ spec, feats, character, state, dispatch, accent = 'secondary' }) {

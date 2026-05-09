@@ -13,7 +13,9 @@ function classFolderToken(name) {
 
 function pathsForClass(name) {
   const token = classFolderToken(name);
-  return Object.keys(adapterModules).filter((path) => path.includes(`/classes/${token}/`));
+  return Object.keys(adapterModules).filter((path) =>
+    path.includes(`./classes/${token}/`) || path.includes(`/classes/${token}/`),
+  );
 }
 
 function pathsForSpecies() {

@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, Chip, Divider, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
 import { Feather, GraduationCap, ScrollText, SlidersHorizontal } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
@@ -62,20 +62,18 @@ function BackgroundDetailCard({ background }) {
   const fixedLangs = fixedKeysFromBlocks(background.languageProficiencies || [], ['choose', 'any', 'anyStandard', 'anyExotic']);
 
   return (
-    <Card variant="outlined" sx={{ minWidth: 0 }}>
-      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <Stack spacing={1.25} sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-            <Typography variant="h2" sx={{ flex: 1, minWidth: 0 }}>{background.name}</Typography>
-            <Chip size="small" label={background.source || ''} />
-          </Stack>
-          <Divider />
-          <ProfList title="Skills (granted)" items={fixedSkills} color="#d7ad52" />
-          <ProfList title="Tools (granted)" items={fixedTools} color="#70b7a6" />
-          <ProfList title="Languages (granted)" items={fixedLangs} color="#b58fd9" />
+    <Box sx={{ minWidth: 0, p: 1 }}>
+      <Stack spacing={1.25} sx={{ minWidth: 0 }}>
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+          <Typography variant="h2" sx={{ flex: 1, minWidth: 0 }}>{background.name}</Typography>
+          <Chip size="small" label={background.source || ''} />
         </Stack>
-      </CardContent>
-    </Card>
+        <Divider />
+        <ProfList title="Skills (granted)" items={fixedSkills} color="#d7ad52" />
+        <ProfList title="Tools (granted)" items={fixedTools} color="#70b7a6" />
+        <ProfList title="Languages (granted)" items={fixedLangs} color="#b58fd9" />
+      </Stack>
+    </Box>
   );
 }
 
@@ -159,7 +157,7 @@ export default function BackgroundStep({ state, dispatch }) {
           {backgroundChoiceSpecs(character).map((spec) => (
             spec.type === 'feat_fixed'
               ? <FeatFixedSlot key={spec.key} spec={spec} feats={state.data.feats} character={character} state={state} dispatch={dispatch} />
-              : <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} />
+              : <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} character={character} />
           ))}
         </Stack>
       </BuilderPanel>

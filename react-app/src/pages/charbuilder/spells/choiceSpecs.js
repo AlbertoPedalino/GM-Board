@@ -12,8 +12,9 @@ const MUSICAL = ['Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum', 'Horn', '
 const GAMING = ['Dice Set', 'Dragonchess Set', 'Playing Card Set', 'Three-Dragon Ante Set'];
 const VEHICLES = ['Vehicles (Land)', 'Vehicles (Water)'];
 const ALL_TOOLS = [...ARTISAN_TOOLS, ...MUSICAL, ...GAMING, ...VEHICLES, "Thieves' Tools", 'Disguise Kit', 'Forgery Kit', "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit"];
+const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 
-export function fixedKeysFromBlocks(blocks, excluded = ['choose']) {
+export function fixedKeysFromBlocks(blocks, excluded = CHOICE_KEYS) {
   return (blocks || []).flatMap((block) => Object.keys(block || {}).filter((key) => !excluded.includes(key) && block[key]));
 }
 
@@ -35,10 +36,31 @@ function specPush(out, spec) {
 }
 
 function choiceFromBlock(prefix, label, block, fallbackFrom = []) {
-  const choose = block?.choose;
-  if (!choose) return null;
-  const from = choose.from || choose.weighted?.from || fallbackFrom;
-  const count = choose.count || choose.weighted?.weights?.length || 1;
+  if (!block || typeof block !== 'object') return null;
+  const choose = block.choose;
+  let from = choose?.from || choose?.weighted?.from || null;
+  let count = Number(choose?.count || choose?.weighted?.weights?.length || 0);
+  if (!from?.length) {
+    if (block.anyArtisansTool) from = ARTISAN_TOOLS;
+    else if (block.anyMusicalInstrument) from = MUSICAL;
+    else if (block.anyGamingSet) from = GAMING;
+    else if (block.anyStandard) from = STD_LANGS;
+    else if (block.anyExotic) from = EXOTIC_LANGS;
+    else if (block.anyTool || block.any) from = fallbackFrom;
+  }
+  if (!count) {
+    count = Number(
+      block.anyTool
+      || block.anyArtisansTool
+      || block.anyMusicalInstrument
+      || block.anyGamingSet
+      || block.anyStandard
+      || block.anyExotic
+      || block.any
+      || 1,
+    );
+  }
+  from = from?.length ? from : fallbackFrom;
   if (!from?.length) return null;
   return { key: prefix, label, type: 'generic_choice', from, count };
 }
@@ -235,7 +257,7 @@ function buildClassSpecs(cls, classLevel, options) {
     const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_skill_${index}`, 'Class Skill', block, ALL_SKILLS) : null;
     if (spec) specs.push({ ...spec, type: 'skill_choice', level: 1 });
   });
-  (prof.tools || []).forEach((block, index) => {
+  [...(prof.tools || []), ...(prof.toolProficiencies || [])].forEach((block, index) => {
     const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_tool_${index}`, 'Class Tool', block, ALL_TOOLS) : null;
     if (spec) specs.push({ ...spec, type: 'generic_choice', level: 1 });
   });
@@ -308,12 +330,20 @@ export function classChoiceSpecs(character, context = {}) {
 export function speciesChoiceSpecs(character) {
   const species = character.speciesObj;
   if (!species) return [];
+  const specs = [];
+  specs.push({
+    key: 'species_language_bonus',
+    label: 'Species Languages',
+    type: 'language_choice',
+    from: ALL_LANGS.filter((language) => language !== 'Common'),
+    count: 2,
+    level: 1,
+  });
   const adapter = installedRegistry.getSpeciesAdapter(character.speciesName, character.speciesSource);
   if (adapter) {
-    const specs = adapter(species);
-    if (Array.isArray(specs)) return specs;
+    const adapterSpecs = adapter(species);
+    if (Array.isArray(adapterSpecs)) return dedupSpecs([...specs, ...adapterSpecs]);
   }
-  const specs = [];
   (species.skillProficiencies || []).forEach((block, index) => {
     const spec = choiceFromBlock(`species_skill_${index}`, 'Species Skill', block, ALL_SKILLS);
     if (spec) specs.push({ ...spec, type: 'skill_choice' });
@@ -443,7 +473,17 @@ export function featChoiceSpecs(feat, options = {}) {
   const specs = [];
   const ui = feat?.choiceUi || {};
   const slotKey = options.slotKey || `feat_${feat.name}`;
-  if (ui.abilityScoreIncrease || feat?.ability?.some((block) => block.choose)) {
+  const asiUi = ui.abilityScoreIncrease;
+  if (asiUi) {
+    const from = asiUi.from?.length ? asiUi.from : STATS;
+    const modes = asiUi.modes || ['single'];
+    if (modes.includes('double') || modes.includes('split')) {
+      specs.push({ key: `${slotKey}_first_asi`, label: `${feat.name} Ability +1`, type: 'ability_choice', from, count: 1 });
+      specs.push({ key: `${slotKey}_second_asi`, label: `${feat.name} Ability +1`, type: 'ability_choice', from, count: 1 });
+    } else {
+      specs.push({ key: `${slotKey}_asi`, label: `${feat.name} Ability`, type: 'ability_choice', from, count: 1 });
+    }
+  } else if (feat?.ability?.some((block) => block.choose)) {
     specs.push({ key: `${slotKey}_asi`, label: `${feat.name} Ability`, type: 'ability_choice', from: STATS, count: 1 });
   }
   if (ui.skillProficiency) specs.push({ key: `${slotKey}_skill`, label: `${feat.name} Skill`, type: 'skill_choice', from: ALL_SKILLS, count: ui.skillProficiency.count || 1 });

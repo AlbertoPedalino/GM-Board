@@ -8,9 +8,16 @@ export function buildSpellInfo(C, spellIndex) {
   const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0) => {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
-    const key = `${name}|${castLevel || spell.level}|${source?.label || ''}`;
-    if (!rows.has(key)) rows.set(key, { ...spell, sourceInfo: source, castLevel });
-    if (locked) lockedNames.add(name);
+    const key = `${norm(name)}|${castLevel || spell.level}`;
+    const row = { ...spell, sourceInfo: source, castLevel };
+    const existing = rows.get(key);
+    if (!existing || (!existing.sourceInfo && source) || (!existing.locked && locked)) {
+      rows.set(key, { ...row, locked });
+    }
+    if (locked) {
+      lockedNames.add(name);
+      lockedNames.add(norm(name));
+    }
   };
 
   (C?.selectedCantrips || []).forEach((name) => pushKnown(name, 0, null));
@@ -38,13 +45,13 @@ export function buildSpellInfo(C, spellIndex) {
     leveled[level].push(entry);
   });
   Object.values(leveled).forEach((entries) => entries.sort(sortByName));
-  return { cantrips, atWill, leveled, lockedNames, lockedEntries: all.filter((entry) => lockedNames.has(entry.name)) };
+  return { cantrips, atWill, leveled, lockedNames, lockedEntries: all.filter((entry) => entry.locked || lockedNames.has(entry.name) || lockedNames.has(norm(entry.name))) };
 
   function pushKnown(name, level, source) {
     const full = spellIndex.get(norm(name));
     if (full) push(name, source);
     else {
-      const key = `${name}|${level}|${source?.label || ''}`;
+      const key = `${norm(name)}|${level}`;
       if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source });
     }
   }
@@ -82,11 +89,17 @@ function collectAutoGrantedSpells(C) {
       [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
         const name = typeof spell === 'string' ? spell : spell?.name;
         if (!name || entity.level < Number(spell?.minLevel || 1)) return;
-        out.push({ name, level: Number(spell?.level ?? 0), source: { label: entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' } });
+        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' } });
       });
     });
   });
-  return out;
+  const seen = new Set();
+  return out.filter((entry) => {
+    const key = norm(entry.name);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function collectAtWillSpells(C) {

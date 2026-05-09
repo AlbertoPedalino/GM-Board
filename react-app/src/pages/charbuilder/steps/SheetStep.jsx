@@ -1,7 +1,6 @@
-import { Alert, Button, Paper, Stack, Typography } from '@mui/material';
-import { ClipboardList, FileText, Home, Save } from 'lucide-react';
+import { Alert, Box, Button, Stack, Typography } from '@mui/material';
+import { ClipboardList, FileText } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
-import { DATA_BASE } from '../constants.js';
 import { saveCharacter } from '../logic/persistence.js';
 
 export default function SheetStep({ state, dispatch }) {
@@ -16,50 +15,47 @@ export default function SheetStep({ state, dispatch }) {
   const ready = missing.length === 0;
 
   return (
-    <BuilderPanel id="panel-sheet" title="Generate Sheet" icon={ClipboardList} note="Final save/export from React builder state.">
-      <Stack spacing={2} alignItems="center" sx={{ py: 3 }}>
+    <BuilderPanel id="panel-sheet" title="Sheet" icon={ClipboardList}>
+      <Stack spacing={1.5} sx={{ py: 1.5 }}>
         {!ready ? (
-          <Alert severity="warning">Missing required identity fields before sheet generation: {missing.join(', ')}.</Alert>
+          <Alert severity="warning">Completa prima: {missing.join(', ')}.</Alert>
         ) : null}
-        <Typography color="text.secondary" sx={{ textAlign: 'center' }}>
-          Finished all choices? Save character payload from reducer state.
-        </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent="center">
+
+        <Box
+          sx={{
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 1,
+            bgcolor: 'rgba(26,23,19,0.66)',
+            px: 1.4,
+            py: 1.25,
+            display: 'flex',
+            alignItems: { xs: 'stretch', sm: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 1,
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h2" sx={{ color: ready ? 'primary.main' : 'text.secondary' }}>
+              {ready ? 'Scheda pronta' : 'Scheda non pronta'}
+            </Typography>
+            <Typography color="text.secondary" sx={{ fontSize: '0.72rem', mt: 0.35 }}>
+              {ready ? 'Salva il personaggio e passa alla scheda.' : 'Mancano dati minimi del personaggio.'}
+            </Typography>
+          </Box>
           <Button
             variant="contained"
-            color="success"
             disabled={!ready}
             startIcon={<FileText size={16} />}
             onClick={() => {
               saveCharacter(character, state.data);
               window.location.href = '/sheet';
             }}
+            sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}
           >
-            Create Sheet
+            Apri Scheda
           </Button>
-          <Button
-            variant="contained"
-            disabled={!ready}
-            startIcon={<ClipboardList size={16} />}
-            onClick={() => {
-              const payload = saveCharacter(character, state.data);
-              dispatch({ type: 'choice/open', title: 'Character Payload Saved', body: JSON.stringify(payload, null, 2) });
-            }}
-          >
-            Save Character Payload
-          </Button>
-          <Button startIcon={<Save size={16} />} onClick={() => dispatch({ type: 'choice/open', title: 'Save Draft', body: JSON.stringify(character, null, 2) })}>
-            Save Draft
-          </Button>
-          <Button href="../index.html" startIcon={<Home size={16} />}>
-            Home
-          </Button>
-        </Stack>
-        <Paper variant="outlined" sx={{ p: 1.5, width: '100%', maxWidth: 720 }}>
-          <Typography variant="caption" color="text.secondary">
-            Data source: {DATA_BASE}
-          </Typography>
-        </Paper>
+        </Box>
       </Stack>
     </BuilderPanel>
   );

@@ -48,7 +48,7 @@ export default function SpeciesStep({ state, dispatch }) {
           {speciesChoiceSpecs(character).map((spec) =>
             spec.type === 'feat_cat'
               ? <FeatCategorySlot key={spec.key} spec={spec} feats={state.data.feats} character={character} state={state} dispatch={dispatch} />
-              : <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} />
+              : <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} character={character} />
           )}
         </Stack>
       </BuilderPanel>

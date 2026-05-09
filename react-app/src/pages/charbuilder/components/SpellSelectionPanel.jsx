@@ -2,7 +2,7 @@ import { Box, Chip, InputAdornment, List, ListItemButton, ListItemText, Paper, S
 import { BookOpen, Search } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
 import { SPELL_LEVEL_LABELS } from '../constants.js';
-import { getSpellCounts, maxSpellLevel, spellMatchesAnyClass } from '../spells/spells.js';
+import { collectAutoGrantedSpells, getSpellCounts, maxSpellLevel, spellMatchesAnyClass } from '../spells/spells.js';
 
 export default function SpellSelectionPanel({ state, dispatch }) {
   const { character } = state;
@@ -17,6 +17,7 @@ export default function SpellSelectionPanel({ state, dispatch }) {
     level: activeExtra.level || 1,
     cls: activeExtra.cls,
     subclassShortName: activeExtra.subclassShortName || '',
+    allSubFeatures: activeExtra.allSubFeatures || [],
     extraClasses: [],
   } : character;
   const { cantrips, spells, profile } = getSpellCounts(activeCharacter);
@@ -115,19 +116,6 @@ export default function SpellSelectionPanel({ state, dispatch }) {
       </Stack>
     </BuilderPanel>
   );
-}
-
-function collectAutoGrantedSpells(character, profile) {
-  const level = Math.max(1, Math.min(20, Number(character.classLevel || character.level || 1)));
-  return [
-    ...(profile.alwaysKnownSpells || []).map((spell) => ({ spell, mode: 'known' })),
-    ...(profile.alwaysPreparedSpells || []).map((spell) => ({ spell, mode: 'prepared' })),
-  ].map(({ spell, mode }) => ({
-    name: typeof spell === 'string' ? spell : spell?.name,
-    minLevel: Number(spell?.minLevel || 1),
-    level: Number(spell?.level ?? 0),
-    mode,
-  })).filter((spell) => spell.name && level >= spell.minLevel);
 }
 
 function dedupeSpells(spells) {

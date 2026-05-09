@@ -27,7 +27,7 @@ export default function ClassStep({ state, dispatch }) {
     if (spec.type === 'feat_fixed') {
       return <FeatFixedSlot key={spec.key} spec={spec} feats={state.data.feats} character={character} state={state} dispatch={dispatch} />;
     }
-    return <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} />;
+    return <ChoiceBlock key={spec.key} spec={spec} choices={character.choices} dispatch={dispatch} character={character} />;
   };
 
   return (
