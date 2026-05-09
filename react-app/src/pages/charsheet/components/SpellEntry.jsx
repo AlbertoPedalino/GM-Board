@@ -12,6 +12,7 @@ import {
   renderEntries,
 } from '../logic/spellsTabLogic.js';
 import { spellBodySx, spellRowSx } from './spellsTabStyles.js';
+import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
 function Badge({ label, color, bg = 'transparent' }) {
   return (
@@ -32,6 +33,8 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
   const rawDamages = extractDamageDice(entry.entries || []);
   const hasAttack = !!entry.spellAttack;
   const spellData = installedRegistry.getSpellData(entry.name);
+  const hasConcentrationTag = isConcentrationSpell(entry) || isConcentrationSpell(spellData);
+  const hasRitualTag = isRitualSpell(entry) || isRitualSpell(spellData);
   const hasHeal = !!spellData?.heal;
   const rawHealFormula = hasHeal ? (spellData?.baseDie || (rawDamages.length > 0 ? rawDamages[0].formula : null)) : null;
   const damages = hasHeal ? [] : rawDamages;
@@ -96,6 +99,7 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
           </Typography>
           {castLevel > baseLevel ? <Badge label={SPELL_LEVEL_LABELS[castLevel]} color="#d69245" bg="rgba(214,146,69,0.14)" /> : null}
         </Box>
+        {entry.sourceInfo ? <Badge label={entry.sourceInfo.label} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
         {(hasAttack || hasDamage || hasHeal) ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, mr: '6px' }}>
             {hasAttack ? (
@@ -121,12 +125,11 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
             ) : null}
           </Box>
         ) : null}
-        {entry.sourceInfo ? <Badge label={entry.sourceInfo.label} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
         <Box sx={{ flex: 1 }} />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
           {school ? <Badge label={school} color="#c4b393" /> : null}
-          {entry.concentration ? <Badge label="C" color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
-          {entry.ritual ? <Badge label="R" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
+          {hasConcentrationTag ? <Badge label="C" color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
+          {hasRitualTag ? <Badge label="R" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
           <Badge {...getCastBadge(entry)} />
         </Box>
       </Box>

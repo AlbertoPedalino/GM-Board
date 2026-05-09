@@ -3,6 +3,7 @@ import { BookOpen, Search } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
 import { SPELL_LEVEL_LABELS } from '../constants.js';
 import { collectAutoGrantedSpells, getSpellCounts, maxSpellLevel, spellMatchesAnyClass } from '../spells/spells.js';
+import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
 export default function SpellSelectionPanel({ state, dispatch }) {
   const { character } = state;
@@ -32,7 +33,11 @@ export default function SpellSelectionPanel({ state, dispatch }) {
   const levels = [0, ...Array.from({ length: Math.max(0, maxLevel) }, (_, index) => index + 1)];
   const classNames = [activeCharacter.className].filter(Boolean);
   const autoNames = new Set(autoGrantedSpells.map((spell) => spell.name));
-  const autoPool = autoGrantedSpells.map((auto) => state.data.spells.find((spell) => spell.name === auto.name) || { name: auto.name, level: auto.level ?? 0 });
+  const autoByName = new Map(autoGrantedSpells.map((spell) => [spell.name, spell]));
+  const autoPool = autoGrantedSpells.map((auto) => ({
+    ...(state.data.spells.find((spell) => spell.name === auto.name) || { name: auto.name, level: auto.level ?? 0 }),
+    _autoGranted: auto,
+  }));
   const basePool = state.data.spells
     .filter((spell) => spell.level === level)
     .filter((spell) => spellMatchesAnyClass(spell, classNames, state.data.classSpellIndex))
@@ -59,7 +64,12 @@ export default function SpellSelectionPanel({ state, dispatch }) {
                 <Typography variant="overline" color="text.secondary">Auto Granted</Typography>
                 <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                   {autoGrantedSpells.map((spell) => (
-                    <Chip key={`${spell.name}-${spell.mode}`} size="small" color="secondary" label={`${spell.name}${spell.mode ? ` (${spell.mode})` : ''}`} />
+                    <Chip
+                      key={`${spell.name}-${spell.mode}-${spell.source || ''}`}
+                      size="small"
+                      color="secondary"
+                      label={`${spell.name} (${getAutoGrantedLabel(spell, activeCharacter)})`}
+                    />
                   ))}
                 </Stack>
               </Box>
@@ -101,10 +111,19 @@ export default function SpellSelectionPanel({ state, dispatch }) {
                       onClick={() => !autoSelected && dispatch({ type: 'spell/toggle', level, name: spell.name, max: level === 0 ? cantrips : spells, extraIndex })}
                     >
                       <ListItemText
-                        primary={<Typography fontWeight={selected ? 700 : 500} noWrap>{spell.name}</Typography>}
+                        primary={(
+                          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+                            <Typography fontWeight={selected ? 700 : 500} noWrap sx={{ minWidth: 0 }}>{spell.name}</Typography>
+                            <SpellMiniTags spell={spell} />
+                          </Stack>
+                        )}
                         secondary={[spell.schoolFull || spell.school, spell.castingTime, spell.rangeText].filter(Boolean).join(' - ')}
                       />
-                      <Chip size="small" color={selected ? 'primary' : 'default'} label={autoSelected ? 'Auto' : selected ? 'On' : `Lv ${spell.level}`} />
+                      <Chip
+                        size="small"
+                        color={selected ? 'primary' : 'default'}
+                        label={autoSelected ? getAutoGrantedLabel(autoByName.get(spell.name) || spell._autoGranted, activeCharacter) : selected ? 'On' : `Lv ${spell.level}`}
+                      />
                     </ListItemButton>
                   );
                 })}
@@ -118,6 +137,27 @@ export default function SpellSelectionPanel({ state, dispatch }) {
   );
 }
 
+function getAutoGrantedLabel(spell, character) {
+  const raw = String(spell?.source || '').trim();
+  if (raw && !/^(auto|class|class spell|class spells|subclass|subclass spell|subclass spells)$/i.test(raw)) {
+    return raw;
+  }
+
+  if (spell?.sourceType === 'subclass') {
+    return character?.subclassShortName || 'Subclass';
+  }
+
+  if (spell?.sourceType === 'class') {
+    return character?.className || 'Class';
+  }
+
+  if (/^subclass/i.test(raw)) return character?.subclassShortName || 'Subclass';
+  if (/^class/i.test(raw)) return character?.className || 'Class';
+
+  return character?.subclassShortName || character?.className || 'Auto';
+}
+
+
 function dedupeSpells(spells) {
   const seen = new Set();
   return (spells || []).filter((spell) => {
@@ -126,4 +166,41 @@ function dedupeSpells(spells) {
     seen.add(key);
     return true;
   });
+}
+
+
+function SpellMiniTags({ spell }) {
+  const tags = [
+    isConcentrationSpell(spell) ? { label: 'C', color: '#9d7fb8', bg: 'rgba(157,127,184,0.16)', title: 'Concentration' } : null,
+    isRitualSpell(spell) ? { label: 'R', color: '#58b879', bg: 'rgba(63,166,108,0.14)', title: 'Ritual' } : null,
+  ].filter(Boolean);
+
+  if (!tags.length) return null;
+
+  return (
+    <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexShrink: 0 }}>
+      {tags.map((tag) => (
+        <Box
+          key={tag.label}
+          title={tag.title}
+          component="span"
+          sx={{
+            border: 1,
+            borderColor: tag.color,
+            color: tag.color,
+            bgcolor: tag.bg,
+            borderRadius: '3px',
+            px: '5px',
+            py: '1px',
+            fontFamily: '"Cinzel", Georgia, serif',
+            fontSize: '0.55rem',
+            fontWeight: 700,
+            lineHeight: 1.25,
+          }}
+        >
+          {tag.label}
+        </Box>
+      ))}
+    </Stack>
+  );
 }

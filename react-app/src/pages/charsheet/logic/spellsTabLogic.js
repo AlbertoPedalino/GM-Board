@@ -1,6 +1,7 @@
 import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../../charbuilder/constants.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { renderEntries as renderSafeEntries } from './renderEntries.js';
+import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
@@ -9,11 +10,13 @@ export function buildSpellInfo(C, spellIndex) {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
     const key = `${norm(name)}|${castLevel || spell.level}`;
-    const row = { ...spell, sourceInfo: source, castLevel };
+    const row = { ...spell, sourceInfo: source, castLevel, locked };
     const existing = rows.get(key);
-    if (!existing || (!existing.sourceInfo && source) || (!existing.locked && locked)) {
-      rows.set(key, { ...row, locked });
+
+    if (!existing || shouldReplaceSpellRow(existing, row)) {
+      rows.set(key, row);
     }
+
     if (locked) {
       lockedNames.add(name);
       lockedNames.add(norm(name));
@@ -57,6 +60,28 @@ export function buildSpellInfo(C, spellIndex) {
   }
 }
 
+function isGenericSpellSourceLabel(label) {
+  return /^(auto|class|class spell|class spells|subclass|subclass spell|subclass spells)$/i.test(String(label || '').trim());
+}
+
+function spellSourceScore(sourceInfo) {
+  const label = String(sourceInfo?.label || '').trim();
+  if (!label) return 0;
+  if (isGenericSpellSourceLabel(label)) return 1;
+  return 2;
+}
+
+function shouldReplaceSpellRow(existing, incoming) {
+  const incomingScore = spellSourceScore(incoming?.sourceInfo);
+  const existingScore = spellSourceScore(existing?.sourceInfo);
+
+  if (incomingScore !== existingScore) return incomingScore > existingScore;
+  if (!existing?.locked && incoming?.locked) return true;
+  if (!existing?.sourceInfo && incoming?.sourceInfo) return true;
+  return false;
+}
+
+
 function collectChoiceSpells(C, spellIndex) {
   const out = [];
   Object.entries(C?.choices || {}).forEach(([key, value]) => {
@@ -75,32 +100,167 @@ function collectChoiceSpells(C, spellIndex) {
 
 function collectAutoGrantedSpells(C) {
   const out = [];
+
   (C?.autoGrantedSpells || []).forEach((entry) => {
-    if (entry?.name) out.push({ name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6' } });
-  });
-  const entities = [{ className: C?.className, subclassShortName: C?.subclassShortName, level: C?.classLevel || C?.level || 1 }];
-  (C?.extraClasses || []).forEach((ec) => entities.push({ className: ec.name, subclassShortName: ec.subclassShortName, level: ec.level || 1 }));
-  entities.forEach((entity) => {
-    const cfgs = [
-      installedRegistry.getClassRuntimeConfig(entity.className),
-      installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName),
-    ];
-    cfgs.forEach((cfg) => {
-      [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
-        const name = typeof spell === 'string' ? spell : spell?.name;
-        if (!name || entity.level < Number(spell?.minLevel || 1)) return;
-        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' } });
-      });
+    if (!entry?.name) return;
+    const inferred = inferAutoGrantedSource(C, entry.name, entry.source);
+    out.push({
+      name: entry.name,
+      level: Number(entry.level ?? 0),
+      source: inferred,
     });
   });
+
+  const entities = [
+    {
+      className: C?.className,
+      subclassShortName: C?.subclassShortName,
+      level: C?.classLevel || C?.level || 1,
+    },
+    ...(C?.extraClasses || []).map((ec) => ({
+      className: ec.name,
+      subclassShortName: ec.subclassShortName,
+      level: ec.level || 1,
+    })),
+  ];
+
+  entities.forEach((entity) => {
+    const classCfg = installedRegistry.getClassRuntimeConfig(entity.className);
+    pushAutoGrantedFromSpellcasting(out, classCfg?.spellcasting, entity, 'class');
+
+    const subclassCfg = installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName);
+    pushAutoGrantedFromSpellcasting(out, subclassCfg?.spellcasting, entity, 'subclass');
+  });
+
   const seen = new Set();
   return out.filter((entry) => {
-    const key = norm(entry.name);
+    const key = `${norm(entry.name)}|${entry.source?.label || ''}`;
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 }
+
+function pushAutoGrantedFromSpellcasting(out, spellcasting, entity, ownerType) {
+  if (!spellcasting) return;
+
+  const ownerLabel = ownerType === 'subclass'
+    ? (entity.subclassShortName || entity.className || 'Subclass')
+    : (entity.className || 'Class');
+
+  [
+    ...(spellcasting.alwaysKnownSpells || []),
+    ...(spellcasting.alwaysPreparedSpells || []),
+  ].forEach((spell) => {
+    const name = typeof spell === 'string' ? spell : spell?.name;
+    if (!name || entity.level < Number(spell?.minLevel || 1)) return;
+
+    out.push({
+      name,
+      level: Number(spell?.level ?? 0),
+      source: {
+        label: normalizeAutoSpellSourceLabel(spell?.source, ownerLabel),
+        color: ownerType === 'subclass' ? '#9d7fb8' : '#70b7a6',
+      },
+    });
+  });
+}
+
+function normalizeAutoSpellSourceLabel(source, fallback) {
+  const raw = String(source || '').trim();
+  if (!raw) return fallback;
+  if (/^(subclass|subclass spell|subclass spells)$/i.test(raw)) return fallback;
+  if (/^(class|class spell|class spells)$/i.test(raw)) return fallback;
+  return raw;
+}
+
+function inferAutoGrantedSource(C, spellName, rawSource) {
+  const explicit = normalizeAutoSpellSourceLabel(rawSource, '');
+  if (explicit && !isGenericSpellSourceLabel(explicit)) {
+    return { label: explicit, color: '#70b7a6' };
+  }
+
+  const entities = [
+    {
+      className: C?.className,
+      subclassShortName: C?.subclassShortName,
+      level: C?.classLevel || C?.level || 1,
+    },
+    ...(C?.extraClasses || []).map((ec) => ({
+      className: ec.name,
+      subclassShortName: ec.subclassShortName,
+      level: ec.level || 1,
+    })),
+  ];
+
+  const wanted = norm(spellName);
+
+  for (const entity of entities) {
+    const subclassCfg = installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName);
+    if (spellcastingHasAutoSpell(subclassCfg?.spellcasting, wanted, entity.level)) {
+      return {
+        label: entity.subclassShortName || entity.className || 'Subclass',
+        color: '#9d7fb8',
+      };
+    }
+  }
+
+  for (const entity of entities) {
+    const classCfg = installedRegistry.getClassRuntimeConfig(entity.className);
+    if (spellcastingHasAutoSpell(classCfg?.spellcasting, wanted, entity.level)) {
+      return {
+        label: entity.className || 'Class',
+        color: '#70b7a6',
+      };
+    }
+  }
+
+  const featureSource = inferSubclassFeatureSpellSource(C, wanted);
+  if (featureSource) return featureSource;
+
+  return {
+    label: normalizeAutoSpellSourceLabel(rawSource, 'Auto'),
+    color: '#70b7a6',
+  };
+}
+
+function spellcastingHasAutoSpell(spellcasting, wantedName, ownerLevel) {
+  if (!spellcasting) return false;
+  return [
+    ...(spellcasting.alwaysKnownSpells || []),
+    ...(spellcasting.alwaysPreparedSpells || []),
+  ].some((spell) => {
+    const name = typeof spell === 'string' ? spell : spell?.name;
+    if (!name || norm(name) !== wantedName) return false;
+    return Number(ownerLevel || 1) >= Number(spell?.minLevel || 1);
+  });
+}
+
+function inferSubclassFeatureSpellSource(C, wantedName) {
+  const subclassShortName = String(C?.subclassShortName || '');
+  if (!subclassShortName) return null;
+
+  const match = (C?.allSubFeatures || [])
+    .filter((feature) => !feature?.isReprinted)
+    .filter((feature) => !feature?.subclassShortName || feature.subclassShortName === subclassShortName)
+    .find((feature) => {
+      const text = JSON.stringify(feature?.entries || '');
+      return new RegExp(`\\\\{@spell\\\\s+${escapeRegExpForSpellTag(wantedName)}`, 'i').test(text)
+        || norm(text).includes(wantedName);
+    });
+
+  if (!match) return null;
+
+  return {
+    label: subclassShortName || match.name || 'Subclass',
+    color: '#9d7fb8',
+  };
+}
+
+function escapeRegExpForSpellTag(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 
 function collectAtWillSpells(C) {
   const out = [];
@@ -343,8 +503,8 @@ export function toSnapshot(spell) {
     duration: spell.duration,
     range: spell.range,
     time: spell.time,
-    ritual: !!spell.ritual,
-    concentration: !!spell.concentration,
+    ritual: isRitualSpell(spell),
+    concentration: isConcentrationSpell(spell),
     entries: spell.entries || [],
     entriesHigherLevel: spell.entriesHigherLevel || null,
     scalingLevelDice: spell.scalingLevelDice || null,

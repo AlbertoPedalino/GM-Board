@@ -20,6 +20,7 @@ import { loadSpells } from '../../charbuilder/logic/dataLoaders.js';
 import { applyPreparedFormula, spellMatchesClass } from '../../charbuilder/spells/spells.js';
 import { installedRegistry, loadClassAdapters, loadCoreAdapters, loadSpellsAdapters } from '../../../adapters/index.js';
 import { setStorageJson } from '../../../shared/storage.js';
+import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import {
   buildSpellInfo,
@@ -42,8 +43,6 @@ import {
   addButtonSx,
   compactInputSx,
   levelToggleSx,
-  panelRootSx,
-  panelToolbarSx,
 } from './spellsTabStyles.js';
 import SpellEntry from './SpellEntry.jsx';
 import { Empty, SlotPanel, SpellSection, StatBox } from './SpellsUiParts.jsx';
@@ -289,8 +288,8 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
   };
 
   return (
-    <Box sx={panelRootSx}>
-      <Box sx={panelToolbarSx}>
+    <Box>
+      <Box sx={{ display: 'flex', gap: 1, mb: 0.75, flexWrap: 'wrap' }}>
         <StatBox value={dc} label="Spell DC" />
         <StatBox value={formatBonus(atk)} label="Spell Attack" />
         <StatBox value={SLBL[ability] || ability.toUpperCase()} label="Spell Ability" />
@@ -304,7 +303,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
 
       <SlotPanel slots={slots} used={slotUsed} onToggle={toggleSlot} />
 
-      <SpellSection title="Cantrips">
+      <SpellSection title="Cantrip">
         {spellInfo.cantrips.map((entry) => <SpellEntry key={entry.name} entry={entry} onShowToast={onShowToast} atk={atk} spellMod={spellMod} C={C} installedRegistry={installedRegistry} />)}
         {!spellInfo.cantrips.length ? <Empty text="None" /> : null}
       </SpellSection>
@@ -324,7 +323,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
       {!spellInfo.cantrips.length && !Object.keys(spellInfo.leveled).length && !spellInfo.atWill.length ? <Empty text="No spells selected." /> : null}
 
       {canManageSpellList ? (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <Box sx={{ mt: 0.75 }}>
           <Button onClick={() => setPickerOpen(true)} startIcon={<Plus size={15} />} sx={addButtonSx}>
             Add / Remove Spell
           </Button>
@@ -442,7 +441,10 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
               return (
                 <Box key={`${spell.name}-${spell.source}`} onClick={onClick}
                   sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: '9px', py: '6px', border: 1, borderColor: selected ? '#58b879' : 'transparent', borderRadius: 1, bgcolor: selected ? 'rgba(39,174,96,0.08)' : 'transparent', opacity: atLimit ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer', '&:hover': { borderColor: selected ? '#58b879' : 'divider', bgcolor: selected ? 'rgba(39,174,96,0.08)' : 'rgba(35,32,26,1)' } }}>
-                  <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{spell.name}</Typography>
+                  <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 0.4 }}>
+                    <Typography sx={{ minWidth: 0, fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{spell.name}</Typography>
+                    <SpellMiniTags spell={spell} />
+                  </Box>
                   <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{SPELL_LEVEL_LABELS[spell.level] || `Lv ${spell.level}`}</Typography>
                   <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{SCHOOL_LABELS[spell.school] || spell.school}</Typography>
                   <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.7rem', color: selected ? '#58b879' : '#edd48a', flexShrink: 0 }}>
@@ -457,6 +459,43 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
           </Box>
         </DialogContent>
       </Dialog>
+    </Box>
+  );
+}
+
+
+function SpellMiniTags({ spell }) {
+  const tags = [
+    isConcentrationSpell(spell) ? { label: 'C', color: '#9d7fb8', bg: 'rgba(157,127,184,0.16)', title: 'Concentration' } : null,
+    isRitualSpell(spell) ? { label: 'R', color: '#58b879', bg: 'rgba(63,166,108,0.14)', title: 'Ritual' } : null,
+  ].filter(Boolean);
+
+  if (!tags.length) return null;
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+      {tags.map((tag) => (
+        <Box
+          key={tag.label}
+          title={tag.title}
+          component="span"
+          sx={{
+            border: 1,
+            borderColor: tag.color,
+            color: tag.color,
+            bgcolor: tag.bg,
+            borderRadius: '3px',
+            px: '5px',
+            py: '1px',
+            fontFamily: '"Cinzel", Georgia, serif',
+            fontSize: '0.55rem',
+            fontWeight: 700,
+            lineHeight: 1.25,
+          }}
+        >
+          {tag.label}
+        </Box>
+      ))}
     </Box>
   );
 }
