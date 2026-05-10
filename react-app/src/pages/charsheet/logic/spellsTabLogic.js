@@ -2,6 +2,7 @@ import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../../charbuild
 import { installedRegistry } from '../../../adapters/index.js';
 import { renderEntries as renderSafeEntries } from './renderEntries.js';
 import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
+import { isRitualSpell } from '../../../shared/spellTags.js';
 
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
@@ -35,6 +36,7 @@ export function buildSpellInfo(C, spellIndex) {
   collectChoiceSpells(C, spellIndex).forEach(({ name, source }) => push(name, source, true));
   collectAutoGrantedSpells(C).forEach(({ name, level, source }) => push(name, source, true, null, level));
   collectAtWillSpells(C).forEach(({ name, source }) => push(name, source, true));
+  collectWizardRitualBookSpells(C, spellIndex).forEach((entry) => pushRitualOnly(entry));
 
   const all = [...rows.values()];
   const cantrips = all.filter((entry) => Number(entry.level || 0) === 0 && entry.sourceInfo?.kind !== 'atWill').sort(sortByName);
@@ -55,6 +57,25 @@ export function buildSpellInfo(C, spellIndex) {
       const key = `${norm(name)}|${level}`;
       if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source });
     }
+  }
+
+  function pushRitualOnly(entry) {
+    if (!entry?.name) return;
+    const level = Number(entry.level || 0);
+    const key = `${norm(entry.name)}|${level}`;
+    if (rows.has(key)) return;
+    rows.set(key, {
+      ...entry,
+      level,
+      castLevel: null,
+      locked: false,
+      ritualOnly: true,
+      sourceInfo: entry.sourceInfo || {
+        label: 'Ritual Adept',
+        color: '#58b879',
+        kind: 'ritualBook',
+      },
+    });
   }
 }
 
@@ -118,6 +139,72 @@ function collectAtWillSpells(C) {
   return out;
 }
 
+function normalizeWizardSpellbook(book) {
+  const next = {};
+  for (let level = 0; level <= 9; level += 1) {
+    next[level] = [...new Set((book?.[level] || [])
+      .map((entry) => (typeof entry === 'string' ? entry : entry?.name))
+      .filter(Boolean))];
+  }
+  return next;
+}
+
+function wizardRitualEntities(C) {
+  if (!C) return [];
+  const out = [];
+  if (norm(C.className) === 'wizard') {
+    out.push({
+      bucket: C,
+      level: Number(C.classLevel || C.level || 1),
+      label: 'Ritual Adept',
+    });
+  }
+  (C.extraClasses || []).forEach((extra) => {
+    if (norm(extra?.name) !== 'wizard') return;
+    out.push({
+      bucket: extra,
+      level: Number(extra.level || 1),
+      label: 'Ritual Adept',
+    });
+  });
+  return out.filter((entity) => entity.level >= 1);
+}
+
+function collectWizardRitualBookSpells(C, spellIndex) {
+  const out = [];
+  const seen = new Set();
+
+  wizardRitualEntities(C).forEach((entity) => {
+    const book = normalizeWizardSpellbook(entity.bucket?.wizardSpellbook);
+    Object.entries(book).forEach(([levelKey, names]) => {
+      names.forEach((name) => {
+        const full = spellIndex.get(norm(name));
+        const spell = full || { name, level: Number(levelKey || 0) };
+        if (!isRitualSpell(spell)) return;
+
+        const level = Number(spell.level ?? levelKey ?? 0);
+        const key = `${norm(name)}|${level}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+
+        out.push({
+          ...spell,
+          name: spell.name || name,
+          level,
+          ritualOnly: true,
+          sourceInfo: {
+            label: entity.label,
+            color: '#58b879',
+            kind: 'ritualBook',
+          },
+        });
+      });
+    });
+  });
+
+  return out;
+}
+
 function sourceFromChoiceKey(C, key) {
   const grantKey = key.match(/^(.*)_(known|innate|prepared|expanded)_/i)?.[1];
   const featName = grantKey ? C?.choices?.[grantKey] : null;
@@ -145,28 +232,6 @@ export function getResolvedCantripData(C, name) {
 }
 
 const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-
-const SCHOOL_ALIASES = {
-  A: 'abjuration',
-  C: 'conjuration',
-  D: 'divination',
-  E: 'enchantment',
-  V: 'evocation',
-  I: 'illusion',
-  N: 'necromancy',
-  T: 'transmutation',
-};
-
-function normalizeSpellSchool(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const upper = raw.toUpperCase();
-  return SCHOOL_ALIASES[upper] || raw.toLowerCase();
-}
-
-function schoolMatches(spellSchool, modifierSchool) {
-  return normalizeSpellSchool(spellSchool) === normalizeSpellSchool(modifierSchool);
-}
 
 export function resolveDmgBonusValue(C, dmgBonus, getModFn, getFinalFn) {
   if (dmgBonus == null || dmgBonus === '' || dmgBonus === 0) return 0;
@@ -216,8 +281,10 @@ export function applySpellModifiers(C, ctx) {
     if (typeof mod === 'object') {
       if (mod.minLevel && Number(ownerLevel || 1) < Number(mod.minLevel)) return;
       if (mod.kind && mod.kind !== ctx.kind) return;
-      const modifierSchool = mod.school || mod.spellSchool;
-      if (modifierSchool && !schoolMatches(ctx?.spell?.school, modifierSchool)) return;
+      if (mod.school) {
+        const spellSchool = String(ctx?.spell?.school || '').toUpperCase();
+        if (spellSchool !== String(mod.school).toUpperCase()) return;
+      }
       if (mod.minSpellLevel != null && Number(ctx?.level ?? ctx?.castLevel ?? 0) < Number(mod.minSpellLevel)) return;
       if (typeof mod.condition === 'function' && !mod.condition({ ...ctx, ownerLevel })) return;
       let amount = 0;

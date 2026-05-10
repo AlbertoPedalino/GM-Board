@@ -224,7 +224,7 @@ registerClassSheetActions("Wizard", [
     "icon": "",
     "cat": "action",
     "uses": "Passive",
-    "desc": "Contains your known Wizard spells. Cast prepared rituals without using a slot (+10 min). Copy new spells: costs 50 gp and 2 hours per spell level. Gain 2 free spells at each Wizard level."
+    "desc": "Contains your known Wizard spells. Cast Wizard spells with the Ritual tag from your spellbook as rituals without preparing them and without using a slot (+10 min). Copy new spells: costs 50 gp and 2 hours per spell level. Gain 2 free spells at each Wizard level."
   },
   {
     "name": "Memorize Spell",

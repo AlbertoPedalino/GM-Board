@@ -50,6 +50,7 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
   const spellData = installedRegistry.getSpellData(entry.name);
   const hasConcentrationTag = isConcentrationSpell(entry) || isConcentrationSpell(spellData);
   const hasRitualTag = isRitualSpell(entry) || isRitualSpell(spellData);
+  const ritualOnly = !!entry.ritualOnly || entry.sourceInfo?.kind === 'ritualBook';
   const hasHeal = !!spellData?.heal;
   const rawHealFormula = hasHeal ? (spellData?.baseDie || (rawDamages.length > 0 ? rawDamages[0].formula : null)) : null;
   const damages = hasHeal ? [] : rawDamages;
@@ -87,7 +88,7 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
       level: baseLevel,
       spell: { ...entry, hasHeal: false, hasDamage: true, isCantrip: baseLevel === 0 },
       hasHealContext: false,
-      usesSpellSlot: baseLevel > 0,
+      usesSpellSlot: baseLevel > 0 && !ritualOnly,
     }) || dmg.formula,
   }));
   const baseHealFormula = upcastStepDie && rawHealFormula
@@ -104,7 +105,7 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
         level: baseLevel,
         spell: { ...entry, hasHeal: true, hasHealContext: true },
         hasHealContext: true,
-        usesSpellSlot: castLevel > 0,
+        usesSpellSlot: castLevel > 0 && !ritualOnly,
       }) || healWithMod
     : null;
 
@@ -154,6 +155,7 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
           {castLevel > baseLevel ? <Badge label={SPELL_LEVEL_LABELS[castLevel]} color="#d69245" bg="rgba(214,146,69,0.14)" /> : null}
         </Box>
         {entry.sourceInfo ? <Badge label={entry.sourceInfo.label} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
+        {ritualOnly ? <Badge label="Ritual only" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
         {(hasAttack || hasDamage || hasHeal) ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, mr: '6px' }}>
             {hasAttack ? (
@@ -187,7 +189,7 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
           <Badge {...getCastBadge(entry)} />
         </Box>
       </Box>
-      {(cantripNotes || beamCount > 1 || beamBonus) ? (
+      {(ritualOnly || cantripNotes || beamCount > 1 || beamBonus) ? (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mt: '2px', mb: '2px', pl: '9px' }}>
           {beamCount > 1 ? <Badge label={`${beamCount} beams`} color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
           {beamBonus ? <Badge label={`+${beamBonus} per beam`} color="#f5a623" bg="rgba(245,166,35,0.12)" /> : null}

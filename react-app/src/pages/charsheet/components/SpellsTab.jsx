@@ -111,6 +111,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
     Object.entries(spellInfo.leveled).forEach(([level, entries]) => {
       entries.forEach((entry) => {
         if (entry.level <= 0) return;
+        if (entry.ritualOnly) return;
         if (!entry.entriesHigherLevel) return;
         for (let lv = Number(level) + 1; lv <= maxSlotLv; lv++) {
           if (slots.regular[lv - 1] > 0 || (slots.pact?.level === lv && slots.pact.count > 0)) {

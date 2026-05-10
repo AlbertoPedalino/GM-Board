@@ -39,6 +39,21 @@ export function makeSheetPayload(character, data) {
       (names || []).forEach((name) => selectedSpellLevels.set(name, Number(level)));
     });
   });
+
+  const wizardSpellbookNames = [];
+  const addWizardSpellbookNames = (book) => {
+    Object.entries(book || {}).forEach(([level, names]) => {
+      (names || []).forEach((entry) => {
+        const name = typeof entry === 'string' ? entry : entry?.name;
+        if (!name) return;
+        wizardSpellbookNames.push(name);
+        selectedSpellLevels.set(name, Number(level || 0));
+      });
+    });
+  };
+  addWizardSpellbookNames(character.wizardSpellbook);
+  (character.extraClasses || []).forEach((extra) => addWizardSpellbookNames(extra.wizardSpellbook));
+
   const choiceSpellNames = [];
   Object.entries(character.choices || {}).forEach(([key, value]) => {
     const values = Array.isArray(value) ? value : [value];
@@ -60,6 +75,7 @@ export function makeSheetPayload(character, data) {
       ...Object.values(extra.selectedSpells || {}).flat(),
     ]),
     ...choiceSpellNames,
+    ...wizardSpellbookNames,
     ...autoGrantedSpells.map((spell) => spell.name),
   ];
   const spellSnapshots = [...new Set(spellNames)]
