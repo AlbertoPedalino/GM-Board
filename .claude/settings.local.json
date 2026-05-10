@@ -96,7 +96,8 @@
       "Bash(grep -E \"export \\(default |\\\\\\\\* |\\\\\\\\{\\)\" \"C:/Users/alber/Documents/DND/GM-Board/react-app/node_modules/react-window/dist/react-window.d.ts\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/spells/spells-xphb.json\" -o /tmp/spells-xphb.json)",
       "Bash(curl -sL \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/spells/spells-xphb.json\" -o /tmp/spells-xphb.json)",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\" -o /tmp/sslookup.json)"
+      "Bash(curl -sL \"https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/generated/gendata-spell-source-lookup.json\" -o /tmp/sslookup.json)",
+      "Bash(xargs -I{} grep -HE \"register\\(Class|Subclass\\)RuntimeConfig\\\\\\(\\\\\"[^\\\\\"]+\\\\\"\" {})"
     ]
   }
 }

@@ -167,6 +167,13 @@ if (typeof registerSubclassRuntimeConfig === "function") {
     },
   });
 }
+
+registerSubclassSheetEffects("Cleric_Light", [
+
+  { type: "reactionDefense", key: "warding_flare", minLevel: 3, note: "Warding Flare: impose Disadvantage on an attack within 30 ft." },
+  { type: "tempHp", minLevel: 6, note: "Improved Warding Flare: target gains 2d6 + WIS mod Temporary HP." },
+  { type: "aura", key: "corona_light", minLevel: 17, note: "Corona of Light: enemies in bright light have Disadvantage on saves against Radiance of the Dawn and Fire/Radiant spells." },
+]);
 // [SheetRuntime] END
 
 }

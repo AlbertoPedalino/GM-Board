@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassRuntimeConfig("Rogue", "Arcane Trickster", {
+registerSubclassRuntimeConfig("Rogue_Arcane Trickster", {
   spellcasting: {
     ability: "int",
     casterProgression: "1/3",
@@ -127,21 +127,28 @@ registerSubclassRuntimeConfig("Rogue", "Arcane Trickster", {
     spellsKnown: [0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13],
     preparedSpellsProgression: [0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13],
     choiceSpellSources: {
-      subclass_at_cantrips: { label: "Arcane Trickster", ability: "int" },
       subclass_at_cantrip_1: { label: "Arcane Trickster", ability: "int" },
       subclass_at_cantrip_2: { label: "Arcane Trickster", ability: "int" },
     },
   },
 });
 
-registerSubclassAdapter("Rogue_Arcane Trickster", function (cls, lv, specs, ctx = {}) {
+registerSubclassAdapter("Rogue_Arcane Trickster", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
-      key: "subclass_at_cantrips",
-      label: "Arcane Trickster Cantrips",
+      key: "subclass_at_cantrip_1",
+      label: "Arcane Trickster - Cantrip Wizard 1",
       type: "spell_choice",
       spellFilter: { spellLevel: 0, classes: ["Wizard"] },
-      count: 2,
+      count: 1,
+      level: 3
+    });
+    specs.push({
+      key: "subclass_at_cantrip_2",
+      label: "Arcane Trickster - Cantrip Wizard 2",
+      type: "spell_choice",
+      spellFilter: { spellLevel: 0, classes: ["Wizard"] },
+      count: 1,
       level: 3
     });
   }

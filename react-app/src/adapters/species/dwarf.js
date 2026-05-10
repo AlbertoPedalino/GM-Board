@@ -127,6 +127,9 @@ registerSpeciesSheetCommonChoiceMeta("Dwarf_XPHB");
 
 // Dwarven Toughness: +1 HP per character level
 registerSpeciesSheetHpBonus("Dwarf_XPHB", 1);
+registerSpeciesSheetHpBonus("Dwarf_PHB", 1);
+registerSpeciesSheetHpBonus("Hill Dwarf_XPHB", 1);
+registerSpeciesSheetHpBonus("Hill Dwarf_PHB", 1);
 
 // Dwarven Combat Training: proficiency with battleaxe, handaxe, light hammer, warhammer
 registerSpeciesSheetProficiencies("Dwarf_XPHB", [

@@ -1,5 +1,4 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
-import { addWizardSavantSpellChoices } from './wizardSavant.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -121,7 +120,9 @@ export default function install(registry, context = {}) {
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
 registerSubclassAdapter("Wizard_Evoker", function (cls, lv, specs) {
-  addWizardSavantSpellChoices(specs, lv, { key: "evoker", label: "Evocation", school: "V" });
+  if (typeof addWizardSavantSpellChoices === "function") {
+    addWizardSavantSpellChoices(specs, lv, { key: "evoker", label: "Evocation", school: "V" });
+  }
 });
 
 // [SheetRuntime] START
@@ -137,6 +138,14 @@ registerSubclassSheetActions("Wizard_Evoker", [
 ]);
 registerSubclassSheetResources("Wizard_Evoker", [
   { key: "overchannel", name: "Overchannel", icon: "zap", recharge: "LR", max: () => 1 },
+]);
+
+registerSubclassSheetEffects("Wizard_Evoker", [
+
+  { type: "cantripHalfDamage", minLevel: 3, note: "Potent Cantrip." },
+  { type: "saveProtection", minLevel: 6, note: "Sculpt Spells." },
+  { type: "damageBonus", ability: "int", spellSchool: "V", minLevel: 10, note: "Empowered Evocation." },
+  { type: "maximizeSpellDamage", minLevel: 14, note: "Overchannel." },
 ]);
 // [SheetRuntime] END
 

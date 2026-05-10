@@ -185,6 +185,19 @@ registerSubclassSheetResources("Druid_Land", [
     "max": () => 1
   }
 ]);
+
+registerSubclassSheetEffects("Druid_Land", [
+
+  { type: "conditionImmunity", conditions: ["Poisoned"], minLevel: 10, note: "Nature's Ward." },
+  { type: "resistance-choice", key: "subclass_land_terrain", minLevel: 10, note: "Nature's Ward: resistance based on selected land type.",
+    map: {
+      arid: 'Fire',
+      polar: 'Cold',
+      temperate: 'Lightning',
+      tropical: 'Poison',
+    } },
+
+]);
 // [SheetRuntime] END
 
 }

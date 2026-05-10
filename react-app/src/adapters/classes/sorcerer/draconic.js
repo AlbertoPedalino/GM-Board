@@ -191,6 +191,22 @@ registerSubclassSheetResources("Sorcerer_Draconic", [
     "max": () => 1
   }
 ]);
+
+registerSubclassSheetEffects("Sorcerer_Draconic", [
+
+  { type: "unarmoredDefense", base: 10, abilities: ["dex", "cha"], allowShield: false, minLevel: 3, note: "Draconic Resilience" },
+  { type: "hpBonus", amount: 3, minLevel: 3, perLevelAfter: 1, note: "Draconic Resilience: +3 HP at level 3, +1 per Sorcerer level thereafter." },
+  { type: "resistance-choice", key: "subclass_draconic_ancestor", minLevel: 6, note: "Elemental Affinity: resistance based on Dragon Ancestor.",
+    map: {
+      black: 'Acid', copper: 'Acid',
+      blue: 'Lightning', bronze: 'Lightning',
+      brass: 'Fire', gold: 'Fire', red: 'Fire',
+      green: 'Poison',
+      silver: 'Cold', white: 'Cold',
+    } },
+  { type: "speed", speedType: "fly", value: 60, minLevel: 14, note: "Dragon Wings while active." },
+
+]);
 // [SheetRuntime] END
 
 }

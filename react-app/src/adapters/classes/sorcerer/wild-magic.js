@@ -183,6 +183,14 @@ registerSubclassSheetResources("Sorcerer_Wild Magic", [
     "max": () => 1
   }
 ]);
+
+registerSubclassSheetEffects("Sorcerer_Wild Magic", [
+
+  { type: "advantage", target: "d20", minLevel: 3, note: "Tides of Chaos." },
+  { type: "rollModifier", minLevel: 6, note: "Bend Luck: add/subtract 1d4." },
+  { type: "damageBonus", minLevel: 14, note: "Controlled Chaos / spell surge-related feature." },
+  { type: "surgeControl", minLevel: 18, note: "Spell Bombardment / Wild Magic capstone reminder." },
+]);
 // [SheetRuntime] END
 
 }

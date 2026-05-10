@@ -135,7 +135,6 @@ registerSubclassAdapter("Fighter_Banneret", function (cls, lv, specs) {
       key: 'subclass_banneret_language',
       label: 'Knightly Envoy — Polyglot (Language)',
       type: 'language_choice',
-      from: _ALL_LANGS || [],
       count: 1,
       level: 3
     });
@@ -192,6 +191,13 @@ registerSubclassSheetActions("Fighter_Banneret", [
     "minLevel": 18,
     "desc": "Bolstered Rally: Group Recovery and Rallying Surge areas expand to 60 ft Emanation. Unshakable Bravery: you have Immunity to the Charmed and Frightened conditions."
   }
+]);
+
+registerSubclassSheetEffects("Fighter_Banneret", [
+
+  { type: "healingSideEffect", minLevel: 3, note: "Rallying Cry: when you use Second Wind, allies regain HP." },
+  { type: "skillExpertise", values: ["Persuasion"], minLevel: 7, note: "Royal Envoy." },
+  { type: "reactionAttackGrant", minLevel: 10, note: "Inspiring Surge: when you Action Surge, ally can make one weapon attack." },
 ]);
 // [SheetRuntime] END
 

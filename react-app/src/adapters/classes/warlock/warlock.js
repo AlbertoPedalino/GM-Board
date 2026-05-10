@@ -1,4 +1,5 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
+import { setStorageJson } from '../../../shared/storage.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -121,12 +122,12 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
 // Eldritch Invocations XPHB 2024 — name, minLevel, prereqInvocation, description
 const _INV_DATA = [
-  { name: 'Agonizing Blast', minLevel: 1, prereq: null,
+  { name: 'Agonizing Blast', minLevel: 2, prereq: null,
     desc: 'Choose one of your known Warlock cantrips that deals damage. You can add your Charisma modifier to that spell\'s damage rolls.' },
-  { name: 'Armor of Shadows', minLevel: 1, prereq: null,
+  { name: 'Armor of Shadows', minLevel: 2, prereq: null,
     desc: 'You can cast Mage Armor on yourself at will, without expending a spell slot.' },
-  { name: 'Ascendant Step', minLevel: 9, prereq: null,
-    desc: 'Prerequisite: Warlock 9\n\nYou can cast Levitate on yourself at will, without expending a spell slot.' },
+  { name: 'Ascendant Step', minLevel: 5, prereq: null,
+    desc: 'Prerequisite: Warlock 5\n\nYou can cast Levitate on yourself without expending a spell slot.' },
   { name: 'Devil\'s Sight', minLevel: 1, prereq: null,
     desc: 'You can see normally in Darkness—both magical and nonmagical—to a distance of 120 feet.' },
   { name: 'Devouring Blade', minLevel: 12, prereq: 'Thirsting Blade',
@@ -135,9 +136,9 @@ const _INV_DATA = [
     desc: 'You have Advantage on Constitution saving throws that you make to maintain Concentration.' },
   { name: 'Eldritch Smite', minLevel: 5, prereq: 'Pact of the Blade',
     desc: 'Prerequisite: Warlock 5, Pact of the Blade\n\nOnce per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, plus another 1d8 per level of the slot, and you can give the target the Prone condition if it is Huge or smaller.' },
-  { name: 'Eldritch Spear', minLevel: 1, prereq: null,
+  { name: 'Eldritch Spear', minLevel: 2, prereq: null,
     desc: 'Choose one of your known Warlock cantrips that deals damage and has a range of 10 feet or greater. When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.' },
-  { name: 'Fiendish Vigor', minLevel: 1, prereq: null,
+  { name: 'Fiendish Vigor', minLevel: 2, prereq: null,
     desc: 'You can cast False Life on yourself at will, without expending a spell slot. When you cast it this way, you automatically get the highest number of Temporary Hit Points possible from the spell.' },
   { name: 'Gaze of Two Minds', minLevel: 5, prereq: null,
     desc: 'Prerequisite: Warlock 5\n\nYou can use a Bonus Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature is on the same plane of existence as you, you can use your action on subsequent turns to maintain this connection. While perceiving through the other creature\'s senses, you benefit from any special senses possessed by that creature, and you are Blinded and Deafened with regard to your own surroundings.' },
@@ -147,27 +148,27 @@ const _INV_DATA = [
     desc: 'Prerequisite: Warlock 9, Pact of the Tome\n\nA new page appears in your Book of Shadows. With your permission, a creature can use its action to write its name on that page, which can contain a number of names equal to your Proficiency Bonus. When any creature whose name is on the page is reduced to 0 Hit Points but not killed outright, the creature magically drops to 1 Hit Point instead. Once this magic is triggered, no creature can benefit from it until you finish a Long Rest.' },
   { name: 'Investment of the Chain Master', minLevel: 5, prereq: 'Pact of the Chain',
     desc: 'Prerequisite: Warlock 5, Pact of the Chain\n\nWhen you cast Find Familiar, you infuse the summoned familiar with eldritch power, granting it: Fly or Swim Speed 40 ft; you can command it to Attack as a Bonus Action; its attacks are magical; it uses your spell save DC; when it takes damage you can use your Reaction to grant it Resistance.' },
-  { name: 'Lessons of the First Ones', minLevel: 1, prereq: null, repeatable: true,
+  { name: 'Lessons of the First Ones', minLevel: 2, prereq: null,
     desc: 'You have received knowledge from an elder entity of the multiverse, granting you the ability to take one Origin feat of your choice. This invocation can be taken more than once.' },
   { name: 'Lifedrinker', minLevel: 9, prereq: 'Pact of the Blade',
     desc: 'Prerequisite: Warlock 9, Pact of the Blade\n\nOnce per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice when you take this invocation) to the creature, and you can expend one of your Hit Point Dice to roll it and regain a number of Hit Points equal to the roll plus your Constitution modifier (minimum 1).' },
-  { name: 'Mask of Many Faces', minLevel: 1, prereq: null,
+  { name: 'Mask of Many Faces', minLevel: 2, prereq: null,
     desc: 'You can cast Disguise Self at will, without expending a spell slot.' },
   { name: 'Master of Myriad Forms', minLevel: 5, prereq: null,
     desc: 'Prerequisite: Warlock 5\n\nYou can cast Alter Self at will, without expending a spell slot.' },
-  { name: 'Misty Visions', minLevel: 1, prereq: null,
+  { name: 'Misty Visions', minLevel: 2, prereq: null,
     desc: 'You can cast Silent Image at will, without expending a spell slot.' },
   { name: 'One with Shadows', minLevel: 5, prereq: null,
     desc: 'Prerequisite: Warlock 5\n\nWhile you are in an area of Dim Light or Darkness, you can use a Magic action to give yourself the Invisible condition until you move or take an action, a Bonus Action, or a Reaction.' },
-  { name: 'Otherworldly Leap', minLevel: 5, prereq: null,
-    desc: 'Prerequisite: Warlock 5\n\nYou can cast Jump on yourself at will, without expending a spell slot.' },
+  { name: 'Otherworldly Leap', minLevel: 2, prereq: null,
+    desc: 'Prerequisite: Warlock 2\n\nYou can cast Jump on yourself without expending a spell slot.' },
   { name: 'Pact of the Blade', minLevel: 1, prereq: null,
     desc: 'As a Bonus Action, you can conjure a pact weapon in your hand—a Simple or Martial weapon of your choice—or create a bond with a magic weapon you touch. Until the bond ends, you have proficiency with the weapon, and you can use it as a spellcasting focus. Whenever you attack with the bonded weapon, you can use your Charisma modifier for attack and damage rolls and cause it to deal Necrotic, Psychic, or Radiant damage.' },
   { name: 'Pact of the Chain', minLevel: 1, prereq: null,
     desc: 'You learn the Find Familiar spell and can cast it as a Magic action without expending a spell slot. You can communicate telepathically with your familiar and perceive through its senses. When you take the Attack action, you can forgo one of your attacks to allow your familiar to make one attack with its Reaction.' },
   { name: 'Pact of the Tome', minLevel: 1, prereq: null,
-    desc: 'Your Book of Shadows functions as a spellcasting focus for your Warlock spells. The book holds 3 cantrips from any class\'s spell list that you can cast at will; they don\'t count against your cantrips known.' },
-  { name: 'Repelling Blast', minLevel: 1, prereq: null,
+    desc: 'Your Book of Shadows functions as a spellcasting focus for your Warlock spells. The book holds 3 cantrips from any class\'s spell list and two 1st-level ritual spells from any class\'s spell list.' },
+  { name: 'Repelling Blast', minLevel: 2, prereq: null,
     desc: 'Choose one of your known Warlock cantrips that deals damage. When you hit a creature with that spell, you can push the creature up to 10 feet straight away from you.' },
   { name: 'Thirsting Blade', minLevel: 5, prereq: 'Pact of the Blade',
     desc: 'Prerequisite: Warlock 5, Pact of the Blade\n\nYou gain the Extra Attack feature for your pact weapon only. With that feature, you can attack twice with the pact weapon instead of once when you take the Attack action on your turn.' },
@@ -183,209 +184,213 @@ const _INV_DATA = [
 const _INV_DESCS = {};
 _INV_DATA.forEach(function(inv) { _INV_DESCS[inv.name] = inv.desc; });
 
-// Check if a character has a specific Eldritch Invocation chosen (works for both sheet C and charbuilder character)
-function _warlockChoiceValues(value) {
-  if (Array.isArray(value)) return value;
-  return value == null || value === '' ? [] : [value];
-}
-
-function _warlockCleanChoice(value) {
-  return String(value || '').split('|')[0].trim();
-}
-
-function _warlockInvocationEntries(C) {
-  const choices = C?.choices && typeof C.choices === 'object' ? C.choices : {};
-  return Object.entries(choices)
-    .filter(([key]) => String(key || '').replace(/^mc\d+_/, '').startsWith('warlock_invocation_'))
-    .flatMap(([key, value]) => _warlockChoiceValues(value).map((item) => ({ key, name: _warlockCleanChoice(item) })))
-    .filter((entry) => entry.name);
-}
-
+// Check if a character has a specific Eldritch Invocation chosen (works for both sheet C and charbuilder char)
 function _warlockHasInvocation(C, name) {
-  const wanted = _warlockCleanChoice(name).toLowerCase();
-  if (!wanted) return false;
-  return _warlockInvocationEntries(C).some((entry) => entry.name.toLowerCase() === wanted);
+  if (!C || !C.choices) return false;
+  return Object.entries(C.choices).some(function(e) {
+    return e[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
+           String(e[1]).split('|')[0].trim() === name;
+  });
+}
+
+function _warlockAdapterCharacter(localContext) {
+  return (localContext && (localContext.character || localContext.char || localContext.C || localContext.activeCharacter))
+    || context.character
+    || context.char
+    || context.C
+    || context.activeCharacter
+    || ((typeof char !== 'undefined' && char) ? char : null);
 }
 
 function _warlockInvocationCount(C, name) {
-  const wanted = _warlockCleanChoice(name).toLowerCase();
-  if (!wanted) return 0;
-  return _warlockInvocationEntries(C).filter((entry) => entry.name.toLowerCase() === wanted).length;
+  if (!C || !C.choices) return 0;
+  return Object.entries(C.choices).filter(function(e) {
+    return e[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
+           String(e[1]).split('|')[0].trim() === name;
+  }).length;
 }
 
-function _warlockSelectedInvocationSet(C, exceptKey = '') {
-  const out = new Set();
-  _warlockInvocationEntries(C).forEach((entry) => {
-    if (exceptKey && entry.key === exceptKey) return;
-    out.add(entry.name);
+function _warlockInvocationPrereqMet(C, inv, threshold) {
+  if (!inv) return false;
+  if (Number(threshold || 0) < Number(inv.minLevel || 1)) return false;
+  if (!inv.prereq) return true;
+  return _warlockHasInvocation(C, inv.prereq);
+}
+
+function _warlockLevel(C) {
+  if (!C) return 0;
+  let out = 0;
+  if (String(C.className || '').toLowerCase() === 'warlock') out += Number(C.classLevel || C.level || 0);
+  (C.extraClasses || []).forEach(function (ec) {
+    if (String(ec?.name || '').toLowerCase() === 'warlock') out += Number(ec.level || 0);
   });
   return out;
 }
 
-function _warlockInvocationChoice(C, key) {
-  const value = C?.choices?.[key];
-  return _warlockCleanChoice(Array.isArray(value) ? value[0] : value);
+function _warlockChoiceValue(C, key) {
+  if (!C?.choices) return null;
+  const direct = C.choices[key];
+  if (direct != null) return direct;
+  const found = Object.entries(C.choices).find(function (entry) {
+    return entry[0].replace(/^mc\d+_/, '') === key;
+  });
+  return found ? found[1] : null;
 }
 
-function _warlockCanTakeInvocation(inv, C, unlockLevel, currentKey) {
-  if (!inv) return false;
-  if (Number(unlockLevel || 0) < Number(inv.minLevel || 1)) return false;
+function _warlockChoiceValuesByBase(C, baseKey, fallback) {
+  if (!C?.choices) return fallback ? [fallback] : [];
+  var out = [];
+  Object.entries(C.choices).forEach(function(entry) {
+    var key = entry[0].replace(/^mc\d+_/, '');
+    if (key === baseKey || key.startsWith(baseKey + '_')) {
+      var value = String(entry[1] || '').split('|')[0].trim();
+      if (value) out.push(value);
+    }
+  });
+  if (!out.length && fallback) out.push(fallback);
+  return out;
+}
 
-  const currentValues = new Set(_warlockChoiceValues(C?.choices?.[currentKey]).map(_warlockCleanChoice));
-  if (currentValues.has(inv.name)) return true;
+function _warlockChoiceMatches(C, baseKey, cantripName, fallback) {
+  return _warlockChoiceValuesByBase(C, baseKey, fallback).some(function(value) {
+    return value === cantripName;
+  });
+}
 
-  if (inv.prereq && !_warlockHasInvocation(C, inv.prereq)) return false;
-
-  // Lessons of the First Ones can be taken more than once.
-  if (inv.repeatable) return true;
-
-  return !_warlockSelectedInvocationSet(C, currentKey).has(inv.name);
+function _knownWarlockInvocationChoices(C) {
+  if (!C?.choices) return [];
+  return Object.entries(C.choices)
+    .filter(function (entry) { return entry[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_'); })
+    .map(function (entry) { return String(entry[1] || '').split('|')[0].trim(); })
+    .filter(Boolean);
 }
 
 // Progressione: [livello_acquisizione, ...]
 // XPHB 2024: 10 total invocations at lv1(+1), lv2(+2), lv5(+2), lv7(+1), lv9(+1), lv12(+1), lv15(+1), lv18(+1)
 const _INV_LEVELS = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
 
-registerClassAdapter("Warlock", function (cls, lv, specs, ctx = {}) {
-  const character = ctx.character || null;
-  const choices = ctx.choices || character?.choices || {};
-  const C = character ? { ...character, choices } : { choices };
+registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
+  var _charRef = _warlockAdapterCharacter(adapterContext);
 
   _INV_LEVELS.forEach(function (threshold, i) {
-    if (lv < threshold) return;
-    const key = 'warlock_invocation_' + (i + 1);
-    const slotInvocations = _INV_DATA
-      .filter(function(inv) { return _warlockCanTakeInvocation(inv, C, threshold, key); })
-      .map(function(inv) { return inv.name; });
-
-    if (!slotInvocations.length && !choices[key]) return;
-
-    specs.push({
-      key,
-      label: 'Eldritch Invocation ' + (i + 1) + ' (Lv. ' + threshold + ')',
-      type: 'generic_choice',
-      from: slotInvocations,
-      count: 1,
-      level: threshold,
-      descMap: _INV_DESCS
-    });
+    if (lv >= threshold) {
+      // Each slot shows only invocations available at its unlock level
+      var slotInvocations = _INV_DATA
+        .filter(function(inv) { return _warlockInvocationPrereqMet(_charRef, inv, threshold); })
+        .map(function(inv) { return inv.name; });
+      specs.push({
+        key: 'warlock_invocation_' + (i + 1),
+        label: 'Eldritch Invocation ' + (i + 1) + ' (Lv. ' + threshold + ')',
+        type: 'generic_choice',
+        from: slotInvocations,
+        count: 1,
+        level: threshold,
+        descMap: _INV_DESCS
+      });
+    }
   });
 
-  // Pact of the Tome: 3 cantrips from any spell list.
-  if (_warlockHasInvocation(C, 'Pact of the Tome')) {
+  if (_charRef && _warlockHasInvocation(_charRef, 'Agonizing Blast')) {
+    var agonizingCount = Math.max(1, _warlockInvocationCount(_charRef, 'Agonizing Blast'));
+    for (var agonizingIndex = 1; agonizingIndex <= agonizingCount; agonizingIndex += 1) {
+      specs.push({
+        key: agonizingCount > 1 ? 'warlock_agonizing_blast_cantrip_' + agonizingIndex : 'warlock_agonizing_blast_cantrip',
+        label: agonizingCount > 1 ? 'Agonizing Blast — Warlock Cantrip ' + agonizingIndex : 'Agonizing Blast — Warlock Cantrip',
+        type: 'spell_choice',
+        spellFilter: { spellLevel: 0, classes: ['Warlock'] },
+        count: 1,
+        level: 2
+      });
+    }
+  }
+
+  if (_charRef && _warlockHasInvocation(_charRef, 'Repelling Blast')) {
+    var repellingCount = Math.max(1, _warlockInvocationCount(_charRef, 'Repelling Blast'));
+    for (var repellingIndex = 1; repellingIndex <= repellingCount; repellingIndex += 1) {
+      specs.push({
+        key: repellingCount > 1 ? 'warlock_repelling_blast_cantrip_' + repellingIndex : 'warlock_repelling_blast_cantrip',
+        label: repellingCount > 1 ? 'Repelling Blast — Warlock Cantrip ' + repellingIndex : 'Repelling Blast — Warlock Cantrip',
+        type: 'spell_choice',
+        spellFilter: { spellLevel: 0, classes: ['Warlock'] },
+        count: 1,
+        level: 2
+      });
+    }
+  }
+
+  if (_charRef && _warlockHasInvocation(_charRef, 'Eldritch Spear')) {
+    var spearCount = Math.max(1, _warlockInvocationCount(_charRef, 'Eldritch Spear'));
+    for (var spearIndex = 1; spearIndex <= spearCount; spearIndex += 1) {
+      specs.push({
+        key: spearCount > 1 ? 'warlock_eldritch_spear_cantrip_' + spearIndex : 'warlock_eldritch_spear_cantrip',
+        label: spearCount > 1 ? 'Eldritch Spear — Warlock Cantrip ' + spearIndex : 'Eldritch Spear — Warlock Cantrip',
+        type: 'spell_choice',
+        spellFilter: { spellLevel: 0, classes: ['Warlock'] },
+        count: 1,
+        level: 2
+      });
+    }
+  }
+
+  // Pact of the Tome: 3 cantrips from any list + 2 level-1 rituals.
+  if (_charRef && _warlockHasInvocation(_charRef, 'Pact of the Tome')) {
     [1, 2, 3].forEach(function (n) {
       specs.push({
         key: 'warlock_tome_cantrip_' + n,
         label: 'Pact of the Tome — Cantrip ' + n + ' (any list)',
         type: 'spell_choice',
-        spellFilter: { spellLevel: 0, allSpells: true },
+        spellFilter: { spellLevel: 0, classes: null },
+        count: 1,
+        level: 1
+      });
+    });
+    [1, 2].forEach(function (n) {
+      specs.push({
+        key: 'warlock_tome_ritual_' + n,
+        label: 'Pact of the Tome — 1st-level Ritual ' + n,
+        type: 'spell_choice',
+        spellFilter: { spellLevel: 1, ritual: true, classes: null },
         count: 1,
         level: 1
       });
     });
   }
 
-  // Cantrip-targeting invocations. The sheet currently has detailed modifiers for Eldritch Blast,
-  // but the builder stores the official cantrip choice here.
-  [
-    ['Agonizing Blast', 'warlock_agonizing_blast_cantrip', 'Agonizing Blast — Cantrip'],
-    ['Eldritch Spear', 'warlock_eldritch_spear_cantrip', 'Eldritch Spear — Cantrip'],
-    ['Repelling Blast', 'warlock_repelling_blast_cantrip', 'Repelling Blast — Cantrip'],
-  ].forEach(function ([invocation, key, label]) {
-    if (!_warlockHasInvocation(C, invocation)) return;
-    specs.push({
-      key,
-      label,
-      type: 'spell_choice',
-      spellFilter: { spellLevel: 0, classes: ['Warlock'] },
-      classes: ['Warlock'],
-      count: 1,
-      level: 1,
-    });
-  });
-
-  // Lessons of the First Ones: one Origin feat for each time the invocation is taken.
-  const lessonsCount = _warlockInvocationCount(C, 'Lessons of the First Ones');
-  for (let i = 1; i <= lessonsCount; i += 1) {
-    specs.push({
-      key: 'warlock_lessons_feat_' + i,
-      label: lessonsCount > 1 ? 'Lessons of the First Ones — Origin Feat ' + i : 'Lessons of the First Ones — Origin Feat',
-      type: 'feat_cat',
-      categories: ['O'],
-      count: 1,
-      level: 1
-    });
+  // Lessons of the First Ones: Origin feat choice.
+  if (_charRef && _warlockHasInvocation(_charRef, 'Lessons of the First Ones')) {
+    var lessonsCount = Math.max(1, _warlockInvocationCount(_charRef, 'Lessons of the First Ones'));
+    for (var lessonIndex = 1; lessonIndex <= lessonsCount; lessonIndex += 1) {
+      specs.push({
+        key: lessonsCount > 1 ? 'warlock_lessons_feat_' + lessonIndex : 'warlock_lessons_feat',
+        label: lessonsCount > 1 ? 'Lessons of the First Ones — Origin Feat ' + lessonIndex : 'Lessons of the First Ones — Origin Feat',
+        type: 'feat_cat',
+        categories: ['O'],
+        count: 1,
+        level: 2
+      });
+    }
   }
 
-  if (_warlockHasInvocation(C, 'Lifedrinker')) {
+  if (_charRef && _warlockHasInvocation(_charRef, 'Lifedrinker')) {
     specs.push({
-      key: 'warlock_lifedrinker_damage',
+      key: 'warlock_lifedrinker_damage_type',
       label: 'Lifedrinker — Damage Type',
       type: 'generic_choice',
       from: ['Necrotic', 'Psychic', 'Radiant'],
       count: 1,
-      level: 9,
+      level: 9
     });
   }
 
-  if (_warlockHasInvocation(C, 'Pact of the Blade')) {
-    specs.push({
-      key: 'warlock_pact_blade_damage',
-      label: 'Pact of the Blade — Weapon Damage Type',
-      type: 'generic_choice',
-      from: ['Necrotic', 'Psychic', 'Radiant'],
-      count: 1,
-      level: 1,
-    });
-  }
-
-  // Mystic Arcanum choices.
-  [
-    [11, 6],
-    [13, 7],
-    [15, 8],
-    [17, 9],
-  ].forEach(function ([minLevel, spellLevel]) {
-    if (lv < minLevel) return;
-    specs.push({
-      key: 'warlock_mystic_arcanum_' + spellLevel,
-      label: 'Mystic Arcanum — Spell Lv.' + spellLevel,
-      type: 'spell_choice',
-      spellFilter: { spellLevel, classes: ['Warlock'] },
-      classes: ['Warlock'],
-      count: 1,
-      level: minLevel,
-    });
-  });
+  if (lv >= 11) specs.push({ key: 'warlock_mystic_arcanum_6', label: 'Mystic Arcanum — 6th-level Spell', type: 'spell_choice', spellFilter: { spellLevel: 6, classes: null }, count: 1, level: 11 });
+  if (lv >= 13) specs.push({ key: 'warlock_mystic_arcanum_7', label: 'Mystic Arcanum — 7th-level Spell', type: 'spell_choice', spellFilter: { spellLevel: 7, classes: null }, count: 1, level: 13 });
+  if (lv >= 15) specs.push({ key: 'warlock_mystic_arcanum_8', label: 'Mystic Arcanum — 8th-level Spell', type: 'spell_choice', spellFilter: { spellLevel: 8, classes: null }, count: 1, level: 15 });
+  if (lv >= 17) specs.push({ key: 'warlock_mystic_arcanum_9', label: 'Mystic Arcanum — 9th-level Spell', type: 'spell_choice', spellFilter: { spellLevel: 9, classes: null }, count: 1, level: 17 });
 
   if (lv >= 19) {
     specs.push({ key: 'warlock_epic_boon', label: 'Epic Boon', type: 'feat_cat', categories: ['EB'], count: 1, level: 19 });
   }
 });
-
-if (typeof registerClassRuntimeConfig === 'function') {
-  registerClassRuntimeConfig('Warlock', {
-    spellcasting: {
-      ability: 'cha',
-      casterProgression: 'pact',
-      alwaysPreparedSpells: [
-        { name: 'Contact Other Plane', minLevel: 9, level: 5, source: 'Contact Patron', sourceType: 'class' },
-      ],
-    },
-  });
-}
-
-if (typeof registerClassSheetChoiceMeta === 'function') {
-  registerClassSheetChoiceMeta('Warlock', {
-    sectionTitle: 'Warlock Choices',
-    isChoiceKey: (key) => /^warlock_/i.test(String(key || '')),
-    getLabel: (key) => String(key || '')
-      .replace(/^warlock_/i, '')
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase()),
-    normalizeChoiceValue: (value) => String(value || '').split('|')[0].trim(),
-  });
-}
 
 // [SheetRuntime] START
 registerClassSheetActions("Warlock", [
@@ -408,6 +413,7 @@ registerClassSheetActions("Warlock", [
     "icon": "",
     "cat": "action",
     "uses": "1 / LR",
+    "resKey": "magical_cunning",
     "minLevel": 2,
     "desc": "Perform esoteric rite for 1 minute. At end, regain expended Pact Magic slots up to half your maximum (round up). Once used, unavailable until Long Rest."
   },
@@ -429,48 +435,59 @@ registerClassSheetActions("Warlock", [
     "desc": "A 6th-level spell known without a slot, usable once per LR (lv.11). Gain a 7th-level spell at lv.13, 8th at lv.15, 9th at lv.17. Recharge: Long Rest for each."
   },
   {
-    "name": "Mystic Arcanum VI",
-    "icon": "sparkles",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "warlock_mystic_arcanum_6",
-    "minLevel": 11,
-    "desc": "Cast the 6th-level spell chosen for Mystic Arcanum once without expending a spell slot. Recharge: Long Rest."
-  },
-  {
-    "name": "Mystic Arcanum VII",
-    "icon": "sparkles",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "warlock_mystic_arcanum_7",
-    "minLevel": 13,
-    "desc": "Cast the 7th-level spell chosen for Mystic Arcanum once without expending a spell slot. Recharge: Long Rest."
-  },
-  {
-    "name": "Mystic Arcanum VIII",
-    "icon": "sparkles",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "warlock_mystic_arcanum_8",
-    "minLevel": 15,
-    "desc": "Cast the 8th-level spell chosen for Mystic Arcanum once without expending a spell slot. Recharge: Long Rest."
-  },
-  {
-    "name": "Mystic Arcanum IX",
-    "icon": "sparkles",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "warlock_mystic_arcanum_9",
-    "minLevel": 17,
-    "desc": "Cast the 9th-level spell chosen for Mystic Arcanum once without expending a spell slot. Recharge: Long Rest."
-  },
-  {
     "name": "Eldritch Master",
     "icon": "",
     "cat": "action",
     "uses": "1 / LR",
     "minLevel": 20,
     "desc": "Magical Cunning is upgraded: when you use its 1-minute ritual, you regain ALL expended Pact Magic slots (instead of half). Once per Long Rest."
+  },
+
+  {
+    "name": "Pact of the Blade",
+    "icon": "swords",
+    "cat": "bonus",
+    "uses": "Bonus Action",
+    "minLevel": 1,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Pact of the Blade'); },
+    "desc": "Conjure a Simple or Martial pact weapon, or bond with a magic weapon you touch. You are proficient with it, can use it as a spellcasting focus, and can use CHA for attack and damage rolls. Use the Inventory tab to mark one equipped weapon as Pact Weapon."
+  },
+  {
+    "name": "Pact of the Chain",
+    "icon": "sparkles",
+    "cat": "action",
+    "uses": "Magic Action",
+    "minLevel": 1,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Pact of the Chain'); },
+    "desc": "You have Find Familiar available through the pact. You can cast it as a Magic action without expending a spell slot. Investment of the Chain Master unlocks additional familiar benefits."
+  },
+  {
+    "name": "Pact of the Tome",
+    "icon": "book-open",
+    "cat": "action",
+    "uses": "Passive / Focus",
+    "minLevel": 1,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Pact of the Tome'); },
+    "desc": "Your Book of Shadows functions as a spellcasting focus for your Warlock spells and grants three cantrips plus two 1st-level rituals from any spell list."
+  },
+  {
+    "name": "Investment of the Chain Master",
+    "icon": "sparkles",
+    "cat": "bonus",
+    "uses": "Bonus Action / Reaction",
+    "minLevel": 5,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Investment of the Chain Master') && _warlockHasInvocation(C, 'Pact of the Chain'); },
+    "desc": "Your familiar gains Fly or Swim Speed 40 ft. You can command it to Attack as a Bonus Action. Its B/P/S damage can become Necrotic or Radiant, it uses your spell save DC, and you can use your Reaction to grant it Resistance to damage."
+  },
+  {
+    "name": "Gift of the Protectors",
+    "icon": "shield",
+    "cat": "reaction",
+    "uses": "1 / LR",
+    "resKey": "gift_of_the_protectors",
+    "minLevel": 9,
+    "condition": function(C) { return _warlockHasInvocation(C, 'Gift of the Protectors') && _warlockHasInvocation(C, 'Pact of the Tome'); },
+    "desc": "When a creature named in your Book of Shadows is reduced to 0 HP but not killed outright, it drops to 1 HP instead. The page can hold names equal to your CHA modifier (minimum 1). Recharge: Long Rest."
   },
 
   // ── INVOCATIONS: other action types ───────────────────────────────────────
@@ -489,7 +506,6 @@ registerClassSheetActions("Warlock", [
     "icon": "waves",
     "cat": "action",
     "uses": "1 / LR",
-    "resKey": "warlock_gift_depths",
     "minLevel": 5,
     "condition": function(C) { return _warlockHasInvocation(C, 'Gift of the Depths'); },
     "desc": "Passive: swim speed = walking speed, breathe underwater. Once per Long Rest, cast Water Breathing without a slot (up to 10 willing creatures, 24 hours)."
@@ -502,35 +518,6 @@ registerClassSheetActions("Warlock", [
     "minLevel": 5,
     "condition": function(C) { return _warlockHasInvocation(C, 'Gaze of Two Minds'); },
     "desc": "Bonus Action: touch a willing creature to perceive through its senses for 1 hour. You can perceive through it simultaneously and use its position for spells. Each new use ends the previous one."
-  },
-
-  {
-    "name": "Pact of the Blade",
-    "icon": "swords",
-    "cat": "bonus",
-    "uses": "Bonus Action",
-    "minLevel": 1,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Pact of the Blade'); },
-    "desc": "Conjure a pact weapon or bind a magic weapon you touch. Mark it as a Pact Weapon in Inventory to use CHA for attack/damage and gain proficiency."
-  },
-  {
-    "name": "Pact Familiar Attack",
-    "icon": "paw-print",
-    "cat": "bonus",
-    "uses": "Bonus Action / Attack tradeoff",
-    "minLevel": 1,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Pact of the Chain'); },
-    "desc": "Your Find Familiar is available at will. Normally, when you take the Attack action, you can forgo one attack to let the familiar attack with its Reaction. With Investment of the Chain Master, you can command it to Attack as a Bonus Action."
-  },
-  {
-    "name": "Gift of the Protectors",
-    "icon": "book-open",
-    "cat": "reaction",
-    "uses": "1 / LR",
-    "resKey": "warlock_gift_protectors",
-    "minLevel": 9,
-    "condition": function(C) { return _warlockHasInvocation(C, 'Gift of the Protectors') && _warlockHasInvocation(C, 'Pact of the Tome'); },
-    "desc": "When a creature whose name is in your Book of Shadows drops to 0 HP but isn't killed outright, it drops to 1 HP instead. Once triggered, no creature can benefit again until you finish a Long Rest."
   },
 
   // ── INVOCATIONS: Pact of the Blade combat upgrades ─────────────────────────
@@ -560,7 +547,9 @@ registerClassSheetActions("Warlock", [
     "uses": "On Hit",
     "minLevel": 5,
     "condition": function(C) { return _warlockHasInvocation(C, 'Eldritch Smite') && _warlockHasInvocation(C, 'Pact of the Blade'); },
-    "desc": "On Hit: expend a Pact Magic slot when you hit with your Pact Weapon. Deal 1d8 Force per slot level extra damage (+1d8 on a Critical Hit). The target is also knocked Prone if Large or smaller. Requires Pact of the Blade."
+    "damageFormula": function(ctx) { var lv = Number(ctx.ownerLevel || 1); var slotLevel = lv >= 9 ? 5 : lv >= 7 ? 4 : lv >= 5 ? 3 : 1; return (slotLevel + 1) + 'd8'; },
+    "damageButtonLabel": function(ctx) { var lv = Number(ctx.ownerLevel || 1); var slotLevel = lv >= 9 ? 5 : lv >= 7 ? 4 : lv >= 5 ? 3 : 1; return 'Smite ' + (slotLevel + 1) + 'd8 Force'; },
+    "desc": "On Hit: expend a Pact Magic slot when you hit with your Pact Weapon. Deal 1d8 Force plus 1d8 per Pact slot level and knock the target Prone if it is Huge or smaller. Requires Pact of the Blade."
   },
   {
     "name": "Lifedrinker",
@@ -569,7 +558,9 @@ registerClassSheetActions("Warlock", [
     "uses": "Passive",
     "minLevel": 9,
     "condition": function(C) { return _warlockHasInvocation(C, 'Lifedrinker') && _warlockHasInvocation(C, 'Pact of the Blade'); },
-    "desc": "Passive: when you hit with your Pact Weapon, deal extra Necrotic, Psychic, or Radiant damage (chosen at invocation selection) equal to your CHA modifier (min 1). Requires Pact of the Blade."
+    "damageFormula": "1d6",
+    "damageButtonLabel": "Lifedrinker 1d6",
+    "desc": "Once per turn when you hit with your Pact Weapon, deal an extra 1d6 Necrotic, Psychic, or Radiant damage (chosen when you take the invocation). You can also expend one Hit Point Die to heal by the roll + CON modifier. Requires Pact of the Blade."
   }
 ]);
 // [SheetRuntime] END
@@ -591,45 +582,58 @@ registerClassSheetEffects("Warlock", [
   { type: "sense", senseType: "truesight", value: 30, minLevel: 15,
     note: "Witch Sight",
     condition: function(C){ return _warlockHasInvocation(C, "Witch Sight"); } },
-  { type: "sense", senseType: "darkvision", value: 120, minLevel: 1,
-    note: "Devil's Sight (sees through magical darkness)",
+  { type: "sense", senseType: "darkvision", value: 120, minLevel: 2,
+    note: "Devil's Sight (normal vision in dim light and magical/nonmagical darkness)",
     condition: function(C){ return _warlockHasInvocation(C, "Devil's Sight"); } },
   { type: "advantage", target: "save", ability: "con", minLevel: 1,
     note: "Eldritch Mind (Concentration saves)",
     condition: function(C){ return _warlockHasInvocation(C, "Eldritch Mind"); } },
+  { type: "speed", speedType: "swim", value: "walking", minLevel: 5,
+    note: "Gift of the Depths",
+    condition: function(C){ return _warlockHasInvocation(C, "Gift of the Depths"); } },
+  { type: "trait", key: "underwater_breathing", minLevel: 5,
+    note: "Gift of the Depths: breathe underwater",
+    condition: function(C){ return _warlockHasInvocation(C, "Gift of the Depths"); } },
 ]);
 
 if (typeof registerClassAtWillSpells === 'function') {
   registerClassAtWillSpells('Warlock', [
-    { invocation: 'Armor of Shadows',          spell: 'Mage Armor',      minLevel: 1  },
-    { invocation: 'Fiendish Vigor',            spell: 'False Life',      minLevel: 1  },
-    { invocation: 'Mask of Many Faces',        spell: 'Disguise Self',   minLevel: 1  },
-    { invocation: 'Misty Visions',             spell: 'Silent Image',    minLevel: 1  },
-    { invocation: 'Pact of the Chain',         spell: 'Find Familiar',   minLevel: 1  },
-    { invocation: 'Otherworldly Leap',         spell: 'Jump',            minLevel: 5  },
-    { invocation: 'Ascendant Step',            spell: 'Levitate',        minLevel: 9  },
+    { invocation: 'Armor of Shadows',          spell: 'Mage Armor',      minLevel: 2  },
+    { invocation: 'Fiendish Vigor',            spell: 'False Life',      minLevel: 2  },
+    { invocation: 'Mask of Many Faces',        spell: 'Disguise Self',   minLevel: 2  },
+    { invocation: 'Misty Visions',             spell: 'Silent Image',    minLevel: 2  },
+    { invocation: 'One with Shadows',          spell: 'Invisibility',   minLevel: 5  },
+    { invocation: 'Otherworldly Leap',         spell: 'Jump',            minLevel: 2  },
+    { invocation: 'Ascendant Step',            spell: 'Levitate',        minLevel: 5  },
     { invocation: 'Master of Myriad Forms',    spell: 'Alter Self',      minLevel: 5  },
     { invocation: 'Whispers of the Grave',     spell: 'Speak with Dead', minLevel: 7  },
     { invocation: 'Visions of Distant Realms', spell: 'Arcane Eye',      minLevel: 15 },
+    { invocation: 'Pact of the Chain',         spell: 'Find Familiar',  minLevel: 1  },
   ]);
 }
 
-// Eldritch Blast invocation effects — adapter sets flags, sheet computes numeric values.
-// If the official cantrip choice has been made, only apply the modifier to Eldritch Blast
-// when Eldritch Blast is the selected target. If no choice exists yet, keep the old behavior.
+// Eldritch Blast invocation effects — adapter sets flags, sheet computes numeric values
 if (typeof registerCantripDataModifier === 'function') {
-  registerCantripDataModifier('Eldritch Blast', function (data, C) {
-    var out = Object.assign({}, data || {});
-    const agonizingTarget = _warlockInvocationChoice(C, 'warlock_agonizing_blast_cantrip');
-    const spearTarget = _warlockInvocationChoice(C, 'warlock_eldritch_spear_cantrip');
-    const repellingTarget = _warlockInvocationChoice(C, 'warlock_repelling_blast_cantrip');
-
-    if (_warlockHasInvocation(C, 'Agonizing Blast') && (!agonizingTarget || agonizingTarget === 'Eldritch Blast')) out.dmgBonusPerBeam = 'cha';
-    if (_warlockHasInvocation(C, 'Eldritch Spear') && (!spearTarget || spearTarget === 'Eldritch Blast')) out.range = '300 ft';
-    if (_warlockHasInvocation(C, 'Repelling Blast') && (!repellingTarget || repellingTarget === 'Eldritch Blast')) {
-      out.notes = (out.notes ? out.notes + ' · ' : '') + 'Push 10 ft on hit';
-    }
-    return out;
+  [
+    'Eldritch Blast',
+    'Chill Touch',
+    'Mind Sliver',
+    'Poison Spray',
+    'Toll the Dead',
+    'True Strike',
+  ].forEach(function (cantripName) {
+    registerCantripDataModifier(cantripName, function (data, C) {
+      var out = Object.assign({}, data || {});
+      if (_warlockHasInvocation(C, 'Agonizing Blast') && _warlockChoiceMatches(C, 'warlock_agonizing_blast_cantrip', cantripName, 'Eldritch Blast')) out.dmgBonusPerBeam = 'cha';
+      if (_warlockHasInvocation(C, 'Eldritch Spear') && _warlockChoiceMatches(C, 'warlock_eldritch_spear_cantrip', cantripName, 'Eldritch Blast')) {
+        out.range = (30 * Math.max(1, _warlockLevel(C))) + ' ft';
+        out.notes = (out.notes ? out.notes + ' · ' : '') + 'Eldritch Spear: extended range';
+      }
+      if (_warlockHasInvocation(C, 'Repelling Blast') && _warlockChoiceMatches(C, 'warlock_repelling_blast_cantrip', cantripName, 'Eldritch Blast')) {
+        out.notes = (out.notes ? out.notes + ' · ' : '') + 'Push 10 ft on hit';
+      }
+      return out;
+    });
   });
 }
 
@@ -669,13 +673,9 @@ registerClassSheetResources("Warlock", [
     "minLevel": 9,
     "max": function() { return 1; }
   },
-  { "key": "warlock_mystic_arcanum_6", "name": "Mystic Arcanum VI", "icon": "sparkles", "recharge": "LR", "minLevel": 11, "max": function() { return 1; } },
-  { "key": "warlock_mystic_arcanum_7", "name": "Mystic Arcanum VII", "icon": "sparkles", "recharge": "LR", "minLevel": 13, "max": function() { return 1; } },
-  { "key": "warlock_mystic_arcanum_8", "name": "Mystic Arcanum VIII", "icon": "sparkles", "recharge": "LR", "minLevel": 15, "max": function() { return 1; } },
-  { "key": "warlock_mystic_arcanum_9", "name": "Mystic Arcanum IX", "icon": "sparkles", "recharge": "LR", "minLevel": 17, "max": function() { return 1; } },
   {
-    "key": "warlock_gift_depths",
-    "name": "Gift of the Depths",
+    "key": "gift_of_the_depths",
+    "name": "Gift of the Depths — Water Breathing",
     "icon": "waves",
     "recharge": "LR",
     "minLevel": 5,
@@ -683,37 +683,70 @@ registerClassSheetResources("Warlock", [
     "max": function() { return 1; }
   },
   {
-    "key": "warlock_gift_protectors",
+    "key": "gift_of_the_protectors",
     "name": "Gift of the Protectors",
-    "icon": "book-open",
+    "icon": "shield",
     "recharge": "LR",
     "minLevel": 9,
     "condition": function(C) { return _warlockHasInvocation(C, 'Gift of the Protectors') && _warlockHasInvocation(C, 'Pact of the Tome'); },
     "max": function() { return 1; }
-  }
+  },
+  { "key": "mystic_arcanum_6", "name": "Mystic Arcanum VI",   "icon": "sparkles", "recharge": "LR", "minLevel": 11, "max": function() { return 1; } },
+  { "key": "mystic_arcanum_7", "name": "Mystic Arcanum VII",  "icon": "sparkles", "recharge": "LR", "minLevel": 13, "max": function() { return 1; } },
+  { "key": "mystic_arcanum_8", "name": "Mystic Arcanum VIII", "icon": "sparkles", "recharge": "LR", "minLevel": 15, "max": function() { return 1; } },
+  { "key": "mystic_arcanum_9", "name": "Mystic Arcanum IX",   "icon": "sparkles", "recharge": "LR", "minLevel": 17, "max": function() { return 1; } }
 ]);
 
-// Magical Cunning metadata/side effect. This is intentionally React-safe: no global C,
-// no global spellSlotUsed, no direct DOM render calls. Consumers may pass state helpers
-// to actually recover slots; otherwise the handler simply returns recovery metadata.
+// Magical Cunning: recover ceil(max Pact Magic slots / 2), or all slots at Warlock 20.
 if (typeof registerResourceSideEffect === 'function') {
-  registerResourceSideEffect('magical_cunning', function (payload = {}) {
-    const C = payload.character || payload.C || null;
-    let wlv = 0;
-    if (String(C?.className || '').toLowerCase() === 'warlock') wlv += C?.classLevel || C?.level || 0;
-    (C?.extraClasses || []).forEach(function (ec) {
-      if (String(ec?.name || '').toLowerCase() === 'warlock') wlv += ec.level || 0;
-    });
-    const pactSlotsByLevel = payload.PACT_SLOTS || payload.pactSlots || null;
-    const ps = pactSlotsByLevel
-      ? (pactSlotsByLevel[Math.min(wlv, 20)] || { n: 0, l: 1 })
-      : { n: 0, l: 1 };
-    const slotCount = Number(ps.slots ?? ps.n ?? 0) || 0;
-    const slotLevel = Number(ps.level ?? ps.l ?? 1) || 1;
-    const recover = slotCount ? Math.ceil(slotCount / 2) : 0;
-    return { type: 'recover_pact_slots', slotLevel, recover, warlockLevel: wlv };
+  registerResourceSideEffect('magical_cunning', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
+    const slots = ctx.PACT_SLOTS || {};
+    const wlv = Math.min(20, Math.max(0, _warlockLevel(C)));
+    if (!wlv) return null;
+
+    const row = slots[wlv] || {};
+    const slotCount = Number(row.slots ?? row.n ?? 0);
+    const slotLevel = Number(row.level ?? row.l ?? 1);
+    if (!slotCount) return null;
+
+    const recover = wlv >= 20 ? slotCount : Math.ceil(slotCount / 2);
+    return {
+      type: 'recover_pact_slots',
+      recover,
+      slotLevel,
+      label: wlv >= 20 ? 'Eldritch Master' : 'Magical Cunning',
+    };
+  });
+}
+
+if (typeof registerClassRuntimeConfig === 'function') {
+  registerClassRuntimeConfig('Warlock', {
+    multiclassPrerequisites: [{ cha: 13 }],
+    spellcasting: {
+      ability: 'cha',
+      casterProgression: 'pact',
+      preparedMode: 'known',
+      alwaysPreparedSpells: [
+        { name: 'Contact Other Plane', minLevel: 9, level: 5, source: 'Contact Patron', sourceType: 'class' },
+      ],
+      alwaysKnownSpells: [
+        { name: 'Find Familiar', minLevel: 1, level: 1, source: 'Pact of the Chain', sourceType: 'class', invocation: 'Pact of the Chain' },
+        { name: 'Water Breathing', minLevel: 5, level: 3, source: 'Gift of the Depths', sourceType: 'class', invocation: 'Gift of the Depths' },
+      ],
+      choiceSpellSources: {
+        warlock_tome_cantrip_1: { label: 'Pact of the Tome', ability: 'cha' },
+        warlock_tome_cantrip_2: { label: 'Pact of the Tome', ability: 'cha' },
+        warlock_tome_cantrip_3: { label: 'Pact of the Tome', ability: 'cha' },
+        warlock_tome_ritual_1: { label: 'Pact of the Tome', ability: 'cha' },
+        warlock_tome_ritual_2: { label: 'Pact of the Tome', ability: 'cha' },
+        warlock_mystic_arcanum_6: { label: 'Mystic Arcanum VI', ability: 'cha' },
+        warlock_mystic_arcanum_7: { label: 'Mystic Arcanum VII', ability: 'cha' },
+        warlock_mystic_arcanum_8: { label: 'Mystic Arcanum VIII', ability: 'cha' },
+        warlock_mystic_arcanum_9: { label: 'Mystic Arcanum IX', ability: 'cha' },
+      },
+    },
   });
 }
 
 }
-

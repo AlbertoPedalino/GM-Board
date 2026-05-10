@@ -2,17 +2,32 @@ import { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { Cross, Dices, Flame } from 'lucide-react';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
-import { SCHOOL_LABELS } from '../logic/calculations.js';
+import { SCHOOL_LABELS, getFinal, getMod } from '../logic/calculations.js';
 import {
+  applySpellModifiers,
   computeScaledFormula,
   extractDamageDice,
   getCastBadge,
   getMetaLine,
+  getResolvedCantripData,
   getUpcastStep,
   renderEntries,
+  resolveDmgBonusValue,
 } from '../logic/spellsTabLogic.js';
 import { spellBodySx, spellRowSx } from './spellsTabStyles.js';
 import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
+
+function applyFlatToFormula(formula, flat) {
+  if (!formula) return formula;
+  if (!flat) return formula;
+  const text = String(formula).replace(/\s+/g, '');
+  const match = text.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!match) return formula;
+  const count = Number(match[1]);
+  const faces = Number(match[2]);
+  const total = Number(match[3] || 0) + Number(flat || 0);
+  return `${count}d${faces}${total ? (total > 0 ? '+' : '') + total : ''}`;
+}
 
 function Badge({ label, color, bg = 'transparent' }) {
   return (
@@ -41,18 +56,57 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
   const hasDamage = damages.length > 0;
   const steps = castLevel - baseLevel;
 
-  const isLifeCleric = C?.className === 'Cleric' && C?.subclassShortName === 'Life';
-  const lifeBonus = isLifeCleric && hasHeal ? (2 + castLevel) : 0;
-  const healFlat = (hasHeal ? spellMod : 0) + lifeBonus;
-
   const upcastStepDie = (steps > 0) ? (spellData?.upcastDie || getUpcastStep(entry.entriesHigherLevel)?.stepDie) : null;
-  const scaledDamages = upcastStepDie
+  const baseScaledDamages = upcastStepDie
     ? damages.map(d => ({ ...d, formula: computeScaledFormula(d.formula, upcastStepDie, steps) }))
     : damages;
-  const scaledHealFormula = upcastStepDie && rawHealFormula
+
+  const cantripData = baseLevel === 0 ? getResolvedCantripData(C, entry.name) : null;
+  const characterLevel = Number(C?.level || C?.classLevel || 1);
+  const beamCount = typeof cantripData?.beamCount === 'function'
+    ? Math.max(1, Number(cantripData.beamCount(characterLevel) || 1))
+    : 1;
+  const beamBonus = resolveDmgBonusValue(C, cantripData?.dmgBonusPerBeam, getMod, getFinal);
+  const cantripNotes = String(cantripData?.notes || '').trim();
+
+  const expandedBeams = baseScaledDamages.flatMap((dmg) => {
+    if (beamCount <= 1) return [{ ...dmg, formula: applyFlatToFormula(dmg.formula, beamBonus) || dmg.formula }];
+    return Array.from({ length: beamCount }, (_, idx) => ({
+      ...dmg,
+      label: `Beam ${idx + 1}`,
+      formula: applyFlatToFormula(dmg.formula, beamBonus) || dmg.formula,
+    }));
+  });
+
+  const scaledDamages = expandedBeams.map((dmg) => ({
+    ...dmg,
+    formula: applySpellModifiers(C, {
+      kind: 'damage',
+      formula: dmg.formula,
+      castLevel,
+      level: baseLevel,
+      spell: { ...entry, hasHeal: false, hasDamage: true, isCantrip: baseLevel === 0 },
+      hasHealContext: false,
+      usesSpellSlot: baseLevel > 0,
+    }) || dmg.formula,
+  }));
+  const baseHealFormula = upcastStepDie && rawHealFormula
     ? computeScaledFormula(rawHealFormula, upcastStepDie, steps)
     : rawHealFormula;
-  const healDisplayFormula = scaledHealFormula ? scaledHealFormula + (healFlat > 0 ? '+' + healFlat : '') : null;
+  const healWithMod = baseHealFormula
+    ? applyFlatToFormula(baseHealFormula, hasHeal ? spellMod : 0)
+    : null;
+  const healDisplayFormula = healWithMod
+    ? applySpellModifiers(C, {
+        kind: 'heal',
+        formula: healWithMod,
+        castLevel,
+        level: baseLevel,
+        spell: { ...entry, hasHeal: true, hasHealContext: true },
+        hasHealContext: true,
+        usesSpellSlot: castLevel > 0,
+      }) || healWithMod
+    : null;
 
   const rollAtk = (e) => {
     e.stopPropagation();
@@ -111,9 +165,9 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
             ) : null}
             {scaledDamages.map((dmg, i) => (
               <Button key={i} size="small" variant="outlined"
-                onClick={(e) => rollDmg(e, dmg.formula, dmg.label)}
+                onClick={(e) => rollDmg(e, dmg.formula, dmg.label || `Damage ${i + 1}`)}
                 sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
-                <Flame size={12} style={{ marginRight: 2 }} /> Dmg {dmg.formula}
+                <Flame size={12} style={{ marginRight: 2 }} /> {beamCount > 1 ? `Beam ${i + 1} ${dmg.formula}` : `Dmg ${dmg.formula}`}
               </Button>
             ))}
             {hasHeal ? (
@@ -133,6 +187,13 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
           <Badge {...getCastBadge(entry)} />
         </Box>
       </Box>
+      {(cantripNotes || beamCount > 1 || beamBonus) ? (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mt: '2px', mb: '2px', pl: '9px' }}>
+          {beamCount > 1 ? <Badge label={`${beamCount} beams`} color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
+          {beamBonus ? <Badge label={`+${beamBonus} per beam`} color="#f5a623" bg="rgba(245,166,35,0.12)" /> : null}
+          {cantripNotes ? <Badge label={cantripNotes} color="#70b7a6" bg="rgba(112,183,166,0.14)" /> : null}
+        </Box>
+      ) : null}
       {open ? (
         <Box sx={spellBodySx}>
           {metaLine ? <Box sx={{ fontSize: '0.65rem', color: 'text.secondary', mb: '5px' }}>{metaLine}</Box> : null}

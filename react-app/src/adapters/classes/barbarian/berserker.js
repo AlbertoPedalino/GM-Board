@@ -135,6 +135,13 @@ registerSubclassSheetActions("Barbarian_Berserker", [
 registerSubclassSheetResources("Barbarian_Berserker", [
   { key: "barb_intimidating", name: "Intimidating Presence", icon: "skull", recharge: "LR", max: () => 1 },
 ]);
+
+registerSubclassSheetEffects("Barbarian_Berserker", [
+
+  { type: "rageDamage", minLevel: 3, note: "Frenzy: once per turn while raging, deal extra damage with Reckless Attack." },
+  { type: "immunity", conditions: ["Charmed", "Frightened"], minLevel: 6, note: "Mindless Rage while raging." },
+  { type: "reactionAttack", minLevel: 10, note: "Retaliation." },
+]);
 // [SheetRuntime] END
 
 }

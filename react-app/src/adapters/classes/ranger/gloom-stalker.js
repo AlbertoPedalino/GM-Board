@@ -177,6 +177,27 @@ registerSubclassSheetResources("Ranger_Gloom Stalker", [
     "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   }
 ]);
+
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Ranger_Gloom Stalker", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Disguise Self", minLevel: 3, level: 1 },
+        { name: "Rope Trick", minLevel: 5, level: 2 },
+        { name: "Fear", minLevel: 9, level: 3 },
+        { name: "Greater Invisibility", minLevel: 13, level: 4 },
+        { name: "Seeming", minLevel: 17, level: 5 }
+      ],
+    },
+  });
+}
+
+registerSubclassSheetEffects("Ranger_Gloom Stalker", [
+
+  { type: "sense", senseType: "darkvision", value: 60, minLevel: 3, note: "Umbral Sight: gain Darkvision 60 ft or +60 ft if you already have it." },
+  { type: "saveProficiency", ability: "wis", minLevel: 7, note: "Iron Mind: if already proficient, choose INT or CHA instead." },
+
+]);
 // [SheetRuntime] END
 
 }

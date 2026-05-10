@@ -164,6 +164,15 @@ registerSubclassSheetActions("Rogue_Thief", [
     "desc": "Passive: you can take two turns during the first round of any combat. You take your first turn at your normal initiative count and your second turn at your initiative count minus 10."
   }
 ]);
+
+registerSubclassSheetEffects("Rogue_Thief", [
+
+  { type: "bonusActionUtilize", minLevel: 3, note: "Fast Hands." },
+  { type: "climbSpeed", value: "walking", minLevel: 3, note: "Second-Story Work." },
+  { type: "jumpUsesDex", minLevel: 3, note: "Second-Story Work." },
+  { type: "attunementSlots", value: 4, minLevel: 13, note: "Use Magic Device." },
+  { type: "extraTurn", minLevel: 17, note: "Thief's Reflexes." },
+]);
 // [SheetRuntime] END
 
 }

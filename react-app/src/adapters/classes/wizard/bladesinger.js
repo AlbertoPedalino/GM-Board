@@ -216,6 +216,16 @@ if (typeof registerWeaponAbilityOverride === "function") {
     }
   });
 }
+
+registerSubclassSheetEffects("Wizard_Bladesinger", [
+
+  { type: "acBonus", ability: "int", minLevel: 3, note: "Bladesong while active." },
+  { type: "speed", value: 10, minLevel: 3, note: "Bladesong while active." },
+  { type: "advantage", target: "skill", skill: "Acrobatics", minLevel: 3, note: "Bladesong while active." },
+  { type: "concentrationBonus", ability: "int", minLevel: 3, note: "Bladesong while active." },
+  { type: "extraAttackCantripReplacement", minLevel: 6, note: "Extra Attack." },
+  { type: "damageReduction", minLevel: 10, note: "Song of Defense." },
+]);
 // [SheetRuntime] END
 
 }

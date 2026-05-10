@@ -121,7 +121,7 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
   const getMod = context?.getMod;
   const getFinal = context?.getFinal;
-registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs, ctx = {}) {});
+registerSubclassAdapter("Paladin_Devotion", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Paladin_Devotion", [
@@ -142,6 +142,31 @@ registerSubclassSheetActions("Paladin_Devotion", [
 ]);
 registerSubclassSheetResources("Paladin_Devotion", [
   { key: "devotion_holy_nimbus", name: "Holy Nimbus", icon: "sun", recharge: "LR", max: () => 1 },
+]);
+
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Paladin_Devotion", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Protection from Evil and Good", minLevel: 3, level: 1 },
+        { name: "Shield of Faith", minLevel: 3, level: 1 },
+        { name: "Aid", minLevel: 5, level: 2 },
+        { name: "Zone of Truth", minLevel: 5, level: 2 },
+        { name: "Beacon of Hope", minLevel: 9, level: 3 },
+        { name: "Dispel Magic", minLevel: 9, level: 3 },
+        { name: "Freedom of Movement", minLevel: 13, level: 4 },
+        { name: "Guardian of Faith", minLevel: 13, level: 4 },
+        { name: "Commune", minLevel: 17, level: 5 },
+        { name: "Flame Strike", minLevel: 17, level: 5 }
+      ],
+    },
+  });
+}
+
+registerSubclassSheetEffects("Paladin_Devotion", [
+
+  { type: "aura", key: "holy_nimbus", minLevel: 20, note: "Holy Nimbus: bright sunlight aura; enemies in aura take Radiant damage and have Disadvantage against relevant saves while active." },
+
 ]);
 // [SheetRuntime] END
 

@@ -75,16 +75,47 @@ function selectedFeatNames(C) {
   return (C?.allFeatSnapshots || []).map((feat) => feat?.name).filter(Boolean);
 }
 
+function normActionKey(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function actionDedupeKey(item) {
+  return [
+    normActionKey(item.name || item.key || ''),
+    normActionKey(item.resKey || ''),
+    normActionKey(item.cat || ''),
+    String(item.minLevel || ''),
+  ].join('|');
+}
+
+function actionSpecificityScore(item) {
+  let score = 0;
+  if (!item?._runtimeFallback) score += 100;
+  if (item?.desc) score += 10;
+  if (item?.damageFormula || item?.healFormula || item?.attackBonus != null) score += 5;
+  if (item?.ownerName && !/^(runtime|feat)$/i.test(String(item.ownerName))) score += 1;
+  return score;
+}
+
 function uniqBySignature(items) {
-  const out = [];
-  const seen = new Set();
+  const byKey = new Map();
+
   items.forEach((item) => {
-    const key = [item.name || item.key || '', item.resKey || '', item.ownerName || item._source || '', item.minLevel || ''].join('|');
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push(item);
+    const key = actionDedupeKey(item);
+    const existing = byKey.get(key);
+
+    if (!existing) {
+      byKey.set(key, item);
+      return;
+    }
+
+    // Prefer live registry data over serialized adapterRuntime fallback.
+    if (actionSpecificityScore(item) > actionSpecificityScore(existing)) {
+      byKey.set(key, item);
+    }
   });
-  return out;
+
+  return [...byKey.values()];
 }
 
 function hasExplicitActionText(action) {
@@ -155,11 +186,15 @@ export function collectAdapterActions(C) {
   });
 
   // Fallback for older exported characters that already contain adapterRuntime.
-  const runtime = C?.adapterRuntime || {};
-  pushFiltered(runtime.classActions, C?.className || '', C?.classLevel || C?.level || 1);
-  pushFiltered(runtime.subclassActions, C?.subclassShortName ? `${C.subclassShortName} (${C.className})` : '', C?.classLevel || C?.level || 1);
-  pushFiltered(runtime.speciesActions, C?.speciesName || '', C?.level || 1);
-  pushFiltered(runtime.featActions, 'Feat', C?.level || 1);
+  // Serialized adapterRuntime loses function properties such as `condition`, so use it
+  // only if the live registry produced nothing.
+  if (!out.length) {
+    const runtime = C?.adapterRuntime || {};
+    pushFiltered((runtime.classActions || []).map((a) => ({ ...a, _runtimeFallback: true })), C?.className || '', C?.classLevel || C?.level || 1);
+    pushFiltered((runtime.subclassActions || []).map((a) => ({ ...a, _runtimeFallback: true })), C?.subclassShortName ? `${C.subclassShortName} (${C.className})` : '', C?.classLevel || C?.level || 1);
+    pushFiltered((runtime.speciesActions || []).map((a) => ({ ...a, _runtimeFallback: true })), C?.speciesName || '', C?.level || 1);
+    pushFiltered((runtime.featActions || []).map((a) => ({ ...a, _runtimeFallback: true })), 'Feat', C?.level || 1);
+  }
 
   return uniqBySignature(out);
 }

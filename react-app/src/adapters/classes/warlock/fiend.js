@@ -121,33 +121,75 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
   const getMod = context?.getMod;
   const getFinal = context?.getFinal;
-registerSubclassAdapter("Warlock_Fiend", function (cls, lv, specs) {});
+
+function fiendChoice(C, key) {
+  if (!C?.choices) return null;
+  if (C.choices[key] != null) return C.choices[key];
+  const found = Object.entries(C.choices).find(([choiceKey]) => choiceKey.replace(/^mc\d+_/, '') === key);
+  return found ? found[1] : null;
+}
+registerSubclassAdapter("Warlock_Fiend", function (cls, lv, specs) {
+  if (lv >= 10) {
+    specs.push({
+      key: "fiend_resilience_damage_type",
+      label: "Fiendish Resilience — Damage Type",
+      type: "generic_choice",
+      from: ["Acid", "Bludgeoning", "Cold", "Fire", "Lightning", "Necrotic", "Piercing", "Poison", "Psychic", "Radiant", "Slashing", "Thunder"],
+      count: 1,
+      level: 10
+    });
+  }
+});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Warlock_Fiend", [
-  { name: "Dark One's Blessing", icon: "", cat: "action", uses: "Passive", minLevel: 3,
+  { name: "Dark One's Blessing", icon: "skull", cat: "action", uses: "Passive", minLevel: 3,
     inlinePills: ({ ownerLevel, character }) => {
       const lv = Number(ownerLevel || 1);
       const cha = typeof getMod === "function" && typeof getFinal === "function"
         ? Number(getMod(getFinal(character, "cha")) || 0) : 0;
       return [{ icon: "skull", label: "Temp HP", value: Math.max(1, lv + cha) }];
     },
-    desc: "When you or a creature within 10 ft of you reduces a hostile creature to 0 HP, gain temporary HP equal to your Warlock level + CHA modifier." },
-  { name: "Dark One's Own Luck", icon: "", cat: "reaction", uses: "CHA mod / LR", resKey: "fiend_luck", minLevel: 6,
-    desc: "When you make an ability check or saving throw, expend one use to add 1d10 to the roll (declare before rolling, before DM states outcome). Recharge: Long Rest." },
-  { name: "Fiendish Resilience", icon: "", cat: "action", uses: "Passive", minLevel: 10,
-    desc: "At the end of each Short or Long Rest, choose one damage type (not Force): gain Resistance to that type until you choose another with this feature." },
-  { name: "Hurl Through Hell", icon: "", cat: "action", uses: "1 / LR or Pact Magic slot", resKey: "fiend_hurl", minLevel: 14,
+    desc: "When you or a creature within 10 ft of you reduces a hostile creature to 0 HP, you gain Temporary HP equal to your Warlock level + CHA modifier." },
+  { name: "Dark One's Own Luck", icon: "dice-6", cat: "reaction", uses: "CHA mod / LR", resKey: "fiend_luck", minLevel: 6,
+    desc: "When you make an ability check or saving throw, expend one use to add 1d10 to the roll. You can do so after seeing the roll but before the outcome is determined. Recharge: Long Rest." },
+  { name: "Fiendish Resilience", icon: "shield", cat: "action", uses: "Passive", minLevel: 10,
+    inlinePills: ({ character }) => [{ icon: "shield", label: "Resistance", value: String(fiendChoice(character, "fiend_resilience_damage_type") || "Choose") }],
+    desc: "At the end of each Short or Long Rest, choose one damage type other than Force. You gain Resistance to that type until you choose another with this feature." },
+  { name: "Hurl Through Hell", icon: "flame", cat: "action", uses: "1 / LR or Pact Magic slot", resKey: "fiend_hurl", minLevel: 14,
     damageFormula: "8d10",
-    damageButtonLabel: ({ formula }) => `${formula} psychic`,
+    damageButtonLabel: "Hurl Through Hell 8d10 Psychic",
     damageKind: "damage",
-    desc: "When you hit a creature with an attack, banish it to the lower planes until the end of your next turn. When it returns: if it isn't a Fiend, it must make a CHA saving throw (spell save DC) or take 8d10 Psychic damage and have the Incapacitated condition until the end of its next turn (on a success, half damage, not Incapacitated). Recharge: LR, or expend a Pact Magic slot." },
+    desc: "When you hit a creature with an attack, banish it to the Lower Planes until the end of your next turn. When it returns, if it isn't a Fiend, it makes a CHA save or takes 8d10 Psychic damage and is Incapacitated until the end of its next turn; on success, half damage and no Incapacitated. Recharge: Long Rest, or expend a Pact Magic slot." },
 ]);
+registerSubclassSheetEffects("Warlock_Fiend", [
+  { type: "resistance-choice", key: "fiend_resilience_damage_type", minLevel: 10, note: "Fiendish Resilience" },
+]);
+
 registerSubclassSheetResources("Warlock_Fiend", [
   { key: "fiend_luck", name: "Dark One's Own Luck", icon: "dice-6", recharge: "LR",
     max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
   { key: "fiend_hurl", name: "Hurl Through Hell", icon: "flame", recharge: "LR", max: () => 1 },
 ]);
+
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Warlock_Fiend", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: 'Burning Hands', minLevel: 3, level: 1, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Command', minLevel: 3, level: 1, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Scorching Ray', minLevel: 3, level: 2, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Suggestion', minLevel: 3, level: 2, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Fireball', minLevel: 5, level: 3, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Stinking Cloud', minLevel: 5, level: 3, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Fire Shield', minLevel: 7, level: 4, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Wall of Fire', minLevel: 7, level: 4, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Geas', minLevel: 9, level: 5, source: 'Fiend', sourceType: 'subclass' },
+        { name: 'Insect Plague', minLevel: 9, level: 5, source: 'Fiend', sourceType: 'subclass' }
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

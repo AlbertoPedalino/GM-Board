@@ -158,6 +158,14 @@ registerSubclassSheetActions("Druid_Sea", [
     "desc": "When you manifest Wrath of the Sea, you can choose to manifest the Emanation around one willing creature within 60 ft instead of yourself. That creature gains all Emanation benefits and uses your spell save DC and WIS modifier for it. Alternatively, expend two Wild Shape uses to manifest the Emanation around both that creature and yourself simultaneously."
   }
 ]);
+
+registerSubclassSheetEffects("Druid_Sea", [
+
+  { type: "speed", speedType: "swim", value: "walking", minLevel: 6, note: "Aquatic Affinity." },
+  { type: "speed", speedType: "fly", value: "walking", minLevel: 10, note: "Stormborn while Wrath of the Sea is active." },
+  { type: "resistance", damageTypes: ["Cold", "Lightning", "Thunder"], minLevel: 10, note: "Stormborn while Wrath of the Sea is active." },
+
+]);
 // [SheetRuntime] END
 
 }

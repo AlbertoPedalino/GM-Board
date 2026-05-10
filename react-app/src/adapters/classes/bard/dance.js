@@ -140,6 +140,14 @@ registerSubclassSheetActions("Bard_Dance", [
   { name: "Leading Evasion",     icon: "", cat: "reaction", uses: "Passive",            minLevel: 14,
     desc: "Passive: when subjected to an effect that allows a DEX saving throw for half damage, you take no damage on a success and only half on a failure. Creatures within 5 ft making the same DEX save can share this benefit. Doesn't work while Incapacitated." },
 ]);
+
+registerSubclassSheetEffects("Bard_Dance", [
+
+  { type: "unarmoredDefense", base: 10, abilities: ["dex", "cha"], allowShield: false, minLevel: 3, note: "Dazzling Footwork." },
+  { type: "unarmedStrikeDamage", value: "Bardic Inspiration die", minLevel: 3, note: "Dazzling Footwork." },
+  { type: "initiativeBonus", ability: "cha", minLevel: 6, note: "Tandem Footwork." },
+  { type: "evasion", minLevel: 14, note: "Evasion." },
+]);
 // [SheetRuntime] END
 
 }

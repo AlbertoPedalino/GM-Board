@@ -160,7 +160,14 @@ export default function install(registry, context = {}) {
     die: "1d10", dmgType: "force",
     range: "120 ft",
     toHit: true, hasSave: false,
-    notes: ""
+    notes: "",
+    beamCount: function (lv) {
+      var level = Number(lv || 1);
+      if (level >= 17) return 4;
+      if (level >= 11) return 3;
+      if (level >= 5) return 2;
+      return 1;
+    },
   });
   registerCantripData("Chill Touch", {
     icon: "bug",

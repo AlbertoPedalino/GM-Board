@@ -140,7 +140,7 @@ const _BM_SLOTS = [
   { idx: 8, level: 15 }, { idx: 9, level: 15 },
 ];
 
-registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs, ctx = {}) {
+registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
       key: 'subclass_bm_student_tool',
@@ -158,16 +158,19 @@ registerSubclassAdapter("Fighter_Battle Master", function (cls, lv, specs, ctx =
       count: 1,
       level: 3
     });
-    const maneuverCount = lv >= 15 ? 9 : lv >= 10 ? 7 : lv >= 7 ? 5 : 3;
-    specs.push({
-      key: 'subclass_bm_maneuvers',
-      label: 'Battle Maneuvers',
-      type: 'generic_choice',
-      from: _BM_MANEUVERS,
-      count: maneuverCount,
-      level: 3
-    });
   }
+  _BM_SLOTS.forEach(function (slot) {
+    if (lv >= slot.level) {
+      specs.push({
+        key: 'subclass_bm_maneuver_' + slot.idx,
+        label: 'Battle Maneuver ' + slot.idx,
+        type: 'generic_choice',
+        from: _BM_MANEUVERS,
+        count: 1,
+        level: slot.level
+      });
+    }
+  });
 });
 
 // [SheetRuntime] START
@@ -187,6 +190,13 @@ registerSubclassSheetResources("Fighter_Battle Master", [
     die: (lv) => lv >= 18 ? "d12" : lv >= 10 ? "d10" : "d8",
     pool: true },
   { key: "know_your_enemy", name: "Know Your Enemy", icon: "eye", recharge: "LR", max: () => 1 },
+]);
+
+registerSubclassSheetEffects("Fighter_Battle Master", [
+
+  { type: "toolProficiency", count: 1, minLevel: 3, note: "Student of War: artisan's tool choice." },
+  { type: "skillProficiency", values: ["History", "Insight", "Performance", "Persuasion"], count: 1, minLevel: 3, note: "Student of War." },
+  { type: "saveDc", key: "maneuver_dc", minLevel: 3, note: "Maneuver Save DC = 8 + STR or DEX mod + PB." },
 ]);
 // [SheetRuntime] END
 

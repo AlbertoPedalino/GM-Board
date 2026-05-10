@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Monk_Shadow", function (cls, lv, specs, ctx = {}) {});
+registerSubclassAdapter("Monk_Shadow", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Monk_Shadow", [
@@ -142,6 +142,14 @@ if (typeof registerSubclassRuntimeConfig === "function") {
     },
   });
 }
+
+registerSubclassSheetEffects("Monk_Shadow", [
+
+  { type: "darkvision", value: 60, minLevel: 3, note: "Shadow Arts: Darkvision if needed." },
+  { type: "teleport", minLevel: 6, note: "Shadow Step." },
+  { type: "invisibility", minLevel: 11, note: "Improved Shadow Step / Cloak of Shadows." },
+  { type: "reactionAttack", minLevel: 17, note: "Opportunist." },
+]);
 // [SheetRuntime] END
 
 }

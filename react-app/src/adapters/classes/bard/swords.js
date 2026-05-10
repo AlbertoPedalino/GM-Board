@@ -145,6 +145,13 @@ registerSubclassSheetProficiencies("Bard_Swords", [
   { type: "armor", values: ["Medium"], minLevel: 3 },
   { type: "weapon", values: ["Scimitar"], minLevel: 3 },
 ]);
+
+registerSubclassSheetEffects("Bard_Swords", [
+
+  { type: "armorTraining", values: ["Medium"], minLevel: 3, note: "Bonus Proficiencies." },
+  { type: "weaponFocus", minLevel: 3, note: "Blade Flourish: weapon as Bard spellcasting focus." },
+  { type: "extraAttack", minLevel: 6, note: "Extra Attack." },
+]);
 // [SheetRuntime] END
 
 }

@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Monk_Mercy", function (cls, lv, specs, ctx = {}) {});
+registerSubclassAdapter("Monk_Mercy", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Monk_Mercy", [
@@ -151,6 +151,14 @@ registerSubclassSheetResources("Monk_Mercy", [
 registerSubclassSheetProficiencies("Monk_Mercy", [
   { type: "skill",  values: ["Insight", "Medicine"], minLevel: 3 },
   { type: "tool",   values: ["Herbalism Kit"],        minLevel: 3 },
+]);
+
+registerSubclassSheetEffects("Monk_Mercy", [
+
+  { type: "healing", minLevel: 3, note: "Hand of Healing." },
+  { type: "necroticDamage", minLevel: 3, note: "Hand of Harm." },
+  { type: "conditionRemoval", conditions: ["Blinded", "Deafened", "Paralyzed", "Poisoned", "Stunned"], minLevel: 6, note: "Physician's Touch." },
+  { type: "revive", minLevel: 17, note: "Hand of Ultimate Mercy." },
 ]);
 // [SheetRuntime] END
 

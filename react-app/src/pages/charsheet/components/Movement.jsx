@@ -2,6 +2,7 @@ import { Box, Chip, Paper, Tooltip, Typography } from '@mui/material';
 import { Footprints, AlertCircle } from 'lucide-react';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { getFinal } from '../logic/calculations.js';
+import { collectMovementEffects, effectSummary, effectTitle } from '../logic/sheetEffects.js';
 
 function normalizeSpeed(speed) {
   if (typeof speed === 'number') return { walk: speed };
@@ -35,10 +36,13 @@ export default function Movement({ C, sheet }) {
   const carriedWeight = totalCarriedWeight(inventory);
   const overloaded = carriedWeight > maxCarry;
   const speedZero = (sheet?.activeConditions || []).includes('grappled');
+  const movementEffects = collectMovementEffects(C);
+  const runtimeSpeedBonuses = movementEffects.filter((effect) => String(effect.type || '').toLowerCase() === 'speed' && typeof effect.value === 'number');
+  const runtimeSpeedBonus = runtimeSpeedBonuses.reduce((sum, effect) => sum + Number(effect.value || 0), 0);
   const entries = Object.entries(baseSpeeds).map(([key, value]) => ({
     key,
     base: value,
-    final: speedZero ? 0 : overloaded ? Math.min(5, Math.max(0, value + speedPenalty)) : Math.max(0, value + speedPenalty),
+    final: speedZero ? 0 : overloaded ? Math.min(5, Math.max(0, value + speedPenalty + runtimeSpeedBonus)) : Math.max(0, value + speedPenalty + runtimeSpeedBonus),
   }));
   const hasPenalty = speedPenalty < 0 || overloaded || speedZero;
   const reasons = [
@@ -55,6 +59,19 @@ export default function Movement({ C, sheet }) {
         <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: hasPenalty ? 'warning.main' : 'primary.main' }}>
           Movement
         </Typography>
+        {movementEffects.length ? (
+          <Box sx={{ display: 'grid', gap: 0.25, mt: 0.25 }}>
+            {movementEffects.map((effect, index) => (
+              <Chip
+                key={`${effect.ownerName}-${effect.type}-${index}`}
+                size="small"
+                label={`${effectTitle(effect)}${effectSummary(effect) ? `: ${effectSummary(effect)}` : ''}${effect.ownerName ? ` · ${effect.ownerName}` : ''}`}
+                variant="outlined"
+                sx={{ height: 20, fontSize: '0.52rem', color: '#edd48a', borderColor: 'rgba(237,212,138,0.38)', justifyContent: 'flex-start' }}
+              />
+            ))}
+          </Box>
+        ) : null}
         {hasPenalty ? (
           <Tooltip title={reason}>
             <AlertCircle size={12} style={{ color: '#ff9800', marginLeft: 'auto' }} />
@@ -73,6 +90,19 @@ export default function Movement({ C, sheet }) {
             </Box>
           </Box>
         ))}
+        {movementEffects.length ? (
+          <Box sx={{ display: 'grid', gap: 0.25, mt: 0.25 }}>
+            {movementEffects.map((effect, index) => (
+              <Chip
+                key={`${effect.ownerName}-${effect.type}-${index}`}
+                size="small"
+                label={`${effectTitle(effect)}${effectSummary(effect) ? `: ${effectSummary(effect)}` : ''}${effect.ownerName ? ` · ${effect.ownerName}` : ''}`}
+                variant="outlined"
+                sx={{ height: 20, fontSize: '0.52rem', color: '#edd48a', borderColor: 'rgba(237,212,138,0.38)', justifyContent: 'flex-start' }}
+              />
+            ))}
+          </Box>
+        ) : null}
         {hasPenalty ? (
           <Chip size="small" label={reason} variant="outlined" sx={{ height: 20, fontSize: '0.52rem', color: '#ffb74d', borderColor: 'rgba(255,183,77,0.45)', justifyContent: 'flex-start' }} />
         ) : null}

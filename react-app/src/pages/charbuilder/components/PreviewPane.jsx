@@ -6,7 +6,7 @@ import { calcMaxHp, formatMod, getAllFinalScores, getPrimaryClassLevel } from '.
 import { renderEntryText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
-import { normalizeCharacterChoices } from '../../../shared/choiceNormalization.js';
+import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
 
 const SOURCE_COLOR = {
   class: '#d7ad52',
@@ -112,9 +112,24 @@ function FeatureWithChips({ entry, source, extraSublabel }) {
   );
 }
 
-function LevelGroup({ classFeatures, subFeatures }) {
+function LevelGroup({ level, classFeatures, subFeatures }) {
   return (
     <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.4 }}>
+        <Divider sx={{ flex: 1, borderColor: 'rgba(237,212,138,0.22)' }} />
+        <Chip
+          size="small"
+          label={`Level ${level}`}
+          sx={{
+            ...filledChipSx('#edd48a'),
+            height: 20,
+            fontSize: '0.58rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+          }}
+        />
+        <Divider sx={{ flex: 1, borderColor: 'rgba(237,212,138,0.22)' }} />
+      </Box>
       <Stack spacing={0.5} sx={{ minWidth: 0 }}>
         {classFeatures.map((entry) => (
           <FeatureWithChips key={`c-${entry.feature.name}-${entry.feature.level}`} entry={entry} source="class" />
@@ -164,6 +179,19 @@ function collectSkillProficiencies(character) {
   return uniqueClean([...fromSelected, ...fromChoices]);
 }
 
+function mergePreviewSection(sections, title, items, prepend = false) {
+  const cleaned = uniqueClean(items);
+  if (!cleaned.length) return;
+  const existing = sections.find((section) => section.title === title);
+  if (existing) {
+    existing.items = uniqueClean([...existing.items, ...cleaned]);
+    return;
+  }
+  const next = { title, items: cleaned };
+  if (prepend) sections.unshift(next);
+  else sections.push(next);
+}
+
 function collectPreviewProficiencies(character) {
   const sheetLike = {
     ...character,
@@ -186,8 +214,18 @@ function collectPreviewProficiencies(character) {
     title: section.title,
     items: uniqueClean(section.items),
   }));
+
+  collectPreviewDefenseSections(sheetLike).forEach((section) => {
+    mergePreviewSection(sections, section.title, section.items);
+  });
+
+  collectPreviewEffectProficiencySections(sheetLike).forEach((section) => {
+    mergePreviewSection(sections, section.title, section.items);
+  });
+
   const skillItems = collectSkillProficiencies(character);
-  if (skillItems.length) sections.unshift({ title: 'Skills', items: skillItems });
+  if (skillItems.length) mergePreviewSection(sections, 'Skills', skillItems, true);
+
   return sections.filter((section) => section.items.length);
 }
 
@@ -241,271 +279,6 @@ function normName(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-function firstValue(value) {
-  if (Array.isArray(value)) return value.find((item) => item != null && item !== '') || '';
-  return value || '';
-}
-
-function cleanChoiceText(value) {
-  if (value == null) return '';
-  if (typeof value === 'object') return cleanChoiceText(value.label ?? value.name ?? value.key ?? value.value);
-  return String(value).split('|')[0].replace(/\{@\w+\s+/g, '').replace(/\}/g, '').trim();
-}
-
-function compactText(value) {
-  return cleanChoiceText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function titleCase(value) {
-  const text = cleanChoiceText(value);
-  return text
-    .replace(/[-_]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function addUnique(target, value) {
-  const text = cleanChoiceText(value);
-  if (!text) return;
-  const key = compactText(text);
-  if (!target.some((item) => compactText(item) === key)) target.push(text);
-}
-
-function getNormalizedPreviewChoices(character) {
-  if (character?.normalizedChoices && typeof character.normalizedChoices === 'object') {
-    return character.normalizedChoices;
-  }
-  return normalizeCharacterChoices(character || {});
-}
-
-function getChoiceValue(character, normalized, key) {
-  return firstValue(
-    character?.choices?.[key]
-    ?? normalized?.rawByKey?.[key]
-    ?? normalized?.species?.options?.[key]
-    ?? normalized?.classOptions?.[key]
-    ?? normalized?.subclassOptions?.[key]
-  );
-}
-
-const DRAGONBORN_DAMAGE_TYPES = {
-  black: 'Acid',
-  copper: 'Acid',
-  blue: 'Lightning',
-  bronze: 'Lightning',
-  brass: 'Fire',
-  gold: 'Fire',
-  red: 'Fire',
-  green: 'Poison',
-  silver: 'Cold',
-  white: 'Cold',
-};
-
-const TIEFLING_RESISTANCES = {
-  abyssal: 'Poison',
-  chthonic: 'Necrotic',
-  infernal: 'Fire',
-};
-
-function detectDragonbornDamage(ancestry) {
-  const raw = cleanChoiceText(ancestry);
-  const c = compactText(raw);
-  const found = Object.entries(DRAGONBORN_DAMAGE_TYPES).find(([dragon]) => c.includes(dragon));
-  return found ? found[1] : '';
-}
-
-function detectTieflingResistance(legacy) {
-  const c = compactText(legacy);
-  const found = Object.entries(TIEFLING_RESISTANCES).find(([legacyKey]) => c.includes(legacyKey));
-  return found ? found[1] : '';
-}
-
-function derivePreviewRuntime(character) {
-  const normalized = getNormalizedPreviewChoices(character);
-  const className = character?.className || '';
-  const speciesName = character?.speciesName || '';
-  const speciesKey = compactText(speciesName);
-  const subclassKey = compactText(character?.subclassShortName || '');
-  const level = Number(character?.level || character?.classLevel || 1);
-  const primaryLv = getPrimaryClassLevel(character);
-  const speciesVersion = cleanChoiceText(normalized?.species?.version || getChoiceValue(character, normalized, 'species_version'));
-
-  const out = {
-    senses: [],
-    resistances: [],
-    acOptions: [],
-    hpBonuses: [],
-    traits: [],
-    warnings: [],
-  };
-
-  // Class-based preview effects
-  if (compactText(className) === 'barbarian') {
-    addUnique(out.acOptions, 'Unarmored Defense: 10 + DEX + CON + Shield');
-    addUnique(out.resistances, 'Rage: Bludgeoning, Piercing, Slashing while raging');
-  }
-  if (compactText(className) === 'monk') {
-    addUnique(out.acOptions, 'Unarmored Defense: 10 + DEX + WIS, no armor/shield');
-  }
-  if (compactText(className) === 'bard' && subclassKey.includes('dance')) {
-    addUnique(out.acOptions, 'Dance of the Wind: 10 + DEX + CHA, no armor/shield');
-  }
-  if (compactText(className) === 'paladin' && subclassKey.includes('noblegenies')) {
-    addUnique(out.acOptions, "Genie's Splendor: 10 + DEX + CHA + Shield");
-  }
-
-  // Species-based preview effects
-  if (speciesKey.includes('aasimar')) {
-    addUnique(out.senses, 'Darkvision 60 ft');
-    addUnique(out.resistances, 'Necrotic');
-    addUnique(out.resistances, 'Radiant');
-    if (level >= 3) {
-      if (speciesVersion) addUnique(out.traits, `Celestial Revelation: ${speciesVersion}`);
-      else addUnique(out.warnings, 'Celestial Revelation not selected');
-    } else {
-      addUnique(out.traits, 'Celestial Revelation unlocks at Lv 3');
-    }
-  }
-
-  if (speciesKey.includes('dragonborn')) {
-    const ancestry = speciesVersion;
-    if (ancestry) {
-      const damage = detectDragonbornDamage(ancestry);
-      addUnique(out.traits, `Draconic Ancestry: ${titleCase(ancestry)}`);
-      if (damage) addUnique(out.resistances, damage);
-    } else {
-      addUnique(out.warnings, 'Draconic Ancestry not selected');
-    }
-  }
-
-  if (speciesKey.includes('dwarf')) {
-    addUnique(out.senses, 'Darkvision 120 ft');
-    addUnique(out.resistances, 'Poison');
-    addUnique(out.hpBonuses, '+1 HP per character level');
-  }
-
-  if (speciesKey.includes('elf') || speciesKey.includes('khoravar')) {
-    const isDrow = compactText(speciesVersion).includes('drow');
-    addUnique(out.senses, isDrow ? 'Darkvision 120 ft' : 'Darkvision 60 ft');
-    addUnique(out.traits, 'Fey Ancestry');
-    if (speciesVersion) addUnique(out.traits, `Elven Lineage: ${titleCase(speciesVersion)}`);
-  }
-
-  if (speciesKey.includes('gnome')) {
-    const isDeep = compactText(speciesVersion).includes('deep');
-    addUnique(out.senses, isDeep ? 'Darkvision 120 ft' : 'Darkvision 60 ft');
-    addUnique(out.traits, 'Gnomish Cunning');
-    if (speciesVersion) addUnique(out.traits, `Gnomish Lineage: ${titleCase(speciesVersion)}`);
-  }
-
-  if (speciesKey.includes('goliath')) {
-    if (speciesVersion) addUnique(out.traits, `Giant Ancestry: ${titleCase(speciesVersion)}`);
-    else addUnique(out.warnings, 'Giant Ancestry not selected');
-  }
-
-  if (speciesKey.includes('halfling')) {
-    addUnique(out.traits, 'Brave');
-    addUnique(out.traits, 'Luck');
-  }
-
-  if (speciesKey.includes('orc')) {
-    addUnique(out.senses, 'Darkvision 120 ft');
-    addUnique(out.traits, 'Relentless Endurance');
-    addUnique(out.traits, 'Adrenaline Rush');
-  }
-
-  if (speciesKey.includes('shifter')) {
-    addUnique(out.senses, 'Darkvision 60 ft');
-    if (speciesVersion) addUnique(out.traits, `Shifter Lineage: ${titleCase(speciesVersion)}`);
-    else addUnique(out.warnings, 'Shifter Lineage not selected');
-  }
-
-  if (speciesKey.includes('tiefling')) {
-    addUnique(out.senses, 'Darkvision 60 ft');
-    if (speciesVersion) {
-      const resistance = detectTieflingResistance(speciesVersion);
-      addUnique(out.traits, `Fiendish Legacy: ${titleCase(speciesVersion)}`);
-      if (resistance) addUnique(out.resistances, resistance);
-    } else {
-      addUnique(out.warnings, 'Fiendish Legacy not selected');
-    }
-  }
-
-  if (speciesKey.includes('warforged')) {
-    addUnique(out.traits, 'Constructed Resilience');
-    addUnique(out.acOptions, '+1 AC from Integrated Protection');
-  }
-
-  if (speciesKey.includes('kalashtar')) {
-    addUnique(out.resistances, 'Psychic');
-  }
-
-  return out;
-}
-
-function RuntimePreviewGroup({ title, items, color = '#edd48a' }) {
-  if (!items?.length) return null;
-  return (
-    <Box sx={{ minWidth: 0 }}>
-      <Typography variant="caption" sx={{ color, fontWeight: 700 }}>
-        {title}
-      </Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, width: '100%', minWidth: 0 }}>
-        {items.map((item) => (
-          <Chip
-            key={`${title}-${item}`}
-            size="small"
-            variant="outlined"
-            label={item}
-            sx={{
-              ...outlinedChipSx(color),
-              height: 21,
-              maxWidth: '100%',
-              '& .MuiChip-label': {
-                color,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                fontSize: '0.62rem',
-                fontWeight: 700,
-              },
-            }}
-          />
-        ))}
-      </Box>
-    </Box>
-  );
-}
-
-function BuilderRuntimePreview({ runtime }) {
-  const hasAny = runtime.senses.length
-    || runtime.resistances.length
-    || runtime.acOptions.length
-    || runtime.hpBonuses.length
-    || runtime.traits.length
-    || runtime.warnings.length;
-
-  if (!hasAny) return null;
-
-  return (
-    <Stack spacing={1} sx={{ minWidth: 0 }}>
-      <Stack direction="row" spacing={0.75} alignItems="center">
-        <Shield size={16} color={SOURCE_COLOR.species} />
-        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.species }}>
-          Builder Runtime Preview
-        </Typography>
-      </Stack>
-      <RuntimePreviewGroup title="Senses" items={runtime.senses} color={SOURCE_COLOR.species} />
-      <RuntimePreviewGroup title="Resistances" items={runtime.resistances} color="#edd48a" />
-      <RuntimePreviewGroup title="AC Options" items={runtime.acOptions} color={SOURCE_COLOR.class} />
-      <RuntimePreviewGroup title="HP Bonuses" items={runtime.hpBonuses} color={SOURCE_COLOR.background} />
-      <RuntimePreviewGroup title="Traits / Selected Options" items={runtime.traits} color={SOURCE_COLOR.subclass} />
-      <RuntimePreviewGroup title="Missing Selections" items={runtime.warnings} color={SOURCE_COLOR.feat} />
-    </Stack>
-  );
-}
-
 function ClassSection({ icon: Icon, title, classFeatures, subFeatures, subclassName, level, runtimeActions, runtimeResources, choiceCards }) {
   const valid = classFeatures.filter((feature) => !feature?.isReprinted && (feature.level || 0) <= level);
   const validSub = subFeatures.filter((feature) => !feature?.isReprinted && (feature.level || 0) <= level && feature.subclassShortName === subclassName);
@@ -551,6 +324,7 @@ function ClassSection({ icon: Icon, title, classFeatures, subFeatures, subclassN
       {levels.map((lv) => (
         <LevelGroup
           key={`lvg-${lv}`}
+          level={lv}
           classFeatures={byLevel[lv].c}
           subFeatures={byLevel[lv].s}
         />
@@ -620,7 +394,6 @@ function PreviewPaneImpl({ character }) {
   const primaryLv = getPrimaryClassLevel(character);
   const partitioned = partitionChoices(character.choices);
   const proficiencySections = collectPreviewProficiencies(character);
-  const builderRuntimePreview = derivePreviewRuntime(character);
 
   const classActions = installedRegistry
     .getClassSheetActions(character.className)
@@ -670,13 +443,6 @@ function PreviewPaneImpl({ character }) {
         <Divider />
         <ProficiencySection sections={proficiencySections} />
         {proficiencySections.length ? <Divider /> : null}
-        <BuilderRuntimePreview runtime={builderRuntimePreview} />
-        {(builderRuntimePreview.senses.length
-          || builderRuntimePreview.resistances.length
-          || builderRuntimePreview.acOptions.length
-          || builderRuntimePreview.hpBonuses.length
-          || builderRuntimePreview.traits.length
-          || builderRuntimePreview.warnings.length) ? <Divider /> : null}
 
         {character.cls ? (
           <ClassSection

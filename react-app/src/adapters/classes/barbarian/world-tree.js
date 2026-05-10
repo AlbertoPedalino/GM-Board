@@ -132,6 +132,14 @@ registerSubclassSheetActions("Barbarian_World Tree", [
   { name: "Travel Along the Tree", icon: "", cat: "bonus", uses: "While Raging", minLevel: 14,
     desc: "When you activate your Rage, and as a Bonus Action while Raging, you can teleport up to 60 ft to an unoccupied space you can see. Once per Rage, you can extend that teleport's range to 150 ft; when you do, you can also bring up to 6 willing creatures within 10 ft of you, each teleporting to an unoccupied space of your choice within 10 ft of your destination." },
 ]);
+
+registerSubclassSheetEffects("Barbarian_World Tree", [
+
+  { type: "tempHp", minLevel: 3, note: "Vitality of the Tree: grant Temporary HP while raging." },
+  { type: "teleport", minLevel: 6, note: "Branches of the Tree: teleport a creature while raging." },
+  { type: "reach", value: 10, minLevel: 10, note: "Battering Roots while raging." },
+  { type: "teleport", minLevel: 14, note: "Travel Along the Tree." },
+]);
 // [SheetRuntime] END
 
 }

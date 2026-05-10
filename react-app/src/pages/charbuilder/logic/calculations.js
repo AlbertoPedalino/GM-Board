@@ -8,6 +8,7 @@ import {
   THIRD_SLOTS,
   XP_TOTAL,
 } from '../constants.js';
+import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
 
 export function getLevelFromXp(xp) {
   let level = 1;
@@ -127,29 +128,8 @@ export function getHitDieFaces(classObject) {
 }
 
 export function calcMaxHp(character) {
-  if (!character.className) return 0;
-  const conMod = statMod(getFinalScore(character, 'con'));
-  const primaryFaces = getHitDieFaces(character.cls);
-  const primaryLevel = getPrimaryClassLevel(character);
-  let total = primaryFaces + conMod;
-  if (primaryLevel > 1) {
-    for (let level = 2; level <= primaryLevel; level += 1) {
-      const avg = Math.floor(primaryFaces / 2) + 1;
-      const rolled = Number(character.hpManualRolls?.[level]);
-      total += (character.hpMode === 'rolled' && rolled ? Math.min(primaryFaces, rolled) : avg) + conMod;
-    }
-  }
-  (character.extraClasses || []).forEach((extraClass, index) => {
-    const faces = getHitDieFaces(extraClass.cls);
-    for (let level = 1; level <= (extraClass.level || 1); level += 1) {
-      const avg = Math.floor(faces / 2) + 1;
-      const rolled = Number(character.hpManualRolls?.[`extra_${index}_${level}`]);
-      total += (character.hpMode === 'rolled' && rolled ? Math.min(faces, rolled) : avg) + conMod;
-    }
-  });
-  const featNames = getSelectedFeatNames(character);
-  const tough = featNames.includes('Tough') ? 2 * (character.level || 1) : 0;
-  return Math.max(1, total + tough);
+  if (!character?.className) return 0;
+  return sharedComputeMaxHp(character, statMod(getFinalScore(character, 'con')));
 }
 
 export function getCasterProgression(className, classObject, subclassName) {

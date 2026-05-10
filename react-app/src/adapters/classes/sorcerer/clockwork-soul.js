@@ -183,6 +183,12 @@ registerSubclassSheetResources("Sorcerer_Clockwork Soul", [
     "max": () => 1
   }
 ]);
+
+registerSubclassSheetEffects("Sorcerer_Clockwork Soul", [
+
+  { type: "d20-floor", minRoll: 10, minLevel: 14, note: "Trance of Order: treat d20 rolls of 9 or lower as 10 while active." },
+
+]);
 // [SheetRuntime] END
 
 }

@@ -170,6 +170,7 @@ export function makeSheetPayload(character, data) {
       startingEquipment: character.cls?.startingEquipment || null,
     },
     speciesSnapshot: {
+      name: character.speciesName,
       speed: character.speciesObj?.speed || 30,
       size: character.speciesObj?.size || ['M'],
       darkvision: character.speciesObj?.darkvision || 0,
@@ -180,6 +181,9 @@ export function makeSheetPayload(character, data) {
       armorProficiencies: character.speciesObj?.armorProficiencies,
       weaponProficiencies: character.speciesObj?.weaponProficiencies,
       entries: character.speciesObj?.entries || [],
+      hpBonusPerLevel: Number(installedRegistry.getSpeciesSheetHpBonus
+        ? installedRegistry.getSpeciesSheetHpBonus(character.speciesName, character.speciesSource) || 0
+        : 0),
     },
     bgSnapshot: {
       skillProficiencies: character.backgroundObj?.skillProficiencies || [],
@@ -193,16 +197,23 @@ export function makeSheetPayload(character, data) {
     },
     allFeatSnapshots: (data.feats || [])
       .filter((feat) => getSelectedFeatNames(character).includes(feat.name))
-      .map((feat) => ({
-        name: feat.name,
-        source: feat.source,
-        category: feat.category,
-        categories: feat.categories,
-        entries: feat.entries,
-        prerequisite: feat.prerequisite,
-        armorProficiencies: feat.armorProficiencies,
-        weaponProficiencies: feat.weaponProficiencies,
-      })),
+      .map((feat) => {
+        const adapter = installedRegistry.getFeatAdapter
+          ? installedRegistry.getFeatAdapter(feat.name)
+          : null;
+        const adapted = typeof adapter === 'function' ? (adapter(feat) || {}) : {};
+        return {
+          name: feat.name,
+          source: feat.source,
+          category: feat.category,
+          categories: feat.categories,
+          entries: feat.entries,
+          prerequisite: feat.prerequisite,
+          armorProficiencies: feat.armorProficiencies,
+          weaponProficiencies: feat.weaponProficiencies,
+          hpBonusPerLevel: Number(adapted.hpBonusPerLevel || feat.hpBonusPerLevel || 0),
+        };
+      }),
     allClassFeatures: character.allFeatures || [],
     allSubFeatures: character.allSubFeatures || [],
     adapterRuntime: {

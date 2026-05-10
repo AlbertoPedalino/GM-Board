@@ -156,6 +156,13 @@ if (typeof registerSubclassRuntimeConfig === "function") {
     },
   });
 }
+
+registerSubclassSheetEffects("Cleric_Trickery", [
+
+  { type: "skillAdvantage", skill: "Stealth", minLevel: 3, note: "Blessing of the Trickster." },
+  { type: "teleport", minLevel: 6, note: "Trickster's Transposition while using Invoke Duplicity." },
+  { type: "advantage", target: "attack", minLevel: 17, note: "Improved Duplicity: allies gain Advantage against creatures near the illusion." },
+]);
 // [SheetRuntime] END
 
 }

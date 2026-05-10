@@ -1,7 +1,6 @@
 import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../../charbuilder/constants.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { renderEntries as renderSafeEntries } from './renderEntries.js';
-import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
@@ -10,13 +9,11 @@ export function buildSpellInfo(C, spellIndex) {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
     const key = `${norm(name)}|${castLevel || spell.level}`;
-    const row = { ...spell, sourceInfo: source, castLevel, locked };
+    const row = { ...spell, sourceInfo: source, castLevel };
     const existing = rows.get(key);
-
-    if (!existing || shouldReplaceSpellRow(existing, row)) {
-      rows.set(key, row);
+    if (!existing || (!existing.sourceInfo && source) || (!existing.locked && locked)) {
+      rows.set(key, { ...row, locked });
     }
-
     if (locked) {
       lockedNames.add(name);
       lockedNames.add(norm(name));
@@ -60,28 +57,6 @@ export function buildSpellInfo(C, spellIndex) {
   }
 }
 
-function isGenericSpellSourceLabel(label) {
-  return /^(auto|class|class spell|class spells|subclass|subclass spell|subclass spells)$/i.test(String(label || '').trim());
-}
-
-function spellSourceScore(sourceInfo) {
-  const label = String(sourceInfo?.label || '').trim();
-  if (!label) return 0;
-  if (isGenericSpellSourceLabel(label)) return 1;
-  return 2;
-}
-
-function shouldReplaceSpellRow(existing, incoming) {
-  const incomingScore = spellSourceScore(incoming?.sourceInfo);
-  const existingScore = spellSourceScore(existing?.sourceInfo);
-
-  if (incomingScore !== existingScore) return incomingScore > existingScore;
-  if (!existing?.locked && incoming?.locked) return true;
-  if (!existing?.sourceInfo && incoming?.sourceInfo) return true;
-  return false;
-}
-
-
 function collectChoiceSpells(C, spellIndex) {
   const out = [];
   Object.entries(C?.choices || {}).forEach(([key, value]) => {
@@ -100,167 +75,32 @@ function collectChoiceSpells(C, spellIndex) {
 
 function collectAutoGrantedSpells(C) {
   const out = [];
-
   (C?.autoGrantedSpells || []).forEach((entry) => {
-    if (!entry?.name) return;
-    const inferred = inferAutoGrantedSource(C, entry.name, entry.source);
-    out.push({
-      name: entry.name,
-      level: Number(entry.level ?? 0),
-      source: inferred,
+    if (entry?.name) out.push({ name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6' } });
+  });
+  const entities = [{ className: C?.className, subclassShortName: C?.subclassShortName, level: C?.classLevel || C?.level || 1 }];
+  (C?.extraClasses || []).forEach((ec) => entities.push({ className: ec.name, subclassShortName: ec.subclassShortName, level: ec.level || 1 }));
+  entities.forEach((entity) => {
+    const cfgs = [
+      installedRegistry.getClassRuntimeConfig(entity.className),
+      installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName),
+    ];
+    cfgs.forEach((cfg) => {
+      [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
+        const name = typeof spell === 'string' ? spell : spell?.name;
+        if (!name || entity.level < Number(spell?.minLevel || 1)) return;
+        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' } });
+      });
     });
   });
-
-  const entities = [
-    {
-      className: C?.className,
-      subclassShortName: C?.subclassShortName,
-      level: C?.classLevel || C?.level || 1,
-    },
-    ...(C?.extraClasses || []).map((ec) => ({
-      className: ec.name,
-      subclassShortName: ec.subclassShortName,
-      level: ec.level || 1,
-    })),
-  ];
-
-  entities.forEach((entity) => {
-    const classCfg = installedRegistry.getClassRuntimeConfig(entity.className);
-    pushAutoGrantedFromSpellcasting(out, classCfg?.spellcasting, entity, 'class');
-
-    const subclassCfg = installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName);
-    pushAutoGrantedFromSpellcasting(out, subclassCfg?.spellcasting, entity, 'subclass');
-  });
-
   const seen = new Set();
   return out.filter((entry) => {
-    const key = `${norm(entry.name)}|${entry.source?.label || ''}`;
+    const key = norm(entry.name);
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 }
-
-function pushAutoGrantedFromSpellcasting(out, spellcasting, entity, ownerType) {
-  if (!spellcasting) return;
-
-  const ownerLabel = ownerType === 'subclass'
-    ? (entity.subclassShortName || entity.className || 'Subclass')
-    : (entity.className || 'Class');
-
-  [
-    ...(spellcasting.alwaysKnownSpells || []),
-    ...(spellcasting.alwaysPreparedSpells || []),
-  ].forEach((spell) => {
-    const name = typeof spell === 'string' ? spell : spell?.name;
-    if (!name || entity.level < Number(spell?.minLevel || 1)) return;
-
-    out.push({
-      name,
-      level: Number(spell?.level ?? 0),
-      source: {
-        label: normalizeAutoSpellSourceLabel(spell?.source, ownerLabel),
-        color: ownerType === 'subclass' ? '#9d7fb8' : '#70b7a6',
-      },
-    });
-  });
-}
-
-function normalizeAutoSpellSourceLabel(source, fallback) {
-  const raw = String(source || '').trim();
-  if (!raw) return fallback;
-  if (/^(subclass|subclass spell|subclass spells)$/i.test(raw)) return fallback;
-  if (/^(class|class spell|class spells)$/i.test(raw)) return fallback;
-  return raw;
-}
-
-function inferAutoGrantedSource(C, spellName, rawSource) {
-  const explicit = normalizeAutoSpellSourceLabel(rawSource, '');
-  if (explicit && !isGenericSpellSourceLabel(explicit)) {
-    return { label: explicit, color: '#70b7a6' };
-  }
-
-  const entities = [
-    {
-      className: C?.className,
-      subclassShortName: C?.subclassShortName,
-      level: C?.classLevel || C?.level || 1,
-    },
-    ...(C?.extraClasses || []).map((ec) => ({
-      className: ec.name,
-      subclassShortName: ec.subclassShortName,
-      level: ec.level || 1,
-    })),
-  ];
-
-  const wanted = norm(spellName);
-
-  for (const entity of entities) {
-    const subclassCfg = installedRegistry.getSubclassRuntimeConfig(entity.className, entity.subclassShortName);
-    if (spellcastingHasAutoSpell(subclassCfg?.spellcasting, wanted, entity.level)) {
-      return {
-        label: entity.subclassShortName || entity.className || 'Subclass',
-        color: '#9d7fb8',
-      };
-    }
-  }
-
-  for (const entity of entities) {
-    const classCfg = installedRegistry.getClassRuntimeConfig(entity.className);
-    if (spellcastingHasAutoSpell(classCfg?.spellcasting, wanted, entity.level)) {
-      return {
-        label: entity.className || 'Class',
-        color: '#70b7a6',
-      };
-    }
-  }
-
-  const featureSource = inferSubclassFeatureSpellSource(C, wanted);
-  if (featureSource) return featureSource;
-
-  return {
-    label: normalizeAutoSpellSourceLabel(rawSource, 'Auto'),
-    color: '#70b7a6',
-  };
-}
-
-function spellcastingHasAutoSpell(spellcasting, wantedName, ownerLevel) {
-  if (!spellcasting) return false;
-  return [
-    ...(spellcasting.alwaysKnownSpells || []),
-    ...(spellcasting.alwaysPreparedSpells || []),
-  ].some((spell) => {
-    const name = typeof spell === 'string' ? spell : spell?.name;
-    if (!name || norm(name) !== wantedName) return false;
-    return Number(ownerLevel || 1) >= Number(spell?.minLevel || 1);
-  });
-}
-
-function inferSubclassFeatureSpellSource(C, wantedName) {
-  const subclassShortName = String(C?.subclassShortName || '');
-  if (!subclassShortName) return null;
-
-  const match = (C?.allSubFeatures || [])
-    .filter((feature) => !feature?.isReprinted)
-    .filter((feature) => !feature?.subclassShortName || feature.subclassShortName === subclassShortName)
-    .find((feature) => {
-      const text = JSON.stringify(feature?.entries || '');
-      return new RegExp(`\\\\{@spell\\\\s+${escapeRegExpForSpellTag(wantedName)}`, 'i').test(text)
-        || norm(text).includes(wantedName);
-    });
-
-  if (!match) return null;
-
-  return {
-    label: subclassShortName || match.name || 'Subclass',
-    color: '#9d7fb8',
-  };
-}
-
-function escapeRegExpForSpellTag(value) {
-  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 
 function collectAtWillSpells(C) {
   const out = [];
@@ -286,6 +126,91 @@ function sourceFromChoiceKey(C, key) {
   if (key.startsWith('species_')) return { label: C?.speciesName || 'Species', color: '#70b7a6' };
   if (key.includes('tome')) return { label: 'Pact of the Tome', color: '#9d7fb8' };
   return { label: 'Choice', color: '#9d7fb8' };
+}
+
+export function getResolvedCantripData(C, name) {
+  if (!name) return null;
+  const base = typeof installedRegistry.getCantripData === 'function'
+    ? installedRegistry.getCantripData(name)
+    : null;
+  const modifiers = typeof installedRegistry.getCantripDataModifiers === 'function'
+    ? (installedRegistry.getCantripDataModifiers(name) || [])
+    : [];
+  if (!base && !modifiers.length) return null;
+  return modifiers.reduce((data, fn) => {
+    if (typeof fn !== 'function') return data;
+    try { return fn(data, C) || data; } catch { return data; }
+  }, base ? { ...base } : {});
+}
+
+const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+export function resolveDmgBonusValue(C, dmgBonus, getModFn, getFinalFn) {
+  if (dmgBonus == null || dmgBonus === '' || dmgBonus === 0) return 0;
+  if (typeof dmgBonus === 'number') return dmgBonus;
+  if (typeof dmgBonus === 'function') {
+    try { return Number(dmgBonus({ character: C }) || 0); } catch { return 0; }
+  }
+  const key = String(dmgBonus).toLowerCase();
+  if (ABILITY_KEYS.includes(key) && typeof getModFn === 'function' && typeof getFinalFn === 'function') {
+    return Number(getModFn(getFinalFn(C, key)) || 0);
+  }
+  const n = Number(dmgBonus);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function spellModifierEntities(C) {
+  if (!C) return [];
+  const out = [{ className: C.className, subclassShortName: C.subclassShortName, level: C.classLevel || C.level || 1 }];
+  (C.extraClasses || []).forEach((ec) => out.push({ className: ec.name, subclassShortName: ec.subclassShortName, level: ec.level || 1 }));
+  return out.filter((entry) => entry.className);
+}
+
+function collectSpellModifiers(C) {
+  const out = [];
+  spellModifierEntities(C).forEach((entity) => {
+    out.push(...((installedRegistry.getClassSheetSpellModifiers(entity.className) || []).map((mod) => ({ mod, ownerLevel: entity.level }))));
+    out.push(...((installedRegistry.getSubclassSheetSpellModifiers(entity.className, entity.subclassShortName) || []).map((mod) => ({ mod, ownerLevel: entity.level }))));
+  });
+  if (C?.speciesName) {
+    out.push(...((installedRegistry.getSpeciesSheetSpellModifiers(C.speciesName, C.speciesSource) || []).map((mod) => ({ mod, ownerLevel: C.level || 1 }))));
+  }
+  return out;
+}
+
+export function applySpellModifiers(C, ctx) {
+  if (!ctx || !C) return ctx?.formula;
+  let formula = ctx.formula;
+  collectSpellModifiers(C).forEach(({ mod, ownerLevel }) => {
+    if (!mod) return;
+    if (typeof mod === 'function') {
+      try {
+        const next = mod({ ...ctx, formula, ownerLevel });
+        if (typeof next === 'string' && next) formula = next;
+      } catch {}
+      return;
+    }
+    if (typeof mod === 'object') {
+      if (mod.minLevel && Number(ownerLevel || 1) < Number(mod.minLevel)) return;
+      if (mod.kind && mod.kind !== ctx.kind) return;
+      if (typeof mod.condition === 'function' && !mod.condition({ ...ctx, ownerLevel })) return;
+      const amount = typeof mod.amount === 'function' ? Number(mod.amount({ ...ctx, ownerLevel }) || 0) : Number(mod.amount || 0);
+      if (!amount) return;
+      formula = applyFlatBonus(formula, amount);
+    }
+  });
+  return formula;
+}
+
+function applyFlatBonus(formula, amount) {
+  if (!formula) return formula;
+  const text = String(formula).replace(/\s+/g, '');
+  const match = text.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!match) return formula;
+  const count = Number(match[1]);
+  const faces = Number(match[2]);
+  const flat = Number(match[3] || 0) + amount;
+  return `${count}d${faces}${flat ? (flat > 0 ? '+' : '') + flat : ''}`;
 }
 
 export function getSpellAbility(C) {
@@ -503,8 +428,8 @@ export function toSnapshot(spell) {
     duration: spell.duration,
     range: spell.range,
     time: spell.time,
-    ritual: isRitualSpell(spell),
-    concentration: isConcentrationSpell(spell),
+    ritual: !!spell.ritual,
+    concentration: !!spell.concentration,
     entries: spell.entries || [],
     entriesHigherLevel: spell.entriesHigherLevel || null,
     scalingLevelDice: spell.scalingLevelDice || null,

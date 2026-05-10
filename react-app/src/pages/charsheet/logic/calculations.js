@@ -1,3 +1,5 @@
+import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
+
 const PB_TABLE = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
 const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const SLBL = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
@@ -136,48 +138,7 @@ export function getSkillBonus(C, sk) {
 
 export function calcMaxHP(C) {
   if (!C) return 10;
-  const hd = C.clsSnapshot?.hd;
-  let faces = 8;
-  if (hd) {
-    if (hd.faces) faces = hd.faces;
-    else if (Array.isArray(hd) && hd[0]?.faces) faces = hd[0].faces;
-  }
-  const conMod = getMod(getFinal(C, 'con'));
-  const pLv = C.classLevel || C.level;
-  let total = faces + conMod;
-  if (pLv > 1) {
-    if (C.hpMode === 'rolled') {
-      for (let i = 2; i <= pLv; i++) {
-        const val = parseInt((C.hpManualRolls || {})[i]);
-        total += (isNaN(val) ? Math.floor(faces / 2) + 1 : val) + conMod;
-      }
-    } else {
-      total += (Math.floor(faces / 2) + 1 + conMod) * (pLv - 1);
-    }
-  }
-  (C.extraClasses || []).forEach((ec, ecIdx) => {
-    const ecHd = ec.clsSnapshot?.hd;
-    let ecFaces = 8;
-    if (ecHd) {
-      if (ecHd.faces) ecFaces = ecHd.faces;
-      else if (Array.isArray(ecHd) && ecHd[0]?.faces) ecFaces = ecHd[0].faces;
-    }
-    const keyPrefix = 'extra_' + ecIdx + '_';
-    if (C.hpMode === 'rolled') {
-      for (let i = 1; i <= (ec.level || 1); i++) {
-        const val = parseInt((C.hpManualRolls || {})[keyPrefix + i]);
-        total += (isNaN(val) ? Math.floor(ecFaces / 2) + 1 : val) + conMod;
-      }
-    } else {
-      total += (Math.floor(ecFaces / 2) + 1 + conMod) * (ec.level || 1);
-    }
-  });
-  const lv = C.level;
-  const hpBonusPerLv = C.hpBonusPerLv != null
-    ? C.hpBonusPerLv
-    : (Array.isArray(C.allFeatSnapshots) ? C.allFeatSnapshots : []).reduce((sum, f) => sum + (f?.hpBonusPerLevel || 0), 0);
-  total += hpBonusPerLv * lv;
-  return Math.max(1, total);
+  return sharedComputeMaxHp(C, getMod(getFinal(C, 'con')));
 }
 
 export function getLevelFromXp(xp) {

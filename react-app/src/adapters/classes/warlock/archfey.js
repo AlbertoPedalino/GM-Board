@@ -123,20 +123,49 @@ registerSubclassAdapter("Warlock_Archfey", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Warlock_Archfey", [
-  { name: "Steps of the Fey", icon: "", cat: "bonus", uses: "CHA mod / LR", resKey: "archfey_steps", minLevel: 3,
-    desc: "Bonus Action: cast Misty Step without expending a spell slot (CHA modifier uses per LR). When you teleport, choose one effect — Refreshing Step: regain 1d10 Temporary HP; or Taunting Step: each creature of your choice you can see within 5 ft of your destination makes a WIS save (spell save DC) or has Disadvantage on attack rolls against creatures other than you until the start of your next turn." },
-  { name: "Misty Escape", icon: "", cat: "reaction", uses: "Pact Magic slot", minLevel: 6,
-    desc: "Reaction when you take damage: expend one Pact Magic slot to cast Misty Step. After teleporting, choose one effect — Fey Refuge: have the Invisible condition until start of your next turn or until you attack, deal damage, or cast a spell; or Fey Curse: creatures within 5 ft of your origin or destination must succeed on a WIS save (spell save DC) or take 2d10 Psychic damage." },
-  { name: "Beguiling Defenses", icon: "", cat: "reaction", uses: "1 / LR or Pact Magic slot", resKey: "archfey_beguiling", minLevel: 10,
-    desc: "Immune to the Charmed condition. Reaction when hit by an attack: halve the damage of that attack against you, and the attacker must succeed on a WIS save (spell save DC) or take Psychic damage equal to the damage you took (after halving). Recharge: LR, or expend a Pact Magic slot." },
-  { name: "Bewitching Magic", icon: "", cat: "action", uses: "After casting enchantment/illusion", minLevel: 14,
+  { name: "Steps of the Fey", icon: "sparkles", cat: "bonus", uses: "CHA mod / LR", resKey: "archfey_steps", minLevel: 3,
+    healFormula: "1d10",
+    damageButtonLabel: "Refreshing Step 1d10 Temp HP",
+    desc: "Bonus Action: cast Misty Step without expending a spell slot. When you teleport, choose one effect: Refreshing Step gives you 1d10 Temporary HP; Taunting Step forces creatures of your choice within 5 ft of your destination to make a WIS save or have Disadvantage on attacks against creatures other than you until the start of your next turn." },
+  { name: "Misty Escape", icon: "sparkles", cat: "reaction", uses: "Pact Magic slot", minLevel: 6,
+    damageFormula: "2d10",
+    damageButtonLabel: "Fey Curse 2d10 Psychic",
+    damageKind: "damage",
+    desc: "Reaction when you take damage: expend one Pact Magic slot to cast Misty Step. After teleporting, choose Fey Refuge to become Invisible until the start of your next turn, or Fey Curse to force creatures within 5 ft of your origin or destination to make a WIS save or take 2d10 Psychic damage." },
+  { name: "Beguiling Defenses", icon: "shield", cat: "reaction", uses: "1 / LR or Pact Magic slot", resKey: "archfey_beguiling", minLevel: 10,
+    desc: "You are immune to Charmed. Reaction when hit by an attack: halve the damage, and the attacker must make a WIS save or take Psychic damage equal to the damage you took after halving. Recharge: Long Rest, or expend a Pact Magic slot." },
+  { name: "Bewitching Magic", icon: "sparkles", cat: "action", uses: "After enchantment/illusion", minLevel: 14,
     desc: "Immediately after you cast an Enchantment or Illusion spell using an Action and a spell slot, you can cast Misty Step as part of that same action without expending a spell slot." },
+]);
+
+registerSubclassSheetEffects("Warlock_Archfey", [
+  { type: "conditionImmunity", conditions: ["Charmed"], minLevel: 10, note: "Beguiling Defenses" },
 ]);
 registerSubclassSheetResources("Warlock_Archfey", [
   { key: "archfey_steps",    name: "Steps of the Fey",    icon: "sparkles", recharge: "LR",
     max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
   { key: "archfey_beguiling", name: "Beguiling Defenses", icon: "shield",   recharge: "LR", max: () => 1 },
 ]);
+
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Warlock_Archfey", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: 'Calm Emotions', minLevel: 3, level: 2, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Faerie Fire', minLevel: 3, level: 1, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Misty Step', minLevel: 3, level: 2, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Phantasmal Force', minLevel: 3, level: 2, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Sleep', minLevel: 3, level: 1, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Blink', minLevel: 5, level: 3, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Plant Growth', minLevel: 5, level: 3, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Dominate Beast', minLevel: 7, level: 4, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Greater Invisibility', minLevel: 7, level: 4, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Dominate Person', minLevel: 9, level: 5, source: 'Archfey', sourceType: 'subclass' },
+        { name: 'Seeming', minLevel: 9, level: 5, source: 'Archfey', sourceType: 'subclass' }
+      ],
+    },
+  });
+}
 // [SheetRuntime] END
 
 }

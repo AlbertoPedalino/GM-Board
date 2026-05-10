@@ -143,6 +143,15 @@ registerSubclassSheetActions("Fighter_Champion", [
   { name: "Survivor", icon: "", cat: "action", uses: "Passive", minLevel: 18,
     desc: "Two benefits — Defy Death: Advantage on Death Saving Throws; rolling 18–20 on a Death Save counts as rolling a 20. Heroic Rally: at the start of each of your turns, regain HP equal to 5 + your CON modifier if you are Bloodied and have at least 1 HP." },
 ]);
+
+registerSubclassSheetEffects("Fighter_Champion", [
+
+  { type: "critRange", value: 19, minLevel: 3, note: "Improved Critical." },
+  { type: "initiativeAdvantage", minLevel: 3, note: "Remarkable Athlete / Heroic Warrior." },
+  { type: "speed", value: 10, minLevel: 7, note: "Remarkable Athlete: Speed increases by 10 ft." },
+  { type: "critRange", value: 18, minLevel: 15, note: "Superior Critical." },
+  { type: "regeneration", minLevel: 18, note: "Survivor: regain HP at the start of your turn if Bloodied and not Incapacitated." },
+]);
 // [SheetRuntime] END
 
 }

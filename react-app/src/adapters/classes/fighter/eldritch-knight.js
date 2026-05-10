@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassRuntimeConfig("Fighter", "Eldritch Knight", {
+registerSubclassRuntimeConfig("Fighter_Eldritch Knight", {
   spellcasting: {
     ability: "int",
     casterProgression: "1/3",
@@ -133,14 +133,22 @@ registerSubclassRuntimeConfig("Fighter", "Eldritch Knight", {
   },
 });
 
-registerSubclassAdapter("Fighter_Eldritch Knight", function (cls, lv, specs, ctx = {}) {
+registerSubclassAdapter("Fighter_Eldritch Knight", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
-      key: 'subclass_ek_cantrips',
-      label: 'Eldritch Knight Cantrips',
+      key: 'subclass_ek_cantrip_1',
+      label: 'Eldritch Knight — Cantrip Wizard 1',
       type: 'spell_choice',
       spellFilter: { spellLevel: 0, classes: ['Wizard'] },
-      count: 2,
+      count: 1,
+      level: 3
+    });
+    specs.push({
+      key: 'subclass_ek_cantrip_2',
+      label: 'Eldritch Knight — Cantrip Wizard 2',
+      type: 'spell_choice',
+      spellFilter: { spellLevel: 0, classes: ['Wizard'] },
+      count: 1,
       level: 3
     });
   }

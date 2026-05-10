@@ -179,6 +179,14 @@ registerSubclassSheetResources("Sorcerer_Aberrant Mind", [
     "max": () => 1
   }
 ]);
+
+registerSubclassSheetEffects("Sorcerer_Aberrant Mind", [
+
+  { type: "telepathy", minLevel: 3, note: "Telepathic Speech: bonus action, range CHA modifier miles, duration Sorcerer level minutes." },
+  { type: "resistance", damageTypes: ["Psychic"], minLevel: 6, note: "Psychic Defenses." },
+  { type: "advantage", target: "save", conditions: ["Charmed", "Frightened"], minLevel: 6, note: "Psychic Defenses." },
+
+]);
 // [SheetRuntime] END
 
 }

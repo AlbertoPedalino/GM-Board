@@ -95,3 +95,5 @@ function cleanText(s) {
     .replace(/\{@[a-z]+ ([^|}]+)[^}]*\}/gi, '$1')
     .replace(/\{[^}]+\}/g, '');
 }
+
+

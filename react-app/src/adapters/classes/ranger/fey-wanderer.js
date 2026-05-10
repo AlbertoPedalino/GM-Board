@@ -196,6 +196,27 @@ registerSubclassSheetResources("Ranger_Fey Wanderer", [
     "max": (lv, { wis } = {}) => Math.max(1, wis ?? 0)
   }
 ]);
+
+if (typeof registerSubclassRuntimeConfig === "function") {
+  registerSubclassRuntimeConfig("Ranger_Fey Wanderer", {
+    spellcasting: {
+      alwaysPreparedSpells: [
+        { name: "Charm Person", minLevel: 3, level: 1 },
+        { name: "Misty Step", minLevel: 5, level: 2 },
+        { name: "Dispel Magic", minLevel: 9, level: 3 },
+        { name: "Dimension Door", minLevel: 13, level: 4 },
+        { name: "Mislead", minLevel: 17, level: 5 }
+      ],
+    },
+  });
+}
+
+registerSubclassSheetEffects("Ranger_Fey Wanderer", [
+
+  { type: "skillBonus", ability: "cha", bonusAbility: "wis", minLevel: 3, note: "Otherworldly Glamour: add WIS modifier to CHA checks." },
+  { type: "advantage", target: "save", conditions: ["Charmed", "Frightened"], minLevel: 7, note: "Beguiling Twist." },
+
+]);
 // [SheetRuntime] END
 
 }

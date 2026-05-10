@@ -313,18 +313,5 @@ export default function install(registry, context = {}) {
   regSubclass("Paladin_Noble Genies", {
     unarmoredDefense: [{ name: "Genie's Splendor", base: 10, abilities: ["dex", "cha"], allowShield: true, minLevel: 3 }],
   });
-  regSpecies("Dwarf_XPHB", {
-    hitPoints: { bonusPerLevel: 1 },
-  });
-  regSpecies("Hill Dwarf_XPHB", {
-    hitPoints: { bonusPerLevel: 1 },
-  });
-  regSpecies("Dwarf_PHB", {
-    hitPoints: { bonusPerLevel: 1 },
-  });
-  regSpecies("Hill Dwarf_PHB", {
-    hitPoints: { bonusPerLevel: 1 },
-  });
-
 }
 

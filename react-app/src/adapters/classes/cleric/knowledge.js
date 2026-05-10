@@ -119,22 +119,30 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs, ctx = {}) {
+registerSubclassAdapter("Cleric_Knowledge", function (cls, lv, specs) {
   if (lv >= 3) {
     specs.push({
       key: 'subclass_knowledge_skills',
-      label: 'Blessings of Knowledge — Skill Expertise',
+      label: 'Blessings of Knowledge — Skill (expertise)',
       type: 'expertise',
       from: ['Arcana', 'History', 'Nature', 'Religion'],
       count: 2,
       level: 3
     });
     specs.push({
-      key: 'subclass_knowledge_languages',
-      label: 'Blessings of Knowledge — Languages',
+      key: 'subclass_knowledge_lang_1',
+      label: 'Blessings of Knowledge — Language 1',
       type: 'language_choice',
       from: _ALL_LANGS || [],
-      count: 2,
+      count: 1,
+      level: 3
+    });
+    specs.push({
+      key: 'subclass_knowledge_lang_2',
+      label: 'Blessings of Knowledge — Language 2',
+      type: 'language_choice',
+      from: _ALL_LANGS || [],
+      count: 1,
       level: 3
     });
   }
@@ -192,6 +200,13 @@ if (typeof registerSubclassRuntimeConfig === "function") {
     },
   });
 }
+
+registerSubclassSheetEffects("Cleric_Knowledge", [
+
+  { type: "expertise", values: ["Arcana", "History", "Nature", "Religion"], count: 2, minLevel: 3, note: "Blessings of Knowledge." },
+  { type: "languageChoice", count: 2, minLevel: 3, note: "Blessings of Knowledge." },
+  { type: "temporaryProficiency", target: "skillOrTool", minLevel: 3, note: "Knowledge of the Ages." },
+]);
 // [SheetRuntime] END
 
 }

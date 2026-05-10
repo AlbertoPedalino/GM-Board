@@ -70,6 +70,30 @@ function qty(item) {
   return Number(item.qty || item.quantity || 1);
 }
 
+function itemFlags(item) {
+  return Array.isArray(item?.flags) ? item.flags : [];
+}
+
+function hasItemFlag(item, flag) {
+  return itemFlags(item).includes(flag);
+}
+
+function hasWarlockInvocation(C, name) {
+  if (!C?.choices) return false;
+  return Object.entries(C.choices).some(([key, value]) => (
+    key.replace(/^mc\d+_/, '').startsWith('warlock_invocation_')
+    && String(value || '').split('|')[0].trim() === name
+  ));
+}
+
+function canUsePactWeaponFlag(C, item) {
+  if (!C || !item) return false;
+  const type = String(item.type || '').toUpperCase();
+  if (!['M', 'R', 'WEAPON'].includes(type)) return false;
+  const hasWarlock = C.className === 'Warlock' || (C.extraClasses || []).some((extra) => extra?.name === 'Warlock');
+  return hasWarlock && hasWarlockInvocation(C, 'Pact of the Blade');
+}
+
 function formatGp(value) {
   const gp = Number(value || 0) / 100;
   if (!gp) return '';
@@ -331,6 +355,19 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
     updateInv(next);
   }, [updateInv]);
 
+  const togglePactWeapon = useCallback((index) => {
+    const current = invRef.current || [];
+    const target = current[index];
+    if (!canUsePactWeaponFlag(C, target)) return;
+    const next = current.map((item, idx) => {
+      const flags = itemFlags(item).filter((flag) => flag !== 'pactWeapon');
+      if (idx !== index) return flags.length === itemFlags(item).length ? item : { ...item, flags };
+      const shouldSet = !hasItemFlag(item, 'pactWeapon');
+      return { ...item, flags: shouldSet ? [...flags, 'pactWeapon'] : flags };
+    });
+    updateInv(next);
+  }, [C, updateInv]);
+
   const updateCoin = useCallback((coin, value) => {
     const next = { ...currency, [coin]: Math.max(0, Number(value || 0)) };
     onUpdateCurrency?.(next);
@@ -453,6 +490,8 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
                 onRemove={removeItem}
                 onEquip={toggleEquipped}
                 penaltyMsg={getPenaltyMessage(C, item)}
+                canPactWeapon={canUsePactWeaponFlag(C, item)}
+                onPactWeapon={togglePactWeapon}
               />
             ))}
           </Box>
@@ -509,7 +548,7 @@ const getPenaltyMessage = (() => {
   };
 })();
 
-const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, penaltyMsg }) {
+const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, penaltyMsg, canPactWeapon, onPactWeapon }) {
   const [open, setOpen] = useState(false);
   const type = String(item.type || '').toUpperCase();
   const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI', 'WEAPON', 'ARMOR'].includes(type);
@@ -534,6 +573,7 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
         <Box onClick={() => setOpen(!open)} sx={{ flex: 1, minWidth: 0, cursor: body ? 'pointer' : 'default' }}>
           <Typography sx={{ fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {item.name} {item.custom ? <Box component="span" sx={{ fontSize: '0.56rem', color: 'text.secondary' }}>[custom]</Box> : null}
+            {hasItemFlag(item, 'pactWeapon') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#9d7fb8', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Pact Weapon]</Box> : null}
           </Typography>
           {meta ? <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</Typography> : null}
           {penaltyMsg && (
@@ -546,6 +586,12 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
           <Button size="small" onClick={() => onEquip(index)} startIcon={item.equipped ? <Check size={11} /> : null}
             sx={{ minWidth: 0, px: '7px', py: '2px', border: 1, borderColor: item.equipped ? '#2ca797' : 'divider', borderRadius: '3px', color: item.equipped ? '#2ca797' : 'text.secondary', bgcolor: item.equipped ? 'rgba(26,188,156,0.12)' : 'transparent', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.58rem' }}>
             {item.equipped ? 'Equip.' : 'Equip'}
+          </Button>
+        ) : null}
+        {canPactWeapon ? (
+          <Button size="small" onClick={() => onPactWeapon(index)} startIcon={hasItemFlag(item, 'pactWeapon') ? <Check size={11} /> : null}
+            sx={{ minWidth: 0, px: '7px', py: '2px', border: 1, borderColor: hasItemFlag(item, 'pactWeapon') ? '#9d7fb8' : 'divider', borderRadius: '3px', color: hasItemFlag(item, 'pactWeapon') ? '#9d7fb8' : 'text.secondary', bgcolor: hasItemFlag(item, 'pactWeapon') ? 'rgba(157,127,184,0.14)' : 'transparent', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.58rem' }}>
+            {hasItemFlag(item, 'pactWeapon') ? 'Pact' : 'Pact Weapon'}
           </Button>
         ) : null}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>

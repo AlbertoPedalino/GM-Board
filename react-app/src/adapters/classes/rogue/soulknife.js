@@ -214,6 +214,15 @@ registerSubclassSheetResources("Rogue_Soulknife", [
     "max": () => 1
   }
 ]);
+
+registerSubclassSheetEffects("Rogue_Soulknife", [
+
+  { type: "psychicWeapon", minLevel: 3, note: "Psychic Blades: finesse, thrown, psychic damage." },
+  { type: "telepathy", minLevel: 3, note: "Psychic Whispers." },
+  { type: "teleport", minLevel: 9, note: "Psychic Teleportation." },
+  { type: "invisibility", minLevel: 13, note: "Psychic Veil." },
+  { type: "stun", minLevel: 17, note: "Rend Mind." },
+]);
 // [SheetRuntime] END
 
 }

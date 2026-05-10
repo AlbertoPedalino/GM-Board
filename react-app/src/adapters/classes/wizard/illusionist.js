@@ -1,5 +1,4 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
-import { addWizardSavantSpellChoices } from './wizardSavant.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -121,7 +120,9 @@ export default function install(registry, context = {}) {
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
 registerSubclassAdapter("Wizard_Illusionist", function (cls, lv, specs) {
-  addWizardSavantSpellChoices(specs, lv, { key: "illusionist", label: "Illusion", school: "I" });
+  if (typeof addWizardSavantSpellChoices === "function") {
+    addWizardSavantSpellChoices(specs, lv, { key: "illusionist", label: "Illusion", school: "I" });
+  }
 });
 
 // [SheetRuntime] START
@@ -152,6 +153,15 @@ if (typeof registerSubclassRuntimeConfig === "function") {
     },
   });
 }
+
+registerSubclassSheetEffects("Wizard_Illusionist", [
+
+  { type: "spellModifier", spellSchool: "I", minLevel: 3, note: "Improved Illusions: no Verbal component; +60 ft range when range is 10+ ft." },
+  { type: "alwaysKnownSpell", spells: ["Minor Illusion"], minLevel: 3, note: "Improved Illusions." },
+  { type: "summonModifier", minLevel: 6, note: "Phantasmal Creatures." },
+  { type: "reactionDefense", minLevel: 10, note: "Illusory Self." },
+  { type: "illusionObjectReality", minLevel: 14, note: "Illusory Reality." },
+]);
 // [SheetRuntime] END
 
 }

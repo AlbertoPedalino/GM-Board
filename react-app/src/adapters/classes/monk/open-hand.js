@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Monk_Open Hand", function (cls, lv, specs, ctx = {}) {});
+registerSubclassAdapter("Monk_Open Hand", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Monk_Open Hand", [
@@ -138,6 +138,14 @@ registerSubclassSheetActions("Monk_Open Hand", [
 registerSubclassSheetResources("Monk_Open Hand", [
   { key: "open_hand_wholeness", name: "Wholeness of Body", icon: "heart", recharge: "LR",
     max: (lv, { wis } = {}) => Math.max(1, wis ?? 0) },
+]);
+
+registerSubclassSheetEffects("Monk_Open Hand", [
+
+  { type: "flurryUpgrade", minLevel: 3, note: "Open Hand Technique: add rider effects to Flurry of Blows." },
+  { type: "selfHealing", minLevel: 6, note: "Wholeness of Body." },
+  { type: "reactionDefense", minLevel: 11, note: "Fleet Step / Tranquility style feature depending on adapter data." },
+  { type: "saveOrDie", minLevel: 17, note: "Quivering Palm." },
 ]);
 // [SheetRuntime] END
 

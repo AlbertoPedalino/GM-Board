@@ -119,7 +119,7 @@ export default function install(registry, context = {}) {
     getGenericBackgroundChoiceMeta,
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
-registerSubclassAdapter("Monk_Elements", function (cls, lv, specs, ctx = {}) {});
+registerSubclassAdapter("Monk_Elements", function (cls, lv, specs) {});
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Monk_Elements", [
@@ -151,6 +151,14 @@ if (typeof registerSubclassRuntimeConfig === "function") {
     },
   });
 }
+
+registerSubclassSheetEffects("Monk_Elements", [
+
+  { type: "reach", value: 10, minLevel: 3, note: "Elemental Attunement: elemental reach while active." },
+  { type: "damageTypeChoice", values: ["Acid", "Cold", "Fire", "Lightning", "Thunder"], minLevel: 3, note: "Elemental Attunement." },
+  { type: "flySpeed", minLevel: 11, note: "Stride of the Elements." },
+  { type: "resistance", damageTypes: ["Acid", "Cold", "Fire", "Lightning", "Thunder"], minLevel: 17, note: "Elemental Epitome while active." },
+]);
 // [SheetRuntime] END
 
 }

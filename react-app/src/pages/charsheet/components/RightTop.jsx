@@ -4,6 +4,7 @@ import { Swords, Shield, Sparkles, ListChecks, X, AlertCircle } from 'lucide-rea
 import { getMod, getFinal } from '../logic/calculations.js';
 import { CONDITIONS } from '../logic/calculations.js';
 import { getArmorTrainingInfo } from '../logic/proficiencies.js';
+import { collectResolvedResistanceItems, collectResolvedImmunityItems } from '../logic/sheetEffects.js';
 
 export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearConditions, onToggleInspiration }) {
   const initMod = getMod(getFinal(C, 'dex'));
@@ -67,15 +68,23 @@ function InspirationBlock({ sheet, onToggle }) {
 }
 
 function DefensesBlock({ C }) {
-  const resist = C.speciesSnapshot?.resist || C.clsSnapshot?.resist || [];
-  const immune = C.speciesSnapshot?.immune || C.clsSnapshot?.immune || [];
-  const all = [...resist.map(r => ({ type: r, kind: 'Resist' })), ...immune.map(r => ({ type: r, kind: 'Immune' }))];
+  const all = [
+    ...collectResolvedResistanceItems(C).map((item) => ({ type: item.label, kind: 'Resist', source: item.source })),
+    ...collectResolvedImmunityItems(C).map((item) => ({ type: item.label, kind: 'Immune', source: item.source })),
+  ];
+
   return (
     <Box sx={{ flex: 1, minWidth: 140, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, p: '0.4rem 0.62rem' }}>
       <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'primary.main', mb: 0.4 }}>Defenses</Typography>
       {all.length === 0 && <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', fontStyle: 'italic' }}>No resistances detected.</Typography>}
       {all.map((d, i) => (
-        <Chip key={i} size="small" label={`${d.kind} ${d.type}`} variant="outlined" sx={{ fontSize: '0.5rem', m: 0.15 }} />
+        <Chip
+          key={`${d.kind}-${d.type}-${i}`}
+          size="small"
+          label={`${d.kind} ${d.type}${d.source ? ` · ${d.source}` : ''}`}
+          variant="outlined"
+          sx={{ fontSize: '0.5rem', m: 0.15 }}
+        />
       ))}
     </Box>
   );
