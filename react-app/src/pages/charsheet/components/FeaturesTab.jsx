@@ -1,17 +1,35 @@
 import { useState } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
+import { collectSheetEffects } from '../logic/sheetEffects.js';
 
 export default function FeaturesTab({ C }) {
   const allFeatures = C?.allClassFeatures || [];
   const allSubFeatures = C?.allSubFeatures || [];
   const selectedFeats = C?.allFeatSnapshots || [];
   const speciesEntries = C?.speciesSnapshot?.entries || [];
-  const features = [
-    { name: `Species: ${C.speciesName || ''}`, level: 1, entries: speciesEntries, source: 'Species' },
-    ...allFeatures.map(f => ({ ...f, source: C.className || 'Class' })),
-    ...allSubFeatures.filter(f => f.subclassShortName === C.subclassShortName).map(f => ({ ...f, source: `(${C.subclassShortName})` })),
+
+  const baseFeatures = [
+    { name: `Species: ${C?.speciesName || ''}`, level: 1, entries: speciesEntries, source: 'Species' },
+    ...allFeatures.map(f => ({ ...f, source: C?.className || 'Class' })),
+    ...allSubFeatures
+      .filter(f => f.subclassShortName === C?.subclassShortName)
+      .map(f => ({ ...f, source: `(${C?.subclassShortName})` })),
     ...selectedFeats.map(f => ({ name: f.name, level: null, entries: f.entries || [], source: 'Feat' })),
-  ].filter(f => f.level == null || f.level <= (C.level || 1));
+  ].filter(f => f.level == null || f.level <= (C?.level || 1));
+
+  const baseKeys = new Set(baseFeatures.map(featureKey));
+
+  const runtimePassiveNotes = collectSheetEffects(C || {})
+    .filter(effect => String(effect?.type || '').toLowerCase() === 'passivenote')
+    .map(passiveNoteToFeature)
+    .filter(Boolean)
+    .filter(f => !baseKeys.has(featureKey(f)))
+    .filter(f => f.level == null || f.level <= (C?.level || 1));
+
+  const features = [
+    ...baseFeatures,
+    ...runtimePassiveNotes,
+  ];
 
   const groups = {};
   features.forEach(f => {
@@ -28,12 +46,39 @@ export default function FeaturesTab({ C }) {
             {Number(lv) === 0 ? 'Species / Feats' : `Level ${lv}`}
           </Typography>
           {feats.map((f, i) => (
-            <FeatureItem key={i} feature={f} />
+            <FeatureItem key={`${featureKey(f)}-${i}`} feature={f} />
           ))}
         </Box>
       ))}
     </Box>
   );
+}
+
+
+function featureKey(feature) {
+  return `${normFeatureName(feature?.name)}|${Number(feature?.level || 0)}`;
+}
+
+function normFeatureName(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function passiveNoteToFeature(effect) {
+  const note = cleanText(effect?.note);
+  if (!note) return null;
+
+  const [maybeTitle, ...rest] = note.split(':');
+  const hasTitle = rest.length > 0 && maybeTitle.trim().length > 0 && maybeTitle.trim().length <= 80;
+
+  return {
+    name: hasTitle ? maybeTitle.trim() : 'Passive Note',
+    level: Number(effect?.minLevel || 1),
+    entries: hasTitle ? rest.join(':').trim() || note : note,
+    source: effect?.ownerName ? `(${effect.ownerName})` : 'Runtime',
+    runtimePassiveNote: true,
+  };
 }
 
 function FeatureItem({ feature }) {

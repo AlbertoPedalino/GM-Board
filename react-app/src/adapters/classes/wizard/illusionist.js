@@ -155,8 +155,7 @@ if (typeof registerSubclassRuntimeConfig === "function") {
 }
 
 registerSubclassSheetEffects("Wizard_Illusionist", [
-
-  { type: "spellModifier", spellSchool: "I", minLevel: 3, note: "Improved Illusions: no Verbal component; +60 ft range when range is 10+ ft." },
+  { type: "passiveNote", minLevel: 3, note: "Improved Illusions: no Verbal component; +60 ft range when range is 10+ ft." },
   { type: "alwaysKnownSpell", spells: ["Minor Illusion"], minLevel: 3, note: "Improved Illusions." },
   { type: "summonModifier", minLevel: 6, note: "Phantasmal Creatures." },
   { type: "reactionDefense", minLevel: 10, note: "Illusory Self." },

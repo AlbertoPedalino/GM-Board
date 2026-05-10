@@ -1,6 +1,7 @@
 import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../../charbuilder/constants.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { renderEntries as renderSafeEntries } from './renderEntries.js';
+import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
 
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
@@ -145,6 +146,28 @@ export function getResolvedCantripData(C, name) {
 
 const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
+const SCHOOL_ALIASES = {
+  A: 'abjuration',
+  C: 'conjuration',
+  D: 'divination',
+  E: 'enchantment',
+  V: 'evocation',
+  I: 'illusion',
+  N: 'necromancy',
+  T: 'transmutation',
+};
+
+function normalizeSpellSchool(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const upper = raw.toUpperCase();
+  return SCHOOL_ALIASES[upper] || raw.toLowerCase();
+}
+
+function schoolMatches(spellSchool, modifierSchool) {
+  return normalizeSpellSchool(spellSchool) === normalizeSpellSchool(modifierSchool);
+}
+
 export function resolveDmgBonusValue(C, dmgBonus, getModFn, getFinalFn) {
   if (dmgBonus == null || dmgBonus === '' || dmgBonus === 0) return 0;
   if (typeof dmgBonus === 'number') return dmgBonus;
@@ -193,8 +216,14 @@ export function applySpellModifiers(C, ctx) {
     if (typeof mod === 'object') {
       if (mod.minLevel && Number(ownerLevel || 1) < Number(mod.minLevel)) return;
       if (mod.kind && mod.kind !== ctx.kind) return;
+      const modifierSchool = mod.school || mod.spellSchool;
+      if (modifierSchool && !schoolMatches(ctx?.spell?.school, modifierSchool)) return;
+      if (mod.minSpellLevel != null && Number(ctx?.level ?? ctx?.castLevel ?? 0) < Number(mod.minSpellLevel)) return;
       if (typeof mod.condition === 'function' && !mod.condition({ ...ctx, ownerLevel })) return;
-      const amount = typeof mod.amount === 'function' ? Number(mod.amount({ ...ctx, ownerLevel }) || 0) : Number(mod.amount || 0);
+      let amount = 0;
+      if (typeof mod.amount === 'function') amount = Number(mod.amount({ ...ctx, ownerLevel }) || 0);
+      else if (typeof mod.amount === 'string') amount = resolveDmgBonusValue(C, mod.amount, getAbilityMod, getFinalScore);
+      else amount = Number(mod.amount || 0);
       if (!amount) return;
       formula = applyFlatBonus(formula, amount);
     }

@@ -141,12 +141,23 @@ registerSubclassSheetResources("Wizard_Evoker", [
 ]);
 
 registerSubclassSheetEffects("Wizard_Evoker", [
-
   { type: "cantripHalfDamage", minLevel: 3, note: "Potent Cantrip." },
   { type: "saveProtection", minLevel: 6, note: "Sculpt Spells." },
-  { type: "damageBonus", ability: "int", spellSchool: "V", minLevel: 10, note: "Empowered Evocation." },
+  { type: "passiveNote", minLevel: 10, note: "Empowered Evocation: add INT modifier to one damage roll of a Wizard Evocation spell." },
   { type: "maximizeSpellDamage", minLevel: 14, note: "Overchannel." },
 ]);
+
+if (typeof registerSubclassSheetSpellModifiers === "function") {
+  registerSubclassSheetSpellModifiers("Wizard_Evoker", [
+    {
+      kind: "damage",
+      school: "V",
+      minLevel: 10,
+      amount: "int",
+      note: "Empowered Evocation",
+    },
+  ]);
+}
 // [SheetRuntime] END
 
 }
