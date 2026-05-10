@@ -33,6 +33,40 @@ const DAMAGE_TYPES = [
   'Thunder',
 ];
 
+const CANONICAL_DISPLAY_LABELS = {
+  light: 'Light',
+  medium: 'Medium',
+  heavy: 'Heavy',
+  shield: 'Shield',
+  shields: 'Shield',
+  simple: 'Simple',
+  martial: 'Martial',
+  common: 'Common',
+  acid: 'Acid',
+  bludgeoning: 'Bludgeoning',
+  cold: 'Cold',
+  fire: 'Fire',
+  force: 'Force',
+  lightning: 'Lightning',
+  necrotic: 'Necrotic',
+  piercing: 'Piercing',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  slashing: 'Slashing',
+  thunder: 'Thunder',
+};
+
+function displayLabel(value) {
+  const raw = cleanText(value).split('|')[0].trim();
+  if (!raw) return '';
+
+  const direct = CANONICAL_DISPLAY_LABELS[norm(raw)];
+  if (direct) return direct;
+
+  return raw.replace(/\b[a-z]/g, (char) => char.toUpperCase());
+}
+
 function ownerLevelOf(character, className, isPrimary) {
   if (isPrimary) return Number(character?.classLevel || character?.level || 1);
   const found = (character?.extraClasses || []).find((entry) => norm(entry?.name) === norm(className));
@@ -78,9 +112,14 @@ function conditionPasses(effect, context) {
 function requiredChoicePasses(effect, character) {
   const rc = effect?.requiredChoice;
   if (!rc?.key) return true;
+
   const stored = choiceValue(character, rc.key);
-  const values = asArray(stored).map((v) => cleanText(v).split('|')[0]);
-  return values.includes(rc.value);
+  const expected = norm(cleanText(rc.value).split('|')[0]);
+
+  if (!expected) return true;
+
+  const values = asArray(stored).map((v) => norm(cleanText(v).split('|')[0]));
+  return values.includes(expected);
 }
 
 function effectIsActive(effect, context) {
@@ -226,8 +265,8 @@ function resolveChoiceValue(effect, character) {
   const fromChoice = inferDamageTypeFromText(choice);
   if (fromChoice) return fromChoice;
 
-  if (effect?.damageTypes) return asArray(effect.damageTypes).map(cleanText).join(', ');
-  return cleanText(choice).split('|')[0];
+  if (effect?.damageTypes) return asArray(effect.damageTypes).map(displayLabel).join(', ');
+  return displayLabel(choice);
 }
 
 export function collectSheetEffects(character = {}) {
@@ -354,15 +393,15 @@ export function effectSummary(effect, character = {}) {
     if (resolved) parts.push(resolved);
     else parts.push('Choose');
   } else if (effect?.damageTypes) {
-    parts.push(asArray(effect.damageTypes).map(cleanText).join(', '));
+    parts.push(asArray(effect.damageTypes).map(displayLabel).join(', '));
   }
 
-  if (effect?.conditions) parts.push(asArray(effect.conditions).map(cleanText).join(', '));
-  if (effect?.values) parts.push(asArray(effect.values).map(cleanText).join(', '));
-  if (effect?.value != null) parts.push(cleanText(effect.value));
+  if (effect?.conditions) parts.push(asArray(effect.conditions).map(displayLabel).join(', '));
+  if (effect?.values) parts.push(asArray(effect.values).map(displayLabel).join(', '));
+  if (effect?.value != null) parts.push(displayLabel(effect.value));
   if (effect?.ability) parts.push(cleanText(effect.ability).toUpperCase());
-  if (effect?.skill) parts.push(cleanText(effect.skill));
-  if (effect?.target) parts.push(cleanText(effect.target));
+  if (effect?.skill) parts.push(displayLabel(effect.skill));
+  if (effect?.target) parts.push(displayLabel(effect.target));
   if (effect?.key && !String(effect.key).startsWith('subclass_')) parts.push(cleanText(effect.key));
 
   const note = cleanText(effect?.note);
@@ -478,7 +517,7 @@ export function collectResistanceEffects(character = {}) {
 function splitDefenseText(value) {
   return cleanText(value)
     .split(/[;,/]/)
-    .map((item) => cleanText(item))
+    .map((item) => displayLabel(item))
     .filter(Boolean);
 }
 
@@ -486,7 +525,7 @@ function defenseItemsFromBlock(block, kind, source) {
   const out = [];
 
   const push = (label) => {
-    const text = cleanText(label);
+    const text = displayLabel(label);
     if (!text) return;
     out.push({ label: text, kind, source });
   };
@@ -530,7 +569,7 @@ function collectSelectedSpeciesResistanceChoices(character = {}, source = 'Speci
   const out = [];
 
   const pushMaybeDamageType = (value) => {
-    const raw = cleanText(value).split('|')[0];
+    const raw = displayLabel(value);
     const damageType = inferDamageTypeFromText(raw);
     if (damageType) out.push({ label: damageType, kind: 'Resistance', source });
   };
@@ -601,7 +640,7 @@ function resistanceItemsFromEffects(character = {}) {
       asArray(effect.damageTypes).forEach((type) => labels.push(cleanText(type)));
 
       return labels
-        .map((label) => cleanText(label))
+        .map((label) => displayLabel(label))
         .filter(Boolean)
         .map((label) => ({
           label,
@@ -633,7 +672,7 @@ function immunityItemsFromEffects(character = {}) {
       }
 
       return labels
-        .map((label) => cleanText(label))
+        .map((label) => displayLabel(label))
         .filter(Boolean)
         .map((label) => ({
           label,
@@ -647,7 +686,7 @@ function immunityItemsFromEffects(character = {}) {
 function dedupeDefenseItems(items) {
   const byKey = new Map();
   items.forEach((item) => {
-    const label = cleanText(item.label);
+    const label = displayLabel(item.label);
     if (!label) return;
     const key = `${norm(item.kind)}|${norm(label)}`;
     const existing = byKey.get(key);
@@ -674,9 +713,9 @@ export function collectResolvedImmunityItems(character = {}) {
 
 export function collectPreviewDefenseSections(character = {}) {
   const resistanceItems = collectResolvedResistanceItems(character)
-    .map((item) => `${item.label}${item.source ? ` (${item.source})` : ''}`);
+    .map((item) => `${displayLabel(item.label)}${item.source ? ` (${item.source})` : ''}`);
   const immunityItems = collectResolvedImmunityItems(character)
-    .map((item) => `${item.label}${item.source ? ` (${item.source})` : ''}`);
+    .map((item) => `${displayLabel(item.label)}${item.source ? ` (${item.source})` : ''}`);
 
   return [
     resistanceItems.length ? { title: 'Resistances', items: resistanceItems } : null,
@@ -688,7 +727,7 @@ export function collectPreviewEffectProficiencySections(character = {}) {
   const sections = new Map();
 
   const add = (title, item) => {
-    const label = cleanText(item);
+    const label = displayLabel(item);
     if (!label) return;
     if (!sections.has(title)) sections.set(title, new Set());
     sections.get(title).add(label);
@@ -700,20 +739,20 @@ export function collectPreviewEffectProficiencySections(character = {}) {
     const source = effect.ownerName ? ` (${effect.ownerName})` : '';
 
     if (type.includes('armortraining')) {
-      asArray(effect.values).forEach((value) => add('Armor Training', `${cleanText(value)}${source}`));
+      asArray(effect.values).forEach((value) => add('Armor Training', `${displayLabel(value)}${source}`));
     } else if (type.includes('weapontraining')) {
-      asArray(effect.values).forEach((value) => add('Weapon Training', `${cleanText(value)}${source}`));
+      asArray(effect.values).forEach((value) => add('Weapon Training', `${displayLabel(value)}${source}`));
     } else if (type.includes('toolproficiency')) {
-      asArray(effect.values).forEach((value) => add('Tools', `${cleanText(value)}${source}`));
+      asArray(effect.values).forEach((value) => add('Tools', `${displayLabel(value)}${source}`));
       if (!effect.values && summary) add('Tools', `${summary}${source}`);
     } else if (type.includes('skillproficiency')) {
-      asArray(effect.values).forEach((value) => add('Skills', `${cleanText(value)}${source}`));
+      asArray(effect.values).forEach((value) => add('Skills', `${displayLabel(value)}${source}`));
       if (!effect.values && summary) add('Skills', `${summary}${source}`);
     } else if (type.includes('expertise')) {
-      asArray(effect.values).forEach((value) => add('Expertise', `${cleanText(value)}${source}`));
+      asArray(effect.values).forEach((value) => add('Expertise', `${displayLabel(value)}${source}`));
       if (!effect.values && summary) add('Expertise', `${summary}${source}`);
     } else if (type.includes('language')) {
-      asArray(effect.values).forEach((value) => add('Languages', `${cleanText(value)}${source}`));
+      asArray(effect.values).forEach((value) => add('Languages', `${displayLabel(value)}${source}`));
       if (!effect.values && summary) add('Languages', `${summary}${source}`);
     }
   });

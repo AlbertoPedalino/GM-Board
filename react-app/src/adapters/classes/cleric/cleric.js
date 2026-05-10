@@ -123,6 +123,73 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
   const getMod = context?.getMod;
   const getFinal = context?.getFinal;
+
+function cleanChoice(value) {
+  return String(value || '')
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .split('|')[0]
+    .trim();
+}
+
+function normChoice(value) {
+  return cleanChoice(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function asChoiceArray(value) {
+  if (value == null) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function choiceValueFrom(character, key) {
+  if (!character || !key) return null;
+
+  const direct = character?.choices?.[key];
+  if (direct != null) return direct;
+
+  const prefixed = Object.entries(character?.choices || {}).find(([choiceKey]) => (
+    String(choiceKey || '').replace(/^mc\d+_/, '') === key
+  ));
+  if (prefixed) return prefixed[1];
+
+  const normalized = character?.normalizedChoices || {};
+  const buckets = [
+    normalized.rawByKey,
+    normalized.classOptions,
+    normalized.subclassOptions,
+    normalized.species?.options,
+    normalized.background?.options,
+    normalized.feats?.byKey,
+    normalized.spells?.byKey,
+  ];
+
+  for (const bucket of buckets) {
+    if (bucket && bucket[key] != null) return bucket[key];
+  }
+
+  return null;
+}
+
+function hasCharacterChoice(character, key, expected) {
+  const wanted = normChoice(expected);
+  if (!wanted) return false;
+
+  return asChoiceArray(choiceValueFrom(character, key))
+    .some((value) => normChoice(value) === wanted);
+}
+
+function firstCharacterChoice(character, key, fallback = '') {
+  const first = asChoiceArray(choiceValueFrom(character, key))
+    .find((value) => value != null && value !== '');
+
+  return cleanChoice(first) || fallback;
+}
+
+function divineStrikeDamageType(character) {
+  const chosen = firstCharacterChoice(character, 'cleric_divine_strike_damage_type', 'Radiant');
+  return normChoice(chosen) === 'necrotic' ? 'Necrotic' : 'Radiant';
+}
 registerClassAdapter("Cleric", function (cls, lv, specs, ctx = {}) {
   const character = ctx.character || {};
   const choices = ctx.choices || character.choices || {};
@@ -134,8 +201,9 @@ registerClassAdapter("Cleric", function (cls, lv, specs, ctx = {}) {
   };
   const hasChoice = function (key, value) {
     const raw = choiceValue(key);
-    const vals = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-    return vals.some(function (v) { return String(v).split('|')[0].trim().toLowerCase() === String(value).toLowerCase(); });
+    return asChoiceArray(raw).some(function (v) {
+      return normChoice(v) === normChoice(value);
+    });
   };
 
   if (lv >= 1) {
@@ -153,6 +221,14 @@ registerClassAdapter("Cleric", function (cls, lv, specs, ctx = {}) {
         label: 'Thaumaturge — Extra Cantrip',
         type: 'spell_choice',
         spellFilter: { spellLevel: 0, classes: ['Cleric'] },
+        count: 1,
+        level: 1
+      });
+      specs.push({
+        key: 'cleric_thaumaturge_skill_choice',
+        label: 'Thaumaturge — Arcana or Religion',
+        type: 'generic_choice',
+        from: ['Arcana', 'Religion'],
         count: 1,
         level: 1
       });
@@ -194,6 +270,14 @@ registerClassAdapter("Cleric", function (cls, lv, specs, ctx = {}) {
 registerClassSheetProficiencies("Cleric", [
   { type: "armor",  values: ["Heavy"],   minLevel: 1, requiredChoice: { key: "cleric_divine_order", value: "Protector" } },
   { type: "weapon", values: ["Martial"], minLevel: 1, requiredChoice: { key: "cleric_divine_order", value: "Protector" } }
+]);
+registerClassSheetEffects("Cleric", [
+  {
+    type: "passiveNote",
+    minLevel: 1,
+    requiredChoice: { key: "cleric_divine_order", value: "Thaumaturge" },
+    note: "Thaumaturge: choose Arcana or Religion; add your WIS modifier, minimum +1, to Intelligence checks with the chosen skill."
+  }
 ]);
 registerClassSheetActions("Cleric", [
   {
@@ -267,20 +351,37 @@ registerClassSheetActions("Cleric", [
     "desc": "Choose any Cleric spell of level 5 or lower that doesn't require a Reaction. Cast it without expending a spell slot or needing Material components. Recharge: Long Rest."
   },
   {
-    "name": "Blessed Strikes",
+    "name": "Blessed Strikes: Divine Strike",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Once/turn",
+    "minLevel": 7,
+    "condition": (character) => hasCharacterChoice(character, "cleric_blessed_strikes", "Divine Strike"),
+    "damageFormula": ({ ownerLevel }) => {
+      const lv = Number(ownerLevel || 1);
+      return lv >= 14 ? "2d8" : "1d8";
+    },
+    "damageButtonLabel": ({ character, ownerLevel }) => {
+      const lv = Number(ownerLevel || 1);
+      const dice = lv >= 14 ? "2d8" : "1d8";
+      return `+${dice} ${divineStrikeDamageType(character).toLowerCase()}`;
+    },
+    "desc": "Once per turn when you hit a creature with a weapon attack, deal additional Radiant or Necrotic damage of the type chosen for Divine Strike. The damage is 1d8, increasing to 2d8 at Cleric level 14."
+  },
+  {
+    "name": "Blessed Strikes: Potent Spellcasting",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "Cantrip damage",
     "minLevel": 7,
-    "damageFormula": "1d8",
-    "damageButtonLabel": "+1d8 divine",
-    "desc": "Gain one of two benefits: Divine Strike (add 1d8 of your domain's damage type once per turn) or Potent Spellcasting (add WIS mod to Cleric cantrip damage)."
+    "condition": (character) => hasCharacterChoice(character, "cleric_blessed_strikes", "Potent Spellcasting"),
+    "desc": "Add your Wisdom modifier to the damage rolls of your Cleric cantrips. At Cleric level 14, when you deal damage with a Cleric cantrip, grant Temporary HP equal to twice your WIS modifier to yourself or one creature within 60 ft."
   },
   {
     "name": "Improved Blessed Strikes",
     "icon": "",
     "cat": "action",
-    "uses": "Passive",
+    "uses": "Reminder",
     "minLevel": 14,
     "desc": "Your Blessed Strikes choice is upgraded — Divine Strike: extra damage increases to 2d8; Potent Spellcasting: when you deal damage with a Cleric cantrip, you also grant Temporary HP equal to twice your WIS modifier to yourself or one creature within 60 ft."
   },
@@ -292,6 +393,43 @@ registerClassSheetActions("Cleric", [
     "resKey": "divine_intervention",
     "minLevel": 20,
     "desc": "Your Divine Intervention can now target a Wish spell. If you cast Wish this way, you can't use Divine Intervention again until you finish 2d4 Long Rests. Otherwise functions as Divine Intervention (cast any Cleric spell ≤lv5, no slot or material component). Recharge: Long Rest."
+  }
+]);
+registerClassSheetSpellModifiers("Cleric", [
+  function (ctx) {
+    if (!ctx || ctx.kind !== "damage") return ctx?.formula;
+
+    const character = ctx.character || {};
+    const ownerClassName = ctx.ownerClassName || ctx.spell?.ownerClassName || "";
+    if (normChoice(ownerClassName) !== "cleric") return ctx?.formula;
+
+    const isCantrip = !!ctx.spell?.isCantrip || Number(ctx.level ?? ctx.spell?.level ?? 0) === 0;
+    if (!isCantrip) return ctx?.formula;
+
+    if (!hasCharacterChoice(character, "cleric_blessed_strikes", "Potent Spellcasting")) {
+      return ctx?.formula;
+    }
+
+    const wis = typeof getMod === "function" && typeof getFinal === "function"
+      ? Number(getMod(getFinal(character, "wis")) || 0)
+      : 0;
+
+    if (!wis) return ctx?.formula;
+
+    const formula = String(ctx.formula || "").replace(/\s+/g, "");
+    const match = formula.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+    if (!match) return ctx?.formula;
+
+    const count = Number(match[1] || 0);
+    const faces = Number(match[2] || 0);
+    const existingMod = Number(match[3] || 0);
+
+    if (!Number.isFinite(count) || !Number.isFinite(faces) || count < 1 || faces < 1) {
+      return ctx?.formula;
+    }
+
+    const nextMod = existingMod + wis;
+    return `${count}d${faces}${nextMod ? (nextMod > 0 ? "+" : "") + nextMod : ""}`;
   }
 ]);
 registerClassSheetResources("Cleric", [

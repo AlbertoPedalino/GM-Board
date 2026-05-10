@@ -142,12 +142,53 @@ function LevelGroup({ level, classFeatures, subFeatures }) {
   );
 }
 
-function normalizeListValue(value) {
-  return String(value || '')
+const PREVIEW_CANONICAL_LABELS = {
+  light: 'Light',
+  medium: 'Medium',
+  heavy: 'Heavy',
+  shield: 'Shield',
+  shields: 'Shield',
+  simple: 'Simple',
+  martial: 'Martial',
+  common: 'Common',
+  acid: 'Acid',
+  bludgeoning: 'Bludgeoning',
+  cold: 'Cold',
+  fire: 'Fire',
+  force: 'Force',
+  lightning: 'Lightning',
+  necrotic: 'Necrotic',
+  piercing: 'Piercing',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  slashing: 'Slashing',
+  thunder: 'Thunder',
+};
+
+function previewLabelKey(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function toPreviewTitleCase(value) {
+  return String(value || '').replace(/\b[a-z]/g, (char) => char.toUpperCase());
+}
+
+function canonicalPreviewLabel(value) {
+  const raw = String(value || '')
     .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
     .replace(/[{}]/g, '')
     .replace(/\.$/, '')
+    .split('|')[0]
     .trim();
+  if (!raw) return '';
+
+  const key = previewLabelKey(raw);
+  return PREVIEW_CANONICAL_LABELS[key] || toPreviewTitleCase(raw);
+}
+
+function normalizeListValue(value) {
+  return canonicalPreviewLabel(value);
 }
 
 function uniqueClean(values) {

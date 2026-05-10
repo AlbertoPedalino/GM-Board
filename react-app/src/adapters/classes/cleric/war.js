@@ -125,8 +125,8 @@ export default function install(registry, context = {}) {
 // L17: Avatar of Battle (resistenze B/P/S)
 // War Domain grants Heavy Armor and Martial Weapon proficiency
 registerSubclassSheetProficiencies("Cleric_War", [
-  { type: "armor", values: ["Heavy"], minLevel: 1 },
-  { type: "weapon", values: ["Martial"], minLevel: 1 },
+  { type: "armor", values: ["Heavy"], minLevel: 3 },
+  { type: "weapon", values: ["Martial"], minLevel: 3 },
 ]);
 
 registerSubclassAdapter("Cleric_War", function (cls, lv, specs) {

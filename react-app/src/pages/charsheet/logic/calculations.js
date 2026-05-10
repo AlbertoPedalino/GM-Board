@@ -1,4 +1,5 @@
 import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
+import { getFeatAsiBonus } from '../../../shared/character/abilityBonuses.js';
 
 const PB_TABLE = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
 const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -62,16 +63,7 @@ export function bgBonus(C, stat) {
 }
 
 export function getAsiFeatBonus(C, stat) {
-  let bonus = 0;
-  if (!C?.choices) return 0;
-  for (const [k, v] of Object.entries(C.choices)) {
-    if (!/^feat_asi_lv\d+_asi_picks$/.test(k)) continue;
-    const mode = C.choices[k.replace('_asi_picks', '_asi_mode')] || 'double';
-    const picks = Array.isArray(v) ? v : [];
-    if (mode === 'double') { if (picks[0] === stat) bonus += 2; }
-    else bonus += picks.filter(p => p === stat).length;
-  }
-  return bonus;
+  return getFeatAsiBonus(C, stat);
 }
 
 export function getFinal(C, stat) {

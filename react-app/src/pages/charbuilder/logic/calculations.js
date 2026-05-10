@@ -9,6 +9,7 @@ import {
   XP_TOTAL,
 } from '../constants.js';
 import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
+import { getFeatAsiBonus } from '../../../shared/character/abilityBonuses.js';
 
 export function getLevelFromXp(xp) {
   let level = 1;
@@ -102,11 +103,8 @@ export function getAbilityScoreBonusBreakdown(character, stat) {
   const backgroundBonus = getBackgroundBonus(character, stat);
   if (backgroundBonus) bonuses.push({ source: 'Background', value: backgroundBonus });
 
-  Object.entries(character?.choices || {}).forEach(([key, value]) => {
-    if (!String(key).toLowerCase().endsWith('_asi')) return;
-    const bonus = asArray(value).filter((entry) => normalizeStat(entry) === stat).length;
-    if (bonus) bonuses.push({ source: abilityBonusSourceLabel(key), value: bonus });
-  });
+  const asiBonus = getFeatAsiBonus(character, stat);
+  if (asiBonus) bonuses.push({ source: 'Feat/ASI', value: asiBonus });
 
   return bonuses;
 }
