@@ -7,11 +7,11 @@ import { isRitualSpell } from '../../../shared/spellTags.js';
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
   const lockedNames = new Set();
-  const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0) => {
+  const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0, meta = {}) => {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
     const key = `${norm(name)}|${castLevel || spell.level}`;
-    const row = { ...spell, sourceInfo: source, castLevel };
+    const row = { ...spell, sourceInfo: source, castLevel, ...meta };
     const existing = rows.get(key);
     if (!existing || (!existing.sourceInfo && source) || (!existing.locked && locked)) {
       rows.set(key, { ...row, locked });
@@ -22,20 +22,20 @@ export function buildSpellInfo(C, spellIndex) {
     }
   };
 
-  (C?.selectedCantrips || []).forEach((name) => pushKnown(name, 0, null));
+  (C?.selectedCantrips || []).forEach((name) => pushKnown(name, 0, null, ownerMetaForCharacter(C, 'selected')));
   Object.entries(C?.selectedSpells || {}).forEach(([level, names]) => {
-    (names || []).forEach((name) => pushKnown(name, Number(level), null));
+    (names || []).forEach((name) => pushKnown(name, Number(level), null, ownerMetaForCharacter(C, 'selected')));
   });
   (C?.extraClasses || []).forEach((ec) => {
-    (ec.selectedCantrips || []).forEach((name) => pushKnown(name, 0, { label: ec.name || 'Class', color: '#9d7fb8' }));
+    (ec.selectedCantrips || []).forEach((name) => pushKnown(name, 0, { label: ec.name || 'Class', color: '#9d7fb8' }, ownerMetaForExtraClass(ec, 'selected')));
     Object.entries(ec.selectedSpells || {}).forEach(([level, names]) => {
-      (names || []).forEach((name) => pushKnown(name, Number(level), { label: ec.name || 'Class', color: '#9d7fb8' }));
+      (names || []).forEach((name) => pushKnown(name, Number(level), { label: ec.name || 'Class', color: '#9d7fb8' }, ownerMetaForExtraClass(ec, 'selected')));
     });
   });
 
-  collectChoiceSpells(C, spellIndex).forEach(({ name, source }) => push(name, source, true));
-  collectAutoGrantedSpells(C).forEach(({ name, level, source }) => push(name, source, true, null, level));
-  collectAtWillSpells(C).forEach(({ name, source }) => push(name, source, true));
+  collectChoiceSpells(C, spellIndex).forEach(({ name, source, meta }) => push(name, source, true, null, 0, meta));
+  collectAutoGrantedSpells(C).forEach(({ name, level, source, meta }) => push(name, source, true, null, level, meta));
+  collectAtWillSpells(C).forEach(({ name, source, meta }) => push(name, source, true, null, 0, meta));
   collectWizardRitualBookSpells(C, spellIndex).forEach((entry) => pushRitualOnly(entry));
 
   const all = [...rows.values()];
@@ -50,12 +50,12 @@ export function buildSpellInfo(C, spellIndex) {
   Object.values(leveled).forEach((entries) => entries.sort(sortByName));
   return { cantrips, atWill, leveled, lockedNames, lockedEntries: all.filter((entry) => entry.locked || lockedNames.has(entry.name) || lockedNames.has(norm(entry.name))) };
 
-  function pushKnown(name, level, source) {
+  function pushKnown(name, level, source, meta = {}) {
     const full = spellIndex.get(norm(name));
-    if (full) push(name, source);
+    if (full) push(name, source, false, null, level, meta);
     else {
       const key = `${norm(name)}|${level}`;
-      if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source });
+      if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source, ...meta });
     }
   }
 
@@ -79,6 +79,61 @@ export function buildSpellInfo(C, spellIndex) {
   }
 }
 
+
+function ownerMetaForCharacter(C, origin = 'selected') {
+  return {
+    ownerClassName: C?.className || null,
+    ownerSubclassShortName: C?.subclassShortName || null,
+    ownerLevel: Number(C?.classLevel || C?.level || 1),
+    ownerType: 'class',
+    spellOrigin: origin,
+  };
+}
+
+function ownerMetaForExtraClass(extra, origin = 'selected') {
+  return {
+    ownerClassName: extra?.name || null,
+    ownerSubclassShortName: extra?.subclassShortName || null,
+    ownerLevel: Number(extra?.level || 1),
+    ownerType: 'class',
+    spellOrigin: origin,
+  };
+}
+
+function ownerMetaFromChoiceKey(C, key, origin = 'choice') {
+  const match = String(key || '').match(/^mc(\d+)_/);
+  if (match) {
+    const extra = C?.extraClasses?.[Number(match[1])];
+    if (extra) return ownerMetaForExtraClass(extra, origin);
+  }
+  if (String(key || '').startsWith('species_')) {
+    return {
+      ownerClassName: null,
+      ownerSubclassShortName: null,
+      ownerLevel: Number(C?.level || 1),
+      ownerType: 'species',
+      spellOrigin: origin,
+    };
+  }
+  if (String(key || '').startsWith('feat_')) {
+    return {
+      ownerClassName: null,
+      ownerSubclassShortName: null,
+      ownerLevel: Number(C?.level || 1),
+      ownerType: 'feat',
+      spellOrigin: origin,
+    };
+  }
+  return ownerMetaForCharacter(C, origin);
+}
+
+function ownerMetaForAutoGranted(C, entry) {
+  const source = norm(entry?.source || '');
+  const extra = (C?.extraClasses || []).find((ec) => source && (source === norm(ec?.name) || source === norm(ec?.subclassShortName)));
+  if (extra) return ownerMetaForExtraClass(extra, 'auto');
+  return ownerMetaForCharacter(C, 'auto');
+}
+
 function collectChoiceSpells(C, spellIndex) {
   const out = [];
   Object.entries(C?.choices || {}).forEach(([key, value]) => {
@@ -89,7 +144,7 @@ function collectChoiceSpells(C, spellIndex) {
       if (!name) return;
       if (!spellIndex.has(norm(name)) && !/(spell|cantrip|tome|magical|known|prepared|innate|expanded)/i.test(key)) return;
       if (['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(norm(name))) return;
-      out.push({ name, source: sourceFromChoiceKey(C, key) });
+      out.push({ name, source: sourceFromChoiceKey(C, key), meta: ownerMetaFromChoiceKey(C, key, 'choice') });
     });
   });
   return out;
@@ -97,11 +152,20 @@ function collectChoiceSpells(C, spellIndex) {
 
 function collectAutoGrantedSpells(C) {
   const out = [];
-  (C?.autoGrantedSpells || []).forEach((entry) => {
-    if (entry?.name) out.push({ name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6' } });
-  });
-  const entities = [{ className: C?.className, subclassShortName: C?.subclassShortName, level: C?.classLevel || C?.level || 1 }];
-  (C?.extraClasses || []).forEach((ec) => entities.push({ className: ec.name, subclassShortName: ec.subclassShortName, level: ec.level || 1 }));
+  const entities = [{
+    className: C?.className,
+    subclassShortName: C?.subclassShortName,
+    level: C?.classLevel || C?.level || 1,
+    meta: ownerMetaForCharacter(C, 'auto'),
+  }];
+  (C?.extraClasses || []).forEach((ec) => entities.push({
+    className: ec.name,
+    subclassShortName: ec.subclassShortName,
+    level: ec.level || 1,
+    meta: ownerMetaForExtraClass(ec, 'auto'),
+  }));
+
+  // Prefer live registry data so multiclass spell ownership is preserved.
   entities.forEach((entity) => {
     const cfgs = [
       installedRegistry.getClassRuntimeConfig(entity.className),
@@ -111,10 +175,26 @@ function collectAutoGrantedSpells(C) {
       [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
         const name = typeof spell === 'string' ? spell : spell?.name;
         if (!name || entity.level < Number(spell?.minLevel || 1)) return;
-        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' } });
+        out.push({
+          name,
+          level: Number(spell?.level ?? 0),
+          source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' },
+          meta: entity.meta,
+        });
       });
     });
   });
+
+  // Snapshot fallback for older saved characters or spells not present in current registry.
+  (C?.autoGrantedSpells || []).forEach((entry) => {
+    if (entry?.name) out.push({
+      name: entry.name,
+      level: Number(entry.level ?? 0),
+      source: { label: entry.source || 'Auto', color: '#70b7a6' },
+      meta: ownerMetaForAutoGranted(C, entry),
+    });
+  });
+
   const seen = new Set();
   return out.filter((entry) => {
     const key = norm(entry.name);
@@ -128,12 +208,15 @@ function collectAtWillSpells(C) {
   const out = [];
   const choices = Object.entries(C?.choices || {});
   const hasInvocation = (name) => choices.some(([key, value]) => key.replace(/^mc\d+_/, '').startsWith('warlock_invocation_') && String(value).split('|')[0].trim() === name);
-  const entities = [{ name: C?.className, level: C?.classLevel || C?.level || 1 }, ...(C?.extraClasses || []).map((ec) => ({ name: ec.name, level: ec.level || 1 }))];
+  const entities = [
+    { name: C?.className, level: C?.classLevel || C?.level || 1, meta: ownerMetaForCharacter(C, 'atWill') },
+    ...(C?.extraClasses || []).map((ec) => ({ name: ec.name, level: ec.level || 1, meta: ownerMetaForExtraClass(ec, 'atWill') })),
+  ];
   entities.forEach((entity) => {
     (installedRegistry.getClassAtWillSpells(entity.name) || []).forEach((entry) => {
       if (entity.level < Number(entry.minLevel || 1)) return;
       if (entry.invocation && !hasInvocation(entry.invocation)) return;
-      out.push({ name: entry.spell, source: { label: entry.invocation || 'At Will', color: '#9d7fb8', kind: 'atWill' } });
+      out.push({ name: entry.spell, source: { label: entry.invocation || 'At Will', color: '#9d7fb8', kind: 'atWill' }, meta: entity.meta });
     });
   });
   return out;
@@ -157,6 +240,7 @@ function wizardRitualEntities(C) {
       bucket: C,
       level: Number(C.classLevel || C.level || 1),
       label: 'Ritual Adept',
+      meta: ownerMetaForCharacter(C, 'ritualBook'),
     });
   }
   (C.extraClasses || []).forEach((extra) => {
@@ -165,6 +249,7 @@ function wizardRitualEntities(C) {
       bucket: extra,
       level: Number(extra.level || 1),
       label: 'Ritual Adept',
+      meta: ownerMetaForExtraClass(extra, 'ritualBook'),
     });
   });
   return out.filter((entity) => entity.level >= 1);
@@ -197,6 +282,7 @@ function collectWizardRitualBookSpells(C, spellIndex) {
             color: '#58b879',
             kind: 'ritualBook',
           },
+          ...entity.meta,
         });
       });
     });
@@ -233,6 +319,28 @@ export function getResolvedCantripData(C, name) {
 
 const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
+const SCHOOL_ALIASES = {
+  A: 'abjuration',
+  C: 'conjuration',
+  D: 'divination',
+  E: 'enchantment',
+  V: 'evocation',
+  I: 'illusion',
+  N: 'necromancy',
+  T: 'transmutation',
+};
+
+function normalizeSpellSchool(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const upper = raw.toUpperCase();
+  return SCHOOL_ALIASES[upper] || raw.toLowerCase();
+}
+
+function schoolMatches(spellSchool, modifierSchool) {
+  return normalizeSpellSchool(spellSchool) === normalizeSpellSchool(modifierSchool);
+}
+
 export function resolveDmgBonusValue(C, dmgBonus, getModFn, getFinalFn) {
   if (dmgBonus == null || dmgBonus === '' || dmgBonus === 0) return 0;
   if (typeof dmgBonus === 'number') return dmgBonus;
@@ -254,14 +362,39 @@ function spellModifierEntities(C) {
   return out.filter((entry) => entry.className);
 }
 
-function collectSpellModifiers(C) {
+function collectSpellModifiers(C, ctx = {}) {
   const out = [];
+  const spellOwnerClass = ctx.ownerClassName || ctx.spell?.ownerClassName || null;
+  const spellOwnerSubclass = ctx.ownerSubclassShortName || ctx.spell?.ownerSubclassShortName || null;
+  const hasSpellOwner = !!spellOwnerClass;
+
   spellModifierEntities(C).forEach((entity) => {
-    out.push(...((installedRegistry.getClassSheetSpellModifiers(entity.className) || []).map((mod) => ({ mod, ownerLevel: entity.level }))));
-    out.push(...((installedRegistry.getSubclassSheetSpellModifiers(entity.className, entity.subclassShortName) || []).map((mod) => ({ mod, ownerLevel: entity.level }))));
+    const sameClass = norm(entity.className) === norm(spellOwnerClass);
+    const sameSubclass = !spellOwnerSubclass || norm(entity.subclassShortName) === norm(spellOwnerSubclass);
+    const includeEntity = !hasSpellOwner || (sameClass && sameSubclass);
+    if (!includeEntity) return;
+
+    out.push(...((installedRegistry.getClassSheetSpellModifiers(entity.className) || []).map((mod) => ({
+      mod,
+      ownerLevel: entity.level,
+      ownerClassName: entity.className,
+      ownerSubclassShortName: null,
+    }))));
+    out.push(...((installedRegistry.getSubclassSheetSpellModifiers(entity.className, entity.subclassShortName) || []).map((mod) => ({
+      mod,
+      ownerLevel: entity.level,
+      ownerClassName: entity.className,
+      ownerSubclassShortName: entity.subclassShortName,
+    }))));
   });
+
   if (C?.speciesName) {
-    out.push(...((installedRegistry.getSpeciesSheetSpellModifiers(C.speciesName, C.speciesSource) || []).map((mod) => ({ mod, ownerLevel: C.level || 1 }))));
+    out.push(...((installedRegistry.getSpeciesSheetSpellModifiers(C.speciesName, C.speciesSource) || []).map((mod) => ({
+      mod,
+      ownerLevel: C.level || 1,
+      ownerClassName: null,
+      ownerSubclassShortName: null,
+    }))));
   }
   return out;
 }
@@ -269,11 +402,11 @@ function collectSpellModifiers(C) {
 export function applySpellModifiers(C, ctx) {
   if (!ctx || !C) return ctx?.formula;
   let formula = ctx.formula;
-  collectSpellModifiers(C).forEach(({ mod, ownerLevel }) => {
+  collectSpellModifiers(C, ctx).forEach(({ mod, ownerLevel, ownerClassName, ownerSubclassShortName }) => {
     if (!mod) return;
     if (typeof mod === 'function') {
       try {
-        const next = mod({ ...ctx, formula, ownerLevel });
+        const next = mod({ ...ctx, formula, ownerLevel, ownerClassName, ownerSubclassShortName });
         if (typeof next === 'string' && next) formula = next;
       } catch {}
       return;
@@ -281,14 +414,12 @@ export function applySpellModifiers(C, ctx) {
     if (typeof mod === 'object') {
       if (mod.minLevel && Number(ownerLevel || 1) < Number(mod.minLevel)) return;
       if (mod.kind && mod.kind !== ctx.kind) return;
-      if (mod.school) {
-        const spellSchool = String(ctx?.spell?.school || '').toUpperCase();
-        if (spellSchool !== String(mod.school).toUpperCase()) return;
-      }
+      const modifierSchool = mod.school || mod.spellSchool;
+      if (modifierSchool && !schoolMatches(ctx?.spell?.school, modifierSchool)) return;
       if (mod.minSpellLevel != null && Number(ctx?.level ?? ctx?.castLevel ?? 0) < Number(mod.minSpellLevel)) return;
-      if (typeof mod.condition === 'function' && !mod.condition({ ...ctx, ownerLevel })) return;
+      if (typeof mod.condition === 'function' && !mod.condition({ ...ctx, ownerLevel, ownerClassName, ownerSubclassShortName })) return;
       let amount = 0;
-      if (typeof mod.amount === 'function') amount = Number(mod.amount({ ...ctx, ownerLevel }) || 0);
+      if (typeof mod.amount === 'function') amount = Number(mod.amount({ ...ctx, ownerLevel, ownerClassName, ownerSubclassShortName }) || 0);
       else if (typeof mod.amount === 'string') amount = resolveDmgBonusValue(C, mod.amount, getAbilityMod, getFinalScore);
       else amount = Number(mod.amount || 0);
       if (!amount) return;
@@ -313,6 +444,13 @@ export function getSpellAbility(C) {
   const clsCfg = installedRegistry.getClassRuntimeConfig(C?.className)?.spellcasting;
   const subCfg = installedRegistry.getSubclassRuntimeConfig(C?.className, C?.subclassShortName)?.spellcasting;
   return String(subCfg?.ability || clsCfg?.ability || C?.choices?.species_spell_ability || 'cha').toLowerCase();
+}
+
+export function getSpellAbilityForEntry(C, entry = {}) {
+  if (!entry?.ownerClassName) return getSpellAbility(C);
+  const clsCfg = installedRegistry.getClassRuntimeConfig(entry.ownerClassName)?.spellcasting;
+  const subCfg = installedRegistry.getSubclassRuntimeConfig(entry.ownerClassName, entry.ownerSubclassShortName)?.spellcasting;
+  return String(subCfg?.ability || clsCfg?.ability || getSpellAbility(C)).toLowerCase();
 }
 
 export function getSpellLimits(C) {

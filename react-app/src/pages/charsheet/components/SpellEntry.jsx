@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { Cross, Dices, Flame } from 'lucide-react';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
-import { SCHOOL_LABELS, getFinal, getMod } from '../logic/calculations.js';
+import { SCHOOL_LABELS, getFinal, getMod, getPB } from '../logic/calculations.js';
 import {
   applySpellModifiers,
   computeScaledFormula,
@@ -10,6 +10,7 @@ import {
   getCastBadge,
   getMetaLine,
   getResolvedCantripData,
+  getSpellAbilityForEntry,
   getUpcastStep,
   renderEntries,
   resolveDmgBonusValue,
@@ -37,7 +38,7 @@ function Badge({ label, color, bg = 'transparent' }) {
   );
 }
 
-export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, installedRegistry }) {
+export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spellMod: fallbackSpellMod, C, installedRegistry }) {
   const [open, setOpen] = useState(false);
   const castLevel = entry.castLevel || entry.level || 0;
   const baseLevel = entry.level || 0;
@@ -56,6 +57,15 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
   const damages = hasHeal ? [] : rawDamages;
   const hasDamage = damages.length > 0;
   const steps = castLevel - baseLevel;
+
+  const spellAbility = getSpellAbilityForEntry(C, entry);
+  const spellMod = Number.isFinite(fallbackSpellMod) && !entry.ownerClassName
+    ? fallbackSpellMod
+    : getMod(getFinal(C, spellAbility));
+  const atk = Number.isFinite(fallbackAtk) && !entry.ownerClassName
+    ? fallbackAtk
+    : getPB(C) + spellMod;
+
 
   const upcastStepDie = (steps > 0) ? (spellData?.upcastDie || getUpcastStep(entry.entriesHigherLevel)?.stepDie) : null;
   const baseScaledDamages = upcastStepDie
@@ -87,6 +97,9 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
       castLevel,
       level: baseLevel,
       spell: { ...entry, hasHeal: false, hasDamage: true, isCantrip: baseLevel === 0 },
+      ownerClassName: entry.ownerClassName,
+      ownerSubclassShortName: entry.ownerSubclassShortName,
+      ownerLevel: entry.ownerLevel,
       hasHealContext: false,
       usesSpellSlot: baseLevel > 0 && !ritualOnly,
     }) || dmg.formula,
@@ -104,6 +117,9 @@ export default function SpellEntry({ entry, onShowToast, atk, spellMod, C, insta
         castLevel,
         level: baseLevel,
         spell: { ...entry, hasHeal: true, hasHealContext: true },
+        ownerClassName: entry.ownerClassName,
+        ownerSubclassShortName: entry.ownerSubclassShortName,
+        ownerLevel: entry.ownerLevel,
         hasHealContext: true,
         usesSpellSlot: castLevel > 0 && !ritualOnly,
       }) || healWithMod
