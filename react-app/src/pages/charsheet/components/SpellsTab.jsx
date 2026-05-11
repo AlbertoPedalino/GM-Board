@@ -47,7 +47,7 @@ import {
 import SpellEntry from './SpellEntry.jsx';
 import { Empty, SlotPanel, SpellSection, StatBox } from './SpellsUiParts.jsx';
 
-export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
+export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpdateSheet }) {
   const [spellDb, setSpellDb] = useState([]);
   const [classSpellIndex, setClassSpellIndex] = useState({});
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -198,6 +198,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast }) {
     const next = { ...slotUsed, [level]: nextUsed };
     setSlotUsed(next);
     setStorageJson('5e_slots_used', next);
+    onUpdateSheet?.({ spellSlotUsed: next });
   };
 
   const addSpell = (spell) => {
