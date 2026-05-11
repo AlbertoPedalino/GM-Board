@@ -8,6 +8,7 @@ import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js'
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
 import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/proficiencyDisplay.js';
 import { collectResolvedWeaponMasteries } from '../../../shared/character/weaponMastery.js';
+import { collectAcFormulas, getEquippedArmor, getEquippedShield, computeAcFormulaValue } from '../../../shared/character/ac.js';
 
 const SOURCE_COLOR = {
   class: '#d7ad52',
@@ -281,6 +282,32 @@ function collectPreviewProficiencies(character) {
   return sections.filter((section) => section.items.length);
 }
 
+function AcFormulasSection({ character }) {
+  const formulas = collectAcFormulas(character);
+  if (!formulas.length) return null;
+  return (
+    <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+      <Stack direction="row" spacing={0.75} alignItems="center">
+        <Shield size={16} color={SOURCE_COLOR.class} />
+        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.class }}>
+          Armor Class
+        </Typography>
+      </Stack>
+      {formulas.map((f) => {
+        const val = computeAcFormulaValue(character, f);
+        const abils = (f.abilities || []).map((a) => a.toUpperCase());
+        const hasArmor = !!getEquippedArmor(character, []);
+        const blocked = (f.requiresNoArmor && hasArmor) ? ' (blocked: wearing armor)' : '';
+        return (
+          <Typography key={f.key} variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+            {f.label}: {f.base} + {abils.join(' + ')} = {val}{blocked}
+          </Typography>
+        );
+      })}
+    </Stack>
+  );
+}
+
 function ProficiencySection({ sections }) {
   if (!sections.length) return null;
   return (
@@ -514,6 +541,7 @@ function PreviewPaneImpl({ character, items = [] }) {
           ))}
         </Grid>
 
+        <AcFormulasSection character={character} />
         <Divider />
         <ProficiencySection sections={proficiencySections} />
         {proficiencySections.length ? <Divider /> : null}

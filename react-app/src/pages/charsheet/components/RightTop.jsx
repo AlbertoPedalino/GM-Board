@@ -5,19 +5,24 @@ import { getMod, getFinal } from '../logic/calculations.js';
 import { CONDITIONS } from '../logic/calculations.js';
 import { getArmorTrainingInfo } from '../logic/proficiencies.js';
 import { collectResolvedResistanceItems, collectResolvedImmunityItems } from '../logic/sheetEffects.js';
+import { computeBestArmorClass } from '../../../shared/character/ac.js';
 
 export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearConditions, onToggleInspiration }) {
   const initMod = getMod(getFinal(C, 'dex'));
-  const ac = calcAC(C, sheet);
   const active = CONDITIONS.filter(c => sheet.activeConditions.includes(c.key));
   const inv = sheet?.sheetInventory || [];
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
   const shieldUnproficient = equippedShield ? !getArmorTrainingInfo(C, equippedShield).trained : false;
+  const shieldTrained = !shieldUnproficient;
+  const acResult = computeBestArmorClass(C, inv, shieldTrained);
+  const ac = acResult?.value ?? 10;
+  const acSource = acResult?.source;
+  const showAcBadge = acResult?.sourceType === 'formula';
 
   return (
     <Box sx={{ display: 'flex', gap: '0.45rem', mb: '0.5rem', flexWrap: 'wrap' }}>
       <CircleStat onClick={() => onRoll(initMod, 'Initiative')} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
-      <ACDisplay value={ac} shieldUnproficient={shieldUnproficient} />
+      <ACDisplay value={ac} shieldUnproficient={shieldUnproficient} source={acSource} showBadge={showAcBadge} badgeLabel={acSource} />
       <InspirationBlock sheet={sheet} onToggle={onToggleInspiration} />
       <DefensesBlock C={C} />
       <ConditionsBlock active={active} sheet={sheet} onToggle={onToggleCondition} onClear={onClearConditions} />
@@ -40,18 +45,30 @@ function CircleStat({ value, label, clickable, onClick, children }) {
   );
 }
 
-function ACDisplay({ value, shieldUnproficient }) {
+function ACDisplay({ value, shieldUnproficient, source, showBadge, badgeLabel }) {
+  const tooltipText = shieldUnproficient
+    ? "Shield not proficient - no AC bonus"
+    : source
+      ? `AC ${value} — ${source}`
+      : '';
   return (
-    <Tooltip title={shieldUnproficient ? "Shield not proficient - no AC bonus" : ""}>
-      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 62, height: 68, flexShrink: 0, borderRadius: 1, border: shieldUnproficient ? 1 : 'none', borderColor: shieldUnproficient ? 'warning.main' : 'transparent' }}>
-        <Shield size={62} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', color: shieldUnproficient ? 'rgba(255,152,0,0.2)' : 'rgba(202,165,80,0.14)' }} />
-        <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.25rem', fontWeight: 700, color: '#edd48a', lineHeight: 1 }}>{value}</Typography>
-          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.44rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>AC</Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25, flexShrink: 0 }}>
+      <Tooltip title={tooltipText}>
+        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 62, height: 68, flexShrink: 0, borderRadius: 1, border: shieldUnproficient ? 1 : 'none', borderColor: shieldUnproficient ? 'warning.main' : 'transparent' }}>
+          <Shield size={62} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', color: shieldUnproficient ? 'rgba(255,152,0,0.2)' : 'rgba(202,165,80,0.14)' }} />
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.25rem', fontWeight: 700, color: '#edd48a', lineHeight: 1 }}>{value}</Typography>
+            <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.44rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>AC</Typography>
+          </Box>
+          {shieldUnproficient && <AlertCircle size={12} style={{ position: 'absolute', top: 2, right: 2, color: '#ff9800' }} />}
         </Box>
-        {shieldUnproficient && <AlertCircle size={12} style={{ position: 'absolute', top: 2, right: 2, color: '#ff9800' }} />}
-      </Box>
-    </Tooltip>
+      </Tooltip>
+      {showBadge && badgeLabel ? (
+        <Typography sx={{ fontSize: '0.45rem', color: '#70b7a6', fontWeight: 700, textAlign: 'center', lineHeight: 1.1, maxWidth: 72, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+          {badgeLabel}
+        </Typography>
+      ) : null}
+    </Box>
   );
 }
 
@@ -131,25 +148,4 @@ function ConditionsBlock({ active, sheet, onToggle, onClear }) {
   );
 }
 
-function calcAC(C, sheet) {
-  if (!C) return 10;
-  const dex = getMod(getFinal(C, 'dex'));
-  const inv = sheet?.sheetInventory || [];
-  const equippedArmor = inv.find(i => i.equipped && ['LA', 'MA', 'HA'].includes(i.type));
-  const equippedShield = inv.find(i => i.equipped && i.type === 'S');
-  
-  // Shield only grants AC bonus if proficient
-  let shieldBonus = 0;
-  if (equippedShield) {
-    const { trained } = getArmorTrainingInfo(C, equippedShield);
-    shieldBonus = trained ? 2 : 0;
-  }
 
-  if (equippedArmor) {
-    const baseAC = equippedArmor.ac || 10;
-    if (equippedArmor.type === 'LA') return baseAC + dex + shieldBonus;
-    if (equippedArmor.type === 'MA') return baseAC + Math.min(2, dex) + shieldBonus;
-    return baseAC + shieldBonus;
-  }
-  return 10 + dex + shieldBonus;
-}

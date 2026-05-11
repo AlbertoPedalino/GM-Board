@@ -227,7 +227,7 @@ if (typeof registerSubclassRuntimeConfig === "function") {
 }
 
 registerSubclassSheetEffects("Paladin_Noble Genies", [
-  { type: "unarmoredDefense", base: 10, abilities: ["dex", "cha"], allowShield: true, minLevel: 3, note: "Genie's Splendor" },
+  { type: "acFormula", key: "paladin_noble_genies_genies_splendor", label: "Genie's Splendor", base: 10, abilities: ["dex", "cha"], allowShield: true, requiresNoArmor: true, minLevel: 3 },
 ]);
 // [SheetRuntime] END
 

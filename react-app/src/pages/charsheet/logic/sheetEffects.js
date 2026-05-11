@@ -328,6 +328,7 @@ export function effectTitle(effect) {
     flySpeed: 'Fly Speed',
     climbSpeed: 'Climb Speed',
     swimSpeed: 'Swim Speed',
+    acFormula: 'Armor Class Formula',
     unarmoredDefense: 'Unarmored Defense',
     hpBonus: 'HP Bonus',
     armorTraining: 'Armor Training',
@@ -388,6 +389,7 @@ export function effectCategory(effect) {
     || type.includes('ward')
     || type.includes('damagereduction')
     || type.includes('unarmored')
+    || type.includes('acformula')
     || type.includes('acbonus')
     || type.includes('hprelated')
     || type.includes('hpbonus')

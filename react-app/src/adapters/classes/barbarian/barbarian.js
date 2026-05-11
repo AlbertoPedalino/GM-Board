@@ -156,6 +156,10 @@ registerClassAdapter("Barbarian", function (cls, lv, specs) {
   }
 });
 
+registerClassSheetEffects("Barbarian", [
+  { type: "acFormula", key: "barbarian_unarmored_defense", label: "Unarmored Defense", base: 10, abilities: ["dex", "con"], allowShield: true, minLevel: 1, requiresNoArmor: true },
+]);
+
 // [SheetRuntime] START
 registerClassSheetActions("Barbarian", [
   {

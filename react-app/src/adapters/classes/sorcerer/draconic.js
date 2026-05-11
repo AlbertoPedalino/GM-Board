@@ -194,7 +194,7 @@ registerSubclassSheetResources("Sorcerer_Draconic", [
 
 registerSubclassSheetEffects("Sorcerer_Draconic", [
 
-  { type: "unarmoredDefense", base: 10, abilities: ["dex", "cha"], allowShield: false, minLevel: 3, note: "Draconic Resilience" },
+  { type: "acFormula", key: "sorcerer_draconic_resilience", label: "Draconic Resilience", base: 10, abilities: ["dex", "cha"], allowShield: false, requiresNoArmor: true, minLevel: 3 },
   { type: "hpBonus", amount: 3, minLevel: 3, perLevelAfter: 1, note: "Draconic Resilience: +3 HP at level 3, +1 per Sorcerer level thereafter." },
   { type: "resistance-choice", key: "subclass_draconic_ancestor", minLevel: 6, note: "Elemental Affinity: resistance based on Dragon Ancestor.",
     map: {

@@ -138,6 +138,10 @@ registerClassAdapter("Monk", function (cls, lv, specs) {
   }
 });
 
+registerClassSheetEffects("Monk", [
+  { type: "acFormula", key: "monk_unarmored_defense", label: "Unarmored Defense", base: 10, abilities: ["dex", "wis"], allowShield: false, minLevel: 1, requiresNoArmor: true },
+]);
+
 // [SheetRuntime] START
 registerClassSheetActions("Monk", [
   {

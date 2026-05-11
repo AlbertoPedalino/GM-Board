@@ -75,7 +75,7 @@ function collectClassBuckets(C) {
       level: primaryLevel,
       character: C,
       choicePrefix: '',
-    }).map((feature) => ({ ...feature, source: C.className || 'Class' }));
+    }).map((feature) => ({ ...feature, source: C.className || 'Class', sourceKind: 'class' }));
 
     const subclassFeatures = collectValidSubclassFeatures({
       features: C?.allSubFeatures || [],
@@ -84,7 +84,7 @@ function collectClassBuckets(C) {
       level: primaryLevel,
       character: C,
       choicePrefix: '',
-    }).map((feature) => ({ ...feature, source: C.subclassShortName || 'Subclass' }));
+    }).map((feature) => ({ ...feature, source: C.subclassShortName || 'Subclass', sourceKind: 'subclass' }));
 
     out.push({
       kind: 'class',
@@ -106,7 +106,7 @@ function collectClassBuckets(C) {
       level,
       character: C,
       choicePrefix,
-    }).map((feature) => ({ ...feature, source: extra.name || 'Class' }));
+    }).map((feature) => ({ ...feature, source: extra.name || 'Class', sourceKind: 'class' }));
 
     const subclassFeatures = collectValidSubclassFeatures({
       features: extra?.allSubFeatures || [],
@@ -115,7 +115,7 @@ function collectClassBuckets(C) {
       level,
       character: C,
       choicePrefix,
-    }).map((feature) => ({ ...feature, source: extra.subclassShortName || 'Subclass' }));
+    }).map((feature) => ({ ...feature, source: extra.subclassShortName || 'Subclass', sourceKind: 'subclass' }));
 
     out.push({
       kind: 'multiclass',
@@ -296,13 +296,37 @@ function FeatureSection({ title, color, features }) {
 
 function FeatureItem({ feature, tone }) {
   const [open, setOpen] = useState(false);
+  const sourceKind = feature?.sourceKind || 'class';
+  const isSubclass = sourceKind === 'subclass';
+  const subclassTone = SOURCE_COLOR.subclass;
+  const borderTone = isSubclass ? subclassTone : (tone || '#4d95d6');
+
   return (
-    <Box className={open ? 'open' : ''} sx={{ bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderLeft: `3px solid ${tone || '#4d95d6'}`, borderRadius: 1, mb: 0.25, overflow: 'hidden' }}>
+    <Box
+      className={open ? 'open' : ''}
+      sx={{
+        bgcolor: 'rgba(35,32,26,1)',
+        border: 1,
+        borderColor: 'divider',
+        borderLeft: `3px solid ${borderTone}`,
+        borderRadius: 1,
+        mb: 0.25,
+        overflow: 'hidden',
+      }}
+    >
       <Box onClick={() => setOpen(!open)}
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: '9px', py: '6px', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(46,42,34,1)' } }}>
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: '9px',
+          py: '6px',
+          cursor: 'pointer',
+          '&:hover': { bgcolor: 'rgba(46,42,34,1)' },
+        }}>
         <Typography sx={{ fontSize: '0.8125rem', color: 'text.primary', fontWeight: 600 }}>{feature.name}</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          {feature.source && <Typography sx={{ fontSize: '0.56rem', color: 'text.secondary', fontStyle: 'italic' }}>{feature.source}</Typography>}
+          {feature.source && <Typography sx={{ fontSize: '0.56rem', color: isSubclass ? subclassTone : 'text.secondary', fontStyle: 'italic' }}>{feature.source}</Typography>}
           {feature.level && <Chip size="small" label={`Lv ${feature.level}`} variant="outlined" sx={{ fontSize: '0.44rem', height: 16, color: 'text.secondary' }} />}
         </Box>
       </Box>
