@@ -16,7 +16,7 @@ function resourceAbilityMods(character) {
 }
 
 export function normalizeResourceMax(def, character = null) {
-  const raw = def?.maxComputed ?? def?.max ?? 1;
+  const raw = def?.max ?? 1;
   if (typeof raw === 'function') {
     try {
       const value = raw(resourceOwnerLevel(def, character), resourceAbilityMods(character), { character, resource: def });
@@ -117,15 +117,6 @@ export function getAllResourceDefs(character) {
     (installedRegistry.getFeatSheetResources(featName) || [])
       .forEach((def) => pushResource(out, def, character, featName, character?.level || 1));
   });
-
-  // Fallback for older exported characters that already contain adapterRuntime.
-  const runtime = character?.adapterRuntime || {};
-  [
-    ...(runtime.classResources || []),
-    ...(runtime.subclassResources || []),
-    ...(runtime.speciesResources || []),
-    ...(runtime.featResources || []),
-  ].forEach((def) => pushResource(out, def, character, def.ownerName || 'Runtime', def.ownerLevel || character?.level || 1));
 
   return uniqResources(out);
 }

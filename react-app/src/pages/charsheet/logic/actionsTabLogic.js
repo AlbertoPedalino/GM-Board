@@ -34,7 +34,7 @@ function resourceAbilityMods(C) {
 }
 
 export function normalizeResourceMax(def, C = null) {
-  const raw = def?.maxComputed ?? def?.max ?? 1;
+  const raw = def?.max ?? 1;
   if (typeof raw === 'function') {
     try {
       const value = raw(resourceOwnerLevel(def, C), resourceAbilityMods(C), { character: C, resource: def });
