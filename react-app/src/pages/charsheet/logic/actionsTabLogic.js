@@ -1,6 +1,13 @@
 import { getMod, getFinal, getPB } from './calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { getWeaponProficiencyInfo, hasNonProficientArmor } from './proficiencies.js';
+import {
+  collectResolvedWeaponMasteries,
+  findWeaponItemByName,
+  getWeaponMasteryReminderText,
+  normalizeWeaponName,
+  resolveWeaponMasteryForItem,
+} from '../../../shared/character/weaponMastery.js';
 
 export const FILTERS = ['all', 'action', 'bonus', 'reaction'];
 export const CAT_COLORS = { attack: '#de675f', action: '#caa550', bonus: '#70b7a6', reaction: '#9d7fb8' };
@@ -240,8 +247,13 @@ function weaponDamageType(item) {
   return item?.damage?.[0]?.type || item?.dmgType || '';
 }
 
-export function makeWeaponActions(C, attacks, inventory) {
+export function makeWeaponActions(C, attacks, inventory, items = []) {
   const overrides = installedRegistry.getWeaponAbilityOverrides();
+  const selectedMasteriesByWeapon = new Map(
+    collectResolvedWeaponMasteries(C, items)
+      .map((entry) => [normalizeWeaponName(entry.weaponName), entry])
+      .filter(([name]) => !!name),
+  );
   const weaponActions = attacks.map((item, index) => {
     const weaponOverride = overrides.find(o => {
       const type = String(item?.type || '').toUpperCase();
@@ -258,6 +270,15 @@ export function makeWeaponActions(C, attacks, inventory) {
     const dtype = weaponDamageType(item);
     const untrainedArmor = hasNonProficientArmor(C, inventory);
     const disAdv = untrainedArmor && (ability === 'str' || ability === 'dex');
+    const selectedEntry = selectedMasteriesByWeapon.get(normalizeWeaponName(item?.name || '')) || null;
+    const directMastery = selectedEntry ? resolveWeaponMasteryForItem(item) : null;
+    const dbItem = selectedEntry && !directMastery
+      ? findWeaponItemByName(items, item?.name || '', item?.source || '')
+      : null;
+    const mastery = selectedEntry
+      ? (selectedEntry.mastery || directMastery || resolveWeaponMasteryForItem(dbItem))
+      : null;
+    const masteryText = mastery ? getWeaponMasteryReminderText(mastery) : '';
     return {
       name: item.name || 'Weapon',
       cat: 'attack',
@@ -269,6 +290,8 @@ export function makeWeaponActions(C, attacks, inventory) {
       rollLabelPrefix: item.name || 'Weapon',
       desc: `${String(ability).toUpperCase()} weapon attack.${dtype ? ` Damage type: ${dtype}.` : ''}${profInfo.proficient ? '' : ' Not proficient.'}${disAdv ? ' DIS (armor).' : ''}`,
       _weaponIndex: index,
+      _weaponMastery: mastery || null,
+      _weaponMasteryText: masteryText || '',
       _notProficient: !profInfo.proficient,
       _disadvantage: disAdv,
     };
@@ -290,6 +313,24 @@ export function makeWeaponActions(C, attacks, inventory) {
     desc: `${String(ability).toUpperCase()} attack. Damage: ${die} + ${String(ability).toUpperCase()} modifier bludgeoning.`,
   });
   return weaponActions;
+}
+
+export function makeWeaponMasteryReminderActions(C, items = []) {
+  const resolved = collectResolvedWeaponMasteries(C, items);
+  return resolved.map((entry) => {
+    const masteryLabel = entry.mastery ? ` — ${entry.mastery}` : '';
+    const reminder = entry.mastery
+      ? getWeaponMasteryReminderText(entry.mastery)
+      : '';
+    const summary = `Reminder for your selected weapon mastery. When you hit with ${entry.weaponName}${entry.mastery ? `, apply the ${entry.mastery} mastery effect.` : ', apply its mastery effect.'}`;
+    return {
+      name: `Weapon Mastery: ${entry.weaponName}${masteryLabel}`,
+      cat: 'action',
+      uses: 'Passive',
+      _source: 'Weapon Mastery',
+      desc: reminder ? `${summary} ${reminder}` : summary,
+    };
+  });
 }
 
 export function resolveFormula(formula, action, C) {

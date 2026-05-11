@@ -242,7 +242,7 @@ export default function CharBuilder() {
           </Box>
 
           <Box sx={{ minWidth: 0 }}>
-            <PreviewPane character={state.character} />
+            <PreviewPane character={state.character} items={state.data.items} />
           </Box>
         </Box>
 

@@ -8,6 +8,7 @@ import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
 import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/proficiencyDisplay.js';
+import { collectResolvedWeaponMasteries } from '../../../shared/character/weaponMastery.js';
 
 const SOURCE_COLOR = {
   class: '#d7ad52',
@@ -259,6 +260,27 @@ function ProficiencySection({ sections }) {
   );
 }
 
+function WeaponMasterySection({ items }) {
+  if (!items.length) return null;
+  return (
+    <Stack spacing={1} sx={{ minWidth: 0 }}>
+      <Stack direction="row" spacing={0.75} alignItems="center">
+        <Sword size={16} color={SOURCE_COLOR.class} />
+        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.class }}>
+          Weapon Masteries
+        </Typography>
+      </Stack>
+      <Box component="ul" sx={{ m: 0, pl: 2.25, color: 'text.secondary' }}>
+        {items.map((item) => (
+          <Typography key={`${item.weaponName}-${item.mastery || 'none'}`} component="li" variant="caption" sx={{ color: 'text.secondary' }}>
+            {item.mastery ? `${item.weaponName} — ${item.mastery}` : item.weaponName}
+          </Typography>
+        ))}
+      </Box>
+    </Stack>
+  );
+}
+
 function normName(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
@@ -372,12 +394,13 @@ function ChoiceCard({ entry, source }) {
   );
 }
 
-function PreviewPaneImpl({ character }) {
+function PreviewPaneImpl({ character, items = [] }) {
   const scores = getAllFinalScores(character);
   const hp = calcMaxHp(character);
   const primaryLv = getPrimaryClassLevel(character);
   const partitioned = partitionChoices(character.choices);
   const proficiencySections = collectPreviewProficiencies(character);
+  const weaponMasteries = collectResolvedWeaponMasteries(character, items);
 
   const classActions = installedRegistry
     .getClassSheetActions(character.className)
@@ -427,6 +450,8 @@ function PreviewPaneImpl({ character }) {
         <Divider />
         <ProficiencySection sections={proficiencySections} />
         {proficiencySections.length ? <Divider /> : null}
+        <WeaponMasterySection items={weaponMasteries} />
+        {weaponMasteries.length ? <Divider /> : null}
 
         {character.cls ? (
           <ClassSection
@@ -540,4 +565,4 @@ function PreviewPaneImpl({ character }) {
   );
 }
 
-export default memo(PreviewPaneImpl, (prev, next) => prev.character === next.character);
+export default memo(PreviewPaneImpl, (prev, next) => prev.character === next.character && prev.items === next.items);

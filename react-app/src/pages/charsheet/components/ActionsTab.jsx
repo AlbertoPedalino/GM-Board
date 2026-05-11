@@ -18,6 +18,7 @@ import {
   resolveButtonLabel,
   rollFormula,
 } from '../logic/actionsTabLogic.js';
+import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import {
   filterChipSx,
   inlineButtonSx,
@@ -37,6 +38,7 @@ function actionLabel(value) {
 
 export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast, onUpdateSheet }) {
   const [filter, setFilter] = useState('all');
+  const [itemsDb, setItemsDb] = useState([]);
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -47,9 +49,21 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     ]);
   }, [classNamesKey]);
 
+  useEffect(() => {
+    let alive = true;
+    loadItems()
+      .then((items) => { if (alive) setItemsDb(items || []); })
+      .catch(() => { if (alive) setItemsDb([]); });
+    return () => { alive = false; };
+  }, []);
+
   const inv = sheet?.sheetInventory || [];
   const attacks = inv.filter(i => i.equipped && ['M', 'R'].includes(String(i.type || '').toUpperCase()));
-  const adapterActions = [...makeWeaponActions(C, attacks, inv), ...collectAdapterActions(C)].map((action) => resolveActionFormulas(action, C));
+  const masteryItems = itemsDb.length ? itemsDb : inv;
+  const adapterActions = [
+    ...makeWeaponActions(C, attacks, inv, masteryItems),
+    ...collectAdapterActions(C),
+  ].map((action) => resolveActionFormulas(action, C));
   const showAttacks = false;
   const actionSections = SECTION_DEFS
     .filter(section => filter === 'all' || filter === section.key)
@@ -179,6 +193,7 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
     const label = resolveButtonLabel(action.damageButtonLabel, formula, action, C, `${kind === 'heal' ? 'Heal' : 'Damage'} ${formula}`);
     onShowToast(`${action.rollLabelPrefix || action.name} - ${label}`, formula, total, rolls);
   };
+  const hasRollers = Number.isFinite(action.attackBonus) || action.damageFormula || action.healFormula;
 
   return (
     <Box sx={{ overflow: 'hidden' }}>
@@ -188,9 +203,46 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
         )}
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {action.name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', minWidth: 0 }}>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {action.name}
+            </Typography>
+            {hasRollers ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, flexWrap: 'wrap' }}>
+                {Number.isFinite(action.attackBonus) ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={(e) => { e.stopPropagation(); onRoll?.(action.attackBonus, `${action.name} Attack`, action._disadvantage ? false : undefined); }}
+                    sx={{ ...inlineButtonSx, borderColor: action._notProficient ? 'rgba(222,103,95,0.4)' : 'rgba(77,149,214,0.4)', color: action._notProficient ? '#de675f' : '#4d95d6' }}
+                  >
+                    <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(action.attackBonus)}{action._disadvantage ? ' DIS' : ''}
+                  </Button>
+                ) : null}
+                {action.damageFormula ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={(e) => { e.stopPropagation(); rollFormulaButton('damage'); }}
+                    sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}
+                  >
+                    <Sword size={12} style={{ marginRight: 2 }} /> Dmg {resolveFormula(action.damageFormula, action, C)}
+                  </Button>
+                ) : null}
+                {action.healFormula ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                    onClick={(e) => { e.stopPropagation(); rollFormulaButton('heal'); }}
+                    sx={{ ...inlineButtonSx, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}
+                  >
+                    <Cross size={12} style={{ marginRight: 2 }} /> Heal {resolveFormula(action.healFormula, action, C)}
+                  </Button>
+                ) : null}
+              </Box>
+            ) : null}
+          </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', mt: 0.25 }}>
             {action._source ? (
               <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontStyle: 'italic', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{action._source}</Typography>
@@ -200,42 +252,6 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
             ) : null}
           </Box>
         </Box>
-
-        {(Number.isFinite(action.attackBonus) || action.damageFormula || action.healFormula) ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {Number.isFinite(action.attackBonus) ? (
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={(e) => { e.stopPropagation(); onRoll?.(action.attackBonus, `${action.name} Attack`, action._disadvantage ? false : undefined); }}
-                sx={{ ...inlineButtonSx, borderColor: action._notProficient ? 'rgba(222,103,95,0.4)' : 'rgba(77,149,214,0.4)', color: action._notProficient ? '#de675f' : '#4d95d6' }}
-              >
-                <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(action.attackBonus)}{action._disadvantage ? ' DIS' : ''}
-              </Button>
-            ) : null}
-            {action.damageFormula ? (
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={(e) => { e.stopPropagation(); rollFormulaButton('damage'); }}
-                sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}
-              >
-                <Sword size={12} style={{ marginRight: 2 }} /> Dmg {resolveFormula(action.damageFormula, action, C)}
-              </Button>
-            ) : null}
-            {action.healFormula ? (
-              <Button
-                size="small"
-                variant="outlined"
-                color="success"
-                onClick={(e) => { e.stopPropagation(); rollFormulaButton('heal'); }}
-                sx={{ ...inlineButtonSx, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}
-              >
-                <Cross size={12} style={{ marginRight: 2 }} /> Heal {resolveFormula(action.healFormula, action, C)}
-              </Button>
-            ) : null}
-          </Box>
-        ) : null}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0 }}>
           {action.cat ? (
@@ -248,6 +264,19 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
           ) : null}
           {action.minLevel ? (
             <Chip size="small" label={`Lv${action.minLevel}`} variant="outlined" sx={{ ...tinyMetaChipSx, color: 'text.secondary' }} />
+          ) : null}
+          {action._weaponMastery ? (
+            <Chip
+              size="small"
+              label={action._weaponMastery}
+              variant="outlined"
+              sx={{
+                ...tinyMetaChipSx,
+                color: '#edd48a',
+                borderColor: 'rgba(237,212,138,0.55)',
+                bgcolor: 'rgba(237,212,138,0.12)',
+              }}
+            />
           ) : null}
           {action._notProficient ? (
             <Chip size="small" label="NO PROF" variant="outlined" sx={{ ...tinyMetaChipSx, color: '#de675f', borderColor: '#de675f', bgcolor: 'rgba(222,103,95,0.14)' }} />
@@ -301,6 +330,16 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
       {open ? (
         <Box sx={{ ...spellBodySx, mt: hasRes ? 0 : '-1px', mb: '4px' }}>
           {action.desc}
+          {action._weaponMasteryText ? (
+            <Box sx={{ mt: 0.7 }}>
+              <Typography sx={{ fontSize: '0.66rem', color: '#edd48a', fontWeight: 700 }}>
+                Weapon Mastery — {action._weaponMastery}
+              </Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                {action._weaponMasteryText}
+              </Typography>
+            </Box>
+          ) : null}
         </Box>
       ) : null}
     </Box>

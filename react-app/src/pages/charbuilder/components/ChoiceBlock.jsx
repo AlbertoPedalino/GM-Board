@@ -1,6 +1,5 @@
 import { Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
-import { optionLabel } from '../spells/choiceSpecs.js';
 
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 
@@ -10,6 +9,14 @@ function normChoice(value) {
     .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '');
+}
+
+function optionLabel(value) {
+  const raw = String(value || '')
+    .split('|')[0]
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .trim();
+  return raw.replace(/_/g, ' ');
 }
 
 function specProficiencyKind(spec) {

@@ -505,6 +505,13 @@ export function featChoiceSpecs(feat, options = {}) {
   }
   if (ui.damageType) specs.push({ key: `${slotKey}_damage`, label: ui.damageType.label || `${feat.name} Damage Type`, type: 'generic_choice', from: ui.damageType.options || [], count: 1 });
   if (ui.weaponProficiency) specs.push({ key: `${slotKey}_weapon`, label: ui.weaponProficiency.label || `${feat.name} Weapon`, type: 'generic_choice', from: ui.weaponProficiency.options || [], count: ui.weaponProficiency.count || 1 });
+  if (ui.weaponMastery) specs.push({
+    key: `${slotKey}_${ui.weaponMastery.keySuffix || 'weapon_mastery'}`,
+    label: ui.weaponMastery.label || `${feat.name} Weapon Mastery`,
+    type: 'generic_choice',
+    from: ui.weaponMastery.weapons || ui.weaponMastery.options || [],
+    count: ui.weaponMastery.count || 1,
+  });
 
   specs.push(...additionalSpellChoices(feat, slotKey, options.entryIdx || 0));
   return specs;
