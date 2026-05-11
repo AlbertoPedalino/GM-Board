@@ -14,8 +14,20 @@ import DiceToast from './components/DiceToast.jsx';
 import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspiration, saveConditions, saveInventory, saveCurrency, saveCurrentCharacter, loadResources, saveResources } from './state.js';
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
 import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax } from './logic/restResources.js';
-import { setStorageItem, setStorageJson } from '../../shared/storage.js';
+import { setStorageItem, setStorageJson, getStorageItem as getRaw, getStorageJson as getJson } from '../../shared/storage.js';
 import { loadCoreAdapters, loadClassAdapters } from '../../adapters/index.js';
+
+function getCharId() {
+  return new URLSearchParams(window.location.search).get('char') || getRaw('gb_active_char_id');
+}
+
+function readRegistry() {
+  try { return JSON.parse(localStorage.getItem('gb_char_registry') || '[]'); } catch { return []; }
+}
+
+function writeRegistry(list) {
+  try { localStorage.setItem('gb_char_registry', JSON.stringify(list)); } catch {}
+}
 
 export default function CharacterSheet() {
   const [C, setC] = useState(null);
@@ -29,7 +41,11 @@ export default function CharacterSheet() {
 
   useEffect(() => {
     let alive = true;
-    const ch = loadCharacter();
+    const charId = getCharId();
+    let ch = charId ? getJson(`gb:char:${charId}:5e_current_char`, null) : null;
+    if (!ch) ch = loadCharacter();
+    if (charId && ch) setStorageItem('gb_active_char_id', charId);
+
     const classNames = [ch?.className, ...(ch?.extraClasses || []).map((extra) => extra.name)].filter(Boolean);
     const context = { getMod, getFinal, getPB };
 
@@ -67,6 +83,20 @@ export default function CharacterSheet() {
       if (!prev) return prev;
       const next = typeof updater === 'function' ? updater(prev) : updater;
       saveCurrentCharacter(next);
+      const charId = getCharId();
+      if (charId) {
+        setStorageJson(`gb:char:${charId}:5e_current_char`, next);
+        try {
+          const registry = readRegistry();
+          const idx = registry.findIndex((e) => e.id === charId);
+          if (idx >= 0) {
+            registry[idx] = { ...registry[idx], name: next.name || registry[idx].name, updatedAt: Date.now() };
+          } else {
+            registry.unshift({ id: charId, name: next.name || 'Character', createdAt: Date.now(), updatedAt: Date.now() });
+          }
+          writeRegistry(registry);
+        } catch {}
+      }
       return next;
     });
   }, []);

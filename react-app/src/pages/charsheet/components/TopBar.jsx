@@ -1,8 +1,10 @@
 import { Box, Stack, Typography, Button, TextField } from '@mui/material';
 import { ArrowLeft, Sun, Moon, Download, Swords } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { getLevelFromXp, getXpForNextLevel } from '../logic/calculations.js';
 
 export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, onUpdateXp }) {
+  const navigate = useNavigate();
   const extra = C.extraClasses || [];
   const pLv = C.classLevel || C.level;
   const sc = C.subclassShortName ? ` (${C.subclassShortName})` : '';
@@ -74,7 +76,12 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
       </Button>
 
       <Button size="small" variant="outlined" color="primary" startIcon={<ArrowLeft size={14} />}
-        href="/" sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
+        onClick={() => {
+          const params = new URLSearchParams(window.location.search);
+          const charId = params.get('char') || localStorage.getItem('gb_active_char_id') || 'new';
+          navigate(`/charbuilder?char=${encodeURIComponent(charId)}`);
+        }}
+        sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
         Builder
       </Button>
       <Button size="small" variant="outlined" color="secondary" startIcon={<Download size={14} />}

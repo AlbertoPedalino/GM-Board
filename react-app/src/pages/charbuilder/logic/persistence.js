@@ -296,6 +296,24 @@ export function saveCharacter(character, data) {
   setStorageJson('5e_currency', character.currency || {});
   setStorageItem('5e_xp', character.xp || 0);
   setStorageJson('5e_builder_state', character);
+
+  const charId = getStorageItem('gb_active_char_id');
+  if (charId) {
+    setStorageJson(`gb:char:${charId}:5e_current_char`, payload);
+    setStorageJson(`gb:char:${charId}:5e_builder_state`, character);
+    setStorageJson(`gb:char:${charId}:5e_inventory`, character.inventory || []);
+    setStorageJson(`gb:char:${charId}:5e_currency`, character.currency || {});
+    setStorageItem(`gb:char:${charId}:5e_xp`, character.xp || 0);
+    try {
+      const registry = JSON.parse(localStorage.getItem('gb_char_registry') || '[]');
+      const idx = registry.findIndex((e) => e.id === charId);
+      if (idx >= 0) {
+        registry[idx] = { ...registry[idx], name: character.name || registry[idx].name, updatedAt: Date.now() };
+      }
+      localStorage.setItem('gb_char_registry', JSON.stringify(registry));
+    } catch {}
+  }
+
   return payload;
 }
 

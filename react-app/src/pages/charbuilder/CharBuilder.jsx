@@ -27,6 +27,10 @@ import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, Specie
 import { mergeSheetIntoBuilder } from '../../shared/builderSync.js';
 import { getStorageJson } from '../../shared/storage.js';
 
+function generateId() {
+  try { return crypto.randomUUID(); } catch { return Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+}
+
 function StepLabel({ step, index }) {
   const Icon = step.icon;
   return (
@@ -59,6 +63,32 @@ function ActiveStep({ state, dispatch }) {
 }
 
 function createInitialBuilderState() {
+  const params = new URLSearchParams(window.location.search);
+  const charParam = params.get('char');
+
+  if (charParam === 'new') {
+    const id = generateId();
+    localStorage.setItem('gb_active_char_id', id);
+    try {
+      const registry = JSON.parse(localStorage.getItem('gb_char_registry') || '[]');
+      registry.unshift({ id, name: 'New Character', createdAt: Date.now(), updatedAt: Date.now() });
+      localStorage.setItem('gb_char_registry', JSON.stringify(registry));
+    } catch {}
+    return initialBuilderState;
+  }
+
+  if (charParam) {
+    const scopedBuilder = getStorageJson(`gb:char:${charParam}:5e_builder_state`, null);
+    const scopedSheet = getStorageJson(`gb:char:${charParam}:5e_current_char`, null);
+    if (scopedBuilder || scopedSheet) {
+      localStorage.setItem('gb_active_char_id', charParam);
+      const saved = mergeSheetIntoBuilder(scopedBuilder, scopedSheet);
+      if (saved) {
+        return { ...initialBuilderState, character: { ...initialBuilderState.character, ...saved } };
+      }
+    }
+  }
+
   try {
     const savedBuilder = getStorageJson('5e_builder_state', null);
     const savedSheet = getStorageJson('5e_current_char', null);

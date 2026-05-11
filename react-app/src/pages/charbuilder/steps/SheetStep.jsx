@@ -49,7 +49,7 @@ export default function SheetStep({ state, dispatch }) {
             startIcon={<FileText size={16} />}
             onClick={() => {
               saveCharacter(character, state.data);
-              window.location.href = '/sheet';
+              window.location.href = '/charsheet';
             }}
             sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}
           >
