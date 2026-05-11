@@ -2,7 +2,7 @@ name: Deploy React app to Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["react-material-ui-lucide"]
   workflow_dispatch:
 
 permissions:
