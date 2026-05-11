@@ -3,7 +3,6 @@ import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, 
 import { ChevronDown, Feather, Languages, Layers, Shield, Sparkles, Sword } from 'lucide-react';
 import { STAT_LABELS, STATS } from '../constants.js';
 import { calcMaxHp, formatMod, getAllFinalScores, getPrimaryClassLevel } from '../logic/calculations.js';
-import { renderEntryText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
@@ -40,6 +39,76 @@ function outlinedChipSx(color) {
   };
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function cleanPreviewText(value) {
+  return escapeHtml(value)
+    .replace(/\{@hit ([^}]+)\}/g, '<b>$1</b>')
+    .replace(/\{@damage ([^}]+)\}/g, '<b>$1</b>')
+    .replace(/\{@dc ([^}]+)\}/g, 'DC $1')
+    .replace(/\{@spell ([^|}]+)[^}]*\}/g, '<i>$1</i>')
+    .replace(/\{@item ([^|}]+)[^}]*\}/g, '<i>$1</i>')
+    .replace(/\{@condition ([^|}]+)[^}]*\}/g, '<b>$1</b>')
+    .replace(/\{@action ([^|}]+)[^}]*\}/g, '<b>$1</b>')
+    .replace(/\{@skill ([^|}]+)[^}]*\}/g, '$1')
+    .replace(/\{@ability ([^|}]+)[^}]*\}/g, '$1')
+    .replace(/\{@b ([^}]+)\}/g, '<b>$1</b>')
+    .replace(/\{@i ([^}]+)\}/g, '<i>$1</i>')
+    .replace(/\{@[a-z]+ ([^|}]+)[^}]*\}/gi, '$1')
+    .replace(/\{[^}]+\}/g, '');
+}
+
+function renderPreviewEntries(entries) {
+  if (!entries) return '';
+  if (typeof entries === 'string' || typeof entries === 'number') return cleanPreviewText(entries);
+  if (Array.isArray(entries)) return entries.map((entry) => renderPreviewEntries(entry)).filter(Boolean).join('<br/>');
+  if (typeof entries === 'object') {
+    if (entries.type === 'list') {
+      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem;padding-left:0.4rem">${(entries.items || []).map((item) => `<li>${renderPreviewEntries(item)}</li>`).join('')}</ul>`;
+    }
+    if (entries.type === 'table') {
+      let html = '<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin:0.4rem 0">';
+      if (entries.colLabels) {
+        html += `<thead><tr>${entries.colLabels.map((label) => `<th style="text-align:left;padding:3px 6px;border-bottom:1px solid rgba(237,212,138,0.25)">${cleanPreviewText(label)}</th>`).join('')}</tr></thead>`;
+      }
+      html += `<tbody>${(entries.rows || []).map((row) => `<tr>${(row || []).map((cell) => `<td style="padding:2px 6px;border-bottom:1px solid rgba(237,212,138,0.16)">${renderPreviewEntries(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      return `${html}</table>`;
+    }
+    if (entries.name && entries.entries) return `<b>${cleanPreviewText(entries.name)}.</b> ${renderPreviewEntries(entries.entries)}`;
+    if (entries.entries) return renderPreviewEntries(entries.entries);
+    if (entries.items) return renderPreviewEntries(entries.items);
+  }
+  return '';
+}
+
+function HtmlCaption({ html, clamp = false }) {
+  if (!html) return null;
+  return (
+    <Box
+      component="div"
+      sx={{
+        color: 'text.secondary',
+        fontSize: '0.75rem',
+        lineHeight: 1.45,
+        wordBreak: 'break-word',
+        ...(clamp ? { display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } : {}),
+        '& b': { color: 'text.primary', fontWeight: 700 },
+        '& i': { color: 'text.secondary' },
+        '& ul': { my: 0.35 },
+        '& li': { mb: 0.2 },
+      }}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
 function FeatureCard({ name, level, source, body, sublabel }) {
   const tone = SOURCE_COLOR[source] || '#d7ad52';
   return (
@@ -51,11 +120,7 @@ function FeatureCard({ name, level, source, body, sublabel }) {
             <Typography variant="body2" fontWeight={700} sx={{ flex: 1, minWidth: 0, color: tone, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</Typography>
             {sublabel ? <Chip size="small" variant="outlined" label={sublabel} sx={{ ...outlinedChipSx(tone), height: 18, fontSize: '0.6rem' }} /> : null}
           </Stack>
-          {body ? (
-            <Typography variant="caption" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {body}
-            </Typography>
-          ) : null}
+          {body ? <HtmlCaption html={renderPreviewEntries(body)} clamp /> : null}
         </Stack>
       </CardContent>
     </Card>
@@ -65,7 +130,7 @@ function FeatureCard({ name, level, source, body, sublabel }) {
 function FeatureWithChips({ entry, source, extraSublabel }) {
   const { feature, runtimeChips } = entry;
   const tone = SOURCE_COLOR[source] || SOURCE_COLOR.class;
-  const body = renderEntryText(feature.entries);
+  const bodyHtml = renderPreviewEntries(feature.entries);
   return (
     <Accordion
       disableGutters
@@ -105,9 +170,11 @@ function FeatureWithChips({ entry, source, extraSublabel }) {
               ))}
             </Stack>
           ) : null}
-          <Typography variant="caption" component="div" color="text.secondary" sx={{ lineHeight: 1.45, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>
-            {body || 'No description.'}
-          </Typography>
+          {bodyHtml ? <HtmlCaption html={bodyHtml} /> : (
+            <Typography variant="caption" component="div" color="text.secondary" sx={{ lineHeight: 1.45, wordBreak: 'break-word' }}>
+              No description.
+            </Typography>
+          )}
         </Stack>
       </AccordionDetails>
     </Accordion>
