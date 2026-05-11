@@ -1,4 +1,5 @@
 import { installedRegistry } from '../../../adapters/index.js';
+import { canonicalDisplayLabel, cleanProficiencyText } from '../../../shared/character/proficiencyDisplay.js';
 
 function asArray(value) {
   if (value == null) return [];
@@ -7,10 +8,7 @@ function asArray(value) {
 
 function cleanText(value) {
   if (value == null) return '';
-  return String(value)
-    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-    .replace(/[{}]/g, '')
-    .trim();
+  return cleanProficiencyText(value);
 }
 
 function norm(value) {
@@ -33,38 +31,8 @@ const DAMAGE_TYPES = [
   'Thunder',
 ];
 
-const CANONICAL_DISPLAY_LABELS = {
-  light: 'Light',
-  medium: 'Medium',
-  heavy: 'Heavy',
-  shield: 'Shield',
-  shields: 'Shield',
-  simple: 'Simple',
-  martial: 'Martial',
-  common: 'Common',
-  acid: 'Acid',
-  bludgeoning: 'Bludgeoning',
-  cold: 'Cold',
-  fire: 'Fire',
-  force: 'Force',
-  lightning: 'Lightning',
-  necrotic: 'Necrotic',
-  piercing: 'Piercing',
-  poison: 'Poison',
-  psychic: 'Psychic',
-  radiant: 'Radiant',
-  slashing: 'Slashing',
-  thunder: 'Thunder',
-};
-
 function displayLabel(value) {
-  const raw = cleanText(value).split('|')[0].trim();
-  if (!raw) return '';
-
-  const direct = CANONICAL_DISPLAY_LABELS[norm(raw)];
-  if (direct) return direct;
-
-  return raw.replace(/\b[a-z]/g, (char) => char.toUpperCase());
+  return canonicalDisplayLabel(value);
 }
 
 function ownerLevelOf(character, className, isPrimary) {
@@ -762,4 +730,3 @@ export function collectPreviewEffectProficiencySections(character = {}) {
     items: [...set],
   }));
 }
-

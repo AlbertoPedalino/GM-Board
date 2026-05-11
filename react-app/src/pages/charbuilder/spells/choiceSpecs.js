@@ -2,6 +2,7 @@ import { STATS, STAT_LABELS } from '../constants.js';
 import { cleanText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { getPrimaryClassLevel } from '../logic/calculations.js';
+import { getMulticlassChoiceSpecs } from '../../../shared/character/multiclassProficiencies.js';
 
 const ALL_SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
 const STD_LANGS = ['Common', 'Common Sign Language', 'Draconic', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc'];
@@ -253,18 +254,22 @@ function dedupSpecs(specs) {
 function buildClassSpecs(cls, classLevel, options) {
   const specs = [];
   const prof = cls?.startingProficiencies || {};
-  (prof.skills || []).forEach((block, index) => {
-    const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_skill_${index}`, 'Class Skill', block, ALL_SKILLS) : null;
-    if (spec) specs.push({ ...spec, type: 'skill_choice', level: 1 });
-  });
-  [...(prof.tools || []), ...(prof.toolProficiencies || [])].forEach((block, index) => {
-    const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_tool_${index}`, 'Class Tool', block, ALL_TOOLS) : null;
-    if (spec) specs.push({ ...spec, type: 'generic_choice', level: 1 });
-  });
-  (prof.languages || []).forEach((block, index) => {
-    const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_lang_${index}`, 'Class Language', block, STD_LANGS) : null;
-    if (spec) specs.push({ ...spec, type: 'language_choice', level: 1 });
-  });
+  if (options.includeStartingProficiencies !== false) {
+    (prof.skills || []).forEach((block, index) => {
+      const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_skill_${index}`, 'Class Skill', block, ALL_SKILLS) : null;
+      if (spec) specs.push({ ...spec, type: 'skill_choice', level: 1 });
+    });
+    [...(prof.tools || []), ...(prof.toolProficiencies || [])].forEach((block, index) => {
+      const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_tool_${index}`, 'Class Tool', block, ALL_TOOLS) : null;
+      if (spec) specs.push({ ...spec, type: 'generic_choice', level: 1 });
+    });
+    (prof.languages || []).forEach((block, index) => {
+      const spec = typeof block === 'object' ? choiceFromBlock(`${options.keyPrefix}class_lang_${index}`, 'Class Language', block, STD_LANGS) : null;
+      if (spec) specs.push({ ...spec, type: 'language_choice', level: 1 });
+    });
+  } else {
+    specs.push(...getMulticlassChoiceSpecs(options.className, options.keyPrefix, cls));
+  }
 
   const classAdapter = installedRegistry.getClassAdapter(options.className);
   if (typeof classAdapter === 'function') classAdapter(cls, classLevel, specs, options.context || {});
@@ -319,7 +324,8 @@ export function classChoiceSpecs(character, context = {}) {
         classFeatures: extra.allFeatures || [],
         subclassFeatures: extra.allSubFeatures || [],
         keyPrefix: ecPrefix,
-        context: { ...context, character },
+        includeStartingProficiencies: false,
+        context: { ...context, character, isMulticlass: true, keyPrefix: ecPrefix },
       }));
     }
   }

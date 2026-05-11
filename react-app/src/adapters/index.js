@@ -2,6 +2,7 @@ import { adapterRegistry, installAdapters } from './registry.js';
 
 const adapterModules = import.meta.glob('./{classes,feats,species,spells}/**/*.js');
 const loadedPaths = new Set();
+const inFlightPathPromises = new Map();
 const installedAdapters = [];
 const speciesPathPattern = /^\.\/species\//;
 const featPathPattern = /^\.\/feats\//;
@@ -31,13 +32,36 @@ function pathsForCoreRuntime() {
 }
 
 async function loadPaths(paths, context) {
-  const fresh = paths.filter((path) => !loadedPaths.has(path));
-  if (!fresh.length) return;
-  const modules = await Promise.all(fresh.map((path) => adapterModules[path]()));
-  const adapters = modules.map((module) => module.default).filter(Boolean);
-  fresh.forEach((path) => loadedPaths.add(path));
-  installedAdapters.push(...adapters);
-  installAdapters(adapters, adapterRegistry, context);
+  const uniquePaths = [...new Set(paths)];
+  const entries = [];
+  uniquePaths.forEach((path) => {
+    if (loadedPaths.has(path)) return;
+    let promise = inFlightPathPromises.get(path);
+    if (!promise) {
+      promise = adapterModules[path]();
+      inFlightPathPromises.set(path, promise);
+    }
+    entries.push({ path, promise });
+  });
+  if (!entries.length) return [];
+  const modules = await Promise.all(entries.map((entry) => entry.promise));
+  const triggeredPaths = [];
+  const toInstall = [];
+  entries.forEach((entry, idx) => {
+    if (loadedPaths.has(entry.path)) return;
+    loadedPaths.add(entry.path);
+    inFlightPathPromises.delete(entry.path);
+    triggeredPaths.push(entry.path);
+    const adapter = modules[idx]?.default;
+    if (adapter) {
+      installedAdapters.push(adapter);
+      toInstall.push(adapter);
+    }
+  });
+  if (toInstall.length) {
+    installAdapters(toInstall, adapterRegistry, context);
+  }
+  return triggeredPaths;
 }
 
 export const installedRegistry = adapterRegistry;
@@ -52,10 +76,28 @@ export async function loadCoreAdapters(context = {}) {
 }
 
 export async function loadClassAdapters(classNames, context = {}) {
-  const names = Array.isArray(classNames) ? classNames : [classNames];
-  const paths = names.flatMap(pathsForClass);
-  await loadPaths(paths, context);
-  return adapterRegistry;
+  const names = (Array.isArray(classNames) ? classNames : [classNames]).filter(Boolean);
+  const requestedClasses = [...new Set(names)];
+  const classByPath = new Map();
+  const allPaths = [];
+  requestedClasses.forEach((name) => {
+    pathsForClass(name).forEach((path) => {
+      if (!classByPath.has(path)) classByPath.set(path, name);
+      allPaths.push(path);
+    });
+  });
+  const triggeredPaths = await loadPaths(allPaths, context);
+  const loadedClassesSet = new Set();
+  triggeredPaths.forEach((path) => {
+    const cls = classByPath.get(path);
+    if (cls) loadedClassesSet.add(cls);
+  });
+  const loadedClasses = [...loadedClassesSet];
+  return {
+    loadedNewAdapters: loadedClasses.length > 0,
+    loadedClasses,
+    requestedClasses,
+  };
 }
 
 export async function loadSpellsAdapters(context = {}) {

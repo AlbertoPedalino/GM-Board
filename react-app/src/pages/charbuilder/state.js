@@ -100,6 +100,8 @@ export const initialBuilderState = {
   choiceDialog: null,
   importMessage: '',
   adaptersLoaded: false,
+  adaptersVersion: 0,
+  loadedAdapterClasses: [],
   dataAdapted: false,
 };
 
@@ -155,6 +157,22 @@ export function builderReducer(state, action) {
       };
     case 'adapters/loaded':
       return { ...state, adaptersLoaded: true, dataAdapted: false };
+    case 'adapters/version-bump':
+      return { ...state, adaptersVersion: (state.adaptersVersion || 0) + 1 };
+    case 'adapters/loaded-for-classes': {
+      const incoming = Array.isArray(action.classes) ? action.classes : [];
+      if (!incoming.length) return state;
+      return {
+        ...state,
+        adaptersVersion: (state.adaptersVersion || 0) + 1,
+        loadedAdapterClasses: [
+          ...new Set([
+            ...(state.loadedAdapterClasses || []),
+            ...incoming,
+          ]),
+        ],
+      };
+    }
     case 'data/adapt': {
       const data = action.payload || state.data;
       const classObject = findByNameSource(data.classes, state.character.className, state.character.classSource) || state.character.cls;
@@ -257,6 +275,44 @@ export function builderReducer(state, action) {
         if (key.startsWith('subclass_') || key.includes('_skill_') || key.includes('_exp_')) delete choices[key];
       });
       return updateCharacter(state, { subclassShortName: action.subclassShortName, choices });
+    }
+    case 'extra-class/select': {
+      const idx = Number(action.index);
+      if (!Number.isInteger(idx) || idx < 0) return state;
+      const classObject = action.classObject || findByNameSource(state.data.classes, action.className, action.source);
+      if (!classObject) return state;
+
+      const previous = state.character.extraClasses?.[idx] || {};
+      const sameClass = previous.name === classObject.name && (!action.source || previous.source === classObject.source);
+      const subclasses = state.data.subclasses.filter((subclass) => subclass.className === classObject.name && (subclass.classSource === classObject.source || !subclass.classSource));
+      const allFeatures = state.data.classFeatures.filter((feature) => feature.className === classObject.name && (feature.classSource === classObject.source || !feature.classSource));
+      const allSubFeatures = state.data.subclassFeatures.filter((feature) => feature.className === classObject.name && (feature.classSource === classObject.source || !feature.classSource));
+
+      const prefix = `mc${idx}_`;
+      const choices = { ...state.character.choices };
+      if (!sameClass) {
+        Object.keys(choices).forEach((key) => {
+          if (key.startsWith(prefix)) delete choices[key];
+        });
+      }
+
+      const extraClasses = state.character.extraClasses.map((extraClass, itemIndex) => (
+        itemIndex === idx
+          ? {
+              ...extraClass,
+              name: classObject.name,
+              source: classObject.source,
+              cls: classObject,
+              level: Math.max(1, Number(extraClass.level) || 1),
+              subclassShortName: sameClass ? (extraClass.subclassShortName || '') : '',
+              subclasses,
+              allFeatures,
+              allSubFeatures,
+            }
+          : extraClass
+      ));
+      const total = (state.character.classLevel || 1) + extraClasses.reduce((sum, ec) => sum + (Number(ec.level) || 1), 0);
+      return updateCharacter(state, { extraClasses, choices, activeClassTab: idx + 1, level: total });
     }
     case 'extra-subclass/select': {
       const idx = Number(action.index);

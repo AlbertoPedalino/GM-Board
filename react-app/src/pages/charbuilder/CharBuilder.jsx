@@ -123,7 +123,18 @@ export default function CharBuilder() {
     if (!state.adaptersLoaded) return;
     const classes = [state.character.className, ...(state.character.extraClasses || []).map((extra) => extra.name)].filter(Boolean);
     if (!classes.length) return;
-    loadClassAdapters(classes, { items: state.data.items, getMod, getFinal });
+    let cancelled = false;
+    loadClassAdapters(classes, { items: state.data.items, getMod, getFinal })
+      .then((result) => {
+        if (cancelled) return;
+        if (result?.loadedNewAdapters) {
+          dispatch({ type: 'adapters/loaded-for-classes', classes: result.loadedClasses });
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) dispatch({ type: 'import/message', message: `Adapter load error: ${error?.message || error}` });
+      });
+    return () => { cancelled = true; };
   }, [state.adaptersLoaded, state.character.className, state.character.extraClasses, state.data.items]);
 
   useEffect(() => {

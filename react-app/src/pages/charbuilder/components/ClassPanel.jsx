@@ -117,7 +117,7 @@ export default function ClassPanel({ state, character, dispatch }) {
               const { met: prereqMet, reason: prereqReason } = isExtraTab && !selected
                 ? !takenNames.has(cls.name) ? checkMcPrereq(character, cls.name) : { met: false, reason: 'Class already taken' }
                 : { met: true, reason: '' };
-              const { warning: warningMsg } = isExtraTab && !selected && prereqMet
+              const spellWarning = isExtraTab && !selected && prereqMet
                 ? checkSpellcastingMulticlass(character, cls.name)
                 : { warning: false, message: '' };
               const profGained = isExtraTab && !selected ? getMulticlassProficienciesGained(cls.name) : null;
@@ -131,8 +131,10 @@ export default function ClassPanel({ state, character, dispatch }) {
                   selected={selected}
                   prereqMet={prereqMet}
                   prereqReason={prereqReason}
-                  warningMsg={warningMsg.message || (profText ? `MC Profs: ${profText}` : '')}
-                  onSelect={() => dispatch({ type: 'class/select', className: cls.name, source: cls.source, classObject: cls })}
+                  warningMsg={spellWarning.message || (profText ? `MC Profs: ${profText}` : '')}
+                  onSelect={() => dispatch(activeExtra
+                    ? { type: 'extra-class/select', index: character.activeClassTab - 1, className: cls.name, source: cls.source, classObject: cls }
+                    : { type: 'class/select', className: cls.name, source: cls.source, classObject: cls })}
                 />
               );
             })}

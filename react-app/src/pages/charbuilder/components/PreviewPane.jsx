@@ -7,6 +7,7 @@ import { renderEntryText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
+import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/proficiencyDisplay.js';
 
 const SOURCE_COLOR = {
   class: '#d7ad52',
@@ -142,66 +143,8 @@ function LevelGroup({ level, classFeatures, subFeatures }) {
   );
 }
 
-const PREVIEW_CANONICAL_LABELS = {
-  light: 'Light',
-  medium: 'Medium',
-  heavy: 'Heavy',
-  shield: 'Shield',
-  shields: 'Shield',
-  simple: 'Simple',
-  martial: 'Martial',
-  common: 'Common',
-  acid: 'Acid',
-  bludgeoning: 'Bludgeoning',
-  cold: 'Cold',
-  fire: 'Fire',
-  force: 'Force',
-  lightning: 'Lightning',
-  necrotic: 'Necrotic',
-  piercing: 'Piercing',
-  poison: 'Poison',
-  psychic: 'Psychic',
-  radiant: 'Radiant',
-  slashing: 'Slashing',
-  thunder: 'Thunder',
-};
-
-function previewLabelKey(value) {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function toPreviewTitleCase(value) {
-  return String(value || '').replace(/\b[a-z]/g, (char) => char.toUpperCase());
-}
-
-function canonicalPreviewLabel(value) {
-  const raw = String(value || '')
-    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-    .replace(/[{}]/g, '')
-    .replace(/\.$/, '')
-    .split('|')[0]
-    .trim();
-  if (!raw) return '';
-
-  const key = previewLabelKey(raw);
-  return PREVIEW_CANONICAL_LABELS[key] || toPreviewTitleCase(raw);
-}
-
-function normalizeListValue(value) {
-  return canonicalPreviewLabel(value);
-}
-
 function uniqueClean(values) {
-  const seen = new Set();
-  const out = [];
-  (values || []).flat().forEach((value) => {
-    const label = normalizeListValue(value);
-    const key = label.toLowerCase();
-    if (!label || seen.has(key)) return;
-    seen.add(key);
-    out.push(label);
-  });
-  return out.sort((a, b) => a.localeCompare(b));
+  return uniqueDisplayLabels(values);
 }
 
 function collectSkillProficiencies(character) {
@@ -221,11 +164,11 @@ function collectSkillProficiencies(character) {
 }
 
 function mergePreviewSection(sections, title, items, prepend = false) {
-  const cleaned = uniqueClean(items);
+  const cleaned = title === 'Weapons' ? collapseWeaponProficiencies(items) : uniqueClean(items);
   if (!cleaned.length) return;
   const existing = sections.find((section) => section.title === title);
   if (existing) {
-    existing.items = uniqueClean([...existing.items, ...cleaned]);
+    existing.items = title === 'Weapons' ? collapseWeaponProficiencies([...existing.items, ...cleaned]) : uniqueClean([...existing.items, ...cleaned]);
     return;
   }
   const next = { title, items: cleaned };
@@ -253,7 +196,7 @@ function collectPreviewProficiencies(character) {
   };
   const sections = collectAllProficiencies(sheetLike).map((section) => ({
     title: section.title,
-    items: uniqueClean(section.items),
+    items: section.title === 'Weapons' ? collapseWeaponProficiencies(section.items) : uniqueClean(section.items),
   }));
 
   collectPreviewDefenseSections(sheetLike).forEach((section) => {

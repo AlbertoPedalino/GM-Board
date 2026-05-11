@@ -1,12 +1,13 @@
 import { installedRegistry } from '../../../adapters/index.js';
+import { canonicalProficiencyLabel } from '../../../shared/character/proficiencyDisplay.js';
+import { getMulticlassProficiencies } from '../../../shared/character/multiclassProficiencies.js';
 
 function normKey(v) {
   return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function normalizeLabel(v) {
-  if (!v) return '';
-  return String(v).replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1').replace(/[{}]/g, '').replace(/\.$/, '').trim();
+  return canonicalProficiencyLabel(v);
 }
 
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
@@ -150,7 +151,13 @@ export function collectEquipmentProficiencySets(C) {
     const arr = Array.isArray(src) ? src : [src];
     arr.forEach(entry => {
       if (!entry) return;
-      if (typeof entry === 'string') { entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v)); return; }
+      if (typeof entry === 'string') {
+        entry.split(/[;,]/)
+          .map(normalizeLabel)
+          .filter((v) => v && !/^choose\b/i.test(v))
+          .forEach(v => set.add(v));
+        return;
+      }
       Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
     });
   };
@@ -158,11 +165,11 @@ export function collectEquipmentProficiencySets(C) {
   addFixed(sp.armor, armorSet);
   addFixed(sp.weapons, weaponSet);
 
-  // Multiclass proficiencies gained (2024 format)
-  if (C?.clsSnapshot?.multiclassProficienciesGained) {
-    addFixed(C.clsSnapshot.multiclassProficienciesGained.armor, armorSet);
-    addFixed(C.clsSnapshot.multiclassProficienciesGained.weapons, weaponSet);
-  }
+  (C?.extraClasses || []).forEach((extra) => {
+    const gained = getMulticlassProficiencies(extra?.name, extra?.cls);
+    addFixed(gained.armor, armorSet);
+    addFixed(gained.weapons, weaponSet);
+  });
 
   // Species proficiencies (2024 format)
   if (C?.speciesSnapshot?.armorProficiencies) addFixed(C.speciesSnapshot.armorProficiencies, armorSet);
@@ -290,12 +297,26 @@ export function collectAllProficiencies(C) {
     const arr = Array.isArray(src) ? src : [src];
     arr.forEach(entry => {
       if (!entry) return;
-      if (typeof entry === 'string') { entry.split(/[;,]/).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v)); return; }
+      if (typeof entry === 'string') {
+        entry.split(/[;,]/)
+          .map(normalizeLabel)
+          .filter((v) => v && !/^choose\b/i.test(v))
+          .forEach(v => set.add(v));
+        return;
+      }
       Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
     });
   };
 
   addFixed(sp.tools, toolSet);
+
+  (C?.extraClasses || []).forEach((extra) => {
+    const gained = getMulticlassProficiencies(extra?.name, extra?.cls);
+    addFixed(gained.tools, toolSet);
+    addFixed(gained.toolProficiencies, toolSet);
+    addFixed(gained.languages, langSet);
+    addFixed(gained.languageProficiencies, langSet);
+  });
 
   const bg = C?.bgSnapshot || {};
   const species = C?.speciesSnapshot || {};

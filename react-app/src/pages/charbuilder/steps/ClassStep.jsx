@@ -18,12 +18,10 @@ export default function ClassStep({ state, dispatch }) {
   const { character } = state;
   const activeTab = character.activeClassTab || 0;
   const activeExtra = activeTab > 0 ? character.extraClasses?.[activeTab - 1] : null;
-  
-  // CRITICAL: Depend on activeExtra?.cls directly to force recalculation
-  // when multiclass class selection changes (cls goes from undefined to object)
-  const choiceSpecs = useMemo(() => 
-    classChoiceSpecs(character, { items: state.data.items }),
-    [character, state.data.items, activeTab, activeExtra?.cls]
+
+  const choiceSpecs = useMemo(
+    () => classChoiceSpecs(character, { items: state.data.items }),
+    [character, state.data.items, activeTab, activeExtra?.cls, state.adaptersVersion],
   );
 
   const renderSpec = (spec) => {

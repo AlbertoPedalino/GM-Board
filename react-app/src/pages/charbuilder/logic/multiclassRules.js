@@ -1,5 +1,6 @@
 import { installedRegistry } from '../../../adapters/index.js';
 import { getFinalScore, getCasterProgression, getCasterContribution } from './calculations.js';
+import { getMulticlassProficiencies } from '../../../shared/character/multiclassProficiencies.js';
 
 /**
  * Multiclass rules validator for 5e 2024
@@ -44,7 +45,7 @@ export function checkMulticlassPrerequisite(character, className) {
 
 export function getMulticlassProficienciesGained(className) {
   const cfg = installedRegistry.getClassRuntimeConfig(className);
-  return cfg?.multiclassProficienciesGained || {};
+  return cfg?.multiclassProficienciesGained || getMulticlassProficiencies(className);
 }
 
 /**
