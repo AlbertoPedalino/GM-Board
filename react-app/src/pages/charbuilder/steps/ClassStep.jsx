@@ -16,12 +16,14 @@ import SpellSelectionPanel from '../components/SpellSelectionPanel.jsx';
 
 export default function ClassStep({ state, dispatch }) {
   const { character } = state;
+  const activeTab = character.activeClassTab || 0;
+  const activeExtra = activeTab > 0 ? character.extraClasses?.[activeTab - 1] : null;
   
-  // CRITICAL: Ensure specs are recalculated when adapters are loaded
-  // This is especially important for multiclass feature choices
+  // CRITICAL: Depend on activeExtra?.cls directly to force recalculation
+  // when multiclass class selection changes (cls goes from undefined to object)
   const choiceSpecs = useMemo(() => 
     classChoiceSpecs(character, { items: state.data.items }),
-    [character, state.data.items, state.adaptersLoaded]
+    [character, state.data.items, activeTab, activeExtra?.cls]
   );
 
   const renderSpec = (spec) => {
