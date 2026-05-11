@@ -1,52 +1,292 @@
 import { useState } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
-import { collectSheetEffects } from '../logic/sheetEffects.js';
+
+const SOURCE_COLOR = {
+  class: '#d7ad52',
+  subclass: '#70b7a6',
+  species: '#b58fd9',
+  background: '#d69245',
+  feat: '#de675f',
+};
 
 export default function FeaturesTab({ C }) {
-  const allFeatures = C?.allClassFeatures || [];
-  const allSubFeatures = C?.allSubFeatures || [];
-  const selectedFeats = C?.allFeatSnapshots || [];
+  if (!C) return null;
+
+  const classBuckets = collectClassBuckets(C);
   const speciesEntries = C?.speciesSnapshot?.entries || [];
-
-  const baseFeatures = [
-    { name: `Species: ${C?.speciesName || ''}`, level: 1, entries: speciesEntries, source: 'Species' },
-    ...allFeatures.map(f => ({ ...f, source: C?.className || 'Class' })),
-    ...allSubFeatures
-      .filter(f => f.subclassShortName === C?.subclassShortName)
-      .map(f => ({ ...f, source: `(${C?.subclassShortName})` })),
-    ...selectedFeats.map(f => ({ name: f.name, level: null, entries: f.entries || [], source: 'Feat' })),
-  ].filter(f => f.level == null || f.level <= (C?.level || 1));
-
-  const baseKeys = new Set(baseFeatures.map(featureKey));
-
-  const runtimePassiveNotes = collectSheetEffects(C || {})
-    .filter(effect => String(effect?.type || '').toLowerCase() === 'passivenote')
-    .map(passiveNoteToFeature)
-    .filter(Boolean)
-    .filter(f => !baseKeys.has(featureKey(f)))
-    .filter(f => f.level == null || f.level <= (C?.level || 1));
-
-  const features = [
-    ...baseFeatures,
-    ...runtimePassiveNotes,
-  ];
-
-  const groups = {};
-  features.forEach(f => {
-    const lv = f.level || 0;
-    if (!groups[lv]) groups[lv] = [];
-    groups[lv].push(f);
-  });
+  const backgroundEntries = C?.bgSnapshot?.entries || [];
+  const selectedFeats = C?.allFeatSnapshots || [];
 
   return (
     <Box>
+      {classBuckets.map((bucket, index) => (
+        <FeatureSection
+          key={`${bucket.kind}-${bucket.name}-${bucket.index ?? 'primary'}-${index}`}
+          title={bucket.title}
+          color={SOURCE_COLOR.class}
+          features={bucket.features}
+        />
+      ))}
+
+      <FeatureSection
+        title={`Species - ${C?.speciesName || '?'}`}
+        color={SOURCE_COLOR.species}
+        features={speciesEntries?.length ? [{
+          name: C?.speciesName || 'Species',
+          level: 1,
+          entries: speciesEntries,
+          source: 'Species',
+        }] : []}
+      />
+
+      <FeatureSection
+        title={`Background - ${C?.backgroundName || '?'}`}
+        color={SOURCE_COLOR.background}
+        features={backgroundEntries?.length ? [{
+          name: C?.backgroundName || 'Background',
+          level: 1,
+          entries: backgroundEntries,
+          source: 'Background',
+        }] : []}
+      />
+
+      <FeatureSection
+        title="Feats"
+        color={SOURCE_COLOR.feat}
+        features={selectedFeats.map((feat) => ({
+          name: feat.name,
+          level: null,
+          entries: feat.entries || [],
+          source: 'Feat',
+        }))}
+      />
+    </Box>
+  );
+}
+
+function collectClassBuckets(C) {
+  const out = [];
+  const primaryLevel = getPrimaryClassLevel(C);
+
+  if (C?.className) {
+    const classFeatures = collectValidClassFeatures({
+      features: C?.allClassFeatures || C?.allFeatures || [],
+      className: C.className,
+      level: primaryLevel,
+      character: C,
+      choicePrefix: '',
+    }).map((feature) => ({ ...feature, source: C.className || 'Class' }));
+
+    const subclassFeatures = collectValidSubclassFeatures({
+      features: C?.allSubFeatures || [],
+      className: C.className,
+      subclassName: C?.subclassShortName || '',
+      level: primaryLevel,
+      character: C,
+      choicePrefix: '',
+    }).map((feature) => ({ ...feature, source: C.subclassShortName || 'Subclass' }));
+
+    out.push({
+      kind: 'class',
+      name: C.className,
+      title: `${C.className} ${primaryLevel}${C?.subclassShortName ? ` - ${C.subclassShortName}` : ''}`,
+      index: null,
+      features: dedupeFeatures([...classFeatures, ...subclassFeatures]),
+    });
+  }
+
+  (C?.extraClasses || []).forEach((extra, index) => {
+    if (!extra?.name) return;
+    const level = Number(extra?.level || 1);
+    const choicePrefix = `mc${index}_`;
+
+    const classFeatures = collectValidClassFeatures({
+      features: extra?.allClassFeatures || extra?.allFeatures || [],
+      className: extra.name,
+      level,
+      character: C,
+      choicePrefix,
+    }).map((feature) => ({ ...feature, source: extra.name || 'Class' }));
+
+    const subclassFeatures = collectValidSubclassFeatures({
+      features: extra?.allSubFeatures || [],
+      className: extra.name,
+      subclassName: extra?.subclassShortName || '',
+      level,
+      character: C,
+      choicePrefix,
+    }).map((feature) => ({ ...feature, source: extra.subclassShortName || 'Subclass' }));
+
+    out.push({
+      kind: 'multiclass',
+      name: extra.name,
+      title: `MC ${index + 1} - ${extra.name} ${level}${extra?.subclassShortName ? ` - ${extra.subclassShortName}` : ''}`,
+      index,
+      features: dedupeFeatures([...classFeatures, ...subclassFeatures]),
+    });
+  });
+
+  return out.filter((bucket) => bucket.features.length);
+}
+
+function collectValidClassFeatures({ features, className, level, character, choicePrefix }) {
+  return (features || [])
+    .filter((feature) => featureIsAvailable(feature, level))
+    .filter((feature) => featureMatchesClass(feature, className))
+    .filter((feature) => !hasSubclassIdentity(feature))
+    .filter((feature) => featurePassesChoiceGates(feature, character, choicePrefix));
+}
+
+function collectValidSubclassFeatures({ features, className, subclassName, level, character, choicePrefix }) {
+  if (!subclassName) return [];
+  return (features || [])
+    .filter((feature) => featureIsAvailable(feature, level))
+    .filter((feature) => featureMatchesClass(feature, className))
+    .filter((feature) => featureMatchesSubclass(feature, subclassName))
+    .filter((feature) => featurePassesChoiceGates(feature, character, choicePrefix));
+}
+
+function getPrimaryClassLevel(C) {
+  if (Number(C?.classLevel)) return Number(C.classLevel);
+  const total = Number(C?.level || 1);
+  const extraTotal = (C?.extraClasses || []).reduce((sum, extra) => sum + Number(extra?.level || 0), 0);
+  return Math.max(1, total - extraTotal);
+}
+
+function featureIsAvailable(feature, level) {
+  if (!feature || feature.isReprinted) return false;
+  const featureLevel = Number(feature?.level || 1);
+  return featureLevel <= Number(level || 1);
+}
+
+function featureMatchesClass(feature, className) {
+  const target = norm(className);
+  if (!target) return true;
+
+  const explicit = feature?.className || feature?.class?.name || feature?.class;
+  if (explicit) return norm(explicit) === target;
+
+  const ref = feature?.classFeature || feature?.subclassFeature;
+  const parsedClass = parseFeatureRefClass(ref);
+  if (parsedClass) return norm(parsedClass) === target;
+
+  // If the feature has no class metadata, assume the caller already supplied
+  // the class-specific list (common for saved snapshots).
+  return true;
+}
+
+function hasSubclassIdentity(feature) {
+  return Boolean(
+    feature?.subclassShortName
+    || feature?.subclassName
+    || feature?.subclass?.shortName
+    || feature?.subclass?.name
+    || feature?.subclassFeature
+  );
+}
+
+function featureMatchesSubclass(feature, subclassName) {
+  const target = norm(subclassName);
+  if (!target) return false;
+
+  const explicit = feature?.subclassShortName
+    || feature?.subclassName
+    || feature?.subclass?.shortName
+    || feature?.subclass?.name;
+  if (explicit) return norm(explicit) === target;
+
+  const parsedSubclass = parseFeatureRefSubclass(feature?.subclassFeature);
+  if (parsedSubclass) return norm(parsedSubclass) === target;
+
+  // If this list is already pre-filtered and lacks subclass metadata, keep it.
+  return true;
+}
+
+function parseFeatureRefClass(ref) {
+  if (!ref || typeof ref !== 'string') return '';
+  const parts = ref.split('|').map((part) => part.trim()).filter(Boolean);
+  // 5etools refs usually look like: Name|Class|Source|Level
+  return parts.length >= 2 ? parts[1] : '';
+}
+
+function parseFeatureRefSubclass(ref) {
+  if (!ref || typeof ref !== 'string') return '';
+  const parts = ref.split('|').map((part) => part.trim()).filter(Boolean);
+  // Subclass refs usually include: Name|Class|ClassSource|Subclass|SubclassSource|Level
+  return parts.length >= 4 ? parts[3] : '';
+}
+
+function featurePassesChoiceGates(feature, character, choicePrefix = '') {
+  const gates = [
+    ...asArray(feature?.requiredChoice),
+    ...asArray(feature?.requiredChoices),
+    ...asArray(feature?.choiceRequirement),
+    ...asArray(feature?.choiceRequirements),
+  ];
+  if (!gates.length) return true;
+  return gates.every((gate) => choiceGatePasses(gate, character, choicePrefix));
+}
+
+function choiceGatePasses(gate, character, choicePrefix = '') {
+  if (!gate) return true;
+  if (typeof gate === 'function') {
+    try { return !!gate(character); } catch { return false; }
+  }
+  if (typeof gate === 'string') return hasChoiceValue(character, gate, null, choicePrefix);
+  const key = gate.key || gate.choiceKey || gate.id;
+  if (!key) return true;
+  const expected = gate.value ?? gate.values ?? gate.option ?? gate.options ?? null;
+  return hasChoiceValue(character, key, expected, choicePrefix);
+}
+
+function hasChoiceValue(character, key, expected, choicePrefix = '') {
+  const choices = character?.choices || {};
+  const direct = choices[key];
+  const prefixed = choices[`${choicePrefix}${key}`];
+  const stored = prefixed != null ? prefixed : direct;
+  if (stored == null || stored === '') return false;
+  if (expected == null) return true;
+
+  const storedValues = asArray(stored).map(cleanChoiceText).map(norm).filter(Boolean);
+  const expectedValues = asArray(expected).map(cleanChoiceText).map(norm).filter(Boolean);
+  if (!expectedValues.length) return true;
+  return expectedValues.some((value) => storedValues.includes(value));
+}
+
+function dedupeFeatures(features) {
+  const seen = new Set();
+  const out = [];
+  (features || []).forEach((feature) => {
+    const key = `${norm(feature?.name)}|${Number(feature?.level || 0)}|${norm(feature?.source)}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(feature);
+  });
+  return out.sort((a, b) => Number(a?.level || 0) - Number(b?.level || 0));
+}
+
+function FeatureSection({ title, color, features }) {
+  if (!features?.length) return null;
+
+  const groups = {};
+  features.forEach((feature) => {
+    const lv = feature.level == null ? 0 : Number(feature.level || 1);
+    if (!groups[lv]) groups[lv] = [];
+    groups[lv].push(feature);
+  });
+
+  return (
+    <Box sx={{ mb: 1 }}>
+      <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color, borderBottom: 1, borderColor: 'rgba(77,149,214,0.14)', pb: 0.25, mb: 0.4 }}>
+        {title}
+      </Typography>
       {Object.entries(groups).sort(([a], [b]) => Number(a) - Number(b)).map(([lv, feats]) => (
-        <Box key={lv} sx={{ mb: 1 }}>
-          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4d95d6', borderBottom: 1, borderColor: 'rgba(77,149,214,0.14)', pb: 0.25, mb: 0.4 }}>
-            {Number(lv) === 0 ? 'Species / Feats' : `Level ${lv}`}
+        <Box key={`${title}-${lv}`} sx={{ mb: 0.75 }}>
+          <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#edd48a', borderBottom: 1, borderColor: 'rgba(237,212,138,0.2)', pb: 0.25, mb: 0.35 }}>
+            {Number(lv) === 0 ? 'General' : `Level ${lv}`}
           </Typography>
-          {feats.map((f, i) => (
-            <FeatureItem key={`${featureKey(f)}-${i}`} feature={f} />
+          {feats.map((feature, index) => (
+            <FeatureItem key={`${featureKey(feature)}-${index}`} feature={feature} tone={color} />
           ))}
         </Box>
       ))}
@@ -54,37 +294,10 @@ export default function FeaturesTab({ C }) {
   );
 }
 
-
-function featureKey(feature) {
-  return `${normFeatureName(feature?.name)}|${Number(feature?.level || 0)}`;
-}
-
-function normFeatureName(value) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-}
-
-function passiveNoteToFeature(effect) {
-  const note = cleanText(effect?.note);
-  if (!note) return null;
-
-  const [maybeTitle, ...rest] = note.split(':');
-  const hasTitle = rest.length > 0 && maybeTitle.trim().length > 0 && maybeTitle.trim().length <= 80;
-
-  return {
-    name: hasTitle ? maybeTitle.trim() : 'Passive Note',
-    level: Number(effect?.minLevel || 1),
-    entries: hasTitle ? rest.join(':').trim() || note : note,
-    source: effect?.ownerName ? `(${effect.ownerName})` : 'Runtime',
-    runtimePassiveNote: true,
-  };
-}
-
-function FeatureItem({ feature }) {
+function FeatureItem({ feature, tone }) {
   const [open, setOpen] = useState(false);
   return (
-    <Box className={open ? 'open' : ''} sx={{ bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, mb: 0.25, overflow: 'hidden' }}>
+    <Box className={open ? 'open' : ''} sx={{ bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderLeft: `3px solid ${tone || '#4d95d6'}`, borderRadius: 1, mb: 0.25, overflow: 'hidden' }}>
       <Box onClick={() => setOpen(!open)}
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: '9px', py: '6px', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(46,42,34,1)' } }}>
         <Typography sx={{ fontSize: '0.8125rem', color: 'text.primary', fontWeight: 600 }}>{feature.name}</Typography>
@@ -105,15 +318,15 @@ function FeatureItem({ feature }) {
 function renderFeatureEntries(entries) {
   if (!entries) return '';
   if (typeof entries === 'string') return cleanText(entries);
-  if (Array.isArray(entries)) return entries.map(e => renderFeatureEntries(e)).join('<br/>');
+  if (Array.isArray(entries)) return entries.map((entry) => renderFeatureEntries(entry)).join('<br/>');
   if (typeof entries === 'object') {
     if (entries.type === 'list') {
-      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem">${(entries.items || []).map(i => `<li>${renderFeatureEntries(i)}</li>`).join('')}</ul>`;
+      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem">${(entries.items || []).map((item) => `<li>${renderFeatureEntries(item)}</li>`).join('')}</ul>`;
     }
     if (entries.type === 'table') {
       let h = '<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin:0.4rem 0">';
-      if (entries.colLabels) h += `<thead><tr>${entries.colLabels.map(l => `<th style="font-family:&quot;Cinzel&quot;,Georgia,serif;font-size:0.56rem;letter-spacing:0.08em;color:var(--text3);padding:3px 6px;border-bottom:1px solid var(--bdr)">${cleanText(l)}</th>`).join('')}</tr></thead>`;
-      h += `<tbody>${(entries.rows || []).map(r => `<tr>${r.map(c => `<td style="padding:2px 6px;border-bottom:1px solid var(--bdr)">${renderFeatureEntries(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      if (entries.colLabels) h += `<thead><tr>${entries.colLabels.map((label) => `<th style="font-family:&quot;Cinzel&quot;,Georgia,serif;font-size:0.56rem;letter-spacing:0.08em;color:var(--text3);padding:3px 6px;border-bottom:1px solid var(--bdr)">${cleanText(label)}</th>`).join('')}</tr></thead>`;
+      h += `<tbody>${(entries.rows || []).map((row) => `<tr>${row.map((cell) => `<td style="padding:2px 6px;border-bottom:1px solid var(--bdr)">${renderFeatureEntries(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       return h;
     }
     if (entries.name && entries.entries) {
@@ -122,6 +335,27 @@ function renderFeatureEntries(entries) {
     if (entries.entries) return renderFeatureEntries(entries.entries);
   }
   return '';
+}
+
+function asArray(value) {
+  if (value == null) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function featureKey(feature) {
+  return `${norm(feature?.name)}|${Number(feature?.level || 0)}|${norm(feature?.source)}`;
+}
+
+function norm(value) {
+  return cleanChoiceText(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function cleanChoiceText(text) {
+  return String(text || '')
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .split('|')[0]
+    .replace(/_/g, ' ')
+    .trim();
 }
 
 function cleanText(s) {
@@ -140,5 +374,3 @@ function cleanText(s) {
     .replace(/\{@[a-z]+ ([^|}]+)[^}]*\}/gi, '$1')
     .replace(/\{[^}]+\}/g, '');
 }
-
-

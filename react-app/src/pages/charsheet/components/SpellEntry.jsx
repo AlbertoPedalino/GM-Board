@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
-import { Cross, Dices, Flame } from 'lucide-react';
+import { Cross, Sword } from 'lucide-react';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
-import { SCHOOL_LABELS, getFinal, getMod, getPB } from '../logic/calculations.js';
+import { SCHOOL_LABELS, fbonus, getFinal, getMod, getPB } from '../logic/calculations.js';
 import {
   applySpellModifiers,
   computeScaledFormula,
@@ -15,7 +15,7 @@ import {
   renderEntries,
   resolveDmgBonusValue,
 } from '../logic/spellsTabLogic.js';
-import { spellBodySx, spellRowSx } from './spellsTabStyles.js';
+import { inlineButtonSx, spellBodySx, spellRowSx } from './spellsTabStyles.js';
 import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
 function applyFlatToFormula(formula, flat) {
@@ -175,23 +175,23 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
         {(hasAttack || hasDamage || hasHeal) ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, mr: '6px' }}>
             {hasAttack ? (
-              <Button size="small" variant="outlined" color="warning"
+              <Button size="small" variant="outlined"
                 onClick={rollAtk}
-                sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(245,166,35,0.4)', color: '#f5a623' }}>
-                <Dices size={12} style={{ marginRight: 2 }} /> Hit +{atk}
+                sx={{ ...inlineButtonSx, borderColor: 'rgba(77,149,214,0.4)', color: '#4d95d6' }}>
+                <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(atk)}
               </Button>
             ) : null}
             {scaledDamages.map((dmg, i) => (
               <Button key={i} size="small" variant="outlined"
                 onClick={(e) => rollDmg(e, dmg.formula, dmg.label || `Damage ${i + 1}`)}
-                sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
-                <Flame size={12} style={{ marginRight: 2 }} /> {beamCount > 1 ? `Beam ${i + 1} ${dmg.formula}` : `Dmg ${dmg.formula}`}
+                sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
+                <Sword size={12} style={{ marginRight: 2 }} /> {beamCount > 1 ? `Beam ${i + 1} ${dmg.formula}` : `Dmg ${dmg.formula}`}
               </Button>
             ))}
             {hasHeal ? (
-              <Button size="small" variant="outlined" color="success"
+              <Button size="small" variant="outlined"
                 onClick={(e) => rollHeal(e, healDisplayFormula)}
-                sx={{ fontSize: '0.6rem', minWidth: 0, py: 0.2, px: 0.8, lineHeight: 1.3, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
+                sx={{ ...inlineButtonSx, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
                 <Cross size={12} style={{ marginRight: 2 }} /> Heal {healDisplayFormula}
               </Button>
             ) : null}

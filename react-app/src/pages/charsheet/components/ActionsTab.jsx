@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Chip, Typography } from '@mui/material';
-import { Cross, Sword } from 'lucide-react';
+import { Cross, Dices, Sword } from 'lucide-react';
 import { getMod, getFinal, fbonus } from '../logic/calculations.js';
 import { installedRegistry, loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
 import { setStorageJson } from '../../../shared/storage.js';
@@ -190,9 +190,23 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
     const formula = resolveFormula(kind === 'heal' ? action.healFormula : action.damageFormula, action, C);
     if (!formula || !onShowToast) return;
     const { total, rolls } = rollFormula(formula);
-    const label = resolveButtonLabel(action.damageButtonLabel, formula, action, C, `${kind === 'heal' ? 'Heal' : 'Damage'} ${formula}`);
+    const damageKind = String(action?.damageKind || '').toLowerCase();
+    const fallbackVerb = kind === 'heal'
+      ? 'Heal'
+      : (damageKind === 'utility' ? 'Roll' : damageKind === 'heal' ? 'Heal' : 'Damage');
+    const labelSource = kind === 'heal'
+      ? (action.healButtonLabel ?? action.damageButtonLabel)
+      : (action.damageButtonLabel ?? action.healButtonLabel);
+    const label = resolveButtonLabel(labelSource, formula, action, C, `${fallbackVerb} ${formula}`);
     onShowToast(`${action.rollLabelPrefix || action.name} - ${label}`, formula, total, rolls);
   };
+  const damageKind = String(action?.damageKind || '').toLowerCase();
+  const damageVerb = damageKind === 'utility' ? 'Roll' : damageKind === 'heal' ? 'Heal' : 'Dmg';
+  const damageButtonTone = damageKind === 'utility'
+    ? { borderColor: 'rgba(77,149,214,0.4)', color: '#4d95d6' }
+    : damageKind === 'heal'
+      ? { borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }
+      : { borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' };
   const hasRollers = Number.isFinite(action.attackBonus) || action.damageFormula || action.healFormula;
 
   return (
@@ -224,9 +238,12 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
                     size="small"
                     variant="outlined"
                     onClick={(e) => { e.stopPropagation(); rollFormulaButton('damage'); }}
-                    sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}
+                    sx={{ ...inlineButtonSx, ...damageButtonTone }}
                   >
-                    <Sword size={12} style={{ marginRight: 2 }} /> Dmg {resolveFormula(action.damageFormula, action, C)}
+                    {damageKind === 'utility'
+                      ? <Dices size={12} style={{ marginRight: 2 }} />
+                      : <Sword size={12} style={{ marginRight: 2 }} />}
+                    {damageVerb} {resolveFormula(action.damageFormula, action, C)}
                   </Button>
                 ) : null}
                 {action.healFormula ? (
