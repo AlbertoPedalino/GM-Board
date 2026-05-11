@@ -1,9 +1,11 @@
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
 import { ClipboardList, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import { saveCharacter } from '../logic/persistence.js';
 
 export default function SheetStep({ state, dispatch }) {
+  const navigate = useNavigate();
   const { character } = state;
   const required = [
     ['name', 'Name'],
@@ -48,8 +50,17 @@ export default function SheetStep({ state, dispatch }) {
             disabled={!ready}
             startIcon={<FileText size={16} />}
             onClick={() => {
-              saveCharacter(character, state.data);
-              window.location.href = '/charsheet';
+              const saved = saveCharacter(character, state.data);
+              const charId =
+                saved?.id ||
+                saved?.charId ||
+                saved?.storageId ||
+                character?.id ||
+                character?.charId ||
+                character?.storageId ||
+                state.data?.id ||
+                localStorage.getItem('gb_active_char_id');
+              navigate(charId ? `/charsheet?char=${encodeURIComponent(charId)}` : '/charsheet');
             }}
             sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}
           >
