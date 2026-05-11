@@ -307,9 +307,23 @@ function FeatureItem({ feature, tone }) {
         </Box>
       </Box>
       {open && feature.entries && (
-        <Box sx={{ px: '12px', py: '8px', borderTop: 1, borderColor: 'divider', fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>
-          {renderFeatureEntries(feature.entries)}
-        </Box>
+        <Box
+          sx={{
+            px: '12px',
+            py: '8px',
+            borderTop: 1,
+            borderColor: 'divider',
+            fontSize: '0.8125rem',
+            color: 'text.secondary',
+            lineHeight: 1.6,
+            '& b': { color: 'text.primary', fontWeight: 700 },
+            '& i': { color: 'text.secondary' },
+            '& ul': { pl: 2.5, my: 0.5 },
+            '& li': { mb: 0.25 },
+            '& table': { color: 'text.secondary' },
+          }}
+          dangerouslySetInnerHTML={{ __html: renderFeatureEntries(feature.entries) }}
+        />
       )}
     </Box>
   );
@@ -358,9 +372,19 @@ function cleanChoiceText(text) {
     .trim();
 }
 
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function cleanText(s) {
   if (!s) return '';
-  return String(s)
+  return escapeHtml(String(s))
     .replace(/\{@hit ([^}]+)\}/g, '<b>$1</b>')
     .replace(/\{@damage ([^}]+)\}/g, '<b>$1</b>')
     .replace(/\{@dc ([^}]+)\}/g, 'CD $1')
