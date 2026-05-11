@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Stack, Typography } from '@mui/material';
 import { Layers } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
@@ -15,7 +16,13 @@ import SpellSelectionPanel from '../components/SpellSelectionPanel.jsx';
 
 export default function ClassStep({ state, dispatch }) {
   const { character } = state;
-  const choiceSpecs = classChoiceSpecs(character, { items: state.data.items });
+  
+  // CRITICAL: Ensure specs are recalculated when adapters are loaded
+  // This is especially important for multiclass feature choices
+  const choiceSpecs = useMemo(() => 
+    classChoiceSpecs(character, { items: state.data.items }),
+    [character, state.data.items, state.adaptersLoaded]
+  );
 
   const renderSpec = (spec) => {
     if (spec.type === 'spell_choice' || spec.type === 'spell_grant') {
