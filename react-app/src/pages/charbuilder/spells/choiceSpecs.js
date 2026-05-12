@@ -39,6 +39,9 @@ function specPush(out, spec) {
 function choiceFromBlock(prefix, label, block, fallbackFrom = []) {
   if (!block || typeof block !== 'object') return null;
   const choose = block.choose;
+  const hasChoiceIndicator = choose || block.any || block.anyTool || block.anyArtisansTool
+    || block.anyMusicalInstrument || block.anyGamingSet || block.anyStandard || block.anyExotic;
+  if (!hasChoiceIndicator) return null;
   let from = choose?.from || choose?.weighted?.from || null;
   let count = Number(choose?.count || choose?.weighted?.weights?.length || 0);
   if (!from?.length) {
