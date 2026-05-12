@@ -9,7 +9,8 @@ export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTe
 
   return (
     <Box sx={{
-      display: 'flex', alignItems: 'stretch', gap: '0.6rem', p: '0.55rem 1.1rem',
+      display: 'flex', alignItems: 'stretch', gap: '0.6rem',
+      px: { xs: '0.6rem', md: '1.1rem' }, py: '0.55rem',
       bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap',
     }}>
       <Box sx={{

@@ -385,7 +385,8 @@ export default function CharacterSheet() {
     const xp = parseInt(val) || 0;
     setStorageItem('5e_xp', xp);
     setSheet(prev => ({ ...prev, xpStored: xp }));
-  }, []);
+    updateCurrentCharacter(prev => ({ ...prev, xp }));
+  }, [updateCurrentCharacter]);
 
   const updateNotes = useCallback((val) => {
     setStorageItem('5e_notes', val);
@@ -418,30 +419,31 @@ export default function CharacterSheet() {
   const conMod = getMod(getFinal(C, 'con'));
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
         <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
         <AbilityScores C={C} sheet={sheet} onRoll={rollD20}
           onHeal={(amt) => adjustHP(1, amt)} onDamage={(amt) => adjustHP(-1, amt)}
           onTempHP={adjustTempHP} onMaxHPBonus={adjustMaxHpBonus} onSetHP={setCurrentHP} onDeathSave={rollDeathSave} />
         <Box sx={{
           display: 'grid',
+          width: '100%',
           gridTemplateColumns: { xs: '1fr', md: '200px 210px 1fr' },
           gap: '0.55rem',
           px: { xs: '0.6rem', md: '1.1rem' },
           pt: '0.55rem',
           alignItems: 'start',
         }}>
-          <Box>
+          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
             <SavingThrows C={C} sheet={sheet} onRoll={rollSave} />
             <Senses C={C} />
             <Movement C={C} sheet={sheet} />
             <Proficiencies C={C} />
             <HitDice C={C} sheet={sheet} />
           </Box>
-          <Box>
+          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
             <Skills C={C} sheet={sheet} onRoll={rollSkill} />
           </Box>
-          <Box>
+          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
             <RightTop C={C} sheet={sheet} onRoll={rollD20}
               onToggleCondition={toggleCondition} onClearConditions={clearConditions}
               onToggleInspiration={toggleInspiration} />
