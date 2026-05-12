@@ -20,11 +20,13 @@ export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearC
   const showAcBadge = acResult?.sourceType === 'formula';
 
   return (
-    <Box sx={{ display: 'flex', gap: '0.45rem', mb: '0.5rem', flexWrap: 'wrap' }}>
-      <CircleStat onClick={() => onRoll(initMod, 'Initiative')} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
-      <ACDisplay value={ac} shieldUnproficient={shieldUnproficient} source={acSource} showBadge={showAcBadge} badgeLabel={acSource} />
-      <InspirationBlock sheet={sheet} onToggle={onToggleInspiration} />
-      <DefensesBlock C={C} />
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ display: 'flex', gap: '0.45rem', mb: '0.4rem', flexWrap: 'wrap' }}>
+        <CircleStat onClick={() => onRoll(initMod, 'Initiative')} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
+        <ACDisplay value={ac} shieldUnproficient={shieldUnproficient} source={acSource} showBadge={showAcBadge} badgeLabel={acSource} />
+        <InspirationBlock sheet={sheet} onToggle={onToggleInspiration} />
+        <DefensesBlock C={C} />
+      </Box>
       <ConditionsBlock active={active} sheet={sheet} onToggle={onToggleCondition} onClear={onClearConditions} />
     </Box>
   );

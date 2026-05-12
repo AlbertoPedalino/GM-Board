@@ -2,143 +2,26 @@ import { createAdapterBindings } from '../../adapterBindings.js';
 
 export default function install(registry, context = {}) {
   const {
-    SKILLS,
-    _ARTISAN_TOOLS,
-    _MUSICAL_INSTRUMENTS,
-    _GAMING_SETS,
-    _VEHICLE_TOOLS,
-    _STD_LANGS,
-    _EXOTIC_LANGS,
-    _ALL_LANGS,
-    _ALL_TOOLS,
-    allItemsDb,
-    registerClassAdapter,
-    getClassAdapter,
     registerSubclassAdapter,
-    getSubclassAdapter,
-    registerSpeciesAdapter,
-    getSpeciesAdapter,
-    registerFeatAdapter,
-    getFeatAdapter,
-    registerClassSheetActions,
-    getClassSheetActions,
     registerSubclassSheetActions,
-    getSubclassSheetActions,
-    registerSpeciesSheetActions,
-    getSpeciesSheetActions,
-    registerFeatSheetActions,
-    getFeatSheetActions,
-    registerClassSheetResources,
-    getClassSheetResources,
     registerSubclassSheetResources,
-    getSubclassSheetResources,
-    registerSpeciesSheetResources,
-    getSpeciesSheetResources,
-    registerFeatSheetResources,
-    getFeatSheetResources,
-    registerClassSheetEffects,
-    getClassSheetEffects,
     registerSubclassSheetEffects,
-    getSubclassSheetEffects,
-    registerSpeciesSheetEffects,
-    getSpeciesSheetEffects,
-    registerFeatSheetEffects,
-    getFeatSheetEffects,
-    registerClassRuntimeConfig,
-    getClassRuntimeConfig,
-    registerSubclassRuntimeConfig,
-    getSubclassRuntimeConfig,
-    registerSpeciesRuntimeConfig,
-    getSpeciesRuntimeConfig,
-    registerClassSheetChoiceMeta,
-    getClassSheetChoiceMeta,
-    registerSubclassSheetChoiceMeta,
-    getSubclassSheetChoiceMeta,
-    registerSpeciesSheetChoiceMeta,
-    getSpeciesSheetChoiceMeta,
-    registerClassSheetCommonChoiceMeta,
-    registerSubclassSheetCommonChoiceMeta,
-    registerSpeciesSheetCommonChoiceMeta,
-    registerItemFlagDef,
-    getItemFlagDef,
-    getAllItemFlagDefs,
-    registerWeaponAbilityOverride,
-    getWeaponAbilityOverrides,
-    registerClassSheetFeatureFilter,
-    getClassSheetFeatureFilters,
-    registerSubclassSheetFeatureFilter,
-    getSubclassSheetFeatureFilters,
-    registerSpeciesSheetFeatureFilter,
-    getSpeciesSheetFeatureFilters,
-    registerClassSheetProficiencies,
-    getClassSheetProficiencies,
-    registerSubclassSheetProficiencies,
-    getSubclassSheetProficiencies,
-    registerSpeciesSheetProficiencies,
-    getSpeciesSheetProficiencies,
-    registerClassSheetSpellModifiers,
-    getClassSheetSpellModifiers,
-    registerSubclassSheetSpellModifiers,
-    getSubclassSheetSpellModifiers,
-    registerSpeciesSheetSpellModifiers,
-    getSpeciesSheetSpellModifiers,
-    registerClassChoiceKeyFilter,
-    getClassChoiceKeyFilter,
-    registerClassChoiceLabelProvider,
-    getClassChoiceLabelProvider,
-    registerSpeciesSheetHpBonus,
-    getSpeciesSheetHpBonus,
-    registerClassAtWillSpells,
-    getClassAtWillSpells,
-    registerSpeciesLongRestGrants,
-    getSpeciesLongRestGrants,
     registerResourceSideEffect,
-    getResourceSideEffect,
-    registerSubclassChoiceDetailDataProvider,
-    getSubclassChoiceDetailDataProvider,
-    registerGlobalClassAdapter,
-    getGlobalClassAdapters,
-    registerGlobalSubclassAdapter,
-    getGlobalSubclassAdapters,
-    registerGlobalSpeciesAdapter,
-    getGlobalSpeciesAdapters,
-    registerGlobalFeatAdapter,
-    getGlobalFeatAdapters,
-    registerGlobalSpellAdapter,
-    getGlobalSpellAdapters,
-    registerGlobalItemAdapter,
-    getGlobalItemAdapters,
-    registerCantripData,
-    getCantripData,
-    registerCantripDataModifier,
-    getCantripDataModifiers,
-    registerSpellData,
-    getSpellData,
-    getGenericSpeciesChoiceSpecs,
-    getGenericBackgroundChoiceSpecs,
-    getGenericBackgroundChoiceMeta,
-    getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
+
 registerSubclassAdapter("Sorcerer_Wild Magic", function (cls, lv, specs) {});
 
-// [SheetRuntime] START
 registerSubclassSheetActions("Sorcerer_Wild Magic", [
   {
-    "name": "Wild Magic Surge",
+    "name": "Wild Magic",
     "icon": "",
     "cat": "action",
-    "uses": "Once / turn (optional)",
+    "uses": "Special",
+    "resKey": "wild_magic",
     "minLevel": 3,
-    "desc": "Once per turn, immediately after you cast a Sorcerer spell with a spell slot, you can choose to roll a d20. On a 20, roll on the Wild Magic Surge table to create a magical effect; the effect is too wild to be affected by your Metamagic."
-  },
-  {
-    "name": "Tides of Chaos",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "wild_tides",
-    "minLevel": 3,
-    "desc": "Gain Advantage on one D20 Test (attack roll, ability check, or saving throw) before you roll. Recharge: finish a Long Rest OR cast a Sorcerer spell with a spell slot (but doing so before finishing a Long Rest causes you to automatically roll on the Wild Magic Surge table)."
+    "controller": true,
+    "buttonLabel": "Open",
+    "desc": "Manage Tides of Chaos and Wild Magic Surge rolls."
   },
   {
     "name": "Bend Luck",
@@ -148,26 +31,17 @@ registerSubclassSheetActions("Sorcerer_Wild Magic", [
     "resKey": "sorc_pts",
     "minLevel": 6,
     "desc": "Reaction — immediately after another creature you can see rolls a d20 for a D20 Test: spend 1 Sorcery Point to roll 1d4 and apply the number as a bonus or penalty (your choice) to the d20 roll."
-  },
-  {
-    "name": "Controlled Chaos",
-    "icon": "",
-    "cat": "action",
-    "uses": "Passive",
-    "minLevel": 14,
-    "desc": "Passive: whenever you roll on the Wild Magic Surge table, you can roll twice and use either result."
-  },
-  {
-    "name": "Tamed Surge",
-    "icon": "",
-    "cat": "action",
-    "uses": "1 / LR",
-    "resKey": "wild_tamed",
-    "minLevel": 18,
-    "desc": "Immediately after you cast a Sorcerer spell with a spell slot, you can create an effect of your choice from the Wild Magic Surge table instead of rolling on it. You can choose any effect except the final row; if the chosen effect involves a roll, you must make it. 1/LR."
   }
 ]);
 registerSubclassSheetResources("Sorcerer_Wild Magic", [
+  {
+    "key": "wild_magic",
+    "name": "Wild Magic",
+    "icon": "zap",
+    "recharge": "LR",
+    "max": () => Infinity,
+    "pool": true
+  },
   {
     "key": "wild_tides",
     "name": "Tides of Chaos",
@@ -190,7 +64,29 @@ registerSubclassSheetEffects("Sorcerer_Wild Magic", [
   { type: "passiveNote", minLevel: 14, note: "Controlled Chaos: roll twice on Wild Magic Surge table and pick either result." },
   { type: "passiveNote", minLevel: 18, note: "Tamed Surge: pick a non-final Wild Magic Surge effect 1/LR instead of rolling." },
 ]);
-// [SheetRuntime] END
 
+function getSorcererLevel(C) {
+  let lv = 0;
+  if (String(C?.className || '').toLowerCase() === 'sorcerer') lv += C?.classLevel || C?.level || 0;
+  (C?.extraClasses || []).forEach(function (ec) {
+    if (String(ec?.name || '').toLowerCase() === 'sorcerer') lv += ec.level || 0;
+  });
+  return lv;
 }
 
+if (typeof registerResourceSideEffect === 'function') {
+  registerResourceSideEffect('wild_magic', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
+    const sorcererLevel = getSorcererLevel(C);
+    if (sorcererLevel < 3) return null;
+    const resources = ctx.resources || {};
+    return {
+      type: 'wild_magic_controller',
+      sorcererLevel,
+      tidesAvailable: (resources.wild_tides || 0) > 0,
+      tamedAvailable: (resources.wild_tamed || 0) > 0,
+      label: 'Wild Magic',
+    };
+  });
+}
+}

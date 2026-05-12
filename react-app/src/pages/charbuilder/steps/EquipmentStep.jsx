@@ -1,10 +1,10 @@
 import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { List as VList } from 'react-window';
-import { Button, Chip, Divider, Grid, InputAdornment, List, ListItem, ListItemButton, ListItemText, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, Divider, Grid, InputAdornment, List, ListItem, ListItemButton, ListItemText, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Backpack, Coins, PackagePlus, Search } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import { CURRENCY, ITEM_FILTERS } from '../constants.js';
-import { ItemNameLink, ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
+import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { cleanText } from '../logic/text.js';
 
 const CHOICE_KEYS = ['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e'];
@@ -331,7 +331,7 @@ export default function EquipmentStep({ state, dispatch }) {
                 </Stack>
               )}>
                 <ListItemText
-                  primary={<ItemNameLink item={item} sx={{ fontWeight: 500 }} />}
+                  primary={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><ItemNameIcon item={item} /><Typography sx={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.name}</Typography></Box>}
                   secondary={[item.source, `${item.weight || 0} lb each`, item.type].filter(Boolean).join(' - ')}
                 />
               </ListItem>

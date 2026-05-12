@@ -22,7 +22,7 @@ export default function HPBlock({ sheet, onHeal, onDamage, onTempHP, onMaxHPBonu
   const hpColor = sheet.currentHP > sheet.maxHP / 2 ? '#58b879' : sheet.currentHP > 0 ? '#d69245' : '#c54a3f';
 
   return (
-    <Box sx={{ flex: '0 1 260px', minWidth: 220, maxWidth: 300, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, p: '0.3rem 0.45rem' }}>
+    <Box sx={{ width: { xs: '100%', md: 260 }, flexShrink: 0, bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, p: '0.3rem 0.45rem' }}>
       <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'text.secondary' }}>
         HP
       </Typography>

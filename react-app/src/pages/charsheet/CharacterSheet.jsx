@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Box, Stack, Button, Dialog, DialogActions, DialogContent, DialogTitle, Slider, Typography } from '@mui/material';
 import TopBar from './components/TopBar.jsx';
 import AbilityScores from './components/AbilityScores.jsx';
+import HPBlock from './components/HPBlock.jsx';
 import SavingThrows from './components/SavingThrows.jsx';
 import Senses from './components/Senses.jsx';
 import Proficiencies from './components/Proficiencies.jsx';
@@ -419,19 +420,27 @@ export default function CharacterSheet() {
   const conMod = getMod(getFinal(C, 'con'));
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4, width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
-        <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
-        <AbilityScores C={C} sheet={sheet} onRoll={rollD20}
-          onHeal={(amt) => adjustHP(1, amt)} onDamage={(amt) => adjustHP(-1, amt)}
-          onTempHP={adjustTempHP} onMaxHPBonus={adjustMaxHpBonus} onSetHP={setCurrentHP} onDeathSave={rollDeathSave} />
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4, width: '100%' }}>
+      <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
+      <Box sx={{ maxWidth: 1280, mx: { md: 'auto' }, px: { xs: '0.6rem', md: '1.1rem' }, overflow: 'hidden' }}>
+        <Box sx={{ bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', py: '0.55rem' }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={0.6} alignItems={{ md: 'stretch' }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <AbilityScores C={C} sheet={sheet} onRoll={rollD20} />
+            </Box>
+            <HPBlock sheet={sheet}
+              onHeal={(amt) => adjustHP(1, amt)} onDamage={(amt) => adjustHP(-1, amt)}
+              onTempHP={adjustTempHP} onMaxHPBonus={adjustMaxHpBonus} onSetHP={setCurrentHP} onDeathSave={rollDeathSave} />
+          </Stack>
+        </Box>
         <Box sx={{
           display: 'grid',
           width: '100%',
           gridTemplateColumns: { xs: '1fr', md: '200px 210px 1fr' },
           gap: '0.55rem',
-          px: { xs: '0.6rem', md: '1.1rem' },
           pt: '0.55rem',
           alignItems: 'start',
+          minWidth: 0,
         }}>
           <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
             <SavingThrows C={C} sheet={sheet} onRoll={rollSave} />
@@ -453,6 +462,7 @@ export default function CharacterSheet() {
               onUpdateCharacter={updateCurrentCharacter} />
           </Box>
         </Box>
+      </Box>
       {diceToast && <DiceToast toast={diceToast} onClose={() => setDiceToast(null)} />}
 
       <Dialog open={shortRestOpen} onClose={() => setShortRestOpen(false)} maxWidth="xs" fullWidth slotProps={sheetDialogSlotProps}>

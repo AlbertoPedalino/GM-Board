@@ -1,7 +1,27 @@
 import { Box, Stack, Typography, Button, TextField } from '@mui/material';
-import { ArrowLeft, Sun, Moon, Download, Swords } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, Download, Wand2, Hammer, Axe, Music, Cross, Feather, Sword, Dumbbell, Shield, Compass, Eye, Sparkles, Flame, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getLevelFromXp, getXpForNextLevel } from '../logic/calculations.js';
+
+const CLASS_ICONS = {
+  Artificer: Hammer,
+  Barbarian: Axe,
+  Bard: Music,
+  Cleric: Cross,
+  Druid: Feather,
+  Fighter: Sword,
+  Monk: Dumbbell,
+  Paladin: Shield,
+  Ranger: Compass,
+  Rogue: Eye,
+  Sorcerer: Sparkles,
+  Warlock: Flame,
+  Wizard: BookOpen,
+};
+
+function classIcon(className) {
+  return CLASS_ICONS[className] || Wand2;
+}
 
 export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, onUpdateXp }) {
   const navigate = useNavigate();
@@ -10,6 +30,7 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
   const sc = C.subclassShortName ? ` (${C.subclassShortName})` : '';
   const race = C.speciesName || '';
   const bg = C.bgName || '';
+  const Icon = classIcon(C.className);
 
   let clsDisplay;
   if (extra.length) {
@@ -33,12 +54,12 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
   return (
     <Box sx={{
       bgcolor: 'background.paper', borderBottom: 2, borderColor: 'divider',
-      position: { xs: 'static', md: 'sticky' }, top: { md: 0 }, zIndex: { md: 100 },
     }}>
+      <Box sx={{ maxWidth: 1280, mx: { md: 'auto' }, px: { xs: '0.6rem', md: '1.1rem' } }}>
       <Box sx={{
         display: 'flex', alignItems: 'center', gap: { xs: '0.4rem', md: '1rem' },
         flexDirection: { xs: 'column', md: 'row' },
-        px: { xs: '0.6rem', md: '1.1rem' },
+        justifyContent: { md: 'space-between' },
         py: { xs: '0.35rem', md: '0.6rem' },
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: { xs: '100%', md: 'auto' } }}>
@@ -48,7 +69,7 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             bgcolor: 'rgba(46,42,34,1)', fontSize: { xs: '1rem', md: '1.4rem' },
           }}>
-            <Swords size={{ xs: 14, md: 22 }} />
+            <Icon size={25} />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#edd48a', letterSpacing: '0.04em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -94,7 +115,8 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
             onClick={onDownload} sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', letterSpacing: '0.08em' }}>
             DOWNLOAD
           </Button>
-        </Box>
+      </Box>
+      </Box>
       </Box>
     </Box>
   );

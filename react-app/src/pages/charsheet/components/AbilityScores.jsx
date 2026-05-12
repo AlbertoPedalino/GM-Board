@@ -1,17 +1,15 @@
 import { Box, Typography } from '@mui/material';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { STATS, SLBL, FULL_LBL, getFinal, getMod, getPB, fbonus } from '../logic/calculations.js';
-import HPBlock from './HPBlock.jsx';
 
-export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTempHP, onMaxHPBonus, onSetHP, onDeathSave }) {
+export default function AbilityScores({ C, sheet, onRoll }) {
   const pb = getPB(C);
   const armorPenalties = getEquippedArmorPenalties(C, sheet?.sheetInventory || C?.inventory || []);
 
   return (
     <Box sx={{
       display: 'flex', alignItems: 'stretch', gap: '0.6rem',
-      px: { xs: '0.6rem', md: '1.1rem' }, py: '0.55rem',
-      bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap',
+      flexWrap: 'nowrap',
     }}>
       <Box sx={{
         display: 'grid', gridTemplateColumns: { xs: 'repeat(4,1fr)', sm: 'repeat(8,minmax(62px,1fr))' },
@@ -62,7 +60,6 @@ export default function AbilityScores({ C, sheet, onRoll, onHeal, onDamage, onTe
           </Typography>
         </Box>
       </Box>
-      <HPBlock sheet={sheet} onHeal={onHeal} onDamage={onDamage} onTempHP={onTempHP} onMaxHPBonus={onMaxHPBonus} onSetHP={onSetHP} onDeathSave={onDeathSave} />
     </Box>
   );
 }

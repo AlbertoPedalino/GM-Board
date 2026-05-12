@@ -47,7 +47,7 @@ import {
 } from './spellsTabStyles.js';
 import SpellEntry from './SpellEntry.jsx';
 import { Empty, SlotPanel, SpellSection, StatBox } from './SpellsUiParts.jsx';
-import { SpellNameLink } from '../../../shared/character/FiveEToolsLink.jsx';
+import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 
 export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpdateSheet }) {
   const [spellDb, setSpellDb] = useState([]);
@@ -476,7 +476,8 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
                 <Box key={`${spell.name}-${spell.source}`} onClick={onClick}
                   sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: '9px', py: '6px', border: 1, borderColor: selected ? '#58b879' : 'transparent', borderRadius: 1, bgcolor: selected ? 'rgba(39,174,96,0.08)' : 'transparent', opacity: atLimit ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer', '&:hover': { borderColor: selected ? '#58b879' : 'divider', bgcolor: selected ? 'rgba(39,174,96,0.08)' : 'rgba(35,32,26,1)' } }}>
                   <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                    <SpellNameLink spell={spell} sx={{ minWidth: 0, fontSize: '0.875rem', color: 'text.primary' }} />
+                    <SpellNameIcon spell={spell} />
+                    <Typography noWrap sx={{ minWidth: 0, fontSize: '0.875rem', color: 'text.primary' }}>{spell.name}</Typography>
                     <SpellMiniTags spell={spell} />
                   </Box>
                   <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{SPELL_LEVEL_LABELS[spell.level] || `Lv ${spell.level}`}</Typography>

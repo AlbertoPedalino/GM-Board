@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { Cross, Sword } from 'lucide-react';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
-import { SpellNameLink } from '../../../shared/character/FiveEToolsLink.jsx';
+import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { SCHOOL_LABELS, fbonus, getFinal, getMod, getPB } from '../logic/calculations.js';
 import {
   applySpellModifiers,
@@ -166,7 +166,8 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     <Box>
       <Box onClick={() => setOpen(!open)} sx={spellRowSx}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', minWidth: 0 }}>
-          <SpellNameLink spell={entry} sx={{ overflow: 'hidden', minWidth: 0, fontSize: '0.875rem', color: 'text.primary', '& a': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' } }} />
+          <SpellNameIcon spell={entry} />
+          <Typography noWrap sx={{ overflow: 'hidden', minWidth: 0, fontSize: '0.875rem', color: 'text.primary', textOverflow: 'ellipsis' }}>{entry.name}</Typography>
           {castLevel > baseLevel ? <Badge label={SPELL_LEVEL_LABELS[castLevel]} color="#d69245" bg="rgba(214,146,69,0.14)" /> : null}
         </Box>
         {getSpellStatusChips(entry).map((chip) => <Badge key={chip.key} label={chip.label} color={chip.color} bg={chip.bg} />)}

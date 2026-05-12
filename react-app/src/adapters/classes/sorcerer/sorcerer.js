@@ -195,6 +195,7 @@ registerClassSheetActions("Sorcerer", [
     "uses": "Sorcery Points",
     "resKey": "sorc_create_slot",
     "minLevel": 2,
+    "buttonLabel": "Create Slot",
     "desc": "Spend Sorcery Points to create a spell slot. Costs: L1=2 SP, L2=3 SP, L3=5 SP, L4=6 SP, L5=7 SP."
   },
   {
@@ -204,6 +205,7 @@ registerClassSheetActions("Sorcerer", [
     "uses": "Spell slot",
     "resKey": "sorc_convert_slot",
     "minLevel": 2,
+    "buttonLabel": "Convert Slot",
     "desc": "Convert an expended spell slot into Sorcery Points equal to the slot's level."
   },
   {

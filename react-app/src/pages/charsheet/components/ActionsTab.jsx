@@ -33,6 +33,7 @@ import {
   tinyMetaChipSx,
 } from './spellsTabStyles.js';
 import { Empty } from './SpellsUiParts.jsx';
+import WildMagicDialog from './WildMagicDialog.jsx';
 
 function actionLabel(value) {
   if (value === 'all') return 'All';
@@ -49,6 +50,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   const [convertSlotDialog, setConvertSlotDialog] = useState(null);
   const [convertSlotSelection, setConvertSlotSelection] = useState(null);
   const [wildResurgenceDialog, setWildResurgenceDialog] = useState(null);
+  const [wildMagicDialog, setWildMagicDialog] = useState(null);
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -398,6 +400,8 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           openConvertSlotDialog(result);
         } else if (result?.type === 'wild_resurgence') {
           openWildResurgenceDialog(result);
+        } else if (result?.type === 'wild_magic_controller') {
+          setWildMagicDialog(result);
         }
       }
     }
@@ -624,12 +628,27 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           </Button>
         </DialogActions>
       </Dialog>
+
+      <WildMagicDialog
+        open={Boolean(wildMagicDialog)}
+        data={wildMagicDialog}
+        onClose={() => setWildMagicDialog(null)}
+        onShowToast={onShowToast}
+      />
     </Box>
   );
 }
 
 function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowToast, resMax, onUpdateCharacter }) {
   const [open, setOpen] = useState(false);
+
+  const handleCardClick = () => {
+    if (action.controller && action.resKey && typeof onResChange === 'function') {
+      onResChange(action.resKey, -1);
+    } else {
+      setOpen(!open);
+    }
+  };
   const hasRes = action.resKey && resources && resources[action.resKey] != null;
   const resCur = hasRes ? (resources[action.resKey] ?? 0) : 0;
   const safeMax = resMax === Infinity ? Infinity : Math.max(0, Number(resMax ?? 1) || 1);
@@ -663,7 +682,7 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
 
   return (
     <Box sx={{ overflow: 'hidden' }}>
-      <Box onClick={() => setOpen(!open)} sx={{ ...spellRowSx, mb: 0, py: '7px' }}>
+      <Box onClick={handleCardClick} sx={{ ...spellRowSx, mb: 0, py: '7px', cursor: 'pointer' }}>
         {action.cat && CAT_COLORS[action.cat] && (
           <Box sx={{ width: 6, height: 28, borderRadius: 1, bgcolor: CAT_COLORS[action.cat], flexShrink: 0, opacity: 0.95 }} />
         )}
@@ -770,10 +789,12 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
           <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontFamily: '"Cinzel", Georgia, serif', mr: 0.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Uses</Typography>
           {safeMax === Infinity ? (
             typeof onResChange === 'function' ? (
-              <Box
+              <Button
+                size="small"
+                variant="outlined"
                 onClick={(e) => { e.stopPropagation(); onResChange(action.resKey, -1); }}
-                sx={{ cursor: 'pointer', fontSize: '0.7rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, '&:hover': { opacity: 0.7 } }}
-              >∞</Box>
+                sx={{ fontSize: '0.6rem', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em', minWidth: 0, py: 0.2, px: 0.6, color: '#edd48a', borderColor: 'rgba(237,212,138,0.35)', '&:hover': { borderColor: '#edd48a', bgcolor: 'rgba(237,212,138,0.08)' } }}
+              >{action.buttonLabel || (action.controller ? 'Open' : 'Use')}</Button>
             ) : (
               <Typography sx={{ fontSize: '0.7rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700 }}>∞</Typography>
             )

@@ -3,7 +3,7 @@ import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, Stack }
 import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle } from 'lucide-react';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import { getFinal } from '../logic/calculations.js';
-import { ItemNameLink } from '../../../shared/character/FiveEToolsLink.jsx';
+import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { setStorageItem, setStorageJson } from '../../../shared/storage.js';
 import { getArmorPenalties } from '../logic/armorPenalties.js';
 import { renderEntries } from '../logic/renderEntries.js';
@@ -225,7 +225,8 @@ const SearchResultsList = memo(function SearchResultsList({ items, itemsDbCount,
         {visibleItems.map((item) => (
           <Box key={`${item.name}-${item.source}`} onClick={() => onAddItem(item)}
             sx={{ height: SEARCH_ROW_HEIGHT - 2, display: 'flex', alignItems: 'center', gap: 1, px: '10px', py: '4px', bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, cursor: 'pointer', '&:hover': { borderColor: '#caa550', bgcolor: 'rgba(44,40,33,1)' } }}>
-            <ItemNameLink item={item} sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary' }} />
+            <ItemNameIcon item={item} />
+            <Typography noWrap sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary' }}>{item.name}</Typography>
             <Typography sx={{ fontSize: '0.62rem', color: '#edd48a', flexShrink: 0, fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>{item.source || '—'}</Typography>
             <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', flexShrink: 0 }}>{item.type || 'gear'}</Typography>
             <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{formatGp(item.value)}</Typography>
@@ -614,7 +615,8 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
         </Box>
         <Box onClick={() => setOpen(!open)} sx={{ flex: 1, minWidth: 0, cursor: body ? 'pointer' : 'default' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
-            <ItemNameLink item={item} sx={{ fontSize: '0.875rem', color: 'text.primary' }} />
+            <ItemNameIcon item={item} />
+            <Typography noWrap sx={{ fontSize: '0.875rem', color: 'text.primary' }}>{item.name}</Typography>
             {item.custom ? <Box component="span" sx={{ fontSize: '0.56rem', color: 'text.secondary' }}>[custom]</Box> : null}
             {hasItemFlag(item, 'pactWeapon') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#9d7fb8', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Pact Weapon]</Box> : null}
             {hasItemFlag(item, 'arcaneArmor') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#58b879', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Arcane Armor]</Box> : null}
