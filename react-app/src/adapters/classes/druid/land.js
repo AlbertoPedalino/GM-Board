@@ -198,6 +198,25 @@ registerSubclassSheetEffects("Druid_Land", [
     } },
 
 ]);
+
+if (typeof registerResourceSideEffect === 'function') {
+  registerResourceSideEffect('natural_recovery', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
+    let druidLv = 0;
+    if (String(C?.className || '').toLowerCase() === 'druid') druidLv += C?.classLevel || C?.level || 0;
+    (C?.extraClasses || []).forEach(function (ec) {
+      if (String(ec?.name || '').toLowerCase() === 'druid') druidLv += ec.level || 0;
+    });
+    if (!druidLv) return null;
+    const budget = Math.ceil(druidLv / 2);
+    return {
+      type: 'recover_spell_slots',
+      budget,
+      maxSlotLevel: 5,
+      label: 'Natural Recovery',
+    };
+  });
+}
 // [SheetRuntime] END
 
 }

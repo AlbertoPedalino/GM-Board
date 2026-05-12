@@ -5,6 +5,8 @@ import { getMod, getFinal, fbonus } from '../logic/calculations.js';
 import { installedRegistry, loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
 import { setStorageJson } from '../../../shared/storage.js';
 import { PACT_SLOTS, SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { getChoiceValue } from '../../../shared/character/choiceUtils.js';
 import { getAllResourceDefs } from '../logic/restResources.js';
 import {
   FILTERS,
@@ -37,11 +39,16 @@ function actionLabel(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast, onUpdateSheet }) {
+export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast, onUpdateSheet, onUpdateCharacter }) {
   const [filter, setFilter] = useState('all');
   const [itemsDb, setItemsDb] = useState([]);
   const [slotRecovery, setSlotRecovery] = useState(null);
   const [slotRecoverySelection, setSlotRecoverySelection] = useState({});
+  const [createSlotDialog, setCreateSlotDialog] = useState(null);
+  const [createSlotSelection, setCreateSlotSelection] = useState(null);
+  const [convertSlotDialog, setConvertSlotDialog] = useState(null);
+  const [convertSlotSelection, setConvertSlotSelection] = useState(null);
+  const [wildResurgenceDialog, setWildResurgenceDialog] = useState(null);
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -65,7 +72,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   const masteryItems = itemsDb.length ? itemsDb : inv;
   const adapterActions = [
     ...makeWeaponActions(C, attacks, inv, masteryItems),
-    ...collectAdapterActions(C),
+    ...collectAdapterActions(C, sheet),
   ].map((action) => resolveActionFormulas(action, C));
   const showAttacks = false;
   const actionSections = SECTION_DEFS
@@ -88,6 +95,183 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     ? slotRecovery.levels.reduce((sum, entry) => sum + (entry.level * Number(slotRecoverySelection[String(entry.level)] || 0)), 0)
     : 0;
   const slotRecoveryRemaining = slotRecovery ? Math.max(0, slotRecovery.budget - slotRecoverySpent) : 0;
+
+  const applyResourceRecovery = (result) => {
+    if (!result?.targetResourceKey || !resources || !setResources) return;
+    const targetKey = result.targetResourceKey;
+    const amount = Math.max(0, Number(result.amount || 0));
+    if (!amount) return;
+    const max = resMaxMap[targetKey] ?? Infinity;
+    const res = { ...resources };
+    const before = Number(res[targetKey] || 0);
+    const after = Math.min(max, before + amount);
+    const recovered = after - before;
+    if (!recovered) {
+      onShowToast?.(result.label || 'Resource Recovery', `${resNameMap[targetKey] || targetKey} already at maximum.`, 0, []);
+      return;
+    }
+    res[targetKey] = after;
+    setResources(res);
+    setStorageJson('5e_resources', res);
+    onShowToast?.(result.label || 'Resource Recovery', `Recovered ${recovered} ${resNameMap[targetKey] || targetKey}`, recovered, []);
+  };
+
+  const openCreateSlotDialog = (result) => {
+    const currentSP = Number(result?.currentSP || 0);
+    const table = result?.conversionTable || {};
+    const levels = Object.entries(table)
+      .filter(([level, cost]) => currentSP >= cost)
+      .map(([level, cost]) => ({ level: Number(level), cost }));
+    if (!levels.length) {
+      onShowToast?.(result?.label || 'Create Spell Slot', 'Not enough Sorcery Points.', 0, []);
+      return;
+    }
+    setCreateSlotDialog({ label: result?.label || 'Create Spell Slot', levels, table, sourceKey: result?.sourceResourceKey || 'sorc_pts' });
+    setCreateSlotSelection(null);
+  };
+
+  const confirmCreateSlot = () => {
+    if (!createSlotDialog || createSlotSelection == null) return;
+    const level = Number(createSlotSelection);
+    const cost = Number(createSlotDialog.table[level]);
+    if (!cost) return;
+    const res = { ...resources };
+    const beforeSP = Number(res[createSlotDialog.sourceKey] || 0);
+    if (beforeSP < cost) { onShowToast?.('Create Spell Slot', 'Not enough Sorcery Points.', 0, []); return; }
+    res[createSlotDialog.sourceKey] = beforeSP - cost;
+    setResources(res);
+    setStorageJson('5e_resources', res);
+    const created = { ...(sheet?.createdSpellSlots || {}) };
+    const key = String(level);
+    created[key] = (created[key] || 0) + 1;
+    setStorageJson('5e_created_slots', created);
+    onUpdateSheet?.({ createdSpellSlots: created });
+    setCreateSlotDialog(null);
+    setCreateSlotSelection(null);
+    onShowToast?.('Create Spell Slot', `Created a temporary level ${level} spell slot (lasts until Long Rest).`, 0, []);
+  };
+
+  const openConvertSlotDialog = (result) => {
+    const slots = getSheetSlots(C);
+    const regularSlots = slots?.regular || [];
+    const used = sheet?.spellSlotUsed || {};
+    const created = sheet?.createdSpellSlots || {};
+    const levels = [];
+    for (let level = 1; level <= regularSlots.length; level++) {
+      const total = Number(regularSlots[level - 1] || 0);
+      if (!total) continue;
+      const usedCount = Number(used[level] || used[String(level)] || 0);
+      const createdCount = Number(created[level] || 0);
+      const available = total - usedCount + createdCount;
+      if (available <= 0) continue;
+      levels.push({ level, available, hasCreated: createdCount > 0 });
+    }
+    if (!levels.length) {
+      onShowToast?.(result?.label || 'Convert Spell Slot', 'No spell slots available to convert.', 0, []);
+      return;
+    }
+    setConvertSlotDialog({ label: result?.label || 'Convert Spell Slot', levels, targetKey: result?.targetResourceKey || 'sorc_pts' });
+    setConvertSlotSelection(null);
+  };
+
+  const confirmConvertSlot = () => {
+    if (!convertSlotDialog || convertSlotSelection == null) return;
+    const level = Number(convertSlotSelection);
+    const spGain = level;
+    const targetKey = convertSlotDialog.targetKey;
+    const max = resMaxMap[targetKey] ?? Infinity;
+    const res = { ...resources };
+    const beforeSP = Number(res[targetKey] || 0);
+    const afterSP = Math.min(max, beforeSP + spGain);
+    if (afterSP <= beforeSP) { onShowToast?.('Convert Spell Slot', 'Sorcery Points already at maximum.', 0, []); return; }
+    const created = { ...(sheet?.createdSpellSlots || {}) };
+    const ckey = String(level);
+    if ((created[ckey] || 0) > 0) {
+      created[ckey] = (created[ckey] || 0) - 1;
+      if (created[ckey] <= 0) delete created[ckey];
+      setStorageJson('5e_created_slots', created);
+      onUpdateSheet?.({ createdSpellSlots: created });
+    } else {
+      const used = { ...(sheet?.spellSlotUsed || {}) };
+      const slotsData = getSheetSlots(C);
+      const maxTotal = Number((slotsData?.regular || [])[level - 1] || 0);
+      used[String(level)] = Math.max(0, Math.min(maxTotal, Number(used[String(level)] || 0) + 1));
+      setStorageJson('5e_slots_used', used);
+      onUpdateSheet?.({ spellSlotUsed: used });
+    }
+    res[targetKey] = afterSP;
+    setResources(res);
+    setStorageJson('5e_resources', res);
+    setConvertSlotDialog(null);
+    setConvertSlotSelection(null);
+    onShowToast?.('Convert Spell Slot', `Converted a level ${level} spell slot into ${spGain} Sorcery Points.`, 0, []);
+  };
+
+  const openWildResurgenceDialog = (result) => {
+    if (!result) return;
+    const opts = [];
+    if (result.hasWildShape) opts.push({ key: 'shape_to_slot', label: 'Expend 1 Wild Shape use to create a temporary level 1 spell slot', icon: 'paw-print' });
+    if (result.hasAvailableSlot) opts.push({ key: 'slot_to_shape', label: 'Spend a spell slot (level 1+) to regain 1 Wild Shape use', icon: 'sparkles' });
+    if (!opts.length) {
+      onShowToast?.(result.label || 'Wild Resurgence', 'No Wild Shape uses or spell slots available.', 0, []);
+      return;
+    }
+    setWildResurgenceDialog({ options: opts, label: result.label || 'Wild Resurgence', currentWS: result.currentWS });
+  };
+
+  const confirmWildResurgence = (choice) => {
+    if (!wildResurgenceDialog) return;
+    setWildResurgenceDialog(null);
+    if (choice === 'shape_to_slot') {
+      const res = { ...resources };
+      const beforeWS = Number(res.wild_shape || 0);
+      if (beforeWS <= 0) { onShowToast?.('Wild Resurgence', 'No Wild Shape uses available.', 0, []); return; }
+      res.wild_shape = beforeWS - 1;
+      setResources(res);
+      setStorageJson('5e_resources', res);
+      const created = { ...(sheet?.createdSpellSlots || {}) };
+      created[1] = (created[1] || 0) + 1;
+      setStorageJson('5e_created_slots', created);
+      onUpdateSheet?.({ createdSpellSlots: created });
+      onShowToast?.('Wild Resurgence', 'Expended 1 Wild Shape use to create a temporary level 1 spell slot.', 0, []);
+    } else if (choice === 'slot_to_shape') {
+      const slots = getSheetSlots(C);
+      const regularSlots = slots?.regular || [];
+      const used = sheet?.spellSlotUsed || {};
+      const created = sheet?.createdSpellSlots || {};
+      let consumed = false;
+      for (let lv = 1; lv <= regularSlots.length; lv++) {
+        const total = Number(regularSlots[lv - 1] || 0);
+        if (!total) continue;
+        const avail = total - Number(used[lv] || used[String(lv)] || 0) + Number(created[lv] || 0);
+        if (avail <= 0) continue;
+        if ((created[lv] || 0) > 0) {
+          const next = { ...created };
+          next[lv] = (next[lv] || 0) - 1;
+          if (next[lv] <= 0) delete next[lv];
+          setStorageJson('5e_created_slots', next);
+          onUpdateSheet?.({ createdSpellSlots: next });
+        } else {
+          const next = { ...used };
+          next[String(lv)] = (next[String(lv)] || 0) + 1;
+          setStorageJson('5e_slots_used', next);
+          onUpdateSheet?.({ spellSlotUsed: next });
+        }
+        consumed = true;
+        break;
+      }
+      if (!consumed) { onShowToast?.('Wild Resurgence', 'No available spell slots to expend.', 0, []); return; }
+      const res = { ...resources };
+      const beforeWS = Number(res.wild_shape || 0);
+      const slotsData = getSheetSlots(C);
+      const druidLv = (() => { let lv=0; if (String(C?.className||'').toLowerCase()==='druid') lv+=C?.classLevel||C?.level||0; (C?.extraClasses||[]).forEach(e=>{if(String(e?.name||'').toLowerCase()==='druid') lv+=e.level||0;}); return lv; })();
+      const maxWS = druidLv >= 17 ? 4 : druidLv >= 6 ? 3 : 2;
+      res.wild_shape = Math.min(maxWS, beforeWS + 1);
+      setResources(res);
+      setStorageJson('5e_resources', res);
+      onShowToast?.('Wild Resurgence', 'Regained 1 Wild Shape use by spending a spell slot.', 0, []);
+    }
+  };
 
   const applyPactSlotRecovery = (result) => {
     if (!(result?.recover > 0)) return;
@@ -197,7 +381,8 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
       if (typeof sideEffect === 'function') {
         let result = null;
         try {
-          result = sideEffect({ character: C, C, sheet, resources: res, PACT_SLOTS });
+          const slots = getSheetSlots(C);
+          result = sideEffect({ character: C, C, sheet, resources: res, PACT_SLOTS, slots });
         } catch {
           result = null;
         }
@@ -205,6 +390,14 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           applyPactSlotRecovery(result);
         } else if (result?.type === 'recover_spell_slots') {
           openSpellSlotRecovery(result, key);
+        } else if (result?.type === 'recover_resource') {
+          applyResourceRecovery(result);
+        } else if (result?.type === 'create_spell_slot_from_points') {
+          openCreateSlotDialog(result);
+        } else if (result?.type === 'convert_spell_slot_to_points') {
+          openConvertSlotDialog(result);
+        } else if (result?.type === 'wild_resurgence') {
+          openWildResurgenceDialog(result);
         }
       }
     }
@@ -273,6 +466,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
                 onRoll={onRoll}
                 onShowToast={onShowToast}
                 resMax={resMaxMap[action.resKey]}
+                onUpdateCharacter={onUpdateCharacter}
               />
             ))}
           </Box>
@@ -280,6 +474,119 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
       ))}
 
       {!actionSections.length ? <Empty text="No actions for this filter." /> : null}
+
+      <Dialog open={Boolean(createSlotDialog)} onClose={() => setCreateSlotDialog(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
+          {createSlotDialog?.label || 'Create Spell Slot'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(26,23,19,0.98)', pt: 1.25 }}>
+          {createSlotDialog ? (
+            <Box sx={{ display: 'grid', gap: 0.75 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                Choose a spell slot level to create.
+              </Typography>
+              {createSlotDialog.levels.map(({ level, cost }) => (
+                <Box
+                  key={level}
+                  onClick={() => setCreateSlotSelection(level)}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 1, border: 1,
+                    borderColor: createSlotSelection === level ? '#edd48a' : 'divider',
+                    borderRadius: 1, px: 1, py: 0.8, cursor: 'pointer',
+                    bgcolor: createSlotSelection === level ? 'rgba(237,212,138,0.1)' : 'transparent',
+                    '&:hover': { borderColor: '#edd48a', bgcolor: 'rgba(237,212,138,0.06)' },
+                  }}
+                >
+                  <Typography sx={{ flex: 1, fontSize: '0.78rem', color: 'text.primary' }}>
+                    Level {level}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#9d7fb8' }}>
+                    {cost} SP
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
+          <Button onClick={() => setCreateSlotDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={confirmCreateSlot} disabled={createSlotSelection == null}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(convertSlotDialog)} onClose={() => setConvertSlotDialog(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
+          {convertSlotDialog?.label || 'Convert Spell Slot'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(26,23,19,0.98)', pt: 1.25 }}>
+          {convertSlotDialog ? (
+            <Box sx={{ display: 'grid', gap: 0.75 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                Choose an expended spell slot to convert into Sorcery Points.
+              </Typography>
+              {convertSlotDialog.levels.map(({ level, available, hasCreated }) => (
+                <Box
+                  key={level}
+                  onClick={() => setConvertSlotSelection(level)}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 1, border: 1,
+                    borderColor: convertSlotSelection === level ? '#edd48a' : 'divider',
+                    borderRadius: 1, px: 1, py: 0.8, cursor: 'pointer',
+                    bgcolor: convertSlotSelection === level ? 'rgba(237,212,138,0.1)' : 'transparent',
+                    '&:hover': { borderColor: '#edd48a', bgcolor: 'rgba(237,212,138,0.06)' },
+                  }}
+                >
+                  <Typography sx={{ flex: 1, fontSize: '0.78rem', color: 'text.primary' }}>
+                    Level {level} ({available} available{hasCreated ? ' · includes temporary' : ''})
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#9d7fb8' }}>
+                    +{level} SP
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
+          <Button onClick={() => setConvertSlotDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={confirmConvertSlot} disabled={convertSlotSelection == null}>
+            Convert
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(wildResurgenceDialog)} onClose={() => setWildResurgenceDialog(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
+          {wildResurgenceDialog?.label || 'Wild Resurgence'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(26,23,19,0.98)', pt: 1.25 }}>
+          {wildResurgenceDialog ? (
+            <Box sx={{ display: 'grid', gap: 0.75 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                Choose an option (Wild Shape remaining: {wildResurgenceDialog.currentWS}).
+              </Typography>
+              {wildResurgenceDialog.options.map((opt) => (
+                <Box
+                  key={opt.key}
+                  onClick={() => { confirmWildResurgence(opt.key); }}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 1, border: 1,
+                    borderColor: 'divider', borderRadius: 1, px: 1, py: 0.8, cursor: 'pointer',
+                    '&:hover': { borderColor: '#edd48a', bgcolor: 'rgba(237,212,138,0.06)' },
+                  }}
+                >
+                  <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.72rem', color: '#edd48a' }}>{opt.label}</Box>
+                </Box>
+              ))}
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
+          <Button onClick={() => setWildResurgenceDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={Boolean(slotRecovery)} onClose={() => setSlotRecovery(null)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
@@ -321,7 +628,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   );
 }
 
-function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowToast, resMax }) {
+function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowToast, resMax, onUpdateCharacter }) {
   const [open, setOpen] = useState(false);
   const hasRes = action.resKey && resources && resources[action.resKey] != null;
   const resCur = hasRes ? (resources[action.resKey] ?? 0) : 0;
@@ -462,7 +769,14 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', px: '10px', py: '5px', border: 1, borderTop: 'none', borderColor: 'divider', borderRadius: '0 0 8px 8px', bgcolor: 'rgba(202,165,80,0.06)', mb: open ? 0 : '4px' }}>
           <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontFamily: '"Cinzel", Georgia, serif', mr: 0.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Uses</Typography>
           {safeMax === Infinity ? (
-            <Typography sx={{ fontSize: '0.7rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700 }}>∞</Typography>
+            typeof onResChange === 'function' ? (
+              <Box
+                onClick={(e) => { e.stopPropagation(); onResChange(action.resKey, -1); }}
+                sx={{ cursor: 'pointer', fontSize: '0.7rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, '&:hover': { opacity: 0.7 } }}
+              >∞</Box>
+            ) : (
+              <Typography sx={{ fontSize: '0.7rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700 }}>∞</Typography>
+            )
           ) : (
             Array.from({ length: safeMax }, (_, i) => {
               const available = i < resCur;
@@ -492,6 +806,9 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
       {open ? (
         <Box sx={{ ...spellBodySx, mt: hasRes ? 0 : '-1px', mb: '4px' }}>
           {action.desc}
+          {action.choiceKey && onUpdateCharacter ? (
+            <ChoicePicker action={action} C={C} onUpdateCharacter={onUpdateCharacter} onShowToast={onShowToast} />
+          ) : null}
           {action._weaponMasteryText ? (
             <Box sx={{ mt: 0.7 }}>
               <Typography sx={{ fontSize: '0.66rem', color: '#edd48a', fontWeight: 700 }}>
@@ -504,6 +821,52 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
           ) : null}
         </Box>
       ) : null}
+    </Box>
+  );
+}
+
+const _CHOICE_PICKER_OPTIONS = {
+  armorer_model: [
+    { value: 'Guardian', label: 'Guardian (Defensive Tank)' },
+    { value: 'Infiltrator', label: 'Infiltrator (Fast Striker)' },
+    { value: 'Dreadnaught', label: 'Dreadnought (Force + Reach)' },
+  ],
+};
+
+function ChoicePicker({ action, C, onUpdateCharacter, onShowToast }) {
+  const choiceKey = action.choiceKey;
+  const options = action.choiceOptions || _CHOICE_PICKER_OPTIONS[choiceKey];
+  if (!options || !options.length) return null;
+  const current = getChoiceValue(C, choiceKey);
+  const q = String(current || '').toLowerCase();
+  const match = options.find((o) => String(o.value).toLowerCase() === q);
+  const activeValue = match ? match.value : '';
+
+  const handleChange = (_, next) => {
+    if (!next || next === activeValue) return;
+    onUpdateCharacter((prev) => {
+      const choices = { ...(prev.choices || {}) };
+      choices[choiceKey] = next;
+      return { ...prev, choices };
+    });
+    onShowToast?.('Choice Updated', `${action.choiceLabel || 'Choice'}: ${next}`, 0, []);
+  };
+
+  return (
+    <Box sx={{ mt: 0.7, pt: 0.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+      <Typography sx={{ fontSize: '0.6rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif', fontWeight: 700, letterSpacing: '0.08em', mb: 0.3 }}>
+        {action.choiceLabel || 'Active Option'}
+      </Typography>
+      <ToggleButtonGroup size="small" exclusive value={activeValue} onChange={handleChange}
+        sx={{ flexWrap: 'wrap', gap: '3px', '& .MuiToggleButton-root': { fontSize: '0.65rem', px: '8px', py: '3px', border: 1, borderColor: 'divider', borderRadius: '999px !important', color: 'text.secondary', bgcolor: 'transparent', '&.Mui-selected': { bgcolor: 'rgba(202,165,80,0.14)', color: '#edd48a', borderColor: '#caa550' } } }}
+      >
+        {options.map((opt) => (
+          <ToggleButton key={opt.value} value={opt.value}>{opt.label}</ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+      <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', mt: 0.2, fontStyle: 'italic' }}>
+        {action.choiceRestNote || 'Change when you finish a Short or Long Rest (Smith\'s Tools required).'}
+      </Typography>
     </Box>
   );
 }

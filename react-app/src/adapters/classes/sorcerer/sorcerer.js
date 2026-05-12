@@ -189,6 +189,24 @@ registerClassSheetActions("Sorcerer", [
     "desc": "When you finish a Short Rest, you can regain expended Sorcery Points equal to half your Sorcerer level (rounded down). You can use this feature once per Long Rest."
   },
   {
+    "name": "Create Spell Slot (Font of Magic)",
+    "icon": "",
+    "cat": "action",
+    "uses": "Sorcery Points",
+    "resKey": "sorc_create_slot",
+    "minLevel": 2,
+    "desc": "Spend Sorcery Points to create a spell slot. Costs: L1=2 SP, L2=3 SP, L3=5 SP, L4=6 SP, L5=7 SP."
+  },
+  {
+    "name": "Convert Spell Slot (Font of Magic)",
+    "icon": "",
+    "cat": "action",
+    "uses": "Spell slot",
+    "resKey": "sorc_convert_slot",
+    "minLevel": 2,
+    "desc": "Convert an expended spell slot into Sorcery Points equal to the slot's level."
+  },
+  {
     "name": "Sorcery Incarnate",
     "icon": "",
     "cat": "bonus",
@@ -228,8 +246,74 @@ registerClassSheetResources("Sorcerer", [
     "recharge": "LR",
     "max": (lv)=>lv,
     "pool": true
+  },
+  {
+    "key": "sorc_create_slot",
+    "name": "Create/Restore Slot",
+    "icon": "sparkles",
+    "recharge": "LR",
+    "max": () => Infinity,
+    "pool": true
+  },
+  {
+    "key": "sorc_convert_slot",
+    "name": "Convert Spell Slot",
+    "icon": "refresh-cw",
+    "recharge": "LR",
+    "max": () => Infinity,
+    "pool": true
   }
 ]);
+
+if (typeof registerResourceSideEffect === 'function') {
+  registerResourceSideEffect('sorc_restoration', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
+    let sorcLv = 0;
+    if (String(C?.className || '').toLowerCase() === 'sorcerer') sorcLv += C?.classLevel || C?.level || 0;
+    (C?.extraClasses || []).forEach(function (ec) {
+      if (String(ec?.name || '').toLowerCase() === 'sorcerer') sorcLv += ec.level || 0;
+    });
+    if (!sorcLv) return null;
+    return {
+      type: 'recover_resource',
+      targetResourceKey: 'sorc_pts',
+      amount: Math.floor(sorcLv / 2),
+      label: 'Sorcerous Restoration',
+    };
+  });
+
+  registerResourceSideEffect('sorc_create_slot', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
+    const res = ctx.resources || {};
+    const currentSP = Number(res.sorc_pts || 0);
+    if (currentSP < 2) return null;
+    const sorcLv = (() => {
+      let lv = 0;
+      if (String(C?.className || '').toLowerCase() === 'sorcerer') lv += C?.classLevel || C?.level || 0;
+      (C?.extraClasses || []).forEach(function (ec) {
+        if (String(ec?.name || '').toLowerCase() === 'sorcerer') lv += ec.level || 0;
+      });
+      return lv;
+    })();
+    return {
+      type: 'create_spell_slot_from_points',
+      sourceResourceKey: 'sorc_pts',
+      currentSP,
+      maxSorcererLevel: sorcLv,
+      conversionTable: { 1: 2, 2: 3, 3: 5, 4: 6, 5: 7 },
+      maxCreatedSlotLevel: 5,
+      label: 'Create Spell Slot',
+    };
+  });
+
+  registerResourceSideEffect('sorc_convert_slot', function (ctx = {}) {
+    return {
+      type: 'convert_spell_slot_to_points',
+      targetResourceKey: 'sorc_pts',
+      label: 'Convert Spell Slot',
+    };
+  });
+}
 // [SheetRuntime] END
 
 }

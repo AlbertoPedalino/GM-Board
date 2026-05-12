@@ -210,6 +210,7 @@ registerClassSheetActions("Druid", [
     "icon": "",
     "cat": "bonus",
     "uses": "Situational",
+    "resKey": "wild_resurgence",
     "minLevel": 5,
     "desc": "If you have no Wild Shape uses left, you can spend a spell slot of lv.1 or higher to regain one. Alternatively, you can expend one Wild Shape use to regain a lv.1 spell slot (once per LR)."
   },
@@ -256,11 +257,45 @@ registerClassSheetResources("Druid", [
     "recharge": "LR",
     "srRecover": 1,
     "max": (lv)=>lv>=17?4:lv>=6?3:2
+  },
+  {
+    "key": "wild_resurgence",
+    "name": "Wild Resurgence",
+    "icon": "refresh-cw",
+    "recharge": "LR",
+    "max": () => Infinity,
+    "pool": true
   }
 ]);
 registerClassSheetProficiencies("Druid", [
   { type: "language", values: ["Druidic"], minLevel: 1 }
 ]);
+
+if (typeof registerResourceSideEffect === 'function') {
+  registerResourceSideEffect('wild_resurgence', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
+    const res = ctx.resources || {};
+    const currentWS = Number(res.wild_shape || 0);
+    const slots = ctx.slots || { regular: [] };
+    const used = ctx.sheet?.spellSlotUsed || {};
+    const created = ctx.sheet?.createdSpellSlots || {};
+    const hasWildShape = currentWS > 0;
+    let hasAvailableSlot = false;
+    for (let lv = 1; lv <= slots.regular.length; lv++) {
+      const total = Number(slots.regular[lv - 1] || 0);
+      if (!total) continue;
+      const avail = total - Number(used[lv] || used[String(lv)] || 0) + Number(created[lv] || 0);
+      if (avail > 0) { hasAvailableSlot = true; break; }
+    }
+    return {
+      type: 'wild_resurgence',
+      hasWildShape,
+      hasAvailableSlot,
+      currentWS,
+      label: 'Wild Resurgence',
+    };
+  });
+}
 // [SheetRuntime] END
 
 }

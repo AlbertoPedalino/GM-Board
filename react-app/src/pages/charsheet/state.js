@@ -27,6 +27,8 @@ export function loadSheetState(C) {
   const usedHDPools = usedHDPoolsRaw && typeof usedHDPoolsRaw === 'object' && !Array.isArray(usedHDPoolsRaw) ? usedHDPoolsRaw : {};
 
   const spellSlotUsed = getStorageJson('5e_slots_used', {});
+  const createdSpellSlots = getStorageJson('5e_created_slots', {});
+  const arcaneArmorItemKey = getStorageItem('5e_arcane_armor_item') || null;
 
   let sheetInventory = getStorageJson('5e_inventory', C.inventory || []);
   if (Array.isArray(sheetInventory) && !sheetInventory.length && Array.isArray(C?.inventory) && C.inventory.length) {
@@ -45,8 +47,8 @@ export function loadSheetState(C) {
   const notes = getStorageItem('5e_notes', '');
 
   return {
-    currentHP, maxHP, maxHPBonus, tempHP, deathSaves, usedHD, usedHDPools, spellSlotUsed,
-    sheetInventory, sheetCurrency, sheetInspiration, activeConditions, xpStored, notes,
+    currentHP, maxHP, maxHPBonus, tempHP, deathSaves, usedHD, usedHDPools, spellSlotUsed, createdSpellSlots,
+    sheetInventory, sheetCurrency, sheetInspiration, activeConditions, xpStored, notes, arcaneArmorItemKey,
   };
 }
 

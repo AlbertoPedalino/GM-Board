@@ -90,11 +90,19 @@ function requiredChoicePasses(effect, character) {
   return values.includes(expected);
 }
 
+function requiredItemFlagPasses(effect, character) {
+  const flag = effect?.requiredItemFlag;
+  if (!flag) return true;
+  const inv = character?.inventory || [];
+  return inv.some((item) => (item.flags || []).includes(flag));
+}
+
 function effectIsActive(effect, context) {
   if (!effect || typeof effect !== 'object') return false;
   const minLevel = Number(effect.minLevel || 1);
   if (Number(context.ownerLevel || 1) < minLevel) return false;
   if (!requiredChoicePasses(effect, context.character)) return false;
+  if (!requiredItemFlagPasses(effect, context.character)) return false;
   return conditionPasses(effect, context);
 }
 

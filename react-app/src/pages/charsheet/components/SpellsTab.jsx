@@ -47,6 +47,7 @@ import {
 } from './spellsTabStyles.js';
 import SpellEntry from './SpellEntry.jsx';
 import { Empty, SlotPanel, SpellSection, StatBox } from './SpellsUiParts.jsx';
+import { SpellNameLink } from '../../../shared/character/FiveEToolsLink.jsx';
 
 export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpdateSheet }) {
   const [spellDb, setSpellDb] = useState([]);
@@ -57,6 +58,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
   const [pickerClassIndex, setPickerClassIndex] = useState(0);
   const [pickerWizardMode, setPickerWizardMode] = useState('prepare');
   const [slotUsed, setSlotUsed] = useState(sheet?.spellSlotUsed || {});
+  const [createdSlots, setCreatedSlots] = useState(sheet?.createdSpellSlots || {});
 
   const classNames = useMemo(() => [C?.className, ...(C?.extraClasses || []).map((extra) => extra.name)].filter(Boolean), [C]);
 
@@ -80,7 +82,8 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
 
   useEffect(() => {
     setSlotUsed(sheet?.spellSlotUsed || {});
-  }, [sheet?.spellSlotUsed]);
+    setCreatedSlots(sheet?.createdSpellSlots || {});
+  }, [sheet?.spellSlotUsed, sheet?.createdSpellSlots]);
 
   const spellIndex = useMemo(() => {
     const map = new Map();
@@ -210,8 +213,19 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
     ...Object.values(activePicker?.bucket?.selectedSpells || {}).flat(),
   ]);
 
-  const toggleSlot = (level, total, index) => {
+  const toggleSlot = (level, total, index, createdCount) => {
     const used = slotUsed[level] || 0;
+    if (index >= total) {
+      const created = createdCount || createdSlots[level] || 0;
+      if (created <= 0) return;
+      const next = { ...createdSlots };
+      next[level] = created - 1;
+      if (next[level] <= 0) delete next[level];
+      setCreatedSlots(next);
+      setStorageJson('5e_created_slots', next);
+      onUpdateSheet?.({ createdSpellSlots: next });
+      return;
+    }
     const nextUsed = index < used ? Math.max(0, index) : index + 1;
     const next = { ...slotUsed, [level]: nextUsed };
     setSlotUsed(next);
@@ -321,7 +335,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
         </Alert>
       ) : null}
 
-      <SlotPanel slots={slots} used={slotUsed} onToggle={toggleSlot} />
+      <SlotPanel slots={slots} used={slotUsed} created={createdSlots} onToggle={toggleSlot} />
 
       <SpellSection title="Cantrip">
         {spellInfo.cantrips.map((entry) => <SpellEntry key={entry.name} entry={entry} onShowToast={onShowToast} atk={atk} spellMod={spellMod} C={C} installedRegistry={installedRegistry} />)}
@@ -462,7 +476,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
                 <Box key={`${spell.name}-${spell.source}`} onClick={onClick}
                   sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: '9px', py: '6px', border: 1, borderColor: selected ? '#58b879' : 'transparent', borderRadius: 1, bgcolor: selected ? 'rgba(39,174,96,0.08)' : 'transparent', opacity: atLimit ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'pointer', '&:hover': { borderColor: selected ? '#58b879' : 'divider', bgcolor: selected ? 'rgba(39,174,96,0.08)' : 'rgba(35,32,26,1)' } }}>
                   <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 0.4 }}>
-                    <Typography sx={{ minWidth: 0, fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{spell.name}</Typography>
+                    <SpellNameLink spell={spell} sx={{ minWidth: 0, fontSize: '0.875rem', color: 'text.primary' }} />
                     <SpellMiniTags spell={spell} />
                   </Box>
                   <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{SPELL_LEVEL_LABELS[spell.level] || `Lv ${spell.level}`}</Typography>

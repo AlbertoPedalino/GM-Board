@@ -1,5 +1,6 @@
 import { getMod, getFinal, getPB } from './calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
+import { hasActionRequirement } from '../../../shared/character/choiceUtils.js';
 import { getWeaponProficiencyInfo, hasNonProficientArmor } from './proficiencies.js';
 import {
   collectResolvedWeaponMasteries,
@@ -50,9 +51,9 @@ export function normalizeResourceMax(def, C = null) {
   return Math.max(0, Math.floor(n));
 }
 
-function hasCondition(def, C) {
-  if (typeof def?.condition !== 'function') return true;
-  try { return !!def.condition(C); } catch { return false; }
+function hasCondition(def, C, sheet) {
+  if (typeof def?.condition !== 'function' && !def?.requiresChoice && !(def?.choiceKey && def?.model) && !def?.requiresInventoryFlag) return true;
+  try { return hasActionRequirement(def, C, sheet); } catch { return false; }
 }
 
 function getClassEntities(C) {
@@ -155,19 +156,23 @@ export function resolveActionFormulas(action, C) {
   if (typeof action.healFormula === 'function') patch.healFormula = action.healFormula(ctx);
   if (typeof action.damageFormula === 'function') patch.damageFormula = action.damageFormula(ctx);
   if (typeof action.damageButtonLabel === 'function') patch.damageButtonLabel = action.damageButtonLabel(ctx);
+  if (typeof action.attackBonus === 'function') {
+    const resolved = action.attackBonus(ctx);
+    if (Number.isFinite(resolved)) patch.attackBonus = resolved;
+  }
   if (Object.keys(patch).length) return { ...action, ...patch };
 
   return action;
 }
 
-export function collectAdapterActions(C) {
+export function collectAdapterActions(C, sheet) {
   const out = [];
   const pushFiltered = (arr, source, ownerLevel = C?.level ?? 1) => {
     (arr || []).forEach(a => {
       if (!a || !a.name) return;
       const lv = Number(a.ownerLevel ?? ownerLevel ?? C?.level ?? 1);
       if (a.minLevel && lv < Number(a.minLevel)) return;
-      if (!hasCondition(a, C)) return;
+      if (!hasCondition(a, C, sheet)) return;
       if (!isExecutableAction(a)) return;
       out.push({ ...a, ownerLevel: lv, ownerName: a.ownerName || source, _source: a.ownerName || source });
     });

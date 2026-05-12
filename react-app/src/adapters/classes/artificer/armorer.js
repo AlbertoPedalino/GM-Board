@@ -2,6 +2,9 @@ import { createAdapterBindings } from '../../adapterBindings.js';
 import { getArtificerConditionalBonusToolCount } from './artificerTools.js';
 
 export default function install(registry, context = {}) {
+  const getPB = context?.getPB;
+  const getMod = context?.getMod;
+  const getFinal = context?.getFinal;
   const {
     SKILLS,
     _ARTISAN_TOOLS,
@@ -152,28 +155,29 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "action",
     "uses": "At will",
     "minLevel": 3,
-    "desc": "Magic action (Smith's Tools in hand): turn worn armor into Arcane Armor. Benefits: no Strength requirement, don/doff as Utilize action (can't be removed against will), use as spellcasting focus. Change armor model on Short or Long Rest (Smith's Tools required).",
-    "extraBodyHtml": function (C) {
-      if (typeof _sheetChoicePickerHtml !== 'function') return '';
-      const keys = Object.keys((C && C.choices) || {});
-      const key = keys.find(k => k === 'armorer_model' || /^mc\d+_armorer_model$/.test(k)) || 'armorer_model';
-      return _sheetChoicePickerHtml(key, [
-        { value: 'Dreadnaught', label: 'Dreadnought (Force, Reach, Giant Stature)' },
-        { value: 'Guardian', label: 'Guardian (Thunder, Defensive Field)' },
-        { value: 'Infiltrator', label: 'Infiltrator (Lightning, +5 Speed, Stealth ADV)' }
-      ], { label: 'Arcane Armor Model' });
-    }
+    "choiceKey": "armorer_model",
+    "choiceLabel": "Arcane Armor Model",
+    "desc": "Magic action (Smith's Tools in hand): turn worn armor into Arcane Armor. Benefits: no Strength requirement, don/doff as Utilize action (can't be removed against will), use as spellcasting focus. Change armor model on Short or Long Rest (Smith's Tools required)."
   },
   {
-    "name": "Thunder Pulse",
+    "name": "Thunder Gauntlets",
     "icon": "",
     "cat": "attack",
     "uses": "At will",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Guardian",
-    "attackAbility": "int",
-    "damageFormula": "1d8",
+    "requiresChoice": { "key": "armorer_model", "value": "Guardian" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
+    "attackBonus": ({ character }) => {
+      if (typeof getPB !== 'function' || typeof getMod !== 'function' || typeof getFinal !== 'function') return 0;
+      try { return getPB(character) + getMod(getFinal(character, 'int')); } catch { return 0; }
+    },
+    "damageFormula": ({ character }) => {
+      if (typeof getMod !== 'function' || typeof getFinal !== 'function') return '1d8';
+      try {
+        const intMod = getMod(getFinal(character, 'int'));
+        return intMod > 0 ? `1d8+${intMod}` : intMod < 0 ? `1d8${intMod}` : '1d8';
+      } catch { return '1d8'; }
+    },
     "damageButtonLabel": ({ formula }) => `${formula} thunder`,
     "damageKind": "damage",
     "desc": "Guardian model Simple Melee weapon (INT to attack/damage). On a hit, the target has Disadvantage on attack rolls against targets other than you until the start of your next turn."
@@ -184,8 +188,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "bonus",
     "uses": "At will (while Bloodied)",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Guardian",
+    "requiresChoice": { "key": "armorer_model", "value": "Guardian" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
     "desc": "Guardian model. While Bloodied (at or below half HP), take a Bonus Action to gain Temporary HP equal to your Artificer level. Lost if you doff the armor."
   },
   {
@@ -194,13 +198,35 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "attack",
     "uses": "At will",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Infiltrator",
-    "attackAbility": "int",
-    "damageFormula": "1d6",
+    "requiresChoice": { "key": "armorer_model", "value": "Infiltrator" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
+    "attackBonus": ({ character }) => {
+      if (typeof getPB !== 'function' || typeof getMod !== 'function' || typeof getFinal !== 'function') return 0;
+      try { return getPB(character) + getMod(getFinal(character, 'int')); } catch { return 0; }
+    },
+    "damageFormula": ({ character }) => {
+      if (typeof getMod !== 'function' || typeof getFinal !== 'function') return '1d6';
+      try {
+        const intMod = getMod(getFinal(character, 'int'));
+        return intMod > 0 ? `1d6+${intMod}` : intMod < 0 ? `1d6${intMod}` : '1d6';
+      } catch { return '1d6'; }
+    },
     "damageButtonLabel": ({ formula }) => `${formula} lightning`,
     "damageKind": "damage",
     "desc": "Infiltrator model Simple Ranged weapon (range 90/300, INT to attack/damage). Once per turn, one creature you hit also takes an extra 1d6 Lightning damage."
+  },
+  {
+    "name": "Lightning Launcher Extra",
+    "icon": "",
+    "cat": "attack",
+    "uses": "Once/turn",
+    "minLevel": 3,
+    "requiresChoice": { "key": "armorer_model", "value": "Infiltrator" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
+    "damageFormula": "1d6",
+    "damageButtonLabel": "+1d6 lightning (extra)",
+    "damageKind": "damage",
+    "desc": "Once on each of your turns when you hit a creature with Lightning Launcher, you can deal an extra 1d6 Lightning damage."
   },
   {
     "name": "Powered Steps",
@@ -208,8 +234,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Infiltrator",
+    "requiresChoice": { "key": "armorer_model", "value": "Infiltrator" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
     "desc": "Infiltrator model passive: your Speed increases by 5 ft."
   },
   {
@@ -218,8 +244,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "action",
     "uses": "Passive",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Infiltrator",
+    "requiresChoice": { "key": "armorer_model", "value": "Infiltrator" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
     "desc": "Infiltrator model passive: Advantage on DEX (Stealth) checks. If the armor imposes Disadvantage on such checks, they cancel each other."
   },
   {
@@ -228,10 +254,19 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "cat": "attack",
     "uses": "At will",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Dreadnaught",
-    "attackAbility": "int",
-    "damageFormula": "1d10",
+    "requiresChoice": { "key": "armorer_model", "value": "Dreadnaught" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
+    "attackBonus": ({ character }) => {
+      if (typeof getPB !== 'function' || typeof getMod !== 'function' || typeof getFinal !== 'function') return 0;
+      try { return getPB(character) + getMod(getFinal(character, 'int')); } catch { return 0; }
+    },
+    "damageFormula": ({ character }) => {
+      if (typeof getMod !== 'function' || typeof getFinal !== 'function') return '1d10';
+      try {
+        const intMod = getMod(getFinal(character, 'int'));
+        return intMod > 0 ? `1d10+${intMod}` : intMod < 0 ? `1d10${intMod}` : '1d10';
+      } catch { return '1d10'; }
+    },
     "damageButtonLabel": ({ formula }) => `${formula} force`,
     "damageKind": "damage",
     "desc": "Dreadnaught model Simple Melee weapon with Reach (INT to attack/damage). On a hit, if the target is at least one size smaller than you: push it up to 10 ft away or pull it up to 10 ft toward you."
@@ -243,8 +278,8 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "uses": "INT mod / LR",
     "resKey": "armorer_giant_stature",
     "minLevel": 3,
-    "choiceKey": "armorer_model",
-    "model": "Dreadnaught",
+    "requiresChoice": { "key": "armorer_model", "value": "Dreadnaught" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] },
     "desc": "Dreadnaught model. Bonus Action: enlarge armor for 1 minute — reach +5 ft, and if smaller than Large you become Large (if space permits). Uses: INT modifier (min 1) per Long Rest."
   },
   {
@@ -270,8 +305,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "uses": "INT mod / LR",
     "resKey": "perfected_guardian",
     "minLevel": 15,
-    "choiceKey": "armorer_model",
-    "model": "Guardian",
+    "requiresChoice": { "key": "armorer_model", "value": "Guardian" },
     "desc": "Thunder Pulse damage increases to 1d10. Reaction when a Huge or smaller creature ends its turn within 30 ft: force STR save (spell save DC). On fail, pull creature up to 25 ft toward you; if within 5 ft, make a melee weapon attack as part of the Reaction. Uses: INT modifier (min 1) per Long Rest."
   },
   {
@@ -281,8 +315,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "uses": "INT mod / LR",
     "resKey": "perfected_infiltrator",
     "minLevel": 15,
-    "choiceKey": "armorer_model",
-    "model": "Infiltrator",
+    "requiresChoice": { "key": "armorer_model", "value": "Infiltrator" },
     "desc": "Lightning Launcher damage increases to 2d6. Creatures that take Lightning damage from it glimmer until your next turn: shed Dim Light 5 ft, have Disadvantage on attacks against you. Bonus Action: gain Fly Speed = 2× your Speed until end of turn. Uses: INT modifier (min 1) per Long Rest."
   },
   {
@@ -292,8 +325,7 @@ registerSubclassSheetActions("Artificer_Armorer", [
     "uses": "INT mod / LR",
     "resKey": "armorer_giant_stature",
     "minLevel": 15,
-    "choiceKey": "armorer_model",
-    "model": "Dreadnaught",
+    "requiresChoice": { "key": "armorer_model", "value": "Dreadnaught" },
     "desc": "Force Demolisher damage increases to 2d6. During Giant Stature: reach +10 ft (instead of +5), size can increase to Large or Huge (your choice), and you have Advantage on STR checks and STR saving throws for the duration."
   }
 ]);
@@ -303,21 +335,27 @@ registerSubclassSheetResources("Artificer_Armorer", [
     "name": "Giant Stature",
     "icon": "maximize",
     "recharge": "LR",
-    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0),
+    "requiresChoice": { "key": "armorer_model", "value": "Dreadnaught" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] }
   },
   {
     "key": "perfected_guardian",
     "name": "Perfected Guardian Pull",
     "icon": "magnet",
     "recharge": "LR",
-    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0),
+    "requiresChoice": { "key": "armorer_model", "value": "Guardian" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] }
   },
   {
     "key": "perfected_infiltrator",
     "name": "Infiltrator Fly",
     "icon": "feather",
     "recharge": "LR",
-    "max": (lv, { int } = {}) => Math.max(1, int ?? 0)
+    "max": (lv, { int } = {}) => Math.max(1, int ?? 0),
+    "requiresChoice": { "key": "armorer_model", "value": "Infiltrator" },
+    "requiresInventoryFlag": { "flag": "arcaneArmor", "itemType": ["LA", "MA", "HA"] }
   }
 ]);
 registerSubclassSheetProficiencies("Artificer_Armorer", [

@@ -56,7 +56,7 @@ export function deleteRegistryEntry(registryKey, id) {
     const UNSCOPED_KEYS = [
       '5e_current_char', '5e_builder_state', '5e_inventory', '5e_currency',
       '5e_hp_current', '5e_hp_max_bonus', '5e_hp_temp', '5e_death_saves',
-      '5e_hd_used', '5e_hd_used_pools', '5e_slots_used', '5e_inspiration',
+      '5e_hd_used', '5e_hd_used_pools', '5e_slots_used', '5e_created_slots', '5e_inspiration',
       '5e_conditions_active', '5e_xp', '5e_notes', '5e_resources',
     ];
     UNSCOPED_KEYS.forEach((k) => localStorage.removeItem(k));

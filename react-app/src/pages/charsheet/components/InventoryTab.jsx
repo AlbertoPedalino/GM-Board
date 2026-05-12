@@ -3,6 +3,8 @@ import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, Stack }
 import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle } from 'lucide-react';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import { getFinal } from '../logic/calculations.js';
+import { ItemNameLink } from '../../../shared/character/FiveEToolsLink.jsx';
+import { setStorageItem, setStorageJson } from '../../../shared/storage.js';
 import { getArmorPenalties } from '../logic/armorPenalties.js';
 import { renderEntries } from '../logic/renderEntries.js';
 
@@ -223,7 +225,7 @@ const SearchResultsList = memo(function SearchResultsList({ items, itemsDbCount,
         {visibleItems.map((item) => (
           <Box key={`${item.name}-${item.source}`} onClick={() => onAddItem(item)}
             sx={{ height: SEARCH_ROW_HEIGHT - 2, display: 'flex', alignItems: 'center', gap: 1, px: '10px', py: '4px', bgcolor: 'rgba(35,32,26,1)', border: 1, borderColor: 'divider', borderRadius: 1, cursor: 'pointer', '&:hover': { borderColor: '#caa550', bgcolor: 'rgba(44,40,33,1)' } }}>
-            <Typography sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</Typography>
+            <ItemNameLink item={item} sx={{ flex: 1, minWidth: 0, fontSize: '0.875rem', color: 'text.primary' }} />
             <Typography sx={{ fontSize: '0.62rem', color: '#edd48a', flexShrink: 0, fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>{item.source || '—'}</Typography>
             <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', flexShrink: 0 }}>{item.type || 'gear'}</Typography>
             <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', flexShrink: 0 }}>{formatGp(item.value)}</Typography>
@@ -368,6 +370,43 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
     updateInv(next);
   }, [C, updateInv]);
 
+  const isArmorer = useMemo(() => {
+    if (!C) return false;
+    const cls = String(C.className || '').toLowerCase();
+    const sub = String(C.subclassShortName || '').toLowerCase();
+    const lv = Number(C.classLevel || C.level || 1);
+    if (cls === 'artificer' && sub === 'armorer' && lv >= 3) return true;
+    return (C.extraClasses || []).some((ec) => String(ec.name || '').toLowerCase() === 'artificer' && String(ec.subclassShortName || '').toLowerCase() === 'armorer' && (ec.level || 1) >= 3);
+  }, [C]);
+
+  const _isArcaneEligible = (item) => {
+    const t = String(item.type || '').toUpperCase();
+    if (['S', 'SHIELD'].includes(t)) return false;
+    const n = String(item.name || '').toLowerCase();
+    if (n === 'shield' || n.endsWith(' shield')) return false;
+    const b = String(item.baseItem || '').toLowerCase();
+    if (b === 'shield' || b.endsWith(' shield')) return false;
+    return ['LA', 'MA', 'HA'].includes(t);
+  };
+
+  const toggleArcaneArmor = useCallback((index) => {
+    const current = invRef.current || [];
+    const target = current[index];
+    if (!_isArcaneEligible(target)) return;
+    const alreadyHas = hasItemFlag(target, 'arcaneArmor');
+    const next = current.map((item, idx) => {
+      if (idx !== index) {
+        if (alreadyHas) return item;
+        const flags = itemFlags(item).filter((flag) => flag !== 'arcaneArmor');
+        return { ...item, flags };
+      }
+      const flags = itemFlags(item).filter((flag) => flag !== 'arcaneArmor');
+      if (alreadyHas) return { ...item, flags };
+      return { ...item, flags: [...flags, 'arcaneArmor'] };
+    });
+    updateInv(next);
+  }, [updateInv]);
+
   const updateCoin = useCallback((coin, value) => {
     const next = { ...currency, [coin]: Math.max(0, Number(value || 0)) };
     onUpdateCurrency?.(next);
@@ -492,6 +531,9 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
                 penaltyMsg={getPenaltyMessage(C, item)}
                 canPactWeapon={canUsePactWeaponFlag(C, item)}
                 onPactWeapon={togglePactWeapon}
+                isArmorer={isArmorer}
+                hasArcaneArmor={hasItemFlag(item, 'arcaneArmor')}
+                onArcaneArmor={toggleArcaneArmor}
               />
             ))}
           </Box>
@@ -548,7 +590,7 @@ const getPenaltyMessage = (() => {
   };
 })();
 
-const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, penaltyMsg, canPactWeapon, onPactWeapon }) {
+const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, penaltyMsg, canPactWeapon, onPactWeapon, isArmorer, hasArcaneArmor, onArcaneArmor }) {
   const [open, setOpen] = useState(false);
   const type = String(item.type || '').toUpperCase();
   const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI', 'WEAPON', 'ARMOR'].includes(type);
@@ -571,10 +613,12 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
           <Box sx={{ color, border: 1, borderColor: color, borderRadius: '3px', px: '5px', py: '1px', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', lineHeight: 1.35, textTransform: 'uppercase', textAlign: 'center' }}>{typeLabel}</Box>
         </Box>
         <Box onClick={() => setOpen(!open)} sx={{ flex: 1, minWidth: 0, cursor: body ? 'pointer' : 'default' }}>
-          <Typography sx={{ fontSize: '0.875rem', color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {item.name} {item.custom ? <Box component="span" sx={{ fontSize: '0.56rem', color: 'text.secondary' }}>[custom]</Box> : null}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
+            <ItemNameLink item={item} sx={{ fontSize: '0.875rem', color: 'text.primary' }} />
+            {item.custom ? <Box component="span" sx={{ fontSize: '0.56rem', color: 'text.secondary' }}>[custom]</Box> : null}
             {hasItemFlag(item, 'pactWeapon') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#9d7fb8', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Pact Weapon]</Box> : null}
-          </Typography>
+            {hasItemFlag(item, 'arcaneArmor') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#58b879', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Arcane Armor]</Box> : null}
+          </Box>
           {meta ? <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</Typography> : null}
           {penaltyMsg && (
             <Typography sx={{ fontSize: '0.6rem', color: 'warning.main', mt: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -592,6 +636,12 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
           <Button size="small" onClick={() => onPactWeapon(index)} startIcon={hasItemFlag(item, 'pactWeapon') ? <Check size={11} /> : null}
             sx={{ minWidth: 0, px: '7px', py: '2px', border: 1, borderColor: hasItemFlag(item, 'pactWeapon') ? '#9d7fb8' : 'divider', borderRadius: '3px', color: hasItemFlag(item, 'pactWeapon') ? '#9d7fb8' : 'text.secondary', bgcolor: hasItemFlag(item, 'pactWeapon') ? 'rgba(157,127,184,0.14)' : 'transparent', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.58rem' }}>
             {hasItemFlag(item, 'pactWeapon') ? 'Pact' : 'Pact Weapon'}
+          </Button>
+        ) : null}
+        {isArmorer && (() => { const t = String(item.type || '').toUpperCase(); const n = String(item.name || '').toLowerCase(); return ['LA', 'MA', 'HA'].includes(t) && !['S', 'SHIELD'].includes(t) && n !== 'shield' && !n.endsWith(' shield'); })() ? (
+          <Button size="small" onClick={() => onArcaneArmor(index)} startIcon={hasArcaneArmor ? <Check size={11} /> : null}
+            sx={{ minWidth: 0, px: '7px', py: '2px', border: 1, borderColor: hasArcaneArmor ? '#58b879' : 'divider', borderRadius: '3px', color: hasArcaneArmor ? '#58b879' : 'text.secondary', bgcolor: hasArcaneArmor ? 'rgba(88,184,121,0.14)' : 'transparent', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.58rem' }}>
+            {hasArcaneArmor ? 'Arcane' : 'Arcane Armor'}
           </Button>
         ) : null}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>

@@ -3,6 +3,7 @@ import { Box, Chip, InputAdornment, List, ListItemButton, ListItemText, Paper, S
 import { BookOpen, Search } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
 import { SPELL_LEVEL_LABELS } from '../constants.js';
+import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { collectAutoGrantedSpells, getSpellCounts, maxSpellLevel, spellMatchesAnyClass } from '../spells/spells.js';
 import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
@@ -160,6 +161,7 @@ export default function SpellSelectionPanel({ state, dispatch }) {
                       sx={{ alignItems: 'flex-start', opacity: disabled ? 0.55 : 1 }}
                       onClick={onClick}
                     >
+                      <SpellNameIcon spell={spell} />
                       <ListItemText
                         primary={(
                           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>

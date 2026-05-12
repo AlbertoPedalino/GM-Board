@@ -4,6 +4,7 @@ import { Button, Chip, Divider, Grid, InputAdornment, List, ListItem, ListItemBu
 import { Backpack, Coins, PackagePlus, Search } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import { CURRENCY, ITEM_FILTERS } from '../constants.js';
+import { ItemNameLink, ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { cleanText } from '../logic/text.js';
 
 const CHOICE_KEYS = ['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e'];
@@ -145,6 +146,7 @@ function resolveEquipmentItems(extracted, itemDb, fallbackSource) {
 const ItemRow = memo(function ItemRow({ item, onAdd, style }) {
   return (
     <ListItemButton divider onClick={onAdd} sx={{ gap: 1 }} style={style}>
+      <ItemNameIcon item={item} />
       <ListItemText
         primary={<Typography fontWeight={500} noWrap>{item.name}</Typography>}
         secondary={[item.source, item.rarity && item.rarity !== 'none' ? item.rarity : null, `${item.weight || 0} lb`].filter(Boolean).join(' - ')}
@@ -329,7 +331,7 @@ export default function EquipmentStep({ state, dispatch }) {
                 </Stack>
               )}>
                 <ListItemText
-                  primary={<Typography fontWeight={500}>{item.name}</Typography>}
+                  primary={<ItemNameLink item={item} sx={{ fontWeight: 500 }} />}
                   secondary={[item.source, `${item.weight || 0} lb each`, item.type].filter(Boolean).join(' - ')}
                 />
               </ListItem>

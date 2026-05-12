@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import { spellMatchesAnyClass } from '../spells/spells.js';
 import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
+import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 
 const SPELL_LEVEL_LABELS = ['Cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
@@ -42,6 +43,7 @@ export default function SpellChoiceList({ spec, state, dispatch }) {
                   disabled={full}
                   onClick={() => dispatch({ type: 'choice/toggle-item', key: spec.key, value: spell.name, max })}
                 >
+                  <SpellNameIcon spell={spell} />
                   <ListItemText
                     primary={(
                       <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>

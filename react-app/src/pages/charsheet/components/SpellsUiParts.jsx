@@ -27,7 +27,7 @@ export function SpellSection({ title, children }) {
   );
 }
 
-export function SlotPanel({ slots, used, onToggle }) {
+export function SlotPanel({ slots, used, created, onToggle }) {
   const hasRegular = (slots.regular || []).some(Boolean);
   const hasPact = slots.pact && slots.pact.count > 0;
   if (!hasRegular && !hasPact) return null;
@@ -37,21 +37,25 @@ export function SlotPanel({ slots, used, onToggle }) {
         <>
           <Typography sx={{ ...levelHeaderSx, color: '#caa550', borderColor: 'rgba(202,165,80,0.18)' }}>Spell Slots</Typography>
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.4 }}>
-            {slots.regular.map((total, idx) => total ? <SlotGroup key={idx + 1} level={idx + 1} total={total} used={used[idx + 1] || 0} onToggle={onToggle} /> : null)}
+            {slots.regular.map((total, idx) => {
+              const lv = idx + 1;
+              const createdCount = Number((created || {})[lv] || 0);
+              return total ? <SlotGroup key={lv} level={lv} total={total} used={used[lv] || 0} created={createdCount} onToggle={onToggle} /> : null;
+            })}
           </Box>
         </>
       ) : null}
       {hasPact ? (
         <Box sx={{ mt: hasRegular ? 1 : 0 }}>
           <Typography sx={{ ...levelHeaderSx, color: '#9d7fb8', borderColor: 'rgba(157,127,184,0.22)' }}>Pact Slots ({slots.pact.count}x {slots.pact.level})</Typography>
-          <SlotGroup level={slots.pact.level} total={slots.pact.count} used={used[slots.pact.level] || 0} onToggle={onToggle} />
+          <SlotGroup level={slots.pact.level} total={slots.pact.count} used={used[slots.pact.level] || 0} created={0} onToggle={onToggle} />
         </Box>
       ) : null}
     </Box>
   );
 }
 
-function SlotGroup({ level, total, used, onToggle }) {
+function SlotGroup({ level, total, used, created = 0, onToggle }) {
   return (
     <Box sx={{ minWidth: 42 }}>
       <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.56rem', color: 'text.secondary', textAlign: 'center', mb: '3px', letterSpacing: '0.08em' }}>{level}</Box>
@@ -59,7 +63,7 @@ function SlotGroup({ level, total, used, onToggle }) {
         {Array.from({ length: total }, (_, index) => (
           <Box
             key={index}
-            onClick={() => onToggle(level, total, index)}
+            onClick={() => onToggle(level, total, index, created)}
             sx={{
               width: 14,
               height: 14,
@@ -72,7 +76,25 @@ function SlotGroup({ level, total, used, onToggle }) {
             }}
           />
         ))}
+        {created > 0 ? (
+          <Box
+            onClick={() => onToggle(level, total, total, created)}
+            sx={{
+              width: 14, height: 14, borderRadius: '50%', cursor: 'pointer',
+              border: '1.5px dashed', borderColor: '#58b879',
+              bgcolor: 'rgba(88,184,121,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              '&:hover': { borderColor: '#edd48a' },
+            }}
+            title={`Temporary slot${created > 1 ? 's' : ''}: ${created}`}
+          />
+        ) : null}
       </Box>
+      {created > 0 ? (
+        <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.5rem', color: '#58b879', textAlign: 'center', mt: '2px', letterSpacing: '0.04em' }}>
+          +{created}
+        </Box>
+      ) : null}
     </Box>
   );
 }

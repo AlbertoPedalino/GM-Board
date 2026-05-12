@@ -1,7 +1,29 @@
 import { Box, Paper, Typography, Tooltip } from '@mui/material';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Sparkles } from 'lucide-react';
 import { SKILLS, getSkillProficiency, getSkillBonus, fbonus, SLBL } from '../logic/calculations.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
+import { matchesChoiceRequirement, inventoryHasFlag } from '../../../shared/character/choiceUtils.js';
+
+const _SKILL_ADVANTAGES = [
+  {
+    skill: 'stealth',
+    label: 'Dampening Field',
+    requiresChoice: { key: 'armorer_model', value: 'infiltrator' },
+    requiresInventoryFlag: { flag: 'arcaneArmor', itemType: ['LA', 'MA', 'HA'] },
+  },
+];
+
+function getSkillAdvantage(C, skillName) {
+  const inv = C?.inventory || [];
+  const s = String(skillName || '').toLowerCase();
+  for (const config of _SKILL_ADVANTAGES) {
+    if (config.skill !== s) continue;
+    if (config.requiresChoice && !matchesChoiceRequirement(C, config.requiresChoice)) continue;
+    if (config.requiresInventoryFlag && !inventoryHasFlag(inv, config.requiresInventoryFlag)) continue;
+    return { source: config.label };
+  }
+  return null;
+}
 
 export default function Skills({ C, sheet, onRoll }) {
   const armorPenalties = getEquippedArmorPenalties(C, sheet?.sheetInventory || C?.inventory || []);
@@ -28,9 +50,15 @@ export default function Skills({ C, sheet, onRoll }) {
           armorPenalties.disadvantageOn.includes(`${sk.a}-checks`)
           || (isStealth && armorPenalties.disadvantageOn.includes('dex-stealth'))
         );
+        const hasAdv = getSkillAdvantage(C, sk.n);
+        const hasBoth = hasAdv && hasDisadv;
         
         return (
-          <Box key={sk.n} onClick={() => onRoll(sk.n, bonus, { disadvantage: hasDisadv })}
+          <Box key={sk.n} onClick={() => {
+            const withAdv = hasAdv && !hasDisadv;
+            const withDis = hasDisadv && !hasAdv;
+            onRoll(sk.n, bonus, withAdv ? { advantage: true } : withDis ? { disadvantage: true } : {});
+          }}
             sx={{ display: 'grid', gridTemplateColumns: '20px 30px 1fr auto', gap: '4px', px: '0.9rem', py: '3px', alignItems: 'center', cursor: 'pointer', transition: 'background 0.1s', '&:hover': { bgcolor: 'rgba(202,165,80,0.05)' } }}>
             <Box />
             <Box sx={{ width: 9, height: 9, borderRadius: '50%', border: 1, borderColor: dotColor, bgcolor: prof ? dotColor : 'transparent' }} />
@@ -44,7 +72,12 @@ export default function Skills({ C, sheet, onRoll }) {
               <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', textAlign: 'right' }}>
                 {fbonus(bonus)}
               </Typography>
-              {hasDisadv && (
+              {hasAdv && (
+                <Tooltip title={hasBoth ? 'Advantage and Disadvantage cancel' : `Advantage (${hasAdv.source})`}>
+                  <Sparkles size={10} style={{ color: hasBoth ? '#c4b393' : '#58b879', marginLeft: '2px' }} />
+                </Tooltip>
+              )}
+              {hasDisadv && !hasAdv && (
                 <Tooltip title="Disadvantage from armor">
                   <AlertCircle size={10} style={{ color: '#ff9800', marginLeft: '2px' }} />
                 </Tooltip>

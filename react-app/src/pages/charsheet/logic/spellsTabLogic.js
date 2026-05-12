@@ -4,6 +4,84 @@ import { renderEntries as renderSafeEntries } from './renderEntries.js';
 import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
 import { isRitualSpell } from '../../../shared/spellTags.js';
 
+const _GENERIC_LABELS = new Set([
+  'class', 'subclass', 'species', 'feat', 'feature', 'granted', 'auto',
+  'auto granted', 'always prepared', 'unknown', 'choice',
+]);
+
+function _isGenericLabel(label) {
+  return _GENERIC_LABELS.has(String(label || '').trim().toLowerCase());
+}
+
+const _PREP_RANK = {
+  at_will: 0, mystic_arcanum: 1, ritual_spellbook: 2, always_prepared: 3,
+  free_cast: 4, prepared: 5, known: 6, granted: 7, spellbook: 8, cantrip: 9,
+  unknown: 10,
+};
+
+const _SPECIAL_ORIGIN = new Set(['at_will', 'invocation', 'mystic_arcanum', 'spellbook']);
+
+function _mergeRow(existing, incoming, incomingLocked) {
+  if (!existing) return { ...incoming, locked: incomingLocked };
+
+  const mergeMeta = (a, b) => {
+    const srcA = a.sourceInfo || {};
+    const srcB = b.sourceInfo || {};
+    const mergedSource = {};
+
+    if (!srcA.label && !srcB.label) mergedSource.label = undefined;
+    else if (!srcA.label) mergedSource.label = srcB.label;
+    else if (!srcB.label) mergedSource.label = srcA.label;
+    else if (_isGenericLabel(srcA.label) && !_isGenericLabel(srcB.label)) mergedSource.label = srcB.label;
+    else mergedSource.label = srcA.label;
+
+    mergedSource.color = srcB.color || srcA.color || '#9d7fb8';
+
+    mergedSource.kind = srcA.kind || srcB.kind || undefined;
+
+    const oLabelA = srcA.originLabel || srcA.label || '';
+    const oLabelB = srcB.originLabel || srcB.label || '';
+    if (!oLabelA) mergedSource.originLabel = oLabelB || undefined;
+    else if (!oLabelB) mergedSource.originLabel = oLabelA || undefined;
+    else if (_isGenericLabel(oLabelA) && !_isGenericLabel(oLabelB)) mergedSource.originLabel = oLabelB;
+    else mergedSource.originLabel = oLabelA;
+
+    const oTypeA = srcA.originType;
+    const oTypeB = srcB.originType;
+    if (!oTypeA || oTypeA === 'unknown') mergedSource.originType = oTypeB || oTypeA || 'unknown';
+    else if (!oTypeB || oTypeB === 'unknown') mergedSource.originType = oTypeA;
+    else if (_SPECIAL_ORIGIN.has(oTypeA) && !_SPECIAL_ORIGIN.has(oTypeB)) mergedSource.originType = oTypeA;
+    else if (_SPECIAL_ORIGIN.has(oTypeB) && !_SPECIAL_ORIGIN.has(oTypeA)) mergedSource.originType = oTypeB;
+    else mergedSource.originType = oTypeA;
+
+    return {
+      name: a.name || b.name,
+      level: a.level || b.level || 0,
+      sourceInfo: mergedSource,
+      ownerClassName: b.ownerClassName || a.ownerClassName || null,
+      castLevel: b.castLevel != null ? b.castLevel : a.castLevel,
+      locked: a.locked || incomingLocked,
+    };
+  };
+
+  const srcA = existing.sourceInfo || {};
+  const srcB = incoming.sourceInfo || {};
+  const aHasInfo = srcA.label || srcA.kind || srcA.originType;
+  const bHasInfo = srcB.label || srcB.kind || srcB.originType;
+
+  if (!aHasInfo && !bHasInfo) {
+    return { ...incoming, locked: existing.locked || incomingLocked };
+  }
+  if (!aHasInfo && bHasInfo) {
+    return { ...incoming, locked: existing.locked || incomingLocked };
+  }
+  if (aHasInfo && !bHasInfo) {
+    return { ...existing, locked: existing.locked || incomingLocked };
+  }
+
+  return mergeMeta(existing, incoming);
+}
+
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
   const lockedNames = new Set();
@@ -11,11 +89,9 @@ export function buildSpellInfo(C, spellIndex) {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
     const key = `${norm(name)}|${castLevel || spell.level}`;
-    const row = { ...spell, sourceInfo: source, castLevel, ownerClassName };
+    const row = { ...spell, sourceInfo: source, castLevel, ownerClassName, locked };
     const existing = rows.get(key);
-    if (!existing || (!existing.sourceInfo && source) || (!existing.locked && locked)) {
-      rows.set(key, { ...row, locked });
-    }
+    rows.set(key, _mergeRow(existing, row, locked));
     if (locked) {
       lockedNames.add(name);
       lockedNames.add(norm(name));
@@ -38,15 +114,18 @@ export function buildSpellInfo(C, spellIndex) {
     if (norm(ec?.name) === 'wizard') pushWizardRitualBook(ec, ec.name);
   });
 
-  collectChoiceSpells(C, spellIndex).forEach(({ name, source, ownerClassName }) => push(name, source, true, null, 0, ownerClassName));
-  collectAutoGrantedSpells(C).forEach(({ name, level, source, ownerClassName }) => push(name, source, true, null, level, ownerClassName));
   collectAtWillSpells(C).forEach(({ name, source }) => push(name, source, true));
+  collectAutoGrantedSpells(C).forEach(({ name, level, source, ownerClassName }) => push(name, source, true, null, level, ownerClassName));
+  collectChoiceSpells(C, spellIndex).forEach(({ name, source, ownerClassName }) => push(name, source, true, null, 0, ownerClassName));
 
   const all = [...rows.values()];
-  const cantrips = all.filter((entry) => Number(entry.level || 0) === 0 && entry.sourceInfo?.kind !== 'atWill').sort(sortByName);
-  const atWill = all.filter((entry) => entry.sourceInfo?.kind === 'atWill').sort(sortByName);
+  all.forEach((entry) => {
+    Object.assign(entry, resolveSpellMeta(entry, C));
+  });
+  const cantrips = all.filter((entry) => Number(entry.level || 0) === 0 && !entry.isAtWill).sort(sortByName);
+  const atWill = all.filter((entry) => entry.isAtWill).sort(sortByName);
   const leveled = {};
-  all.filter((entry) => Number(entry.level || 0) > 0 && entry.sourceInfo?.kind !== 'atWill').forEach((entry) => {
+  all.filter((entry) => Number(entry.level || 0) > 0 && !entry.isAtWill).forEach((entry) => {
     const level = Number(entry.level || 0);
     if (!leveled[level]) leveled[level] = [];
     leveled[level].push(entry);
@@ -97,10 +176,7 @@ function collectChoiceSpells(C, spellIndex) {
 }
 
 function collectAutoGrantedSpells(C) {
-  const out = [];
-  (C?.autoGrantedSpells || []).forEach((entry) => {
-    if (entry?.name) out.push({ name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6' }, ownerClassName: entry.ownerClassName || C?.className });
-  });
+  const runtimeOut = [];
   const entities = [{ className: C?.className, subclassShortName: C?.subclassShortName, level: C?.classLevel || C?.level || 1 }];
   (C?.extraClasses || []).forEach((ec) => entities.push({ className: ec.name, subclassShortName: ec.subclassShortName, level: ec.level || 1 }));
   entities.forEach((entity) => {
@@ -112,17 +188,29 @@ function collectAutoGrantedSpells(C) {
       [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
         const name = typeof spell === 'string' ? spell : spell?.name;
         if (!name || entity.level < Number(spell?.minLevel || 1)) return;
-        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' }, ownerClassName: entity.className });
+        const hasExplicitSource = !!spell?.source;
+        const srcLabel = hasExplicitSource ? spell.source : (entity.subclassShortName ? `${entity.subclassShortName} Spells` : entity.className || 'Auto');
+        const srcOriginType = hasExplicitSource ? 'auto_granted' : (entity.subclassShortName ? 'subclass' : 'class');
+        const srcOriginLabel = hasExplicitSource ? spell.source : (entity.subclassShortName ? `${entity.subclassShortName} Spells` : entity.className || 'Auto');
+        runtimeOut.push({ name, level: Number(spell?.level ?? 0), source: { label: srcLabel, color: '#70b7a6', originType: srcOriginType, originLabel: srcOriginLabel }, ownerClassName: entity.className });
       });
     });
   });
-  const seen = new Set();
-  return out.filter((entry) => {
+
+  const runtimeByName = new Map();
+  runtimeOut.forEach((entry) => {
     const key = norm(entry.name);
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
+    if (key) runtimeByName.set(key, entry);
   });
+
+  (C?.autoGrantedSpells || []).forEach((entry) => {
+    if (!entry?.name) return;
+    const key = norm(entry.name);
+    if (runtimeByName.has(key)) return;
+    runtimeByName.set(key, { name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6', originType: 'auto_granted', originLabel: entry.source || 'Auto' }, ownerClassName: entry.ownerClassName || C?.className });
+  });
+
+  return [...runtimeByName.values()];
 }
 
 function collectAtWillSpells(C) {
@@ -134,7 +222,7 @@ function collectAtWillSpells(C) {
     (installedRegistry.getClassAtWillSpells(entity.name) || []).forEach((entry) => {
       if (entity.level < Number(entry.minLevel || 1)) return;
       if (entry.invocation && !hasInvocation(entry.invocation)) return;
-      out.push({ name: entry.spell, source: { label: entry.invocation || 'At Will', color: '#9d7fb8', kind: 'atWill' } });
+      out.push({ name: entry.spell, source: { label: entry.invocation || 'At Will', color: '#9d7fb8', kind: 'atWill', originType: 'invocation', originLabel: entry.invocation || 'At Will' } });
     });
   });
   return out;
@@ -143,12 +231,13 @@ function collectAtWillSpells(C) {
 function sourceFromChoiceKey(C, key) {
   const grantKey = key.match(/^(.*)_(known|innate|prepared|expanded)_/i)?.[1];
   const featName = grantKey ? C?.choices?.[grantKey] : null;
-  if (featName) return { label: String(featName), color: '#caa550' };
-  if (key.startsWith('feat_')) return { label: 'Feat', color: '#caa550' };
-  if (key.startsWith('subclass_')) return { label: C?.subclassShortName || 'Subclass', color: '#9d7fb8' };
-  if (key.startsWith('species_')) return { label: C?.speciesName || 'Species', color: '#70b7a6' };
-  if (key.includes('tome')) return { label: 'Pact of the Tome', color: '#9d7fb8' };
-  return { label: 'Choice', color: '#9d7fb8' };
+  if (featName) return { label: String(featName), color: '#caa550', originType: 'feat', originLabel: String(featName) };
+  if (key.startsWith('feat_')) return { label: 'Feat', color: '#caa550', originType: 'feat', originLabel: 'Feat' };
+  if (key.startsWith('subclass_')) return { label: C?.subclassShortName || 'Subclass', color: '#9d7fb8', originType: 'subclass', originLabel: C?.subclassShortName || 'Subclass' };
+  if (key.startsWith('species_')) return { label: C?.speciesName || 'Species', color: '#70b7a6', originType: 'species', originLabel: C?.speciesName || 'Species' };
+  if (key.includes('tome')) return { label: 'Pact of the Tome', color: '#9d7fb8', originType: 'invocation', originLabel: 'Pact of the Tome' };
+  if (key.includes('mystic_arcanum')) return { label: 'M. Arcanum', color: '#d69245', originType: 'mystic_arcanum', originLabel: 'Mystic Arcanum' };
+  return { label: 'Choice', color: '#9d7fb8', originType: 'unknown', originLabel: 'Choice' };
 }
 
 function normalizeWizardBook(book) {
@@ -494,6 +583,114 @@ export function getMaxLearnableSpellLevelForEntity(entity) {
   if (prog === 'third') return getMaxCastableSpellLevel({ regular: THIRD_SLOTS[level] || [] });
   if (prog === 'artificer') return getMaxCastableSpellLevel({ regular: HALF_SLOTS[level] || [] });
   return 0;
+}
+
+const _PREP_CFG_CACHE = new Map();
+function _getPrepMode(className) {
+  if (!className) return null;
+  const key = norm(className);
+  let mode = _PREP_CFG_CACHE.get(key);
+  if (mode === undefined) {
+    try {
+      const cfg = installedRegistry.getClassRuntimeConfig(className)?.spellcasting;
+      mode = cfg?.preparedMode || 'prepared';
+    } catch { mode = 'prepared'; }
+    _PREP_CFG_CACHE.set(key, mode);
+  }
+  return mode;
+}
+
+function resolveSpellMeta(entry, C) {
+  const ownerClass = entry.ownerClassName || C?.className;
+  const mode = ownerClass ? _getPrepMode(ownerClass) : null;
+  const kind = entry.sourceInfo?.kind;
+  const label = entry.sourceInfo?.label;
+  const src = entry.sourceInfo || {};
+  const isLockedExtra = entry.locked && entry.sourceInfo;
+
+  // Detect originType from sourceInfo if available, else infer
+  let originType = src.originType || null;
+  let originLabel = src.originLabel || label || null;
+  if (!originType) {
+    if (kind === 'atWill') { originType = 'invocation'; originLabel = label || 'At Will'; }
+    else if (kind === 'ritualBook') { originType = 'spellbook'; originLabel = 'Ritual Book'; }
+    else if (!entry.sourceInfo) { originType = 'class'; originLabel = ownerClass || 'Class'; }
+    else if (C?.extraClasses?.some((ec) => ec.name === label)) { originType = 'class'; originLabel = label; }
+    else if (label === 'Pact of the Tome') { originType = 'invocation'; originLabel = label; }
+    else if (src.color === '#caa550') { originType = 'feat'; originLabel = label || 'Feat'; }
+    else if (src.color === '#70b7a6') { originType = 'auto_granted'; originLabel = label || 'Auto'; }
+    else { originType = 'unknown'; }
+  }
+
+  let preparationState;
+  let isPrepared = false, isKnown = false, isAlwaysPrepared = false, isGranted = false;
+  let isAtWill = false, isFreeCast = false, isMysticArcanum = false, isSpellbook = false;
+  let consumesSlot = true, isRitualFromSpellbook = false;
+
+  if (kind === 'ritualBook') {
+    isSpellbook = true;
+    isRitualFromSpellbook = true;
+    consumesSlot = false;
+    preparationState = 'ritual_spellbook';
+  } else if (kind === 'atWill') {
+    isAtWill = true;
+    consumesSlot = false;
+    preparationState = 'at_will';
+  } else if (originType === 'mystic_arcanum') {
+    isMysticArcanum = true;
+    isFreeCast = true;
+    consumesSlot = false;
+    preparationState = 'mystic_arcanum';
+  } else if (entry.level === 0) {
+    consumesSlot = false;
+    preparationState = 'cantrip';
+  } else if (isLockedExtra && mode === 'prepared') {
+    isAlwaysPrepared = true;
+    isGranted = true;
+    preparationState = 'always_prepared';
+  } else if (isLockedExtra && mode === 'known') {
+    isGranted = true;
+    preparationState = 'granted';
+  } else if (isLockedExtra && !mode) {
+    isGranted = true;
+    preparationState = 'granted';
+  } else if (mode === 'prepared') {
+    isPrepared = true;
+    preparationState = 'prepared';
+  } else if (mode === 'known') {
+    isKnown = true;
+    preparationState = 'known';
+  } else {
+    isKnown = true;
+    preparationState = 'known';
+  }
+
+  return {
+    originType, originLabel, preparationState,
+    isPrepared, isKnown, isAlwaysPrepared, isGranted,
+    isAtWill, isFreeCast, isMysticArcanum, isSpellbook,
+    isRitualFromSpellbook, consumesSlot,
+  };
+}
+
+const _STATUS_CHIP_CONFIG = {
+  ritual_spellbook: { label: 'Ritual Book', color: '#58b879' },
+  at_will: { label: 'At Will', color: '#9d7fb8' },
+  mystic_arcanum: { label: 'M. Arcanum', color: '#d69245' },
+  always_prepared: { label: 'Always Prep.', color: '#70b7a6' },
+  granted: { label: 'Granted', color: '#70b7a6' },
+  known: { label: 'Known', color: '#58b879' },
+};
+
+export function getSpellStatusChips(entry) {
+  const chips = [];
+  const state = entry.preparationState;
+  if (!state || !_STATUS_CHIP_CONFIG[state]) return chips;
+  if (entry.sourceInfo?.kind === 'ritualBook') return chips;
+  if (entry.sourceInfo?.kind === 'atWill') return chips;
+  const cfg = _STATUS_CHIP_CONFIG[state];
+  chips.push({ key: state, label: cfg.label, color: cfg.color, bg: `${cfg.color}1a` });
+  return chips;
 }
 
 export function getCastBadge(spell) {

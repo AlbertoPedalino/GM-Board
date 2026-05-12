@@ -15,7 +15,7 @@ import { loadCharacter, loadSheetState, saveHPState, saveDeathSaves, saveInspira
 import { calcMaxHP, getMod, getFinal, getPB, getSaveBonus } from './logic/calculations.js';
 import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax } from './logic/restResources.js';
 import { setStorageItem, setStorageJson, getStorageItem as getRaw, getStorageJson as getJson } from '../../shared/storage.js';
-import { loadCoreAdapters, loadClassAdapters } from '../../adapters/index.js';
+import { loadCoreAdapters, loadClassAdapters, installedRegistry } from '../../adapters/index.js';
 
 function getCharId() {
   return new URLSearchParams(window.location.search).get('char') || getRaw('gb_active_char_id');
@@ -179,8 +179,10 @@ export default function CharacterSheet() {
     s.usedHDPools = {};
     s.deathSaves = { success: 0, fail: 0 };
     s.spellSlotUsed = {};
+    s.createdSpellSlots = {};
     saveDeathSaves(s.deathSaves);
     setStorageJson('5e_slots_used', {});
+    setStorageJson('5e_created_slots', {});
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
     setStorageItem('5e_hd_used', 0);
     setStorageJson('5e_hd_used_pools', {});
@@ -189,6 +191,14 @@ export default function CharacterSheet() {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'long');
       setResources(res);
       saveResources(res);
+    }
+
+    if (C?.speciesName) {
+      const grants = installedRegistry.getSpeciesLongRestGrants(C.speciesName, C.speciesSource);
+      if (grants?.inspiration) {
+        s.sheetInspiration = true;
+        saveInspiration(true);
+      }
     }
 
     setSheet(s);
@@ -205,9 +215,18 @@ export default function CharacterSheet() {
       s.usedHD = 0;
       s.deathSaves = { success: 0, fail: 0 };
       s.spellSlotUsed = {};
+      s.createdSpellSlots = {};
       s.usedHDPools = {};
       saveDeathSaves(s.deathSaves);
       setStorageJson('5e_slots_used', {});
+      setStorageJson('5e_created_slots', {});
+      if (C?.speciesName) {
+        const grants = installedRegistry.getSpeciesLongRestGrants(C.speciesName, C.speciesSource);
+        if (grants?.inspiration) {
+          s.sheetInspiration = true;
+          saveInspiration(true);
+        }
+      }
     }
     s.usedHD = Math.min(s.usedHD || 0, type === 'short' ? s.usedHD : 0);
     saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
@@ -428,7 +447,8 @@ export default function CharacterSheet() {
               onToggleInspiration={toggleInspiration} />
             <TabsPanel C={C} sheet={sheet} tab={tab} setTab={setTab} onRoll={rollD20}
               resources={resources} setResources={setResources} onRest={doRest} onShowToast={showDiceToast}
-              onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} onUpdateSheet={syncSheet} />
+              onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} onUpdateSheet={syncSheet}
+              onUpdateCharacter={updateCurrentCharacter} />
           </Box>
         </Box>
       {diceToast && <DiceToast toast={diceToast} onClose={() => setDiceToast(null)} />}

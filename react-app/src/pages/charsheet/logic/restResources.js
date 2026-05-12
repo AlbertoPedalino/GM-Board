@@ -1,5 +1,6 @@
 import { installedRegistry } from '../../../adapters/index.js';
 import { getFinal, getMod } from './calculations.js';
+import { hasActionRequirement } from '../../../shared/character/choiceUtils.js';
 function resourceOwnerLevel(def, character) {
   return Number(def?.ownerLevel ?? character?.classLevel ?? character?.level ?? 1);
 }
@@ -33,8 +34,8 @@ export function normalizeResourceMax(def, character = null) {
 }
 
 function hasCondition(def, character) {
-  if (typeof def?.condition !== 'function') return true;
-  try { return !!def.condition(character); } catch { return false; }
+  if (typeof def?.condition !== 'function' && !def?.requiresChoice && !(def?.choiceKey && def?.model) && !def?.requiresInventoryFlag) return true;
+  try { return hasActionRequirement(def, character); } catch { return false; }
 }
 
 function getClassEntities(character) {
