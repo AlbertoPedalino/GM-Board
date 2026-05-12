@@ -161,6 +161,7 @@ export function makeSheetPayload(character, data) {
     bgName: character.backgroundName,
     bgSource: character.backgroundSource,
     bgAbility: character.backgroundAbilities,
+    bgPattern: character.backgroundPattern || [2, 1],
     scoreMethod: character.scoreMethod,
     hpMode: character.hpMode || 'average',
     hpManualRolls: { ...(character.hpManualRolls || {}) },

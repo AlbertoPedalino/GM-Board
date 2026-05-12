@@ -4,10 +4,9 @@ import ActionsTab from './ActionsTab.jsx';
 import SpellsTab from './SpellsTab.jsx';
 import InventoryTab from './InventoryTab.jsx';
 import FeaturesTab from './FeaturesTab.jsx';
-import BackgroundTab from './BackgroundTab.jsx';
 import NotesTab from './NotesTab.jsx';
 
-const TABS = ['Actions', 'Spells', 'Inventory', 'Features', 'Background', 'Notes'];
+const TABS = ['Actions', 'Spells', 'Inventory', 'Features', 'Notes'];
 
 export default function TabsPanel({
   C, sheet, tab, setTab, onRoll, resources, setResources, onRest, onShowToast,
@@ -28,8 +27,7 @@ export default function TabsPanel({
         {tab === 1 && <SpellsTab C={C} sheet={sheet} resources={resources} setResources={setResources} onUpdateSpells={onUpdateSpells} onShowToast={onShowToast} onUpdateSheet={onUpdateSheet} />}
         {tab === 2 && <InventoryTab C={C} sheet={sheet} onUpdateInventory={onUpdateInventory} onUpdateCurrency={onUpdateCurrency} />}
         {tab === 3 && <FeaturesTab C={C} />}
-        {tab === 4 && <BackgroundTab C={C} />}
-        {tab === 5 && <NotesTab sheet={sheet} />}
+        {tab === 4 && <NotesTab sheet={sheet} />}
       </Box>
     </Paper>
   );

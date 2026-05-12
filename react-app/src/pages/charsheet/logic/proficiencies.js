@@ -334,7 +334,7 @@ export function collectAllProficiencies(C) {
       if (!val) continue;
       const lk = key.toLowerCase();
       const vals = Array.isArray(val) ? val : [val];
-      if (lk.includes('tool')) vals.forEach(v => { const n = normalizeLabel(v); if (n) toolSet.add(n); });
+      if (lk.includes('tool') || lk.includes('instrument')) vals.forEach(v => { const n = normalizeLabel(v); if (n) toolSet.add(n); });
       if (lk.includes('language')) vals.forEach(v => { const n = normalizeLabel(v); if (n) langSet.add(n); });
     }
   }

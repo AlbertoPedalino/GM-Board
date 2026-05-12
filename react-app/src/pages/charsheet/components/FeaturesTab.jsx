@@ -14,8 +14,61 @@ export default function FeaturesTab({ C }) {
 
   const classBuckets = collectClassBuckets(C);
   const speciesEntries = C?.speciesSnapshot?.entries || [];
-  const backgroundEntries = C?.bgSnapshot?.entries || [];
+  const bgSnapshot = C?.bgSnapshot || {};
+  const backgroundEntries = bgSnapshot.entries || [];
+  const bgFeat = (bgSnapshot.feats || []).flatMap(f => {
+    if (typeof f === 'string') return [f];
+    return Object.keys(f).filter(k => k !== 'choose' && f[k]).map(k => k.split('|')[0]);
+  });
   const selectedFeats = C?.allFeatSnapshots || [];
+
+  function renderBgEntries() {
+    const out = [];
+    if (backgroundEntries.length) {
+      const raw = Array.isArray(backgroundEntries) ? backgroundEntries : [backgroundEntries];
+      raw.forEach(e => {
+        const test = renderFeatureEntries(e);
+        if (test.trim()) out.push(e);
+      });
+    }
+
+    const bgChoices = {};
+    if (C?.choices) {
+      Object.entries(C.choices).forEach(([k, v]) => {
+        if (!k.startsWith('bg_')) return;
+        const vals = Array.isArray(v) ? v : [v];
+        if (k.includes('skill')) bgChoices.skills = [...(bgChoices.skills || []), ...vals];
+        else if (k.includes('tool') || k.includes('instrument')) bgChoices.tools = [...(bgChoices.tools || []), ...vals];
+        else if (k.includes('language')) bgChoices.languages = [...(bgChoices.languages || []), ...vals];
+      });
+    }
+
+    function titleCase(v) { return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase(); }
+    const fixedSkills = (bgSnapshot.skillProficiencies || []).flatMap(sp => Object.keys(sp).filter(k => k !== 'choose' && !k.startsWith('any'))).map(titleCase);
+    const allSkills = [...new Set([...fixedSkills, ...(bgChoices.skills || [])])];
+    const fixedTools = (bgSnapshot.toolProficiencies || []).flatMap(tp => Object.keys(tp).filter(k => k !== 'choose' && !k.startsWith('any')));
+    const allTools = [...new Set([...fixedTools, ...(bgChoices.tools || [])])];
+    const fixedLangs = (bgSnapshot.languageProficiencies || []).flatMap(lp => Object.keys(lp).filter(k => k !== 'choose' && !k.startsWith('any')));
+    const allLangs = [...new Set([...fixedLangs, ...(bgChoices.languages || [])])];
+
+    const grants = [];
+    const bgAbilities = C?.bgAbility || C?.backgroundAbilities || [];
+    const bgPattern = C?.bgPattern || [2, 1];
+    if (bgAbilities.length) {
+      const abilLabels = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
+      const abilStr = bgAbilities.map((stat, i) => `${abilLabels[stat] || stat}+${bgPattern[i] || 0}`).join(', ');
+      grants.push(`Ability Scores: ${abilStr}`);
+    }
+    if (allSkills.length) grants.push(`Skills: ${allSkills.join(', ')}`);
+    if (allTools.length) grants.push(`Tools: ${allTools.join(', ')}`);
+    if (allLangs.length) grants.push(`Languages: ${allLangs.join(', ')}`);
+    if (bgFeat.length) grants.push(`Feat: ${bgFeat.join(', ')}`);
+
+    if (grants.length) {
+      out.push({ type: 'list', items: grants });
+    }
+    return out;
+  }
 
   return (
     <Box>
@@ -39,16 +92,18 @@ export default function FeaturesTab({ C }) {
         }] : []}
       />
 
-      <FeatureSection
-        title={`Background - ${C?.backgroundName || '?'}`}
-        color={SOURCE_COLOR.background}
-        features={backgroundEntries?.length ? [{
-          name: C?.backgroundName || 'Background',
-          level: 1,
-          entries: backgroundEntries,
-          source: 'Background',
-        }] : []}
-      />
+      {(C?.backgroundName || C?.bgName) ? (
+        <FeatureSection
+          title={`Background - ${C?.backgroundName || C?.bgName || ''}`}
+          color={SOURCE_COLOR.background}
+          features={[{
+            name: C?.backgroundName || C?.bgName || 'Background',
+            level: 1,
+            entries: renderBgEntries(),
+            source: 'Background',
+          }]}
+        />
+      ) : null}
 
       <FeatureSection
         title="Feats"
@@ -359,7 +414,9 @@ function renderFeatureEntries(entries) {
   if (Array.isArray(entries)) return entries.map((entry) => renderFeatureEntries(entry)).join('<br/>');
   if (typeof entries === 'object') {
     if (entries.type === 'list') {
-      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem">${(entries.items || []).map((item) => `<li>${renderFeatureEntries(item)}</li>`).join('')}</ul>`;
+      const lis = (entries.items || []).map((item) => renderFeatureEntries(item)).filter(h => h.trim());
+      if (!lis.length) return '';
+      return `<ul style="margin:0.3rem 0 0.3rem 1.2rem">${lis.map(h => `<li>${h}</li>`).join('')}</ul>`;
     }
     if (entries.type === 'table') {
       let h = '<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin:0.4rem 0">';

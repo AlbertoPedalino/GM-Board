@@ -505,6 +505,7 @@ export function featChoiceSpecs(feat, options = {}) {
   }
   if (ui.damageType) specs.push({ key: `${slotKey}_damage`, label: ui.damageType.label || `${feat.name} Damage Type`, type: 'generic_choice', from: ui.damageType.options || [], count: 1 });
   if (ui.weaponProficiency) specs.push({ key: `${slotKey}_weapon`, label: ui.weaponProficiency.label || `${feat.name} Weapon`, type: 'generic_choice', from: ui.weaponProficiency.options || [], count: ui.weaponProficiency.count || 1 });
+  if (ui.instrumentProficiency) specs.push({ key: `${slotKey}_${ui.instrumentProficiency.keySuffix || 'instrument'}`, label: ui.instrumentProficiency.label || `${feat.name} Instrument`, type: 'generic_choice', from: ui.instrumentProficiency.instruments || ui.instrumentProficiency.options || [], count: ui.instrumentProficiency.count || 1 });
   if (ui.weaponMastery) specs.push({
     key: `${slotKey}_${ui.weaponMastery.keySuffix || 'weapon_mastery'}`,
     label: ui.weaponMastery.label || `${feat.name} Weapon Mastery`,
