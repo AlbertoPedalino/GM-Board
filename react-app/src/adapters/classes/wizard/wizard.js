@@ -262,20 +262,24 @@ registerClassSheetResources("Wizard", [
 ]);
 // [SheetRuntime] END
 
-// Arcane Recovery: when used, open slot recovery picker (budget = ceil(wizLv/2), max slot lv5)
+// Arcane Recovery: when used, recover spell slots up to budget (Wizard level/2, rounded up).
 if (typeof registerResourceSideEffect === 'function') {
-  registerResourceSideEffect('arc_recovery', function () {
+  registerResourceSideEffect('arc_recovery', function (ctx = {}) {
+    const C = ctx.character || ctx.C;
     let wizLv = 0;
     if (String(C?.className || '').toLowerCase() === 'wizard') wizLv += C?.classLevel || C?.level || 0;
     (C?.extraClasses || []).forEach(function (ec) {
       if (String(ec?.name || '').toLowerCase() === 'wizard') wizLv += ec.level || 0;
     });
-    if (!wizLv) return;
+    if (!wizLv) return null;
     const budget = Math.ceil(wizLv / 2);
-    if (typeof recoverResourceByKey === 'function') recoverResourceByKey('bladesong', 1);
-    if (typeof _showSlotRecoveryModal === 'function') _showSlotRecoveryModal(budget, 5, 'Arcane Recovery');
+    return {
+      type: 'recover_spell_slots',
+      budget,
+      maxSlotLevel: 6,
+      label: 'Arcane Recovery',
+    };
   });
 }
 
 }
-

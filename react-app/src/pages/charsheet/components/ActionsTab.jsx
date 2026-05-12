@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Chip, Typography } from '@mui/material';
+import { Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import { Cross, Dices, Sword } from 'lucide-react';
 import { getMod, getFinal, fbonus } from '../logic/calculations.js';
 import { installedRegistry, loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
 import { setStorageJson } from '../../../shared/storage.js';
-import { PACT_SLOTS } from '../../charbuilder/constants.js';
+import { PACT_SLOTS, SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
 import { getAllResourceDefs } from '../logic/restResources.js';
 import {
   FILTERS,
@@ -18,6 +18,7 @@ import {
   resolveButtonLabel,
   rollFormula,
 } from '../logic/actionsTabLogic.js';
+import { getSheetSlots } from '../logic/spellsTabLogic.js';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import {
   filterChipSx,
@@ -39,6 +40,8 @@ function actionLabel(value) {
 export default function ActionsTab({ C, sheet, onRoll, resources, setResources, onShowToast, onUpdateSheet }) {
   const [filter, setFilter] = useState('all');
   const [itemsDb, setItemsDb] = useState([]);
+  const [slotRecovery, setSlotRecovery] = useState(null);
+  const [slotRecoverySelection, setSlotRecoverySelection] = useState({});
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -74,7 +77,112 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     .filter(section => section.actions.length > 0);
 
   const resMaxMap = {};
-  getAllResourceDefs(C).forEach(def => { if (def.key) resMaxMap[def.key] = normalizeResourceMax(def, C); });
+  const resNameMap = {};
+  getAllResourceDefs(C).forEach(def => {
+    if (!def.key) return;
+    resMaxMap[def.key] = normalizeResourceMax(def, C);
+    resNameMap[def.key] = def.name || def.key;
+  });
+
+  const slotRecoverySpent = slotRecovery
+    ? slotRecovery.levels.reduce((sum, entry) => sum + (entry.level * Number(slotRecoverySelection[String(entry.level)] || 0)), 0)
+    : 0;
+  const slotRecoveryRemaining = slotRecovery ? Math.max(0, slotRecovery.budget - slotRecoverySpent) : 0;
+
+  const applyPactSlotRecovery = (result) => {
+    if (!(result?.recover > 0)) return;
+    const level = Number(result.slotLevel || 1);
+    const used = { ...(sheet?.spellSlotUsed || {}) };
+    const before = Number(used[level] || 0);
+    const after = Math.max(0, before - Number(result.recover || 0));
+    const recovered = before - after;
+    used[level] = after;
+    setStorageJson('5e_slots_used', used);
+    onUpdateSheet?.({ spellSlotUsed: used });
+    if (recovered > 0) {
+      const label = result.label || 'Spell Recovery';
+      onShowToast?.(label, `Recovered ${recovered} Pact Magic slot${recovered === 1 ? '' : 's'}`, recovered, []);
+    } else {
+      onShowToast?.(result.label || 'Spell Recovery', 'No expended Pact Magic slots to recover.', 0, []);
+    }
+  };
+
+  const openSpellSlotRecovery = (result, key) => {
+    const budget = Math.max(0, Number(result?.budget || 0));
+    if (!budget) return;
+    const maxSlotLevel = Math.max(1, Math.min(9, Number(result?.maxSlotLevel || 9)));
+    const regularSlots = getSheetSlots(C)?.regular || [];
+    const used = sheet?.spellSlotUsed || {};
+    const levels = [];
+    const topLevel = Math.min(maxSlotLevel, regularSlots.length);
+    for (let level = 1; level <= topLevel; level++) {
+      const total = Number(regularSlots[level - 1] || 0);
+      if (!total) continue;
+      const expended = Math.max(0, Math.min(total, Number(used[level] || used[String(level)] || 0)));
+      if (!expended) continue;
+      levels.push({ level, total, expended });
+    }
+    if (!levels.length) {
+      onShowToast?.(result?.label || resNameMap[key] || 'Spell Recovery', 'No expended eligible spell slots to recover.', 0, []);
+      return;
+    }
+    setSlotRecovery({
+      key,
+      label: result?.label || resNameMap[key] || 'Spell Recovery',
+      budget,
+      levels,
+    });
+    setSlotRecoverySelection(Object.fromEntries(levels.map((entry) => [String(entry.level), 0])));
+  };
+
+  const adjustSlotRecoveryLevel = (level, delta) => {
+    setSlotRecoverySelection((prev) => {
+      if (!slotRecovery) return prev;
+      const entry = slotRecovery.levels.find((item) => item.level === level);
+      if (!entry) return prev;
+      const key = String(level);
+      const current = Number(prev[key] || 0);
+      if (delta < 0) return { ...prev, [key]: Math.max(0, current - 1) };
+
+      const spent = slotRecovery.levels.reduce((sum, item) => sum + (item.level * Number(prev[String(item.level)] || 0)), 0);
+      if (current >= entry.expended) return prev;
+      if (spent + level > slotRecovery.budget) return prev;
+      return { ...prev, [key]: current + 1 };
+    });
+  };
+
+  const confirmSlotRecovery = () => {
+    if (!slotRecovery) return;
+    const used = { ...(sheet?.spellSlotUsed || {}) };
+    let recovered = 0;
+    const details = [];
+
+    slotRecovery.levels.forEach((entry) => {
+      const amount = Math.max(0, Number(slotRecoverySelection[String(entry.level)] || 0));
+      if (!amount) return;
+      const key = String(entry.level);
+      const before = Number(used[key] || 0);
+      const after = Math.max(0, before - amount);
+      const actual = before - after;
+      if (!actual) return;
+      used[key] = after;
+      recovered += actual;
+      details.push(`${actual}× ${SPELL_LEVEL_LABELS[entry.level] || `L${entry.level}`}`);
+    });
+
+    setSlotRecovery(null);
+    setSlotRecoverySelection({});
+    if (!recovered) return;
+
+    setStorageJson('5e_slots_used', used);
+    onUpdateSheet?.({ spellSlotUsed: used });
+    onShowToast?.(
+      slotRecovery.label,
+      `Recovered ${recovered} slot${recovered === 1 ? '' : 's'}${details.length ? ` (${details.join(', ')})` : ''}`,
+      recovered,
+      [],
+    );
+  };
 
   const handleResChange = (key, delta) => {
     if (!resources || !setResources) return;
@@ -87,16 +195,16 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     if (delta < 0) {
       const sideEffect = installedRegistry.getResourceSideEffect(key);
       if (typeof sideEffect === 'function') {
-        const result = sideEffect({ character: C, C, sheet, resources: res, PACT_SLOTS });
-        if (result?.type === 'recover_pact_slots' && result.recover > 0) {
-          const level = Number(result.slotLevel || 1);
-          const used = { ...(sheet?.spellSlotUsed || {}) };
-          const before = Number(used[level] || 0);
-          const after = Math.max(0, before - Number(result.recover || 0));
-          used[level] = after;
-          setStorageJson('5e_slots_used', used);
-          onUpdateSheet?.({ spellSlotUsed: used });
-          onShowToast?.('Magical Cunning', `Recovered ${before - after} Pact Magic slot${before - after === 1 ? '' : 's'}`, before - after, []);
+        let result = null;
+        try {
+          result = sideEffect({ character: C, C, sheet, resources: res, PACT_SLOTS });
+        } catch {
+          result = null;
+        }
+        if (result?.type === 'recover_pact_slots') {
+          applyPactSlotRecovery(result);
+        } else if (result?.type === 'recover_spell_slots') {
+          openSpellSlotRecovery(result, key);
         }
       }
     }
@@ -172,6 +280,43 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
       ))}
 
       {!actionSections.length ? <Empty text="No actions for this filter." /> : null}
+
+      <Dialog open={Boolean(slotRecovery)} onClose={() => setSlotRecovery(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
+          {slotRecovery?.label || 'Recover Spell Slots'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(26,23,19,0.98)', pt: 1.25 }}>
+          {slotRecovery ? (
+            <Box sx={{ display: 'grid', gap: 0.75 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                Recover expended spell slots. Budget {slotRecoverySpent}/{slotRecovery.budget}.
+              </Typography>
+              {slotRecovery.levels.map((entry) => {
+                const value = Number(slotRecoverySelection[String(entry.level)] || 0);
+                return (
+                  <Box key={entry.level} sx={{ display: 'flex', alignItems: 'center', gap: 0.6, border: 1, borderColor: 'divider', borderRadius: 1, px: 0.8, py: 0.6 }}>
+                    <Typography sx={{ flex: 1, fontSize: '0.72rem', color: 'text.primary' }}>
+                      {SPELL_LEVEL_LABELS[entry.level] || `Level ${entry.level}`} · expended {entry.expended}
+                    </Typography>
+                    <Button size="small" variant="outlined" onClick={() => adjustSlotRecoveryLevel(entry.level, -1)} sx={{ minWidth: 26, px: 0.7 }}>-</Button>
+                    <Typography sx={{ minWidth: 16, textAlign: 'center', fontSize: '0.78rem', color: '#edd48a', fontFamily: '"Cinzel", Georgia, serif' }}>{value}</Typography>
+                    <Button size="small" variant="outlined" onClick={() => adjustSlotRecoveryLevel(entry.level, 1)} disabled={slotRecoveryRemaining < entry.level || value >= entry.expended} sx={{ minWidth: 26, px: 0.7 }}>+</Button>
+                  </Box>
+                );
+              })}
+              <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
+                Remaining budget: {slotRecoveryRemaining}
+              </Typography>
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
+          <Button onClick={() => setSlotRecovery(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={confirmSlotRecovery} disabled={!slotRecovery || slotRecoverySpent <= 0}>
+            Recover
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
