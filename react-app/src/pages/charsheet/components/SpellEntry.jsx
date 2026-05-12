@@ -78,7 +78,6 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     ? Math.max(1, Number(cantripData.beamCount(characterLevel) || 1))
     : 1;
   const beamBonus = resolveDmgBonusValue(C, cantripData?.dmgBonusPerBeam, getMod, getFinal);
-  const cantripNotes = String(cantripData?.notes || '').trim();
 
   const expandedBeams = baseScaledDamages.flatMap((dmg) => {
     if (beamCount <= 1) return [{ ...dmg, formula: applyFlatToFormula(dmg.formula, beamBonus) || dmg.formula }];
@@ -205,11 +204,10 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
           <Badge {...getCastBadge(entry)} />
         </Box>
       </Box>
-      {(ritualOnly || cantripNotes || beamCount > 1 || beamBonus) ? (
+      {(ritualOnly || beamCount > 1 || beamBonus) ? (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mt: '2px', mb: '2px', pl: '9px' }}>
           {beamCount > 1 ? <Badge label={`${beamCount} beams`} color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
           {beamBonus ? <Badge label={`+${beamBonus} per beam`} color="#f5a623" bg="rgba(245,166,35,0.12)" /> : null}
-          {cantripNotes ? <Badge label={cantripNotes} color="#70b7a6" bg="rgba(112,183,166,0.14)" /> : null}
         </Box>
       ) : null}
       {open ? (

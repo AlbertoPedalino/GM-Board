@@ -2,6 +2,7 @@ import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../../charbuild
 import { installedRegistry } from '../../../adapters/index.js';
 import { renderEntries as renderSafeEntries } from './renderEntries.js';
 import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
+import { isRitualSpell } from '../../../shared/spellTags.js';
 
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
@@ -32,6 +33,11 @@ export function buildSpellInfo(C, spellIndex) {
     });
   });
 
+  if (norm(C?.className) === 'wizard') pushWizardRitualBook(C);
+  (C?.extraClasses || []).forEach((ec) => {
+    if (norm(ec?.name) === 'wizard') pushWizardRitualBook(ec);
+  });
+
   collectChoiceSpells(C, spellIndex).forEach(({ name, source }) => push(name, source, true));
   collectAutoGrantedSpells(C).forEach(({ name, level, source }) => push(name, source, true, null, level));
   collectAtWillSpells(C).forEach(({ name, source }) => push(name, source, true));
@@ -55,6 +61,22 @@ export function buildSpellInfo(C, spellIndex) {
       const key = `${norm(name)}|${level}`;
       if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source });
     }
+  }
+
+  function pushWizardRitualBook(bucket) {
+    const selectedCantrips = bucket?.selectedCantrips || [];
+    const selectedSpells = bucket?.selectedSpells || {};
+    Object.entries(normalizeWizardBook(bucket?.wizardSpellbook)).forEach(([level, names]) => {
+      const spellLevel = Number(level || 0);
+      const selectedAtLevel = spellLevel === 0 ? selectedCantrips : (selectedSpells[spellLevel] || selectedSpells[String(spellLevel)] || []);
+      (names || []).forEach((name) => {
+        if (!name) return;
+        if ((selectedAtLevel || []).some((entry) => norm(entry) === norm(name))) return;
+        const full = spellIndex.get(norm(name));
+        if (!isRitualSpell(full)) return;
+        push(name, { label: 'Ritual Book', color: '#58b879', kind: 'ritualBook' }, false, null, spellLevel);
+      });
+    });
   }
 }
 
@@ -127,6 +149,22 @@ function sourceFromChoiceKey(C, key) {
   if (key.startsWith('species_')) return { label: C?.speciesName || 'Species', color: '#70b7a6' };
   if (key.includes('tome')) return { label: 'Pact of the Tome', color: '#9d7fb8' };
   return { label: 'Choice', color: '#9d7fb8' };
+}
+
+function normalizeWizardBook(book) {
+  const next = {};
+  for (let level = 0; level <= 9; level++) {
+    const seen = new Set();
+    next[level] = [];
+    (book?.[level] || []).forEach((entry) => {
+      const name = typeof entry === 'string' ? entry : entry?.name;
+      const key = norm(name);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      next[level].push(name);
+    });
+  }
+  return next;
 }
 
 export function getResolvedCantripData(C, name) {

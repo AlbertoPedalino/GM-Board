@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Box, Chip, InputAdornment, List, ListItemButton, ListItemText, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { BookOpen, Search } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
@@ -6,6 +7,7 @@ import { collectAutoGrantedSpells, getSpellCounts, maxSpellLevel, spellMatchesAn
 import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
 
 export default function SpellSelectionPanel({ state, dispatch }) {
+  const [wizardMode, setWizardMode] = useState('prepare');
   const { character } = state;
   const activeTab = character.activeClassTab || 0;
   const extraIndex = activeTab > 0 ? activeTab - 1 : null;
@@ -28,24 +30,49 @@ export default function SpellSelectionPanel({ state, dispatch }) {
   const selectedCantrips = (activeExtra ? activeExtra.selectedCantrips : character.selectedCantrips) || [];
   const selectedSpells = (activeExtra ? activeExtra.selectedSpells : character.selectedSpells) || {};
   const selectedSpellsCount = Object.values(selectedSpells).reduce((sum, list) => sum + (Array.isArray(list) ? list.length : 0), 0);
+  const activeIsWizard = String(activeCharacter.className || '').toLowerCase() === 'wizard';
+  const activeWizardSpellbook = (activeExtra ? activeExtra.wizardSpellbook : character.wizardSpellbook) || {};
+  const activeSpellbookSize = activeIsWizard ? getSpellbookSize(activeWizardSpellbook) : 0;
   const autoGrantedSpells = collectAutoGrantedSpells(activeCharacter, profile);
   const query = state.search.spells.toLowerCase();
   const levels = [0, ...Array.from({ length: Math.max(0, maxLevel) }, (_, index) => index + 1)];
   const classNames = [activeCharacter.className].filter(Boolean);
+  const spellIndex = useMemo(() => {
+    const map = new Map();
+    state.data.spells.forEach((spell) => {
+      if (!spell?.name) return;
+      map.set(normSpell(spell.name), spell);
+    });
+    return map;
+  }, [state.data.spells]);
   const autoNames = new Set(autoGrantedSpells.map((spell) => spell.name));
   const autoByName = new Map(autoGrantedSpells.map((spell) => [spell.name, spell]));
+  const spellbookNames = activeIsWizard && wizardMode === 'prepare' ? getSpellbookLevel(activeWizardSpellbook, level) : null;
   const autoPool = autoGrantedSpells.map((auto) => ({
     ...(state.data.spells.find((spell) => spell.name === auto.name) || { name: auto.name, level: auto.level ?? 0 }),
     _autoGranted: auto,
   }));
-  const basePool = state.data.spells
-    .filter((spell) => spell.level === level)
-    .filter((spell) => spellMatchesAnyClass(spell, classNames, state.data.classSpellIndex))
-    .filter((spell) => !query || spell.name.toLowerCase().includes(query) || String(spell.schoolFull || spell.school || '').toLowerCase().includes(query));
+  const basePool = spellbookNames
+    ? spellbookNames.map((name) => spellIndex.get(normSpell(name)) || { name, level })
+    : state.data.spells
+      .filter((spell) => spell.level === level)
+      .filter((spell) => spellMatchesAnyClass(spell, classNames, state.data.classSpellIndex))
+      .filter((spell) => !query || spell.name.toLowerCase().includes(query) || String(spell.schoolFull || spell.school || '').toLowerCase().includes(query));
   const pool = dedupeSpells([...autoPool.filter((spell) => Number(spell.level || 0) === level), ...basePool])
     .filter((spell) => !query || spell.name.toLowerCase().includes(query) || String(spell.schoolFull || spell.school || '').toLowerCase().includes(query))
     .slice(0, 120);
   const isCaster = !!profile.casterProgression || cantrips > 0 || spells > 0 || maxLevel > 0;
+  const wizardBookMode = activeIsWizard && wizardMode === 'book';
+
+  useEffect(() => {
+    if (!activeIsWizard && wizardMode !== 'prepare') {
+      setWizardMode('prepare');
+    }
+  }, [activeIsWizard, wizardMode]);
+
+  useEffect(() => {
+    setWizardMode('prepare');
+  }, [activeTab]);
 
   return (
     <BuilderPanel id="panel-spells" title="Spells" icon={BookOpen} note={profile.preparedMode ? `${profile.preparedMode} casting` : 'Known/prepared spell selection'}>
@@ -94,13 +121,36 @@ export default function SpellSelectionPanel({ state, dispatch }) {
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
+            {activeIsWizard ? (
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                <ToggleButtonGroup size="small" exclusive value={wizardMode} onChange={(_, next) => next && setWizardMode(next)}>
+                  <ToggleButton value="prepare">Prepare</ToggleButton>
+                  <ToggleButton value="book">Spellbook</ToggleButton>
+                </ToggleButtonGroup>
+                <Chip label={`Spellbook ${activeSpellbookSize}`} size="small" />
+              </Stack>
+            ) : null}
             <Paper variant="outlined" sx={{ maxHeight: 460, overflow: 'auto' }}>
               <List dense disablePadding>
                 {pool.map((spell) => {
                   const autoSelected = autoNames.has(spell.name);
-                  const manualSelected = level === 0 ? selectedCantrips.includes(spell.name) : (selectedSpells[level] || []).includes(spell.name);
-                  const selected = manualSelected || autoSelected;
-                  const disabled = autoSelected || (!selected && (level === 0 ? selectedCantrips.length >= cantrips : selectedSpellsCount >= spells));
+                  const manualSelected = level === 0
+                    ? containsSpellName(selectedCantrips, spell.name)
+                    : containsSpellName(selectedSpells[level] || [], spell.name);
+                  const inWizardBook = activeIsWizard ? isInWizardBook(activeWizardSpellbook, spell.name, level) : false;
+                  const selected = wizardBookMode ? inWizardBook : (manualSelected || autoSelected);
+                  const atLimit = !selected && !autoSelected && !wizardBookMode
+                    && (level === 0 ? selectedCantrips.length >= cantrips : selectedSpellsCount >= spells);
+                  const requiresWizardBook = activeIsWizard && !wizardBookMode && !autoSelected && !inWizardBook;
+                  const disabled = wizardBookMode ? false : (autoSelected || atLimit || requiresWizardBook);
+                  const onClick = () => {
+                    if (disabled) return;
+                    if (wizardBookMode) {
+                      dispatch({ type: 'wizard/spellbook-toggle', level, name: spell.name, extraIndex });
+                      return;
+                    }
+                    dispatch({ type: 'spell/toggle', level, name: spell.name, max: level === 0 ? cantrips : spells, extraIndex });
+                  };
                   return (
                     <ListItemButton
                       key={`${spell.name}-${spell.source}`}
@@ -108,7 +158,7 @@ export default function SpellSelectionPanel({ state, dispatch }) {
                       selected={selected}
                       disabled={disabled}
                       sx={{ alignItems: 'flex-start', opacity: disabled ? 0.55 : 1 }}
-                      onClick={() => !autoSelected && dispatch({ type: 'spell/toggle', level, name: spell.name, max: level === 0 ? cantrips : spells, extraIndex })}
+                      onClick={onClick}
                     >
                       <ListItemText
                         primary={(
@@ -122,14 +172,28 @@ export default function SpellSelectionPanel({ state, dispatch }) {
                       <Chip
                         size="small"
                         color={selected ? 'primary' : 'default'}
-                        label={autoSelected ? getAutoGrantedLabel(autoByName.get(spell.name) || spell._autoGranted, activeCharacter) : selected ? 'On' : `Lv ${spell.level}`}
+                        label={
+                          autoSelected
+                            ? getAutoGrantedLabel(autoByName.get(spell.name) || spell._autoGranted, activeCharacter)
+                            : wizardBookMode
+                              ? (inWizardBook ? 'Book' : '+ Book')
+                              : selected
+                                ? 'On'
+                                : activeIsWizard
+                                  ? 'Prep'
+                                  : `Lv ${spell.level}`
+                        }
                       />
                     </ListItemButton>
                   );
                 })}
               </List>
             </Paper>
-            {!pool.length ? <Typography color="text.secondary">No spells found for this level/filter.</Typography> : null}
+            {!pool.length ? (
+              <Typography color="text.secondary">
+                {activeIsWizard && !wizardBookMode ? 'No spells in this Wizard spellbook level.' : 'No spells found for this level/filter.'}
+              </Typography>
+            ) : null}
           </>
         )}
       </Stack>
@@ -166,6 +230,43 @@ function dedupeSpells(spells) {
     seen.add(key);
     return true;
   });
+}
+
+function normSpell(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function containsSpellName(list, name) {
+  const target = normSpell(name);
+  return (list || []).some((entry) => normSpell(entry) === target);
+}
+
+function normalizeWizardBook(book) {
+  const next = {};
+  for (let level = 0; level <= 9; level++) {
+    const seen = new Set();
+    next[level] = [];
+    (book?.[level] || []).forEach((entry) => {
+      const name = typeof entry === 'string' ? entry : entry?.name;
+      const key = normSpell(name);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      next[level].push(name);
+    });
+  }
+  return next;
+}
+
+function getSpellbookLevel(book, level) {
+  return normalizeWizardBook(book)[Number(level || 0)] || [];
+}
+
+function getSpellbookSize(book) {
+  return Object.values(normalizeWizardBook(book)).reduce((sum, list) => sum + list.length, 0);
+}
+
+function isInWizardBook(book, name, level) {
+  return getSpellbookLevel(book, level).some((entry) => normSpell(entry) === normSpell(name));
 }
 
 

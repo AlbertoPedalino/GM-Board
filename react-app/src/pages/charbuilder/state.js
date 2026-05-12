@@ -8,7 +8,7 @@ import {
   STATS,
 } from './constants.js';
 import { getBackgroundPattern, getLevelFromXp } from './logic/calculations.js';
-import { handleBackgroundSelect, handleClassSelect, handleSpellToggle } from './stateHandlers.js';
+import { handleBackgroundSelect, handleClassSelect, handleSpellToggle, handleWizardSpellbookToggle } from './stateHandlers.js';
 
 function normChoice(value) {
   return String(value || '')
@@ -443,6 +443,9 @@ export function builderReducer(state, action) {
     }
     case 'spell/toggle': {
       return handleSpellToggle(state, action, { updateCharacter });
+    }
+    case 'wizard/spellbook-toggle': {
+      return handleWizardSpellbookToggle(state, action, { updateCharacter });
     }
     case 'choice/set':
       return updateNestedCharacter(state, 'choices', { [action.key]: action.value });

@@ -4,6 +4,42 @@ function normKey(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+function normSpellName(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function normalizeWizardSpellbook(book) {
+  const next = {};
+  for (let level = 0; level <= 9; level++) {
+    const seen = new Set();
+    next[level] = [];
+    (book?.[level] || []).forEach((entry) => {
+      const name = typeof entry === 'string' ? entry : entry?.name;
+      const key = normSpellName(name);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      next[level].push(name);
+    });
+  }
+  return next;
+}
+
+function removeSelectedSpellAtLevel(bucket, level, name) {
+  const normalized = normSpellName(name);
+  if (level === 0) {
+    return {
+      selectedCantrips: (bucket?.selectedCantrips || []).filter((entry) => normSpellName(entry) !== normalized),
+    };
+  }
+  const selectedSpells = Object.fromEntries(
+    Object.entries(bucket?.selectedSpells || {}).map(([spellLevel, list]) => [spellLevel, Array.isArray(list) ? [...list] : []]),
+  );
+  const key = String(level);
+  selectedSpells[key] = (selectedSpells[key] || []).filter((entry) => normSpellName(entry) !== normalized);
+  if (!selectedSpells[key].length) delete selectedSpells[key];
+  return { selectedSpells };
+}
+
 export function handleClassSelect(state, action, { findByNameSource, updateCharacter }) {
   const classObject = action.classObject || findByNameSource(state.data.classes, action.className, action.source);
   const className = action.className || classObject?.name;
@@ -153,4 +189,39 @@ export function handleSpellToggle(state, action, { updateCharacter }) {
   const selectedSpells = { ...currentByLevel, [level]: nextLevel };
   if (!nextLevel.length) delete selectedSpells[level];
   return updateCharacter(state, { selectedSpells });
+}
+
+export function handleWizardSpellbookToggle(state, action, { updateCharacter }) {
+  const level = Math.max(0, Math.min(9, Number(action.level || 0)));
+  const name = String(action.name || '');
+  if (!name) return state;
+  const normalized = normSpellName(name);
+  const extraIndex = action.extraIndex;
+
+  if (Number.isInteger(extraIndex) && extraIndex >= 0) {
+    const extraClasses = state.character.extraClasses.map((extraClass, itemIndex) => {
+      if (itemIndex !== extraIndex) return extraClass;
+      const wizardSpellbook = normalizeWizardSpellbook(extraClass.wizardSpellbook);
+      const current = wizardSpellbook[level] || [];
+      const has = current.some((entry) => normSpellName(entry) === normalized);
+      wizardSpellbook[level] = has
+        ? current.filter((entry) => normSpellName(entry) !== normalized)
+        : [...current, name];
+
+      const nextExtra = { ...extraClass, wizardSpellbook };
+      return has ? { ...nextExtra, ...removeSelectedSpellAtLevel(nextExtra, level, name) } : nextExtra;
+    });
+    return updateCharacter(state, { extraClasses });
+  }
+
+  const wizardSpellbook = normalizeWizardSpellbook(state.character.wizardSpellbook);
+  const current = wizardSpellbook[level] || [];
+  const has = current.some((entry) => normSpellName(entry) === normalized);
+  wizardSpellbook[level] = has
+    ? current.filter((entry) => normSpellName(entry) !== normalized)
+    : [...current, name];
+
+  return updateCharacter(state, has
+    ? { wizardSpellbook, ...removeSelectedSpellAtLevel(state.character, level, name) }
+    : { wizardSpellbook });
 }
