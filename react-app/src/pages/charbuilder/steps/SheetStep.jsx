@@ -20,7 +20,7 @@ export default function SheetStep({ state, dispatch }) {
     <BuilderPanel id="panel-sheet" title="Sheet" icon={ClipboardList}>
       <Stack spacing={1.5} sx={{ py: 1.5 }}>
         {!ready ? (
-          <Alert severity="warning">Completa prima: {missing.join(', ')}.</Alert>
+          <Alert severity="warning">Complete first: {missing.join(', ')}.</Alert>
         ) : null}
 
         <Box
@@ -39,10 +39,10 @@ export default function SheetStep({ state, dispatch }) {
         >
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h2" sx={{ color: ready ? 'primary.main' : 'text.secondary' }}>
-              {ready ? 'Scheda pronta' : 'Scheda non pronta'}
+              {ready ? 'Character sheet ready' : 'Character sheet not ready'}
             </Typography>
             <Typography color="text.secondary" sx={{ fontSize: '0.72rem', mt: 0.35 }}>
-              {ready ? 'Salva il personaggio e passa alla scheda.' : 'Mancano dati minimi del personaggio.'}
+              {ready ? 'Save the character and open the sheet.' : 'The character is missing minimum data.'}
             </Typography>
           </Box>
           <Button
@@ -64,7 +64,7 @@ export default function SheetStep({ state, dispatch }) {
             }}
             sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}
           >
-            Apri Scheda
+            Open sheet
           </Button>
         </Box>
       </Stack>
