@@ -39,6 +39,7 @@ import {
   toSnapshot,
   upsertSnapshot,
 } from '../logic/spellsTabLogic.js';
+import { getPactMagicInfo, getSpellCastMode } from '../../../shared/character/pactMagic.js';
 import {
   addButtonSx,
   compactInputSx,
@@ -99,6 +100,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
     const maxSlotLv = Math.max(maxRegular, maxPact);
     if (maxSlotLv <= 0) return spellInfo;
 
+    const pactInfo = getPactMagicInfo(C);
     const result = {
       cantrips: spellInfo.cantrips,
       atWill: spellInfo.atWill,
@@ -106,13 +108,29 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
       lockedNames: spellInfo.lockedNames,
       lockedEntries: spellInfo.lockedEntries,
     };
-    Object.entries(spellInfo.leveled).forEach(([level, entries]) => { result.leveled[level] = [...entries]; });
+
+    Object.entries(spellInfo.leveled).forEach(([level, entries]) => {
+      entries.forEach((entry) => {
+        if (entry.level <= 0) return;
+        const castMode = getSpellCastMode(C, entry, pactInfo);
+        if (castMode.mode === 'pact_magic') {
+          const lv = castMode.castLevel;
+          if (!result.leveled[lv]) result.leveled[lv] = [];
+          result.leveled[lv].push({ ...entry, castLevel: lv, castMode: 'pact_magic' });
+        } else {
+          if (!result.leveled[level]) result.leveled[level] = [];
+          result.leveled[level].push({ ...entry });
+        }
+      });
+    });
 
     Object.entries(spellInfo.leveled).forEach(([level, entries]) => {
       entries.forEach((entry) => {
         if (entry.level <= 0) return;
         if (entry.ritualOnly) return;
         if (!entry.entriesHigherLevel) return;
+        const castMode = getSpellCastMode(C, entry, pactInfo);
+        if (castMode.mode === 'pact_magic') return;
         for (let lv = Number(level) + 1; lv <= maxSlotLv; lv++) {
           if (slots.regular[lv - 1] > 0 || (slots.pact?.level === lv && slots.pact.count > 0)) {
             if (!result.leveled[lv]) result.leveled[lv] = [];
@@ -122,7 +140,7 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
       });
     });
     return result;
-  }, [spellInfo, slots]);
+  }, [spellInfo, slots, C]);
   const maxSpellLevel = useMemo(() => getMaxLearnableSpellLevel(C), [C, classSpellIndex]);
   const limits = useMemo(() => getSpellLimits(C), [C, classSpellIndex]);
   const canManageSpellList = useMemo(() => canManageSpells(C, limits), [C, limits]);

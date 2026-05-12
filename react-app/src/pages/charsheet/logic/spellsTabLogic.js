@@ -7,11 +7,11 @@ import { isRitualSpell } from '../../../shared/spellTags.js';
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
   const lockedNames = new Set();
-  const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0) => {
+  const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0, ownerClassName = null) => {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
     const key = `${norm(name)}|${castLevel || spell.level}`;
-    const row = { ...spell, sourceInfo: source, castLevel };
+    const row = { ...spell, sourceInfo: source, castLevel, ownerClassName };
     const existing = rows.get(key);
     if (!existing || (!existing.sourceInfo && source) || (!existing.locked && locked)) {
       rows.set(key, { ...row, locked });
@@ -22,24 +22,24 @@ export function buildSpellInfo(C, spellIndex) {
     }
   };
 
-  (C?.selectedCantrips || []).forEach((name) => pushKnown(name, 0, null));
+  (C?.selectedCantrips || []).forEach((name) => pushKnown(name, 0, null, C?.className));
   Object.entries(C?.selectedSpells || {}).forEach(([level, names]) => {
-    (names || []).forEach((name) => pushKnown(name, Number(level), null));
+    (names || []).forEach((name) => pushKnown(name, Number(level), null, C?.className));
   });
   (C?.extraClasses || []).forEach((ec) => {
-    (ec.selectedCantrips || []).forEach((name) => pushKnown(name, 0, { label: ec.name || 'Class', color: '#9d7fb8' }));
+    (ec.selectedCantrips || []).forEach((name) => pushKnown(name, 0, { label: ec.name || 'Class', color: '#9d7fb8' }, ec.name));
     Object.entries(ec.selectedSpells || {}).forEach(([level, names]) => {
-      (names || []).forEach((name) => pushKnown(name, Number(level), { label: ec.name || 'Class', color: '#9d7fb8' }));
+      (names || []).forEach((name) => pushKnown(name, Number(level), { label: ec.name || 'Class', color: '#9d7fb8' }, ec.name));
     });
   });
 
-  if (norm(C?.className) === 'wizard') pushWizardRitualBook(C);
+  if (norm(C?.className) === 'wizard') pushWizardRitualBook(C, C.className);
   (C?.extraClasses || []).forEach((ec) => {
-    if (norm(ec?.name) === 'wizard') pushWizardRitualBook(ec);
+    if (norm(ec?.name) === 'wizard') pushWizardRitualBook(ec, ec.name);
   });
 
-  collectChoiceSpells(C, spellIndex).forEach(({ name, source }) => push(name, source, true));
-  collectAutoGrantedSpells(C).forEach(({ name, level, source }) => push(name, source, true, null, level));
+  collectChoiceSpells(C, spellIndex).forEach(({ name, source, ownerClassName }) => push(name, source, true, null, 0, ownerClassName));
+  collectAutoGrantedSpells(C).forEach(({ name, level, source, ownerClassName }) => push(name, source, true, null, level, ownerClassName));
   collectAtWillSpells(C).forEach(({ name, source }) => push(name, source, true));
 
   const all = [...rows.values()];
@@ -54,16 +54,16 @@ export function buildSpellInfo(C, spellIndex) {
   Object.values(leveled).forEach((entries) => entries.sort(sortByName));
   return { cantrips, atWill, leveled, lockedNames, lockedEntries: all.filter((entry) => entry.locked || lockedNames.has(entry.name) || lockedNames.has(norm(entry.name))) };
 
-  function pushKnown(name, level, source) {
+  function pushKnown(name, level, source, ownerClassName) {
     const full = spellIndex.get(norm(name));
-    if (full) push(name, source);
+    if (full) push(name, source, false, null, 0, ownerClassName);
     else {
       const key = `${norm(name)}|${level}`;
-      if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source });
+      if (!rows.has(key)) rows.set(key, { name, level: Number(level || 0), sourceInfo: source, ownerClassName });
     }
   }
 
-  function pushWizardRitualBook(bucket) {
+  function pushWizardRitualBook(bucket, ownerClassName) {
     const selectedCantrips = bucket?.selectedCantrips || [];
     const selectedSpells = bucket?.selectedSpells || {};
     Object.entries(normalizeWizardBook(bucket?.wizardSpellbook)).forEach(([level, names]) => {
@@ -74,7 +74,7 @@ export function buildSpellInfo(C, spellIndex) {
         if ((selectedAtLevel || []).some((entry) => norm(entry) === norm(name))) return;
         const full = spellIndex.get(norm(name));
         if (!isRitualSpell(full)) return;
-        push(name, { label: 'Ritual Book', color: '#58b879', kind: 'ritualBook' }, false, null, spellLevel);
+        push(name, { label: 'Ritual Book', color: '#58b879', kind: 'ritualBook' }, false, null, spellLevel, ownerClassName);
       });
     });
   }
@@ -99,7 +99,7 @@ function collectChoiceSpells(C, spellIndex) {
 function collectAutoGrantedSpells(C) {
   const out = [];
   (C?.autoGrantedSpells || []).forEach((entry) => {
-    if (entry?.name) out.push({ name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6' } });
+    if (entry?.name) out.push({ name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6' }, ownerClassName: entry.ownerClassName || C?.className });
   });
   const entities = [{ className: C?.className, subclassShortName: C?.subclassShortName, level: C?.classLevel || C?.level || 1 }];
   (C?.extraClasses || []).forEach((ec) => entities.push({ className: ec.name, subclassShortName: ec.subclassShortName, level: ec.level || 1 }));
@@ -112,7 +112,7 @@ function collectAutoGrantedSpells(C) {
       [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
         const name = typeof spell === 'string' ? spell : spell?.name;
         if (!name || entity.level < Number(spell?.minLevel || 1)) return;
-        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' } });
+        out.push({ name, level: Number(spell?.level ?? 0), source: { label: spell?.source || entity.subclassShortName || entity.className || 'Auto', color: '#70b7a6' }, ownerClassName: entity.className });
       });
     });
   });
@@ -580,6 +580,7 @@ export function computeScaledFormula(baseFormula, stepFormula, steps) {
 }
 
 export function getUpcastStep(entries) {
+  if (!entries) return null;
   const text = JSON.stringify(entries);
   const m = text.match(/\{@scaled(?:amage|ice)\s+(\d+d\d+)\|(\d+-\d+)\|(\d+d\d+)\}/);
   if (m) return { stepDie: m[3], range: m[2], display: m[1] };
