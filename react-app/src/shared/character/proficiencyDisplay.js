@@ -75,6 +75,7 @@ export function cleanProficiencyText(value) {
     .replace(/[{}]/g, '')
     .replace(/\.$/, '')
     .split('|')[0]
+    .replace(/^(skill|tool|language|weapon):\s*/i, '')
     .trim();
 }
 
@@ -83,7 +84,13 @@ export function labelKey(value) {
 }
 
 function titleCase(value) {
-  return String(value || '').replace(/\b[a-z]/g, (char) => char.toUpperCase());
+  return String(value || '')
+    .split(' ')
+    .map((word) => word
+      .split('-')
+      .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part))
+      .join('-'))
+    .join(' ');
 }
 
 export function canonicalDisplayLabel(value) {

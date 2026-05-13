@@ -89,6 +89,15 @@ function createInitialBuilderState() {
     }
   }
 
+  const savedBuilder = getStorageJson('5e_builder_state', null);
+  const savedSheet = getStorageJson('5e_current_char', null);
+  if (savedBuilder || savedSheet) {
+    const saved = mergeSheetIntoBuilder(savedBuilder, savedSheet);
+    if (saved) {
+      return { ...initialBuilderState, character: { ...initialBuilderState.character, ...saved } };
+    }
+  }
+
   return initialBuilderState;
 }
 
@@ -188,8 +197,13 @@ export default function CharBuilder() {
         onFile={async (file) => {
           try {
             const payload = extractSheetData(await file.text());
-            const count = importSheetPayload(payload, () => window.confirm('Esiste gia un personaggio in questo slot. Sovrascrivere?'));
-            dispatch({ type: 'import/message', message: `Imported ${count} keys. Reloading...` });
+            const result = importSheetPayload(payload, () => window.confirm('Esiste gia un personaggio in questo slot. Sovrascrivere?'));
+            const activeCharId = localStorage.getItem('gb_active_char_id');
+            if (activeCharId) {
+              window.history.replaceState(null, '', `${window.location.pathname}?char=${activeCharId}`);
+            }
+            const importedCount = typeof result === 'number' ? result : (result?.imported ? 1 : 0);
+            dispatch({ type: 'import/message', message: `Imported ${importedCount} character. Reloading...` });
             window.setTimeout(() => window.location.reload(), 350);
           } catch (error) {
             dispatch({ type: 'import/message', message: `Error: ${error?.message || error}` });

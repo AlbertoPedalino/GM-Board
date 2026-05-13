@@ -3,25 +3,64 @@ import { Check } from 'lucide-react';
 
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 
-function normChoice(value) {
+function stripTags(value) {
   return String(value || '')
     .split('|')[0]
     .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .trim();
+}
+
+function normChoice(value) {
+  return stripTags(value)
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '');
 }
 
 function optionLabel(value) {
-  const raw = String(value || '')
-    .split('|')[0]
-    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-    .trim();
-  return raw.replace(/_/g, ' ');
+  return stripTags(value).replace(/_/g, ' ');
+}
+
+function parseTypedChoiceValue(value) {
+  const raw = String(value || '').trim();
+  const match = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
+  if (!match) return { kind: null, label: optionLabel(raw), norm: normChoice(raw) };
+  const label = optionLabel(match[2]);
+  return { kind: match[1].toLowerCase(), label, norm: normChoice(label) };
+}
+
+function proficiencyBlockKey(kind, value) {
+  const parsed = parseTypedChoiceValue(value);
+  const resolvedKind = parsed.kind || kind;
+  if (!resolvedKind || !parsed.norm) return '';
+  return `${resolvedKind}:${parsed.norm}`;
+}
+
+function addProficiencyBlock(out, value, kind) {
+  const key = proficiencyBlockKey(kind, value);
+  if (key) out.add(key);
+}
+
+function isChoicePlaceholder(value) {
+  const text = stripTags(value).toLowerCase();
+  return /\bchoose\b|\byour choice\b|\bof your choice\b|\bone type\b/.test(text);
+}
+
+function choiceKeyMayContainKind(key, kind) {
+  const raw = String(key || '').toLowerCase();
+  if (raw.includes('skill_tool')) return kind === 'skill' || kind === 'tool';
+  return keyProficiencyKind(key) === kind;
+}
+
+function choiceKeyIsExpertise(key) {
+  const raw = String(key || '').toLowerCase();
+  return raw.includes('expertise') || raw.includes('_exp_') || raw.endsWith('_exp');
 }
 
 function specProficiencyKind(spec) {
   const key = String(spec?.key || '').toLowerCase();
   const label = String(spec?.label || '').toLowerCase();
+  if (spec?.type === 'skill_tool_choice') return 'mixed';
+  if (spec?.type === 'expertise') return null;
   if (spec?.type === 'skill_choice' || key.includes('skill')) return 'skill';
   if (spec?.type === 'language_choice' || key.includes('language') || key.includes('lang')) return 'language';
   if (key.includes('tool') || label.includes('tool') || label.includes('instrument')) return 'tool';
@@ -31,6 +70,7 @@ function specProficiencyKind(spec) {
 
 function keyProficiencyKind(key) {
   const raw = String(key || '').toLowerCase();
+  if (raw.includes('skill_tool')) return 'mixed';
   if (raw.includes('skill')) return 'skill';
   if (raw.includes('language') || raw.includes('lang')) return 'language';
   if (raw.includes('tool') || raw.includes('instrument')) return 'tool';
@@ -38,47 +78,74 @@ function keyProficiencyKind(key) {
   return null;
 }
 
-function addFixedBlocks(out, blocks) {
+function addFixedBlocks(out, blocks, kind) {
   (Array.isArray(blocks) ? blocks : [blocks]).forEach((block) => {
     if (!block) return;
     if (typeof block === 'string') {
-      block.split(/[;,]/).forEach((value) => { if (value.trim()) out.add(normChoice(value)); });
+      block.split(/[;,]/).forEach((value) => {
+        if (!value.trim() || isChoicePlaceholder(value)) return;
+        addProficiencyBlock(out, value, kind);
+      });
       return;
     }
     Object.keys(block)
-      .filter((key) => !CHOICE_KEYS.includes(key) && block[key] !== false)
-      .forEach((key) => out.add(normChoice(key)));
+      .filter((key) => !CHOICE_KEYS.includes(key) && block[key] !== false && !isChoicePlaceholder(key))
+      .forEach((key) => addProficiencyBlock(out, key, kind));
   });
 }
 
-function collectBlockedProficiencies({ character, choices, currentKey, kind }) {
+function addChoiceValueToKindSet(out, value, kind) {
+  const parsed = parseTypedChoiceValue(value);
+  if (parsed.kind && parsed.kind !== kind) return;
+  if (isChoicePlaceholder(parsed.label)) return;
+  addProficiencyBlock(out, parsed.label, kind);
+}
+
+function collectBlockedForKind({ character, choices, currentKey, kind }) {
   const blocked = new Set();
+
   Object.entries(choices || {}).forEach(([key, value]) => {
-    if (key === currentKey || keyProficiencyKind(key) !== kind) return;
-    (Array.isArray(value) ? value : [value]).forEach((item) => { if (item) blocked.add(normChoice(item)); });
+    if (key === currentKey || !choiceKeyMayContainKind(key, kind)) return;
+    (Array.isArray(value) ? value : [value]).forEach((item) => addChoiceValueToKindSet(blocked, item, kind));
   });
 
   if (!character) return blocked;
+
   if (kind === 'skill') {
-    (character.selectedSkills?.proficient || []).forEach((item) => blocked.add(normChoice(item)));
-    addFixedBlocks(blocked, character.bgObj?.skillProficiencies);
-    addFixedBlocks(blocked, character.speciesObj?.skillProficiencies);
+    (Array.isArray(character.selectedSkills)
+      ? character.selectedSkills
+      : [
+        ...(character.selectedSkills?.proficient || []),
+        ...(character.selectedSkills?.expertise || []),
+        ...(character.selectedSkills?.expert || []),
+      ]
+    ).forEach((item) => addChoiceValueToKindSet(blocked, item, 'skill'));
+    (character.normalizedChoices?.skills || []).forEach((item) => addChoiceValueToKindSet(blocked, item, 'skill'));
+    addFixedBlocks(blocked, character.bgObj?.skillProficiencies || character.backgroundObj?.skillProficiencies || character.bgSnapshot?.skillProficiencies, 'skill');
+    addFixedBlocks(blocked, character.speciesObj?.skillProficiencies || character.speciesSnapshot?.skillProficiencies, 'skill');
   }
+
   if (kind === 'tool') {
-    addFixedBlocks(blocked, character.cls?.startingProficiencies?.tools);
-    addFixedBlocks(blocked, character.cls?.startingProficiencies?.toolProficiencies);
-    addFixedBlocks(blocked, character.bgObj?.toolProficiencies);
-    addFixedBlocks(blocked, character.speciesObj?.toolProficiencies);
+    (character.selectedTools || []).forEach((item) => addChoiceValueToKindSet(blocked, item, 'tool'));
+    (character.normalizedChoices?.tools || []).forEach((item) => addChoiceValueToKindSet(blocked, item, 'tool'));
+    addFixedBlocks(blocked, character.cls?.startingProficiencies?.tools || character.clsSnapshot?.startingProficiencies?.tools, 'tool');
+    addFixedBlocks(blocked, character.cls?.startingProficiencies?.toolProficiencies || character.clsSnapshot?.startingProficiencies?.toolProficiencies, 'tool');
+    addFixedBlocks(blocked, character.bgObj?.toolProficiencies || character.backgroundObj?.toolProficiencies || character.bgSnapshot?.toolProficiencies, 'tool');
+    addFixedBlocks(blocked, character.speciesObj?.toolProficiencies || character.speciesSnapshot?.toolProficiencies, 'tool');
   }
+
   if (kind === 'language') {
-    addFixedBlocks(blocked, character.cls?.startingProficiencies?.languages);
-    addFixedBlocks(blocked, character.cls?.startingProficiencies?.languageProficiencies);
-    addFixedBlocks(blocked, character.bgObj?.languageProficiencies);
-    addFixedBlocks(blocked, character.speciesObj?.languageProficiencies);
+    (character.selectedLanguages || []).forEach((item) => addChoiceValueToKindSet(blocked, item, 'language'));
+    (character.normalizedChoices?.languages || []).forEach((item) => addChoiceValueToKindSet(blocked, item, 'language'));
+    addFixedBlocks(blocked, character.cls?.startingProficiencies?.languages || character.clsSnapshot?.startingProficiencies?.languages, 'language');
+    addFixedBlocks(blocked, character.cls?.startingProficiencies?.languageProficiencies || character.clsSnapshot?.startingProficiencies?.languageProficiencies, 'language');
+    addFixedBlocks(blocked, character.bgObj?.languageProficiencies || character.backgroundObj?.languageProficiencies || character.bgSnapshot?.languageProficiencies, 'language');
+    addFixedBlocks(blocked, character.speciesObj?.languageProficiencies || character.speciesSnapshot?.languageProficiencies, 'language');
   }
+
   if (kind === 'weapon') {
-    addFixedBlocks(blocked, character.cls?.startingProficiencies?.weapons);
-    addFixedBlocks(blocked, character.cls?.startingProficiencies?.weaponProficiencies);
+    addFixedBlocks(blocked, character.cls?.startingProficiencies?.weapons || character.clsSnapshot?.startingProficiencies?.weapons, 'weapon');
+    addFixedBlocks(blocked, character.cls?.startingProficiencies?.weaponProficiencies || character.clsSnapshot?.startingProficiencies?.weaponProficiencies, 'weapon');
   }
 
   [
@@ -86,13 +153,65 @@ function collectBlockedProficiencies({ character, choices, currentKey, kind }) {
     ...(character.allSubFeatures || []),
     ...((character.extraClasses || []).flatMap((extra) => [...(extra.allFeatures || []), ...(extra.allSubFeatures || [])])),
   ].forEach((feature) => {
-    if (kind === 'skill') addFixedBlocks(blocked, feature.skillProficiencies);
-    if (kind === 'tool') addFixedBlocks(blocked, feature.toolProficiencies);
-    if (kind === 'language') addFixedBlocks(blocked, feature.languageProficiencies);
-    if (kind === 'weapon') addFixedBlocks(blocked, feature.weaponProficiencies);
+    if (kind === 'skill') addFixedBlocks(blocked, feature.skillProficiencies, 'skill');
+    if (kind === 'tool') addFixedBlocks(blocked, feature.toolProficiencies, 'tool');
+    if (kind === 'language') addFixedBlocks(blocked, feature.languageProficiencies, 'language');
+    if (kind === 'weapon') addFixedBlocks(blocked, feature.weaponProficiencies, 'weapon');
   });
 
   return blocked;
+}
+
+function collectBlockedProficiencies({ character, choices, currentKey, kind }) {
+  const kinds = kind === 'mixed' ? ['skill', 'tool'] : [kind];
+  return kinds.reduce((out, entryKind) => {
+    collectBlockedForKind({ character, choices, currentKey, kind: entryKind }).forEach((value) => out.add(value));
+    return out;
+  }, new Set());
+}
+
+function collectCurrentProficientSkills({ character, choices }) {
+  const skills = new Set();
+  const addSkill = (value) => addChoiceValueToKindSet(skills, value, 'skill');
+
+  const selectedSkills = character?.selectedSkills;
+  (Array.isArray(selectedSkills)
+    ? selectedSkills
+    : [
+      ...(selectedSkills?.proficient || []),
+      ...(selectedSkills?.expertise || []),
+      ...(selectedSkills?.expert || []),
+    ]
+  ).forEach(addSkill);
+
+  (character?.normalizedChoices?.skills || []).forEach(addSkill);
+  (character?.normalizedChoices?.expertise || []).forEach(addSkill);
+
+  addFixedBlocks(skills, character?.bgObj?.skillProficiencies || character?.backgroundObj?.skillProficiencies || character?.bgSnapshot?.skillProficiencies, 'skill');
+  addFixedBlocks(skills, character?.speciesObj?.skillProficiencies || character?.speciesSnapshot?.skillProficiencies, 'skill');
+
+  [
+    ...(character?.allFeatures || []),
+    ...(character?.allSubFeatures || []),
+    ...((character?.extraClasses || []).flatMap((extra) => [...(extra.allFeatures || []), ...(extra.allSubFeatures || [])])),
+  ].forEach((feature) => addFixedBlocks(skills, feature.skillProficiencies, 'skill'));
+
+  Object.entries(choices || {}).forEach(([key, value]) => {
+    if (choiceKeyIsExpertise(key)) return;
+    if (!choiceKeyMayContainKind(key, 'skill')) return;
+    (Array.isArray(value) ? value : [value]).forEach(addSkill);
+  });
+
+  return skills;
+}
+
+function collectAlreadyExpertiseSkills({ choices, currentKey }) {
+  const expertise = new Set();
+  Object.entries(choices || {}).forEach(([key, value]) => {
+    if (key === currentKey || !choiceKeyIsExpertise(key)) return;
+    (Array.isArray(value) ? value : [value]).forEach((item) => addChoiceValueToKindSet(expertise, item, 'skill'));
+  });
+  return expertise;
 }
 
 export default function ChoiceBlock({ spec, choices, dispatch, character }) {
@@ -101,13 +220,36 @@ export default function ChoiceBlock({ spec, choices, dispatch, character }) {
   const blockedValues = proficiencyKind
     ? collectBlockedProficiencies({ character, choices, currentKey: spec.key, kind: proficiencyKind })
     : new Set();
-  const options = spec.options?.length
-    ? spec.options.map((option) => ({
-      value: option.value ?? option.key ?? option.label,
-      label: option.label ?? option.value ?? option.key,
-    }))
-    : (spec.from || []).map((value) => ({ value, label: optionLabel(value) }));
+  const rawOptions = spec.options?.length
+    ? spec.options.map((option) => {
+      const value = option.value ?? option.key ?? option.label;
+      return {
+        value,
+        label: option.label ?? parseTypedChoiceValue(value).label,
+      };
+    })
+    : (spec.from || []).map((value) => ({ value, label: parseTypedChoiceValue(value).label }));
+  const proficientSkills = spec.type === 'expertise' && spec.requiresProficiency
+    ? collectCurrentProficientSkills({ character, choices })
+    : null;
+  const alreadyExpertise = spec.type === 'expertise' && spec.excludeAlreadyExpertise
+    ? collectAlreadyExpertiseSkills({ choices, currentKey: spec.key })
+    : null;
+  const options = rawOptions.filter(({ value }) => {
+    if (spec.type !== 'expertise') return true;
+    const parsed = parseTypedChoiceValue(value);
+    const active = selected.includes(value);
+    const skillKey = proficiencyBlockKey('skill', parsed.label);
+    if (spec.requiresProficiency && proficientSkills && !active && !proficientSkills.has(skillKey)) return false;
+    if (spec.excludeAlreadyExpertise && alreadyExpertise && !active && alreadyExpertise.has(skillKey)) return false;
+    return true;
+  });
   const max = spec.count || 1;
+  const blockedValuesForReducer = [...new Set([
+    ...Array.from(blockedValues),
+    ...Array.from(blockedValues).map((value) => value.split(':').slice(1).join(':')).filter(Boolean),
+  ])];
+
   return (
     <Paper variant="outlined" sx={{ p: 1, minWidth: 0 }}>
       <Stack spacing={0.8} sx={{ minWidth: 0 }}>
@@ -133,7 +275,9 @@ export default function ChoiceBlock({ spec, choices, dispatch, character }) {
             {options.map(({ value, label }) => {
               const active = selected.includes(value);
               const full = !active && selected.length >= max;
-              const duplicate = !active && blockedValues.has(normChoice(value));
+              const parsed = parseTypedChoiceValue(value);
+              const optionKind = parsed.kind || (proficiencyKind === 'mixed' ? null : proficiencyKind);
+              const duplicate = !active && optionKind && blockedValues.has(proficiencyBlockKey(optionKind, parsed.label));
               return (
                 <ListItemButton
                   key={`${spec.key}-${value}`}
@@ -145,7 +289,7 @@ export default function ChoiceBlock({ spec, choices, dispatch, character }) {
                     key: spec.key,
                     value,
                     max,
-                    blockedValues: [...blockedValues],
+                    blockedValues: blockedValuesForReducer,
                   })}
                   sx={{
                     minWidth: 0,

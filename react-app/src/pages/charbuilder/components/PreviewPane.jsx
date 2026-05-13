@@ -216,20 +216,52 @@ function uniqueClean(values) {
   return uniqueDisplayLabels(values);
 }
 
+function stripChoiceValue(value) {
+  return String(value || '')
+    .split('|')[0]
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .trim();
+}
+
+function parseTypedProficiencyValue(value) {
+  const raw = stripChoiceValue(value);
+  const match = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
+  if (!match) return { kind: null, label: raw };
+  return { kind: match[1].toLowerCase(), label: stripChoiceValue(match[2]) };
+}
+
+function choiceKeyCanGrantSkill(key) {
+  const lk = String(key || '').toLowerCase();
+  return lk.includes('skill') || lk.includes('exp_') || lk.includes('expertise');
+}
+
 function collectSkillProficiencies(character) {
+  const out = [];
+  const pushSkill = (value) => {
+    const parsed = parseTypedProficiencyValue(value);
+    if (!parsed.label) return;
+    if (parsed.kind && parsed.kind !== 'skill') return;
+    out.push(parsed.label);
+  };
+
   const fromSelected = Array.isArray(character.selectedSkills)
     ? character.selectedSkills
     : [
       ...(character.selectedSkills?.proficient || []),
       ...(character.selectedSkills?.expertise || []),
+      ...(character.selectedSkills?.expert || []),
     ];
-  const fromChoices = Object.entries(character.choices || [])
-    .filter(([key]) => {
-      const lk = key.toLowerCase();
-      return lk.includes('skill') || lk.includes('exp_');
-    })
-    .flatMap(([, value]) => (Array.isArray(value) ? value : [value]));
-  return uniqueClean([...fromSelected, ...fromChoices]);
+  fromSelected.forEach(pushSkill);
+  (character.normalizedChoices?.skills || []).forEach(pushSkill);
+  (character.normalizedChoices?.expertise || []).forEach(pushSkill);
+
+  Object.entries(character.choices || {})
+    .filter(([key]) => choiceKeyCanGrantSkill(key))
+    .forEach(([, value]) => {
+      (Array.isArray(value) ? value : [value]).forEach(pushSkill);
+    });
+
+  return uniqueClean(out);
 }
 
 function mergePreviewSection(sections, title, items, prepend = false) {

@@ -1,8 +1,7 @@
-import { SHEET_KEYS } from '../constants.js';
 import { calcMaxHp, getAllFinalScores, getPrimaryClassLevel, getSelectedFeatNames } from './calculations.js';
 import { getMod, getFinal } from '../../charsheet/logic/calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
-import { getStorageItem, removeStorageItem, setStorageItem, setStorageJson } from '../../../shared/storage.js';
+import { getStorageItem, setStorageItem, setStorageJson } from '../../../shared/storage.js';
 import { collectAutoGrantedSpells as collectEntityAutoGrantedSpells } from '../spells/spells.js';
 
 export function extractSheetData(text) {
@@ -26,7 +25,119 @@ export function extractSheetData(text) {
   }
 }
 
+
+function asArray(value) {
+  if (value == null) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function cleanChoiceLabel(value) {
+  return String(value ?? '')
+    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
+    .replace(/[{}]/g, '')
+    .split('|')[0]
+    .replace(/^(?:skill|tool|language|weapon):/i, '')
+    .trim();
+}
+
+function typedProficiencyKey(value) {
+  return cleanChoiceLabel(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function uniqueLabels(values) {
+  const seen = new Set();
+  const out = [];
+  asArray(values).flat().forEach((value) => {
+    const label = cleanChoiceLabel(value);
+    const key = typedProficiencyKey(label);
+    if (!label || !key || seen.has(key)) return;
+    seen.add(key);
+    out.push(label);
+  });
+  return out;
+}
+
+function parseTypedProficiencyChoice(value) {
+  const raw = String(value ?? '').trim();
+  const match = raw.match(/^(skill|tool|language):(.+)$/i);
+  if (!match) return null;
+  const label = cleanChoiceLabel(match[2]);
+  if (!label) return null;
+  return {
+    kind: match[1].toLowerCase(),
+    label,
+  };
+}
+
+function collectTypedProficiencyChoices(choices = {}) {
+  const out = { skills: [], tools: [], languages: [] };
+
+  Object.values(choices || {}).forEach((value) => {
+    asArray(value).forEach((entry) => {
+      const parsed = parseTypedProficiencyChoice(entry);
+      if (!parsed) return;
+      if (parsed.kind === 'skill') out.skills.push(parsed.label);
+      else if (parsed.kind === 'tool') out.tools.push(parsed.label);
+      else if (parsed.kind === 'language') out.languages.push(parsed.label);
+    });
+  });
+
+  return {
+    skills: uniqueLabels(out.skills),
+    tools: uniqueLabels(out.tools),
+    languages: uniqueLabels(out.languages),
+  };
+}
+
+function mergeSelectedSkills(selectedSkills, addedSkills) {
+  const additions = uniqueLabels(addedSkills);
+  if (!additions.length) return selectedSkills || [];
+
+  if (selectedSkills && !Array.isArray(selectedSkills) && typeof selectedSkills === 'object') {
+    return {
+      ...selectedSkills,
+      proficient: uniqueLabels([...(selectedSkills.proficient || []), ...additions]),
+    };
+  }
+
+  return uniqueLabels([...(Array.isArray(selectedSkills) ? selectedSkills : []), ...additions]);
+}
+
+function mergeSelectedList(current, additions) {
+  const added = uniqueLabels(additions);
+  if (!added.length) return Array.isArray(current) ? current : [];
+  return uniqueLabels([...(Array.isArray(current) ? current : []), ...added]);
+}
+
+function mergeNormalizedChoices(normalizedChoices, typedProfs) {
+  const hasTyped = typedProfs.skills.length || typedProfs.tools.length || typedProfs.languages.length;
+  if (!normalizedChoices && !hasTyped) return null;
+
+  const normalized = normalizedChoices && typeof normalizedChoices === 'object'
+    ? { ...normalizedChoices }
+    : {};
+
+  normalized.skills = uniqueLabels([...(normalized.skills || []), ...typedProfs.skills]);
+  normalized.tools = uniqueLabels([...(normalized.tools || []), ...typedProfs.tools]);
+  normalized.languages = uniqueLabels([...(normalized.languages || []), ...typedProfs.languages]);
+
+  return normalized;
+}
+
+function normalizeProficiencyChoicesForPersistence(character = {}) {
+  const typedProfs = collectTypedProficiencyChoices(character.choices || {});
+
+  return {
+    ...character,
+    selectedSkills: mergeSelectedSkills(character.selectedSkills, typedProfs.skills),
+    selectedTools: mergeSelectedList(character.selectedTools, typedProfs.tools),
+    selectedLanguages: mergeSelectedList(character.selectedLanguages, typedProfs.languages),
+    normalizedChoices: mergeNormalizedChoices(character.normalizedChoices, typedProfs),
+  };
+}
+
 export function makeSheetPayload(character, data) {
+  character = normalizeProficiencyChoicesForPersistence(character);
   const primaryClassLevel = getPrimaryClassLevel(character);
   const selectedSpellLevels = new Map();
   (character.selectedCantrips || []).forEach((name) => selectedSpellLevels.set(name, 0));
@@ -291,25 +402,26 @@ function collectAutoGrantedSpells(character) {
 }
 
 export function saveCharacter(character, data) {
-  const payload = makeSheetPayload(character, data);
+  const builderCharacter = normalizeProficiencyChoicesForPersistence(character);
+  const payload = makeSheetPayload(builderCharacter, data);
   setStorageJson('5e_current_char', payload);
-  setStorageJson('5e_inventory', character.inventory || []);
-  setStorageJson('5e_currency', character.currency || {});
-  setStorageItem('5e_xp', character.xp || 0);
-  setStorageJson('5e_builder_state', character);
+  setStorageJson('5e_inventory', builderCharacter.inventory || []);
+  setStorageJson('5e_currency', builderCharacter.currency || {});
+  setStorageItem('5e_xp', builderCharacter.xp || 0);
+  setStorageJson('5e_builder_state', builderCharacter);
 
   const charId = getStorageItem('gb_active_char_id');
   if (charId) {
     setStorageJson(`gb:char:${charId}:5e_current_char`, payload);
-    setStorageJson(`gb:char:${charId}:5e_builder_state`, character);
-    setStorageJson(`gb:char:${charId}:5e_inventory`, character.inventory || []);
-    setStorageJson(`gb:char:${charId}:5e_currency`, character.currency || {});
-    setStorageItem(`gb:char:${charId}:5e_xp`, character.xp || 0);
+    setStorageJson(`gb:char:${charId}:5e_builder_state`, builderCharacter);
+    setStorageJson(`gb:char:${charId}:5e_inventory`, builderCharacter.inventory || []);
+    setStorageJson(`gb:char:${charId}:5e_currency`, builderCharacter.currency || {});
+    setStorageItem(`gb:char:${charId}:5e_xp`, builderCharacter.xp || 0);
     try {
       const registry = JSON.parse(localStorage.getItem('gb_char_registry') || '[]');
       const idx = registry.findIndex((e) => e.id === charId);
       if (idx >= 0) {
-        registry[idx] = { ...registry[idx], name: character.name || registry[idx].name, updatedAt: Date.now() };
+        registry[idx] = { ...registry[idx], name: builderCharacter.name || registry[idx].name, updatedAt: Date.now() };
       }
       localStorage.setItem('gb_char_registry', JSON.stringify(registry));
     } catch {}
@@ -318,19 +430,135 @@ export function saveCharacter(character, data) {
   return payload;
 }
 
+function unwrapStructuredSheetPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  if (payload.type === 'gb-sheet-import' && payload.data && typeof payload.data === 'object') return payload.data;
+  if (payload.data && typeof payload.data === 'object' && !payload.className && !payload.clsSnapshot) return payload.data;
+  return payload;
+}
+
+function isStructuredSheetPayload(payload) {
+  if (!payload || typeof payload !== 'object') return false;
+  return Boolean(
+    payload.className
+    || payload.clsSnapshot
+    || payload.speciesSnapshot
+    || payload.bgSnapshot
+    || payload.choices
+    || payload.finalScores
+  );
+}
+
+function buildBuilderStateFromSheetPayload(data) {
+  const backgroundName = data.backgroundName || data.bgName || data.bgSnapshot?.name || '';
+  const backgroundSource = data.backgroundSource || data.bgSource || data.bgSnapshot?.source || '';
+  const speciesName = data.speciesName || data.speciesSnapshot?.name || '';
+  const speciesSource = data.speciesSource || data.speciesSnapshot?.source || '';
+
+  const builderState = {
+    name: data.name || '',
+    level: Number(data.level || 1),
+    classLevel: Number(data.classLevel || data.level || 1),
+    className: data.className || data.clsSnapshot?.name || '',
+    classSource: data.classSource || data.clsSnapshot?.source || '',
+    subclassShortName: data.subclassShortName || '',
+    extraClasses: data.extraClasses || [],
+
+    speciesName,
+    speciesSource,
+    speciesObj: data.speciesObj || data.speciesSnapshot || null,
+
+    backgroundName,
+    backgroundSource,
+    backgroundObj: data.backgroundObj || data.bgSnapshot || null,
+    backgroundAbilities: data.backgroundAbilities || data.bgAbility || [],
+    backgroundPattern: data.backgroundPattern || data.bgPattern || [2, 1],
+
+    bgName: backgroundName,
+    bgSource: backgroundSource,
+    bgAbility: data.bgAbility || data.backgroundAbilities || [],
+    bgPattern: data.bgPattern || data.backgroundPattern || [2, 1],
+
+    scoreMethod: data.scoreMethod || 'pointbuy',
+    hpMode: data.hpMode || 'average',
+    hpManualRolls: data.hpManualRolls || {},
+    pbScores: data.pbScores || {},
+    arrAssign: data.arrAssign || {},
+    diceAssign: data.diceAssign || {},
+    manualScores: data.manualScores || {},
+
+    choices: data.choices || {},
+    normalizedChoices: data.normalizedChoices || null,
+    selectedSkills: data.selectedSkills || [],
+    selectedLanguages: data.selectedLanguages || [],
+    selectedTools: data.selectedTools || [],
+
+    cls: data.cls || data.clsSnapshot || null,
+    clsSnapshot: data.clsSnapshot || data.cls || null,
+    allFeatures: data.allFeatures || data.allClassFeatures || [],
+    allClassFeatures: data.allClassFeatures || data.allFeatures || [],
+    allSubFeatures: data.allSubFeatures || [],
+    allFeatSnapshots: data.allFeatSnapshots || [],
+
+    selectedCantrips: data.selectedCantrips || [],
+    selectedSpells: data.selectedSpells || {},
+    wizardSpellbook: data.wizardSpellbook || {},
+    wizardSpellMastery: data.wizardSpellMastery || {},
+    wizardSignatureSpells: data.wizardSignatureSpells || {},
+    autoGrantedSpells: data.autoGrantedSpells || [],
+
+    inventory: data.inventory || [],
+    currency: data.currency || { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 },
+    xp: Number(data.xp || 0),
+  };
+
+  return normalizeProficiencyChoicesForPersistence(builderState);
+}
+
+function updateActiveCharacterStorage(data, builderState) {
+  const charId = getStorageItem('gb_active_char_id');
+  if (!charId) return;
+
+  setStorageJson(`gb:char:${charId}:5e_current_char`, data);
+  setStorageJson(`gb:char:${charId}:5e_builder_state`, builderState);
+  setStorageJson(`gb:char:${charId}:5e_inventory`, data.inventory || []);
+  setStorageJson(`gb:char:${charId}:5e_currency`, data.currency || {});
+  setStorageItem(`gb:char:${charId}:5e_xp`, data.xp || 0);
+
+  try {
+    const registry = JSON.parse(localStorage.getItem('gb_char_registry') || '[]');
+    const idx = registry.findIndex((entry) => entry.id === charId);
+    if (idx >= 0) {
+      registry[idx] = {
+        ...registry[idx],
+        name: data.name || registry[idx].name,
+        updatedAt: Date.now(),
+      };
+      localStorage.setItem('gb_char_registry', JSON.stringify(registry));
+    }
+  } catch {}
+}
+
 export function importSheetPayload(payload, confirmOverwrite = () => true) {
-  if (!payload || typeof payload !== 'object') throw new Error('Formato file non riconosciuto');
-  const allowed = new Set(SHEET_KEYS);
+  const data = unwrapStructuredSheetPayload(payload);
+
+  if (!isStructuredSheetPayload(data)) {
+    throw new Error('Formato file non riconosciuto: carica un JSON scheda GM-Board strutturato.');
+  }
+
   const hasExisting = getStorageItem('5e_builder_state') != null;
   if (hasExisting && !confirmOverwrite()) return 0;
-  SHEET_KEYS.forEach((key) => removeStorageItem(key));
-  let count = 0;
-  Object.entries(payload).forEach(([key, value]) => {
-    if (allowed.has(key) && typeof value === 'string') {
-      setStorageItem(key, value);
-      count += 1;
-    }
-  });
-  if (!count) throw new Error('Nessun dato valido trovato');
-  return count;
+
+  const normalizedData = normalizeProficiencyChoicesForPersistence(data);
+  const builderState = buildBuilderStateFromSheetPayload(normalizedData);
+
+  setStorageJson('5e_current_char', normalizedData);
+  setStorageJson('5e_builder_state', builderState);
+  setStorageJson('5e_inventory', normalizedData.inventory || []);
+  setStorageJson('5e_currency', normalizedData.currency || {});
+  setStorageItem('5e_xp', normalizedData.xp || 0);
+
+  updateActiveCharacterStorage(normalizedData, builderState);
+
+  return 1;
 }

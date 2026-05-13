@@ -1,7 +1,7 @@
 import { STATS, STAT_LABELS } from '../constants.js';
-import { cleanText } from './text.js';
+import { cleanText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
-import { getPrimaryClassLevel } from './calculations.js';
+import { getPrimaryClassLevel } from '../logic/calculations.js';
 import { getMulticlassChoiceSpecs } from '../../../shared/character/multiclassProficiencies.js';
 
 const ALL_SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
@@ -13,6 +13,47 @@ const MUSICAL = ['Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum', 'Horn', '
 const GAMING = ['Dice Set', 'Dragonchess Set', 'Playing Card Set', 'Three-Dragon Ante Set'];
 const VEHICLES = ['Vehicles (Land)', 'Vehicles (Water)'];
 const ALL_TOOLS = [...ARTISAN_TOOLS, ...MUSICAL, ...GAMING, ...VEHICLES, "Thieves' Tools", 'Disguise Kit', 'Forgery Kit', "Herbalism Kit", "Navigator's Tools", "Poisoner's Kit"];
+
+function mixedSkillToolOptions() {
+  return [
+    ...ALL_SKILLS.map((skill) => ({
+      value: `skill:${skill}`,
+      label: skill,
+      group: 'Skills',
+      kind: 'skill',
+    })),
+    ...ALL_TOOLS.map((tool) => ({
+      value: `tool:${tool}`,
+      label: tool,
+      group: 'Tools',
+      kind: 'tool',
+    })),
+  ];
+}
+
+export function parseSkillToolChoiceValue(value) {
+  const raw = String(value || '').trim();
+  const match = raw.match(/^(skill|tool):(.+)$/i);
+  if (!match) return null;
+  return {
+    kind: match[1].toLowerCase(),
+    name: specSan(match[2]),
+  };
+}
+
+export function splitSkillToolChoiceValues(values) {
+  const out = { skills: [], tools: [] };
+  (Array.isArray(values) ? values : [values]).forEach((value) => {
+    const parsed = parseSkillToolChoiceValue(value);
+    if (!parsed?.name) return;
+    if (parsed.kind === 'skill') out.skills.push(parsed.name);
+    if (parsed.kind === 'tool') out.tools.push(parsed.name);
+  });
+  return {
+    skills: specUniq(out.skills),
+    tools: specUniq(out.tools),
+  };
+}
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 
 export function fixedKeysFromBlocks(blocks, excluded = CHOICE_KEYS) {
@@ -365,56 +406,24 @@ export function speciesChoiceSpecs(character) {
   return specs;
 }
 
-function extractFeatFromEntries(entries) {
-  if (!entries) return null;
-  const arr = Array.isArray(entries) ? entries : [entries];
-  for (const entry of arr) {
-    if (typeof entry === 'string') {
-      const m = entry.match(/\{@feat ([^|}]+)/);
-      if (m) return m[1].trim();
-    }
-    if (entry && typeof entry === 'object') {
-      if (entry.type === 'item' && entry.entry) {
-        const m = String(entry.entry).match(/\{@feat ([^|}]+)/);
-        if (m) return m[1].trim();
-      }
-      if (entry.items) {
-        const found = extractFeatFromEntries(entry.items);
-        if (found) return found;
-      }
-      if (entry.entries) {
-        const found = extractFeatFromEntries(entry.entries);
-        if (found) return found;
-      }
-    }
-  }
-  return null;
-}
-
 function backgroundOriginFeat(background) {
   if (!background) return null;
   if (background.feat) return { fixed: background.feat };
   const feats = Array.isArray(background.feats) ? background.feats : [];
   const first = feats[0];
-  if (first) {
-    const keys = Object.keys(first).filter((key) => key !== 'choose');
-    if (keys.length) {
-      const raw = String(keys[0] || '').split(';')[0].trim().split('|')[0];
-      const classHint = (() => {
-        const semicol = String(keys[0] || '').split(';').slice(1).map((value) => value.trim().split('|')[0]).find(Boolean);
-        if (semicol) return semicol.toLowerCase().replace(/[^a-z]/g, '');
-        const pipeParts = String(keys[0] || '').split('|').map((value) => value.trim()).filter(Boolean);
-        if (pipeParts.length >= 3) return pipeParts[2].toLowerCase().replace(/[^a-z]/g, '');
-        return null;
-      })();
-      const camelToTitle = (value) => String(value || '').replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase()).trim();
-      return { fixed: camelToTitle(raw), classHint };
-    }
-  }
-  // Fallback: scan entries for {@feat ...} (FRHoF / older backgrounds)
-  const fromEntries = extractFeatFromEntries(background.entries);
-  if (fromEntries) return { fixed: fromEntries, classHint: null };
-  return null;
+  if (!first) return null;
+  const keys = Object.keys(first).filter((key) => key !== 'choose');
+  if (!keys.length) return null;
+  const raw = String(keys[0] || '').split(';')[0].trim().split('|')[0];
+  const classHint = (() => {
+    const semicol = String(keys[0] || '').split(';').slice(1).map((value) => value.trim().split('|')[0]).find(Boolean);
+    if (semicol) return semicol.toLowerCase().replace(/[^a-z]/g, '');
+    const pipeParts = String(keys[0] || '').split('|').map((value) => value.trim()).filter(Boolean);
+    if (pipeParts.length >= 3) return pipeParts[2].toLowerCase().replace(/[^a-z]/g, '');
+    return null;
+  })();
+  const camelToTitle = (value) => String(value || '').replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase()).trim();
+  return { fixed: camelToTitle(raw), classHint };
 }
 
 export function backgroundChoiceSpecs(character) {
@@ -527,7 +536,18 @@ export function featChoiceSpecs(feat, options = {}) {
   } else if (feat?.ability?.some((block) => block.choose)) {
     specs.push({ key: `${slotKey}_asi`, label: `${feat.name} Ability`, type: 'ability_choice', from: STATS, count: 1 });
   }
+  if (ui.skillOrToolProficiency) {
+    specs.push({
+      key: `${slotKey}_${ui.skillOrToolProficiency.keySuffix || 'skill_tool'}`,
+      label: ui.skillOrToolProficiency.label || `${feat.name} Skills or Tools`,
+      type: 'skill_tool_choice',
+      options: ui.skillOrToolProficiency.options || mixedSkillToolOptions(),
+      from: (ui.skillOrToolProficiency.options || mixedSkillToolOptions()).map((option) => option.value || option.label).filter(Boolean),
+      count: ui.skillOrToolProficiency.count || 1,
+    });
+  }
   if (ui.skillProficiency) specs.push({ key: `${slotKey}_skill`, label: `${feat.name} Skill`, type: 'skill_choice', from: ALL_SKILLS, count: ui.skillProficiency.count || 1 });
+  if (ui.toolProficiency) specs.push({ key: `${slotKey}_tool`, label: ui.toolProficiency.label || `${feat.name} Tool`, type: 'generic_choice', from: ui.toolProficiency.options || ALL_TOOLS, count: ui.toolProficiency.count || 1 });
   if (ui.languageProficiency) specs.push({ key: `${slotKey}_language`, label: `${feat.name} Language`, type: 'language_choice', from: STD_LANGS, count: ui.languageProficiency.count || 1 });
   if (ui.spellAbility) {
     specs.push({
@@ -561,6 +581,8 @@ export function summarizeFixedProficiencies(entity) {
 }
 
 export function optionLabel(value) {
+  const parsed = parseSkillToolChoiceValue(value);
+  if (parsed?.name) return parsed.name;
   const raw = cleanText(String(value || '').split('|')[0]);
   return STAT_LABELS[raw] || raw.replace(/_/g, ' ');
 }

@@ -10,6 +10,20 @@ function normalizeLabel(v) {
   return canonicalProficiencyLabel(v);
 }
 
+function parseTypedProficiencyValue(value) {
+  const raw = String(value || '').trim();
+  const match = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
+  if (!match) return null;
+  const label = normalizeLabel(match[2]);
+  if (!label) return null;
+  return { kind: match[1].toLowerCase(), label };
+}
+
+function isChoicePlaceholder(value) {
+  const text = String(value || '').toLowerCase();
+  return /\bchoose\b|\byour choice\b|\bof your choice\b|\bone type\b/.test(text);
+}
+
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 
 const SIMPLE_WEAPONS = new Set([
@@ -336,12 +350,17 @@ export function collectEquipmentProficiencySets(C) {
       if (!entry) return;
       if (typeof entry === 'string') {
         entry.split(/[;,]/)
+          .filter((v) => !isChoicePlaceholder(v))
           .map(normalizeLabel)
-          .filter((v) => v && !/^choose\b/i.test(v))
+          .filter(Boolean)
           .forEach(v => set.add(v));
         return;
       }
-      Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
+      Object.keys(entry)
+        .filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false && !isChoicePlaceholder(k))
+        .map(normalizeLabel)
+        .filter(Boolean)
+        .forEach(v => set.add(v));
     });
   };
 
@@ -489,12 +508,17 @@ export function collectAllProficiencies(C) {
       if (!entry) return;
       if (typeof entry === 'string') {
         entry.split(/[;,]/)
+          .filter((v) => !isChoicePlaceholder(v))
           .map(normalizeLabel)
-          .filter((v) => v && !/^choose\b/i.test(v))
+          .filter(Boolean)
           .forEach(v => set.add(v));
         return;
       }
-      Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
+      Object.keys(entry)
+        .filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false && !isChoicePlaceholder(k))
+        .map(normalizeLabel)
+        .filter(Boolean)
+        .forEach(v => set.add(v));
     });
   };
 
@@ -524,8 +548,17 @@ export function collectAllProficiencies(C) {
       if (!val) continue;
       const lk = key.toLowerCase();
       const vals = Array.isArray(val) ? val : [val];
-      if (lk.includes('tool') || lk.includes('instrument')) vals.forEach(v => { const n = normalizeLabel(v); if (n) toolSet.add(n); });
-      if (lk.includes('language')) vals.forEach(v => { const n = normalizeLabel(v); if (n) langSet.add(n); });
+      vals.forEach(v => {
+        const typed = parseTypedProficiencyValue(v);
+        if (typed) {
+          if (typed.kind === 'tool') toolSet.add(typed.label);
+          else if (typed.kind === 'language') langSet.add(typed.label);
+          return;
+        }
+        if (isChoicePlaceholder(v)) return;
+        if (lk.includes('tool') || lk.includes('instrument')) { const n = normalizeLabel(v); if (n) toolSet.add(n); }
+        if (lk.includes('language')) { const n = normalizeLabel(v); if (n) langSet.add(n); }
+      });
     }
   }
 

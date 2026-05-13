@@ -1,5 +1,6 @@
 import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
 import { getFeatAsiBonus } from '../../../shared/character/abilityBonuses.js';
+import { installedRegistry } from '../../../adapters/index.js';
 
 const PB_TABLE = [null, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
 const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -92,39 +93,117 @@ export function normSkill(s) {
   return s.toLowerCase().replace(/[^a-z]/g, '');
 }
 
-export function getSkillProficiency(C, skillName) {
+function skillChoiceLabel(value) {
+  const raw = String(value || '').split('|')[0].trim();
+  const typed = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
+  if (typed) return typed[1].toLowerCase() === 'skill' ? typed[2].trim() : '';
+  return raw;
+}
+
+function valuesIncludeSkill(values, skillName) {
   const nsk = normSkill(skillName);
+  if (!nsk) return false;
+  return (Array.isArray(values) ? values : [values])
+    .some((value) => normSkill(skillChoiceLabel(value)) === nsk);
+}
+
+function characterClassEntities(C) {
+  if (!C) return [];
+  const out = [];
+  if (C.className) {
+    out.push({
+      className: C.className,
+      subclassShortName: C.subclassShortName || '',
+      level: Number(C.classLevel || C.level || 1),
+    });
+  }
+  (C.extraClasses || []).forEach((extra) => {
+    if (!extra?.name) return;
+    out.push({
+      className: extra.name,
+      subclassShortName: extra.subclassShortName || '',
+      level: Number(extra.level || 1),
+    });
+  });
+  return out;
+}
+
+function collectRuntimeEffects(C) {
+  const effects = [];
+  characterClassEntities(C).forEach((entity) => {
+    (installedRegistry.getClassSheetEffects(entity.className) || []).forEach((effect) => {
+      if (entity.level >= Number(effect?.minLevel || 1)) effects.push(effect);
+    });
+    if (entity.subclassShortName) {
+      (installedRegistry.getSubclassSheetEffects(entity.className, entity.subclassShortName) || []).forEach((effect) => {
+        if (entity.level >= Number(effect?.minLevel || 1)) effects.push(effect);
+      });
+    }
+  });
+
+  const serialized = C?.adapterRuntime || {};
+  [
+    ...(serialized.classEffects || []),
+    ...(serialized.subclassEffects || []),
+    ...(serialized.speciesEffects || []),
+    ...(serialized.featEffects || []),
+  ].forEach((effect) => {
+    const ownerLevel = Number(effect?.ownerLevel || C?.classLevel || C?.level || 1);
+    if (ownerLevel >= Number(effect?.minLevel || 1)) effects.push(effect);
+  });
+
+  return effects;
+}
+
+function hasHalfProficiencyOnUntrainedChecks(C) {
+  return collectRuntimeEffects(C).some((effect) => {
+    const type = String(effect?.type || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const bonus = String(effect?.bonus || '').toLowerCase();
+    return type === 'jackofalltrades' || bonus.includes('halfproficiency');
+  });
+}
+
+export function getSkillProficiency(C, skillName) {
   const normalized = C?.normalizedChoices || {};
-  if ((normalized.expertise || []).some(s => normSkill(s) === nsk)) return 'exp';
-  if ((normalized.skills || []).some(s => normSkill(s) === nsk)) return 'prof';
+  if (valuesIncludeSkill(normalized.expertise || [], skillName)) return 'exp';
+  if (valuesIncludeSkill(normalized.skills || [], skillName)) return 'prof';
   const skillData = C?.selectedSkills || {};
   const profList = Array.isArray(skillData) ? skillData : (skillData.proficient || []);
   const expList = Array.isArray(skillData) ? [] : (skillData.expert || []);
-  if (expList.some(s => normSkill(s) === nsk)) return 'exp';
-  if (profList.some(s => normSkill(s) === nsk)) return 'prof';
+  if (valuesIncludeSkill(expList, skillName)) return 'exp';
+  if (valuesIncludeSkill(profList, skillName)) return 'prof';
   const bgFixed = (C?.bgSnapshot?.skillProficiencies || []).flatMap(sp => Object.keys(sp).filter(k => k !== 'choose'));
-  if (bgFixed.some(s => normSkill(s) === nsk)) return 'prof';
+  if (valuesIncludeSkill(bgFixed, skillName)) return 'prof';
   if (C?.choices) {
     for (const [key, val] of Object.entries(C.choices)) {
       if (!val) continue;
-      if (key.includes('skill') || key.startsWith('start_skills')) {
+      const lk = String(key || '').toLowerCase();
+      if (lk.includes('exp') || lk.includes('expertise')) {
         const vals = Array.isArray(val) ? val : [val];
-        if (vals.some(v => normSkill(v) === nsk)) return 'prof';
+        if (valuesIncludeSkill(vals, skillName)) return 'exp';
       }
-      if (key.includes('exp') || key.includes('expertise')) {
+      if (lk.includes('skill') || lk.startsWith('start_skills')) {
         const vals = Array.isArray(val) ? val : [val];
-        if (vals.some(v => normSkill(v) === nsk)) return 'exp';
+        if (valuesIncludeSkill(vals, skillName)) return 'prof';
       }
     }
   }
   return null;
 }
 
+export function getSkillTraining(C, skillName) {
+  const proficiency = getSkillProficiency(C, skillName);
+  if (proficiency === 'exp' || proficiency === 'prof') return proficiency;
+  if (hasHalfProficiencyOnUntrainedChecks(C)) return 'half';
+  return null;
+}
+
 export function getSkillBonus(C, sk) {
   const m = getMod(getFinal(C, sk.a));
-  const p = getSkillProficiency(C, sk.n);
-  if (p === 'exp') return m + getPB(C) * 2;
-  if (p === 'prof') return m + getPB(C);
+  const training = getSkillTraining(C, sk.n);
+  if (training === 'exp') return m + getPB(C) * 2;
+  if (training === 'prof') return m + getPB(C);
+  if (training === 'half') return m + Math.floor(getPB(C) / 2);
   return m;
 }
 

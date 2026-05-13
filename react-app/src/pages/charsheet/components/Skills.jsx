@@ -1,6 +1,6 @@
 import { Box, Paper, Typography, Tooltip } from '@mui/material';
 import { AlertCircle, Sparkles } from 'lucide-react';
-import { SKILLS, getSkillProficiency, getSkillBonus, fbonus, SLBL } from '../logic/calculations.js';
+import { SKILLS, getSkillTraining, getSkillBonus, fbonus, SLBL } from '../logic/calculations.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { matchesChoiceRequirement, inventoryHasFlag } from '../../../shared/character/choiceUtils.js';
 import { getSkillAdvantageFromEffects } from '../logic/sheetEffects.js';
@@ -13,6 +13,27 @@ const _SKILL_ADVANTAGES = [
     requiresInventoryFlag: { flag: 'arcaneArmor', itemType: ['LA', 'MA', 'HA'] },
   },
 ];
+
+
+function SkillProficiencyDot({ training }) {
+  const dotColor = training === 'exp' ? 'secondary.main' : training ? 'primary.main' : 'divider';
+
+  return (
+    <Box
+      sx={{
+        width: 9,
+        height: 9,
+        borderRadius: '50%',
+        border: 1,
+        borderColor: dotColor,
+        bgcolor: training === 'prof' || training === 'exp' ? dotColor : 'transparent',
+        background: training === 'half'
+          ? (theme) => `linear-gradient(90deg, ${theme.palette.primary.main} 50%, transparent 50%)`
+          : undefined,
+      }}
+    />
+  );
+}
 
 function getSkillAdvantage(C, skillName) {
   const inv = C?.inventory || [];
@@ -45,9 +66,8 @@ export default function Skills({ C, sheet, onRoll }) {
         <span>Mod.</span>
       </Box>
       {SKILLS.map(sk => {
-        const prof = getSkillProficiency(C, sk.n);
+        const training = getSkillTraining(C, sk.n);
         const bonus = getSkillBonus(C, sk);
-        const dotColor = prof === 'exp' ? 'secondary.main' : prof === 'prof' ? 'primary.main' : 'divider';
         const isStealth = String(sk.n || '').toLowerCase() === 'stealth';
         const hasDisadv = armorPenalties.hasPenalty && (
           armorPenalties.disadvantageOn.includes(`${sk.a}-checks`)
@@ -64,7 +84,7 @@ export default function Skills({ C, sheet, onRoll }) {
           }}
             sx={{ display: 'grid', gridTemplateColumns: '20px 30px 1fr auto', gap: '4px', px: '0.9rem', py: '3px', alignItems: 'center', cursor: 'pointer', transition: 'background 0.1s', '&:hover': { bgcolor: 'rgba(202,165,80,0.05)' } }}>
             <Box />
-            <Box sx={{ width: 9, height: 9, borderRadius: '50%', border: 1, borderColor: dotColor, bgcolor: prof ? dotColor : 'transparent' }} />
+            <SkillProficiencyDot training={training} />
             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
               {sk.n}
             </Typography>

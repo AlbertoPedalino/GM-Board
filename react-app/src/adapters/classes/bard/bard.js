@@ -120,30 +120,21 @@ export default function install(registry, context = {}) {
     getGenericBackgroundOriginFeat,
   } = createAdapterBindings(registry, context);
 registerClassAdapter("Bard", function (cls, lv, specs, ctx = {}) {
-  const instruments = _MUSICAL_INSTRUMENTS || [];
   const skills = typeof SKILLS !== 'undefined'
     ? SKILLS.map(function (s) { return s.n; })
     : ['Acrobatics','Animal Handling','Arcana','Athletics','Deception','History','Insight','Intimidation','Investigation','Medicine','Nature','Perception','Performance','Persuasion','Religion','Sleight of Hand','Stealth','Survival'];
 
-  if (lv >= 1) {
-    specs.push({
-      key: 'bard_instruments',
-      label: 'Musical Instruments (Bard)',
-      type: 'generic_choice',
-      from: instruments,
-      count: 3,
-      level: 1
-    });
-  }
   if (lv >= 2) {
     specs.push({
       key: 'bard_expertise_lv2',
       label: 'Expertise (Bard Lv.2)',
       type: 'expertise',
       from: skills,
+      candidateSource: 'proficientSkills',
       count: 2,
       level: 2,
-      requiresProficiency: true
+      requiresProficiency: true,
+      excludeAlreadyExpertise: true
     });
   }
   if (lv >= 9) {
@@ -152,9 +143,11 @@ registerClassAdapter("Bard", function (cls, lv, specs, ctx = {}) {
       label: 'Expertise (Bard Lv.9)',
       type: 'expertise',
       from: skills,
+      candidateSource: 'proficientSkills',
       count: 2,
       level: 9,
-      requiresProficiency: true
+      requiresProficiency: true,
+      excludeAlreadyExpertise: true
     });
   }
   if (lv >= 10) {
@@ -213,6 +206,18 @@ registerClassSheetResources("Bard", [
   { key: 'bardic_insp', name: 'Bardic Inspiration', icon: 'music', recharge: 'SR',
     actionName: 'Bardic Inspiration',
     max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
+]);
+
+registerClassSheetEffects("Bard", [
+  {
+    type: "jackOfAllTrades",
+    key: "bard_jack_of_all_trades",
+    label: "Jack of All Trades",
+    minLevel: 2,
+    appliesTo: "abilityChecksWithoutProficiency",
+    bonus: "halfProficiencyRoundedDown",
+    note: "Add half your Proficiency Bonus, rounded down, to ability checks that don't already use your Proficiency Bonus.",
+  },
 ]);
 
 registerClassSheetChoiceMeta("Bard", {
