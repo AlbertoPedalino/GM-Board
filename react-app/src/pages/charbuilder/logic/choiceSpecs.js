@@ -3,6 +3,11 @@ import { cleanText } from '../logic/text.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { getPrimaryClassLevel } from '../logic/calculations.js';
 import { getMulticlassChoiceSpecs } from '../../../shared/character/multiclassProficiencies.js';
+import {
+  parseTypedProficiencyValue,
+  splitTypedProficiencies,
+  uniqueProficiencyLabels,
+} from '../../../shared/character/typedProficiencies.js';
 
 const ALL_SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
 const STD_LANGS = ['Common', 'Common Sign Language', 'Draconic', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc'];
@@ -32,26 +37,17 @@ function mixedSkillToolOptions() {
 }
 
 export function parseSkillToolChoiceValue(value) {
-  const raw = String(value || '').trim();
-  const match = raw.match(/^(skill|tool):(.+)$/i);
-  if (!match) return null;
-  return {
-    kind: match[1].toLowerCase(),
-    name: specSan(match[2]),
-  };
+  const parsed = parseTypedProficiencyValue(value);
+  if (parsed.kind !== 'skill' && parsed.kind !== 'tool') return null;
+  if (!parsed.label) return null;
+  return { kind: parsed.kind, name: parsed.label };
 }
 
 export function splitSkillToolChoiceValues(values) {
-  const out = { skills: [], tools: [] };
-  (Array.isArray(values) ? values : [values]).forEach((value) => {
-    const parsed = parseSkillToolChoiceValue(value);
-    if (!parsed?.name) return;
-    if (parsed.kind === 'skill') out.skills.push(parsed.name);
-    if (parsed.kind === 'tool') out.tools.push(parsed.name);
-  });
+  const split = splitTypedProficiencies(values);
   return {
-    skills: specUniq(out.skills),
-    tools: specUniq(out.tools),
+    skills: uniqueProficiencyLabels(split.skill),
+    tools: uniqueProficiencyLabels(split.tool),
   };
 }
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];

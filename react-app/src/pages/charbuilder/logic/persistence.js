@@ -3,6 +3,10 @@ import { getMod, getFinal } from '../../charsheet/logic/calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { getStorageItem, setStorageItem, setStorageJson } from '../../../shared/storage.js';
 import { collectAutoGrantedSpells as collectEntityAutoGrantedSpells } from '../spells/spells.js';
+import {
+  splitTypedProficiencies,
+  uniqueProficiencyLabels,
+} from '../../../shared/character/typedProficiencies.js';
 
 export function extractSheetData(text) {
   try {
@@ -31,82 +35,34 @@ function asArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 
-function cleanChoiceLabel(value) {
-  return String(value ?? '')
-    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-    .replace(/[{}]/g, '')
-    .split('|')[0]
-    .replace(/^(?:skill|tool|language|weapon):/i, '')
-    .trim();
-}
-
-function typedProficiencyKey(value) {
-  return cleanChoiceLabel(value).toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-function uniqueLabels(values) {
-  const seen = new Set();
-  const out = [];
-  asArray(values).flat().forEach((value) => {
-    const label = cleanChoiceLabel(value);
-    const key = typedProficiencyKey(label);
-    if (!label || !key || seen.has(key)) return;
-    seen.add(key);
-    out.push(label);
-  });
-  return out;
-}
-
-function parseTypedProficiencyChoice(value) {
-  const raw = String(value ?? '').trim();
-  const match = raw.match(/^(skill|tool|language):(.+)$/i);
-  if (!match) return null;
-  const label = cleanChoiceLabel(match[2]);
-  if (!label) return null;
-  return {
-    kind: match[1].toLowerCase(),
-    label,
-  };
-}
-
 function collectTypedProficiencyChoices(choices = {}) {
-  const out = { skills: [], tools: [], languages: [] };
-
-  Object.values(choices || {}).forEach((value) => {
-    asArray(value).forEach((entry) => {
-      const parsed = parseTypedProficiencyChoice(entry);
-      if (!parsed) return;
-      if (parsed.kind === 'skill') out.skills.push(parsed.label);
-      else if (parsed.kind === 'tool') out.tools.push(parsed.label);
-      else if (parsed.kind === 'language') out.languages.push(parsed.label);
-    });
-  });
-
+  const all = Object.values(choices || {}).flatMap(asArray);
+  const split = splitTypedProficiencies(all);
   return {
-    skills: uniqueLabels(out.skills),
-    tools: uniqueLabels(out.tools),
-    languages: uniqueLabels(out.languages),
+    skills: uniqueProficiencyLabels(split.skill),
+    tools: uniqueProficiencyLabels(split.tool),
+    languages: uniqueProficiencyLabels(split.language),
   };
 }
 
 function mergeSelectedSkills(selectedSkills, addedSkills) {
-  const additions = uniqueLabels(addedSkills);
+  const additions = uniqueProficiencyLabels(addedSkills);
   if (!additions.length) return selectedSkills || [];
 
   if (selectedSkills && !Array.isArray(selectedSkills) && typeof selectedSkills === 'object') {
     return {
       ...selectedSkills,
-      proficient: uniqueLabels([...(selectedSkills.proficient || []), ...additions]),
+      proficient: uniqueProficiencyLabels([...(selectedSkills.proficient || []), ...additions]),
     };
   }
 
-  return uniqueLabels([...(Array.isArray(selectedSkills) ? selectedSkills : []), ...additions]);
+  return uniqueProficiencyLabels([...(Array.isArray(selectedSkills) ? selectedSkills : []), ...additions]);
 }
 
 function mergeSelectedList(current, additions) {
-  const added = uniqueLabels(additions);
+  const added = uniqueProficiencyLabels(additions);
   if (!added.length) return Array.isArray(current) ? current : [];
-  return uniqueLabels([...(Array.isArray(current) ? current : []), ...added]);
+  return uniqueProficiencyLabels([...(Array.isArray(current) ? current : []), ...added]);
 }
 
 function mergeNormalizedChoices(normalizedChoices, typedProfs) {
@@ -117,9 +73,9 @@ function mergeNormalizedChoices(normalizedChoices, typedProfs) {
     ? { ...normalizedChoices }
     : {};
 
-  normalized.skills = uniqueLabels([...(normalized.skills || []), ...typedProfs.skills]);
-  normalized.tools = uniqueLabels([...(normalized.tools || []), ...typedProfs.tools]);
-  normalized.languages = uniqueLabels([...(normalized.languages || []), ...typedProfs.languages]);
+  normalized.skills = uniqueProficiencyLabels([...(normalized.skills || []), ...typedProfs.skills]);
+  normalized.tools = uniqueProficiencyLabels([...(normalized.tools || []), ...typedProfs.tools]);
+  normalized.languages = uniqueProficiencyLabels([...(normalized.languages || []), ...typedProfs.languages]);
 
   return normalized;
 }

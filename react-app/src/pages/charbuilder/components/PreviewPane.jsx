@@ -7,6 +7,10 @@ import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
 import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/proficiencyDisplay.js';
+import {
+  parseTypedProficiencyValue,
+  extractFixedProficiencyLabels,
+} from '../../../shared/character/typedProficiencies.js';
 import { collectResolvedWeaponMasteries } from '../../../shared/character/weaponMastery.js';
 import { collectAcFormulas, getEquippedArmor, getEquippedShield, computeAcFormulaValue } from '../../../shared/character/ac.js';
 
@@ -216,20 +220,6 @@ function uniqueClean(values) {
   return uniqueDisplayLabels(values);
 }
 
-function stripChoiceValue(value) {
-  return String(value || '')
-    .split('|')[0]
-    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-    .trim();
-}
-
-function parseTypedProficiencyValue(value) {
-  const raw = stripChoiceValue(value);
-  const match = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
-  if (!match) return { kind: null, label: raw };
-  return { kind: match[1].toLowerCase(), label: stripChoiceValue(match[2]) };
-}
-
 function choiceKeyCanGrantSkill(key) {
   const lk = String(key || '').toLowerCase();
   return lk.includes('skill') || lk.includes('exp_') || lk.includes('expertise');
@@ -243,6 +233,9 @@ function collectSkillProficiencies(character) {
     if (parsed.kind && parsed.kind !== 'skill') return;
     out.push(parsed.label);
   };
+  const pushFixed = (blocks) => {
+    extractFixedProficiencyLabels(blocks).forEach((label) => out.push(label));
+  };
 
   const fromSelected = Array.isArray(character.selectedSkills)
     ? character.selectedSkills
@@ -254,6 +247,20 @@ function collectSkillProficiencies(character) {
   fromSelected.forEach(pushSkill);
   (character.normalizedChoices?.skills || []).forEach(pushSkill);
   (character.normalizedChoices?.expertise || []).forEach(pushSkill);
+
+  pushFixed(character.bgSnapshot?.skillProficiencies || character.backgroundObj?.skillProficiencies);
+  pushFixed(character.speciesSnapshot?.skillProficiencies || character.speciesObj?.skillProficiencies);
+  [
+    ...(character.allFeatures || []),
+    ...(character.allSubFeatures || []),
+    ...((character.extraClasses || []).flatMap((extra) => [
+      ...(extra.allFeatures || []),
+      ...(extra.allSubFeatures || []),
+    ])),
+    ...(character.allFeatSnapshots || []),
+  ].forEach((feature) => {
+    pushFixed(feature?.skillProficiencies);
+  });
 
   Object.entries(character.choices || {})
     .filter(([key]) => choiceKeyCanGrantSkill(key))

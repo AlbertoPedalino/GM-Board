@@ -17,11 +17,9 @@ registerSubclassSheetActions("Sorcerer_Wild Magic", [
     "icon": "",
     "cat": "action",
     "uses": "Special",
-    "resKey": "wild_magic",
     "minLevel": 3,
-    "controller": true,
-    "buttonLabel": "Open",
-    "desc": "Manage Tides of Chaos and Wild Magic Surge rolls."
+    "detailType": "wildMagic",
+    "desc": "Tides of Chaos, Wild Magic Surge and related Sorcerer features. Click to expand."
   },
   {
     "name": "Bend Luck",

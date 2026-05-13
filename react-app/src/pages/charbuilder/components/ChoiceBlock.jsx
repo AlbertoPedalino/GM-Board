@@ -1,31 +1,16 @@
 import { Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import { Check } from 'lucide-react';
+import {
+  parseTypedProficiencyValue,
+  isChoicePlaceholderValue,
+  normalizedKey,
+} from '../../../shared/character/typedProficiencies.js';
 
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 
-function stripTags(value) {
-  return String(value || '')
-    .split('|')[0]
-    .replace(/\{@[a-z]+ ([^|}]+)(?:\|[^}]*)?\}/gi, '$1')
-    .trim();
-}
-
-function normChoice(value) {
-  return stripTags(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
-}
-
-function optionLabel(value) {
-  return stripTags(value).replace(/_/g, ' ');
-}
-
 function parseTypedChoiceValue(value) {
-  const raw = String(value || '').trim();
-  const match = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
-  if (!match) return { kind: null, label: optionLabel(raw), norm: normChoice(raw) };
-  const label = optionLabel(match[2]);
-  return { kind: match[1].toLowerCase(), label, norm: normChoice(label) };
+  const parsed = parseTypedProficiencyValue(value);
+  return { kind: parsed.kind, label: parsed.label, norm: normalizedKey(parsed.label) };
 }
 
 function proficiencyBlockKey(kind, value) {
@@ -41,8 +26,7 @@ function addProficiencyBlock(out, value, kind) {
 }
 
 function isChoicePlaceholder(value) {
-  const text = stripTags(value).toLowerCase();
-  return /\bchoose\b|\byour choice\b|\bof your choice\b|\bone type\b/.test(text);
+  return isChoicePlaceholderValue(value);
 }
 
 function choiceKeyMayContainKind(key, kind) {

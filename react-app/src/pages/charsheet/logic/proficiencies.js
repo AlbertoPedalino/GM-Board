@@ -1,6 +1,11 @@
 import { installedRegistry } from '../../../adapters/index.js';
 import { canonicalProficiencyLabel } from '../../../shared/character/proficiencyDisplay.js';
 import { getMulticlassProficiencies } from '../../../shared/character/multiclassProficiencies.js';
+import {
+  parseTypedProficiencyValue as parseTypedProficiencyValueShared,
+  isChoicePlaceholderValue,
+  extractFixedProficiencyLabels,
+} from '../../../shared/character/typedProficiencies.js';
 
 function normKey(v) {
   return String(v || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -11,17 +16,13 @@ function normalizeLabel(v) {
 }
 
 function parseTypedProficiencyValue(value) {
-  const raw = String(value || '').trim();
-  const match = raw.match(/^(skill|tool|language|weapon):(.+)$/i);
-  if (!match) return null;
-  const label = normalizeLabel(match[2]);
-  if (!label) return null;
-  return { kind: match[1].toLowerCase(), label };
+  const parsed = parseTypedProficiencyValueShared(value);
+  if (!parsed.kind || !parsed.label) return null;
+  return { kind: parsed.kind, label: parsed.label };
 }
 
 function isChoicePlaceholder(value) {
-  const text = String(value || '').toLowerCase();
-  return /\bchoose\b|\byour choice\b|\bof your choice\b|\bone type\b/.test(text);
+  return isChoicePlaceholderValue(value);
 }
 
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];

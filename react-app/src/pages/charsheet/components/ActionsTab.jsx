@@ -33,7 +33,11 @@ import {
   tinyMetaChipSx,
 } from './spellsTabStyles.js';
 import { Empty } from './SpellsUiParts.jsx';
-import WildMagicDialog from './WildMagicDialog.jsx';
+import WildMagicPanel from './WildMagicPanel.jsx';
+
+const ACTION_DETAIL_RENDERERS = {
+  wildMagic: WildMagicPanel,
+};
 
 function actionLabel(value) {
   if (value === 'all') return 'All';
@@ -50,7 +54,6 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   const [convertSlotDialog, setConvertSlotDialog] = useState(null);
   const [convertSlotSelection, setConvertSlotSelection] = useState(null);
   const [wildResurgenceDialog, setWildResurgenceDialog] = useState(null);
-  const [wildMagicDialog, setWildMagicDialog] = useState(null);
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -420,8 +423,6 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           openConvertSlotDialog(result);
         } else if (result?.type === 'wild_resurgence') {
           openWildResurgenceDialog(result);
-        } else if (result?.type === 'wild_magic_controller') {
-          setWildMagicDialog(result);
         }
       }
     }
@@ -484,6 +485,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
               <AdapterActionCard
                 key={`${section.key}-${i}`}
                 C={C}
+                sheet={sheet}
                 action={action}
                 resources={resources}
                 onResChange={handleResChange}
@@ -649,20 +651,20 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
         </DialogActions>
       </Dialog>
 
-      <WildMagicDialog
-        open={Boolean(wildMagicDialog)}
-        data={wildMagicDialog}
-        onClose={() => setWildMagicDialog(null)}
-        onShowToast={onShowToast}
-      />
     </Box>
   );
 }
 
-function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowToast, resMax, onUpdateCharacter }) {
+function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, onShowToast, resMax, onUpdateCharacter }) {
   const [open, setOpen] = useState(false);
 
+  const DetailRenderer = action.detailType ? ACTION_DETAIL_RENDERERS[action.detailType] : null;
+
   const handleCardClick = () => {
+    if (DetailRenderer) {
+      setOpen(!open);
+      return;
+    }
     if (action.controller && action.resKey && typeof onResChange === 'function') {
       onResChange(action.resKey, -1);
     } else {
@@ -899,6 +901,9 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
                 {action._weaponMasteryText}
               </Typography>
             </Box>
+          ) : null}
+          {DetailRenderer ? (
+            <DetailRenderer action={action} character={C} sheet={sheet} onShowToast={onShowToast} />
           ) : null}
         </Box>
       ) : null}
