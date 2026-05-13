@@ -4,7 +4,7 @@ import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
 import { FeatCategorySlot } from '../components/FeatSlots.jsx';
 import SearchList from '../components/SearchList.jsx';
-import { speciesChoiceSpecs } from '../spells/choiceSpecs.js';
+import { speciesChoiceSpecs } from '../logic/choiceSpecs.js';
 import { renderEntryText } from '../logic/text.js';
 
 export default function SpeciesStep({ state, dispatch }) {

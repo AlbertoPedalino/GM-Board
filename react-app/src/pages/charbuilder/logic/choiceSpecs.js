@@ -1,7 +1,7 @@
 import { STATS, STAT_LABELS } from '../constants.js';
-import { cleanText } from '../logic/text.js';
+import { cleanText } from './text.js';
 import { installedRegistry } from '../../../adapters/index.js';
-import { getPrimaryClassLevel } from '../logic/calculations.js';
+import { getPrimaryClassLevel } from './calculations.js';
 import { getMulticlassChoiceSpecs } from '../../../shared/character/multiclassProficiencies.js';
 
 const ALL_SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];

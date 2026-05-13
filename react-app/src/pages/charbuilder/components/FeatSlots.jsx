@@ -1,7 +1,7 @@
 import { Button, Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import ChoiceBlock from './ChoiceBlock.jsx';
 import SpellChoiceList from './SpellChoiceList.jsx';
-import { featChoiceSpecs } from '../spells/choiceSpecs.js';
+import { featChoiceSpecs } from '../logic/choiceSpecs.js';
 import { getPrimaryClassLevel } from '../logic/calculations.js';
 import { renderEntryText } from '../logic/text.js';
 

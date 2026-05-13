@@ -6,7 +6,7 @@ import { FeatCategorySlot, FeatFixedSlot } from '../components/FeatSlots.jsx';
 import SearchList from '../components/SearchList.jsx';
 import { STAT_LABELS } from '../constants.js';
 import { getBackgroundPattern, getBackgroundPool } from '../logic/calculations.js';
-import { backgroundChoiceSpecs, fixedKeysFromBlocks } from '../spells/choiceSpecs.js';
+import { backgroundChoiceSpecs, fixedKeysFromBlocks } from '../logic/choiceSpecs.js';
 
 function titleCase(value) {
   return String(value || '').replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());

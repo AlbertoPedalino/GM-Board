@@ -1,5 +1,5 @@
 import { installedRegistry } from '../../../adapters/index.js';
-import { canonicalProficiencyLabel, cleanProficiencyText } from '../../../shared/character/proficiencyDisplay.js';
+import { canonicalProficiencyLabel } from '../../../shared/character/proficiencyDisplay.js';
 import { getMulticlassProficiencies } from '../../../shared/character/multiclassProficiencies.js';
 
 function normKey(v) {
@@ -83,7 +83,7 @@ function weaponMatchesRule(item, rule) {
 }
 
 // ============================================================
-// WEAPON PROFICIENCY RULE SYSTEM (structured rules from 5etools)
+// WEAPON PROFICIENCY RULE SYSTEM — single source of truth
 // ============================================================
 
 function normalizeWeaponProperty(prop) {
@@ -102,12 +102,6 @@ function normalizeWeaponProperty(prop) {
     rld: 'reload', reload: 'reload',
   };
   return MAP[p] || p;
-}
-
-function extractFilterFromTag(text) {
-  if (!text || typeof text !== 'string') return null;
-  const match = text.match(/\{@filter[^|]+\|items\|([^}]+)\}/i);
-  return match ? match[1] : null;
 }
 
 function parseWeaponFilterParams(filterStr) {
@@ -177,10 +171,43 @@ function formatWeaponRule(rule) {
   return parts.join(' ');
 }
 
+function normalizeWeaponRule(rule) {
+  if (!rule) return null;
+  const out = {};
+  if (rule.weaponName) { out.weaponName = normKey(rule.weaponName); return out; }
+  if (rule.category) out.category = rule.category.toLowerCase();
+  if (rule.type === 'M' || rule.type === 'R') out.type = rule.type;
+  if (rule.melee === true) out.melee = true;
+  if (rule.ranged === true) out.ranged = true;
+  if (Array.isArray(rule.propertiesAny) && rule.propertiesAny.length)
+    out.propertiesAny = [...new Set(rule.propertiesAny.map(normalizeWeaponProperty).filter(Boolean))].sort();
+  if (Array.isArray(rule.propertiesAll) && rule.propertiesAll.length)
+    out.propertiesAll = [...new Set(rule.propertiesAll.map(normalizeWeaponProperty).filter(Boolean))].sort();
+  if (Array.isArray(rule.excludeProperties) && rule.excludeProperties.length)
+    out.excludeProperties = [...new Set(rule.excludeProperties.map(normalizeWeaponProperty).filter(Boolean))].sort();
+  return out;
+}
+
+function ruleKey(rule) {
+  if (!rule) return '';
+  if (rule.weaponName) return `weapon:${normKey(rule.weaponName)}`;
+  const parts = [];
+  if (rule.category) parts.push(`cat=${rule.category}`);
+  if (rule.type) parts.push(`type=${rule.type}`);
+  if (rule.melee) parts.push('melee');
+  if (rule.ranged) parts.push('ranged');
+  if (Array.isArray(rule.propertiesAny))
+    parts.push(`any=[${rule.propertiesAny.join(',')}]`);
+  if (Array.isArray(rule.propertiesAll))
+    parts.push(`all=[${rule.propertiesAll.join(',')}]`);
+  if (Array.isArray(rule.excludeProperties))
+    parts.push(`excl=[${rule.excludeProperties.join(',')}]`);
+  return parts.join('|');
+}
+
 function processWeaponProficiencyStruct(struct) {
   const rules = [];
-  const labels = new Set();
-  if (!struct) return { rules, labels };
+  if (!struct) return rules;
   const arr = Array.isArray(struct) ? struct : [struct];
   arr.forEach(entry => {
     if (!entry || typeof entry !== 'object') return;
@@ -189,28 +216,55 @@ function processWeaponProficiencyStruct(struct) {
       const k = key.charAt(0).toLowerCase() + key.slice(1);
       if (k === 'simple' || k === 'martial') {
         rules.push({ category: k });
-        labels.add(k.charAt(0).toUpperCase() + k.slice(1));
       } else if (k === 'all' && value && typeof value === 'object') {
         const filterStr = value.fromFilter;
         if (filterStr) {
           const params = parseWeaponFilterParams(filterStr);
           const rule = makeWeaponRuleFromFilter(params);
-          if (rule) {
-            rules.push(rule);
-            labels.add(formatWeaponRule(rule));
-          }
+          if (rule) rules.push(rule);
         }
       } else {
-        const name = key;
-        rules.push({ weaponName: name });
-        labels.add(name);
+        rules.push({ weaponName: key });
       }
     });
   });
-  return { rules, labels };
+  return rules;
 }
 
+export function resolveWeaponProficiencyRules(C) {
+  const rules = [];
+  const sp = C?.clsSnapshot?.startingProficiencies || {};
 
+  // Source A: 5etools structured weaponProficiencies
+  if (sp.weaponProficiencies) {
+    processWeaponProficiencyStruct(sp.weaponProficiencies).forEach(r => rules.push(r));
+  }
+
+  // Source C: adapter match rules
+  collectAdapterProfGrants(C)
+    .filter(g => g.type === 'weapon' && g.match && typeof g.match === 'object')
+    .forEach(g => rules.push(g.match));
+
+  // Normalize and deduplicate
+  const seen = new Set();
+  const deduped = [];
+  rules.forEach(raw => {
+    const norm = normalizeWeaponRule(raw);
+    if (!norm) return;
+    const key = ruleKey(norm);
+    if (seen.has(key)) return;
+    seen.add(key);
+    deduped.push(norm);
+  });
+
+  // Generate display labels
+  const labels = new Set();
+  deduped.forEach(rule => {
+    labels.add(formatWeaponRule(rule));
+  });
+
+  return { rules: deduped, labels };
+}
 
 function choiceMatches(C, requiredChoice, prefix = '') {
   if (!requiredChoice?.key) return true;
@@ -270,27 +324,21 @@ export function collectEquipmentProficiencySets(C) {
   const armorSet = new Set();
   const weaponSet = new Set();
   const weaponMasterySet = new Set();
-  const weaponRules = [];
-  const filterDerivedEntries = new Set();
 
   (C?.normalizedChoices?.weaponMasteries || [])
     .map(normalizeLabel)
     .filter(Boolean)
     .forEach(v => weaponMasterySet.add(v));
 
-  const addFixed = (src, set, filterTracker) => {
+  const addFixed = (src, set) => {
     const arr = Array.isArray(src) ? src : [src];
     arr.forEach(entry => {
       if (!entry) return;
       if (typeof entry === 'string') {
-        const hadFilterTag = entry.includes('{@filter');
         entry.split(/[;,]/)
           .map(normalizeLabel)
           .filter((v) => v && !/^choose\b/i.test(v))
-          .forEach(v => {
-            set.add(v);
-            if (hadFilterTag && filterTracker) filterTracker.add(v);
-          });
+          .forEach(v => set.add(v));
         return;
       }
       Object.keys(entry).filter(k => !CHOICE_KEYS.includes(k) && entry[k] !== false).map(normalizeLabel).filter(Boolean).forEach(v => set.add(v));
@@ -298,32 +346,17 @@ export function collectEquipmentProficiencySets(C) {
   };
 
   addFixed(sp.armor, armorSet);
-  addFixed(sp.weapons, weaponSet, filterDerivedEntries);
 
-  // Process structured weaponProficiencies data (5etools format with filters)
-  if (sp.weaponProficiencies) {
-    const struct = processWeaponProficiencyStruct(sp.weaponProficiencies);
-    struct.labels.forEach(l => weaponSet.add(l));
-    struct.rules.forEach(r => weaponRules.push(r));
-  }
+  // Strip out {@filter} entries from weapons BEFORE addFixed, because
+  // addFixed splits by ; which breaks the filter tag into garbage fragments
+  // that would pollute the weaponSet display.
+  const weaponsNoFilter = (Array.isArray(sp.weapons) ? sp.weapons : [])
+    .filter(e => typeof e !== 'string' || !e.includes('{@filter'));
+  addFixed(weaponsNoFilter, weaponSet);
 
-  // Extract {@filter ...} rules from raw weapons strings as fallback
-  if (Array.isArray(sp.weapons)) {
-    sp.weapons.forEach(entry => {
-      if (typeof entry === 'string' && entry.includes('{@filter')) {
-        const filterStr = extractFilterFromTag(entry);
-        if (filterStr) {
-          const params = parseWeaponFilterParams(filterStr);
-          const rule = makeWeaponRuleFromFilter(params);
-          if (rule) weaponRules.push(rule);
-        }
-      }
-    });
-  }
-
-  // Remove ugly filter-derived text from weaponSet (the raw canonical labels
-  // like "Martial Weapons That Have The Finesse Or Light Property")
-  filterDerivedEntries.forEach(e => weaponSet.delete(e));
+  // Use centralized rule resolver for weapon rules + clean display labels
+  const { rules: weaponRules, labels: weaponLabels } = resolveWeaponProficiencyRules(C);
+  weaponLabels.forEach(l => weaponSet.add(l));
 
   (C?.extraClasses || []).forEach((extra) => {
     const gained = getMulticlassProficiencies(extra?.name, extra?.cls);
@@ -331,11 +364,9 @@ export function collectEquipmentProficiencySets(C) {
     addFixed(gained.weapons, weaponSet);
   });
 
-  // Species proficiencies (2024 format)
   if (C?.speciesSnapshot?.armorProficiencies) addFixed(C.speciesSnapshot.armorProficiencies, armorSet);
   if (C?.speciesSnapshot?.weaponProficiencies) addFixed(C.speciesSnapshot.weaponProficiencies, weaponSet);
 
-  // Background proficiencies (2024 format)
   if (C?.bgSnapshot?.armorProficiencies) addFixed(C.bgSnapshot.armorProficiencies, armorSet);
   if (C?.bgSnapshot?.weaponProficiencies) addFixed(C.bgSnapshot.weaponProficiencies, weaponSet);
 
@@ -366,7 +397,6 @@ export function collectEquipmentProficiencySets(C) {
           else weaponSet.add(v);
         });
       }
-      if (g.type === 'weapon' && g.match && typeof g.match === 'object') weaponRules.push(g.match);
     });
 
   return { armorSet, weaponSet, weaponMasterySet, weaponRules };

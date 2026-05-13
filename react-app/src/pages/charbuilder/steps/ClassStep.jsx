@@ -5,7 +5,7 @@ import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
 import { FeatCategorySlot, FeatFixedSlot } from '../components/FeatSlots.jsx';
 import SpellChoiceList from '../components/SpellChoiceList.jsx';
-import { classChoiceSpecs } from '../spells/choiceSpecs.js';
+import { classChoiceSpecs } from '../logic/choiceSpecs.js';
 import NamePanel from '../components/NamePanel.jsx';
 import XpPanel from '../components/XpPanel.jsx';
 import ClassPanel from '../components/ClassPanel.jsx';
