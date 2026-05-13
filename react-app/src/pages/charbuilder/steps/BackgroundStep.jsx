@@ -1,15 +1,19 @@
-import { Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, Collapse, Divider, Stack, Typography } from '@mui/material';
 import { Feather, GraduationCap, ScrollText, SlidersHorizontal } from 'lucide-react';
+import { useState } from 'react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
-import { FeatCategorySlot, FeatFixedSlot } from '../components/FeatSlots.jsx';
+import { FeatCategorySlot, FeatFixedSlot, ExpandableDescription } from '../components/FeatSlots.jsx';
 import SearchList from '../components/SearchList.jsx';
 import { STAT_LABELS } from '../constants.js';
 import { getBackgroundPattern, getBackgroundPool } from '../logic/calculations.js';
 import { backgroundChoiceSpecs, fixedKeysFromBlocks } from '../logic/choiceSpecs.js';
 
+
 function titleCase(value) {
-  return String(value || '').replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return String(value || '').replace(/[_-]/g, ' ')
+    .replace(/(^|\s)\w/g, (c) => c.toUpperCase())
+    .replace(/'\w/g, (m) => m.toLowerCase());
 }
 
 function camelToTitle(value) {
@@ -68,6 +72,7 @@ function BackgroundDetailCard({ background }) {
           <Typography variant="h2" sx={{ flex: 1, minWidth: 0 }}>{background.name}</Typography>
           <Chip size="small" label={background.source || ''} />
         </Stack>
+        {background.entries ? <ExpandableDescription entries={background.entries} initialClamp={4} /> : null}
         <Divider />
         <ProfList title="Skills (granted)" items={fixedSkills} color="#d7ad52" />
         <ProfList title="Tools (granted)" items={fixedTools} color="#70b7a6" />

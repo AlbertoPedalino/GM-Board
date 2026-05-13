@@ -35,6 +35,7 @@ export function renderEntryText(entry) {
   if (Array.isArray(entry)) return entry.map(renderEntryText).filter(Boolean).join('\n');
   if (typeof entry !== 'object') return '';
   if (entry.name && entry.entries) return `${cleanText(entry.name)}. ${renderEntryText(entry.entries)}`;
+  if (entry.name && entry.entry) return `${cleanText(entry.name)} ${renderEntryText(entry.entry)}`;
   if (entry.entries) return renderEntryText(entry.entries);
   if (entry.entry) return renderEntryText(entry.entry);
   if (entry.items) return entry.items.map(renderEntryText).filter(Boolean).join('\n');

@@ -365,24 +365,56 @@ export function speciesChoiceSpecs(character) {
   return specs;
 }
 
+function extractFeatFromEntries(entries) {
+  if (!entries) return null;
+  const arr = Array.isArray(entries) ? entries : [entries];
+  for (const entry of arr) {
+    if (typeof entry === 'string') {
+      const m = entry.match(/\{@feat ([^|}]+)/);
+      if (m) return m[1].trim();
+    }
+    if (entry && typeof entry === 'object') {
+      if (entry.type === 'item' && entry.entry) {
+        const m = String(entry.entry).match(/\{@feat ([^|}]+)/);
+        if (m) return m[1].trim();
+      }
+      if (entry.items) {
+        const found = extractFeatFromEntries(entry.items);
+        if (found) return found;
+      }
+      if (entry.entries) {
+        const found = extractFeatFromEntries(entry.entries);
+        if (found) return found;
+      }
+    }
+  }
+  return null;
+}
+
 function backgroundOriginFeat(background) {
   if (!background) return null;
   if (background.feat) return { fixed: background.feat };
   const feats = Array.isArray(background.feats) ? background.feats : [];
   const first = feats[0];
-  if (!first) return null;
-  const keys = Object.keys(first).filter((key) => key !== 'choose');
-  if (!keys.length) return null;
-  const raw = String(keys[0] || '').split(';')[0].trim().split('|')[0];
-  const classHint = (() => {
-    const semicol = String(keys[0] || '').split(';').slice(1).map((value) => value.trim().split('|')[0]).find(Boolean);
-    if (semicol) return semicol.toLowerCase().replace(/[^a-z]/g, '');
-    const pipeParts = String(keys[0] || '').split('|').map((value) => value.trim()).filter(Boolean);
-    if (pipeParts.length >= 3) return pipeParts[2].toLowerCase().replace(/[^a-z]/g, '');
-    return null;
-  })();
-  const camelToTitle = (value) => String(value || '').replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase()).trim();
-  return { fixed: camelToTitle(raw), classHint };
+  if (first) {
+    const keys = Object.keys(first).filter((key) => key !== 'choose');
+    if (keys.length) {
+      const raw = String(keys[0] || '').split(';')[0].trim().split('|')[0];
+      const classHint = (() => {
+        const semicol = String(keys[0] || '').split(';').slice(1).map((value) => value.trim().split('|')[0]).find(Boolean);
+        if (semicol) return semicol.toLowerCase().replace(/[^a-z]/g, '');
+        const pipeParts = String(keys[0] || '').split('|').map((value) => value.trim()).filter(Boolean);
+        if (pipeParts.length >= 3) return pipeParts[2].toLowerCase().replace(/[^a-z]/g, '');
+        return null;
+      })();
+      const camelToTitle = (value) => String(value || '').replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase()).trim();
+      return { fixed: camelToTitle(raw), classHint };
+    }
+  }
+  // Fallback: scan entries for {@feat ...} (FRHoF / older backgrounds)
+  const fromEntries = extractFeatFromEntries(background.entries);
+  if (fromEntries) return { fixed: fromEntries, classHint: null };
+  return null;
 }
 
 export function backgroundChoiceSpecs(character) {
