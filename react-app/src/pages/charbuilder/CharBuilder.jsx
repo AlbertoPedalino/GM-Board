@@ -89,14 +89,6 @@ function createInitialBuilderState() {
     }
   }
 
-  try {
-    const savedBuilder = getStorageJson('5e_builder_state', null);
-    const savedSheet = getStorageJson('5e_current_char', null);
-    const saved = mergeSheetIntoBuilder(savedBuilder, savedSheet);
-    if (saved && typeof saved === 'object') {
-      return { ...initialBuilderState, character: { ...initialBuilderState.character, ...saved } };
-    }
-  } catch (_) {}
   return initialBuilderState;
 }
 

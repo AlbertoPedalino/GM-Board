@@ -61,6 +61,7 @@ function _mergeRow(existing, incoming, incomingLocked) {
       ownerClassName: b.ownerClassName || a.ownerClassName || null,
       castLevel: b.castLevel != null ? b.castLevel : a.castLevel,
       locked: a.locked || incomingLocked,
+      spellcastingAbility: b.spellcastingAbility || a.spellcastingAbility || null,
     };
   };
 
@@ -85,11 +86,11 @@ function _mergeRow(existing, incoming, incomingLocked) {
 export function buildSpellInfo(C, spellIndex) {
   const rows = new Map();
   const lockedNames = new Set();
-  const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0, ownerClassName = null) => {
+  const push = (name, source, locked = false, castLevel = null, fallbackLevel = 0, ownerClassName = null, spellcastingAbility = null) => {
     const full = spellIndex.get(norm(name));
     const spell = { ...(full || {}), name, level: Number(full?.level ?? fallbackLevel ?? 0) };
     const key = `${norm(name)}|${castLevel || spell.level}`;
-    const row = { ...spell, sourceInfo: source, castLevel, ownerClassName, locked };
+    const row = { ...spell, sourceInfo: source, castLevel, ownerClassName, spellcastingAbility, locked };
     const existing = rows.get(key);
     rows.set(key, _mergeRow(existing, row, locked));
     if (locked) {
@@ -116,7 +117,7 @@ export function buildSpellInfo(C, spellIndex) {
 
   collectAtWillSpells(C).forEach(({ name, source }) => push(name, source, true));
   collectAutoGrantedSpells(C).forEach(({ name, level, source, ownerClassName }) => push(name, source, true, null, level, ownerClassName));
-  collectChoiceSpells(C, spellIndex).forEach(({ name, source, ownerClassName }) => push(name, source, true, null, 0, ownerClassName));
+  collectChoiceSpells(C, spellIndex).forEach(({ name, source, ownerClassName, spellcastingAbility }) => push(name, source, true, null, 0, ownerClassName, spellcastingAbility));
 
   const all = [...rows.values()];
   all.forEach((entry) => {
@@ -159,7 +160,106 @@ export function buildSpellInfo(C, spellIndex) {
   }
 }
 
+function _choiceValue(raw) {
+  if (raw == null) return null;
+  const val = Array.isArray(raw) ? raw[0] : raw;
+  return typeof val === 'string' ? val : null;
+}
+
+function _normalizeAbility(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const n = raw.toLowerCase().replace(/[^a-z]/g, '').trim();
+  if (n === 'intelligence') return 'int';
+  if (n === 'wisdom') return 'wis';
+  if (n === 'charisma') return 'cha';
+  if (['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(n)) return n;
+  return null;
+}
+
+function getChoiceSpellAbility(C, key) {
+  const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
+  if (m) {
+    const abilityKey = `${m[1]}_spell_ability`;
+    const raw = C?.choices?.[abilityKey];
+    const val = _choiceValue(raw);
+    if (val) {
+      const normalized = _normalizeAbility(val);
+      if (normalized) return normalized;
+    }
+  }
+  return null;
+}
+
+function _findFeatName(C, slotKey) {
+  if (!C || !slotKey) return null;
+
+  const direct = C?.choices?.[slotKey];
+  if (direct && typeof direct === 'string' && !direct.startsWith('feat_')) return direct;
+
+  const norm = C?.normalizedChoices;
+  if (norm) {
+    try {
+      const byKey = norm.feats?.byKey?.[slotKey];
+      if (byKey && typeof byKey === 'string') return byKey;
+      if (norm.feats?.origin?.length) {
+        const originFeat = String(norm.feats.origin[0]);
+        if (originFeat) return originFeat;
+      }
+    } catch {}
+  }
+
+  const originFromChoices = C?.choices?.feat_origin;
+  if (originFromChoices && typeof originFromChoices === 'string' && !originFromChoices.startsWith('feat_')) return originFromChoices;
+
+  const snapshots = C?.allFeatSnapshots;
+  if (Array.isArray(snapshots)) {
+    for (const feat of snapshots) {
+      if (feat?.name && typeof feat.name === 'string' && feat.additionalSpells) {
+        return feat.name;
+      }
+    }
+  }
+
+  return _originFeatForBackground(C?.bgName);
+}
+
+/** Legacy fallback for old characters saved before origin_feat was persisted. */
+function _originFeatForBackground(bgName) {
+  if (!bgName || typeof bgName !== 'string') return null;
+  const n = bgName.toLowerCase().replace(/[^a-z]/g, '');
+  if (n === 'guide' || n === 'acolyte' || n === 'sage') return 'Magic Initiate';
+  if (n === 'farmer') return 'Tough';
+  if (n === 'sailor') return 'Skilled';
+  if (n === 'wayfarer') return 'Musician';
+  return null;
+}
+
+function _buildFeatMetaMap(C) {
+  const map = new Map();
+  const choices = C?.choices || {};
+  Object.entries(choices).forEach(([key]) => {
+    const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
+    if (!m) return;
+    const slotKey = m[1];
+    if (map.has(slotKey)) return;
+    let name = _findFeatName(C, slotKey);
+    let ability = null;
+    const abilityKey = `${slotKey}_spell_ability`;
+    if (abilityKey in choices) {
+      ability = _normalizeAbility(_choiceValue(choices[abilityKey]));
+    }
+    if (name) map.set(slotKey, { name, ability });
+  });
+  return map;
+}
+
+function _getSlotKey(key) {
+  const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
+  return m ? m[1] : null;
+}
+
 function collectChoiceSpells(C, spellIndex) {
+  const featMetaMap = _buildFeatMetaMap(C);
   const out = [];
   Object.entries(C?.choices || {}).forEach(([key, value]) => {
     const values = Array.isArray(value) ? value : [value];
@@ -169,7 +269,21 @@ function collectChoiceSpells(C, spellIndex) {
       if (!name) return;
       if (!spellIndex.has(norm(name)) && !/(spell|cantrip|tome|magical|known|prepared|innate|expanded)/i.test(key)) return;
       if (['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(norm(name))) return;
-      out.push({ name, source: sourceFromChoiceKey(C, key) });
+      const slotKey = _getSlotKey(key);
+      const meta = slotKey ? featMetaMap.get(slotKey) : null;
+      if (meta) {
+        out.push({
+          name,
+          source: { label: meta.name, color: '#caa550', originType: 'feat', originLabel: meta.name },
+          spellcastingAbility: meta.ability,
+        });
+      } else {
+        out.push({
+          name,
+          source: sourceFromChoiceKey(C, key),
+          spellcastingAbility: getChoiceSpellAbility(C, key),
+        });
+      }
     });
   });
   return out;
@@ -228,9 +342,54 @@ function collectAtWillSpells(C) {
   return out;
 }
 
+function _findFeatNameByPrefix(C, key) {
+  if (!key || typeof key !== 'string') return null;
+  const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
+  if (!m) return null;
+  const prefix = m[1];
+  let name = C?.choices?.[prefix];
+  if (name && typeof name === 'string' && !name.startsWith('feat_')) return name;
+  const parts = prefix.split('_');
+  for (let i = parts.length - 1; i > 0; i--) {
+    const testKey = parts.slice(0, i).join('_');
+    if (testKey === 'feat') break;
+    const val = C?.choices?.[testKey];
+    if (val && typeof val === 'string' && !val.startsWith('feat_')) return val;
+  }
+  return null;
+}
+
+function _findFeatNameByScanning(C, key) {
+  if (!key || !C?.choices) return null;
+  const keyPrefix = key.split('_spell_')[0];
+  if (!keyPrefix || !keyPrefix.startsWith('feat_')) return null;
+  const abilityKey = `${keyPrefix}_spell_ability`;
+  if (abilityKey in C.choices) {
+    const val = C?.choices?.[keyPrefix];
+    if (val && typeof val === 'string' && !val.startsWith('feat_')) return val;
+  }
+  for (const [ck, cv] of Object.entries(C.choices)) {
+    if (ck === abilityKey || ck.startsWith(`${keyPrefix}_spell_ability`)) {
+      const val = C?.choices?.[keyPrefix];
+      if (val && typeof val === 'string' && !val.startsWith('feat_')) return val;
+    }
+  }
+  return null;
+}
+
 function sourceFromChoiceKey(C, key) {
   const grantKey = key.match(/^(.*)_(known|innate|prepared|expanded)_/i)?.[1];
-  const featName = grantKey ? C?.choices?.[grantKey] : null;
+  let featName = grantKey ? C?.choices?.[grantKey] : null;
+  if (!featName && grantKey) {
+    const shortened = grantKey.replace(/_[^_]+$/, '');
+    if (shortened !== grantKey) featName = C?.choices?.[shortened] || null;
+  }
+  if (!featName) featName = _findFeatNameByPrefix(C, key);
+  if (!featName) featName = _findFeatNameByScanning(C, key);
+  if (!featName) {
+    const slotKey = _getSlotKey(key);
+    if (slotKey) featName = _findFeatName(C, slotKey);
+  }
   if (featName) return { label: String(featName), color: '#caa550', originType: 'feat', originLabel: String(featName) };
   if (key.startsWith('feat_')) return { label: 'Feat', color: '#caa550', originType: 'feat', originLabel: 'Feat' };
   if (key.startsWith('subclass_')) return { label: C?.subclassShortName || 'Subclass', color: '#9d7fb8', originType: 'subclass', originLabel: C?.subclassShortName || 'Subclass' };
@@ -417,11 +576,30 @@ export function getSpellAbility(C) {
   return String(subCfg?.ability || clsCfg?.ability || C?.choices?.species_spell_ability || 'cha').toLowerCase();
 }
 
+export function resolveEntrySpellAbility(C, entry = {}) {
+  const raw = entry.spellcastingAbility || entry.castAbility || entry.spellAbility || entry.ability || null;
+  const normalized = _normalizeAbility(raw);
+  if (normalized) return normalized;
+  if (entry.ownerClassName) {
+    const clsCfg = installedRegistry.getClassRuntimeConfig(entry.ownerClassName)?.spellcasting;
+    const subCfg = installedRegistry.getSubclassRuntimeConfig(entry.ownerClassName, entry.ownerSubclassShortName)?.spellcasting;
+    const ownerAbility = subCfg?.ability || clsCfg?.ability || null;
+    if (ownerAbility) return String(ownerAbility).toLowerCase();
+  }
+  const speciesAbility = _choiceValue(C?.choices?.species_spell_ability);
+  if (speciesAbility) {
+    const sa = _normalizeAbility(speciesAbility);
+    if (sa) return sa;
+  }
+  const clsCfg = installedRegistry.getClassRuntimeConfig(C?.className)?.spellcasting;
+  const subCfg = installedRegistry.getSubclassRuntimeConfig(C?.className, C?.subclassShortName)?.spellcasting;
+  const primaryAbility = subCfg?.ability || clsCfg?.ability || null;
+  if (primaryAbility) return String(primaryAbility).toLowerCase();
+  return null;
+}
+
 export function getSpellAbilityForEntry(C, entry = {}) {
-  if (!entry?.ownerClassName) return getSpellAbility(C);
-  const clsCfg = installedRegistry.getClassRuntimeConfig(entry.ownerClassName)?.spellcasting;
-  const subCfg = installedRegistry.getSubclassRuntimeConfig(entry.ownerClassName, entry.ownerSubclassShortName)?.spellcasting;
-  return String(subCfg?.ability || clsCfg?.ability || getSpellAbility(C)).toLowerCase();
+  return resolveEntrySpellAbility(C, entry) || getSpellAbility(C);
 }
 
 export function getSpellLimits(C) {
@@ -644,6 +822,9 @@ function resolveSpellMeta(entry, C) {
   } else if (entry.level === 0) {
     consumesSlot = false;
     preparationState = 'cantrip';
+  } else if (originType === 'feat' || originType === 'species') {
+    isGranted = true;
+    preparationState = 'granted';
   } else if (isLockedExtra && mode === 'prepared') {
     isAlwaysPrepared = true;
     isGranted = true;
@@ -688,6 +869,7 @@ export function getSpellStatusChips(entry) {
   if (!state || !_STATUS_CHIP_CONFIG[state]) return chips;
   if (entry.sourceInfo?.kind === 'ritualBook') return chips;
   if (entry.sourceInfo?.kind === 'atWill') return chips;
+  if (entry.originType === 'feat' && state === 'granted') return chips;
   const cfg = _STATUS_CHIP_CONFIG[state];
   chips.push({ key: state, label: cfg.label, color: cfg.color, bg: `${cfg.color}1a` });
   return chips;

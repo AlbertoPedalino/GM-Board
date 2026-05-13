@@ -61,12 +61,8 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
   const steps = castLevel - baseLevel;
 
   const spellAbility = getSpellAbilityForEntry(C, entry);
-  const spellMod = Number.isFinite(fallbackSpellMod) && !entry.ownerClassName
-    ? fallbackSpellMod
-    : getMod(getFinal(C, spellAbility));
-  const atk = Number.isFinite(fallbackAtk) && !entry.ownerClassName
-    ? fallbackAtk
-    : getPB(C) + spellMod;
+  const spellMod = getMod(getFinal(C, spellAbility));
+  const atk = getPB(C) + spellMod;
 
 
   const upcastStepDie = (steps > 0) ? (spellData?.upcastDie || getUpcastStep(entry.entriesHigherLevel)?.stepDie) : null;
