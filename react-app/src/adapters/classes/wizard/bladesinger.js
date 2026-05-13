@@ -142,8 +142,16 @@ const _wizardBladesingerActions = [
     "cat": "bonus",
     "uses": "INT mod / LR",
     "resKey": "bladesong",
+    "_toggleKey": "bladesong",
+    "_toggleCondition": function (ctx) {
+      var C = ctx && ctx.C;
+      var hasArmorOrShield = (C && C.inventory || []).some(function (i) {
+        return i.equipped && ['LA','MA','HA','S'].indexOf(String(i.type || '').toUpperCase()) !== -1;
+      });
+      return { canActivate: !hasArmorOrShield, isSuppressed: hasArmorOrShield };
+    },
     "minLevel": 3,
-    "desc": "Bonus Action: activate Bladesong for 1 minute while you aren't wearing armor or using a Shield. While active: +INT modifier (min +1) to AC, +10 ft Speed, Advantage on DEX (Acrobatics) checks, use INT for attack and damage rolls with proficient weapons, and +INT modifier to Concentration saves. Ends early if you don armor or a Shield, are Incapacitated, or use two hands to make a weapon attack. Uses: INT modifier (min 1) per Long Rest; regain one expended use when you use Arcane Recovery."
+    "desc": "Bonus Action: activate Bladesong for 1 minute while you aren't wearing armor or using a Shield. While active you gain: a bonus to AC equal to your Intelligence modifier (minimum of +1), your Speed increases by 10 feet, Advantage on Dexterity (Acrobatics) checks, you can use your Intelligence modifier for attack and damage rolls with proficient weapons, and a bonus to Concentration saving throws equal to your Intelligence modifier. Use: INT modifier (minimum 1) per Long Rest."
   },
   {
     "name": "Training in War and Song",
@@ -192,6 +200,7 @@ const _wizardBladesingerProficiencies = [
     type: "weapon",
     values: ["Melee Martial weapons without Heavy or Two-Handed property"],
     match: { type: "M", category: "martial", excludeProperties: ["H", "2H"] },
+    display: false,
     minLevel: 3
   }
 ];
@@ -207,8 +216,10 @@ if (typeof registerWeaponAbilityOverride === "function") {
     label: "Bladesong",
     ability: "int",
     weaponTypes: ["M"],
+    grantsProficiency: false,
+    requiresProficiency: true,
     condition: function (C) {
-      if (!C) return false;
+      if (!C || C.bladesongActive !== true) return false;
       return C.subclassShortName === "Bladesinger" || C.subclassShortName === "Bladesinging" ||
         (C.extraClasses || []).some(function (ec) {
           return ec.subclassShortName === "Bladesinger" || ec.subclassShortName === "Bladesinging";
@@ -217,16 +228,44 @@ if (typeof registerWeaponAbilityOverride === "function") {
   });
 }
 
-registerSubclassSheetEffects("Wizard_Bladesinger", [
+function bladesingerConditionActive(C) {
+  if (!C) return false;
+  return C.bladesongActive === true;
+}
 
-  { type: "acBonus", ability: "int", minLevel: 3, note: "Bladesong while active." },
-  { type: "speed", value: 10, minLevel: 3, note: "Bladesong while active." },
-  { type: "advantage", target: "skill", skill: "Acrobatics", minLevel: 3, note: "Bladesong while active." },
-  { type: "concentrationBonus", ability: "int", minLevel: 3, note: "Bladesong while active." },
+registerSubclassSheetEffects("Wizard_Bladesinger", [
+  {
+    type: "acBonus",
+    ability: "int",
+    minLevel: 3,
+    note: "Bladesong",
+    condition: bladesingerConditionActive,
+  },
+  {
+    type: "speed",
+    value: 10,
+    minLevel: 3,
+    note: "Bladesong",
+    condition: bladesingerConditionActive,
+  },
+  {
+    type: "advantage",
+    target: "skill",
+    skill: "Acrobatics",
+    minLevel: 3,
+    note: "Bladesong",
+    condition: bladesingerConditionActive,
+  },
+  {
+    type: "concentrationBonus",
+    ability: "int",
+    minLevel: 3,
+    note: "Bladesong",
+    condition: bladesingerConditionActive,
+  },
   { type: "extraAttackCantripReplacement", minLevel: 6, note: "Extra Attack." },
   { type: "damageReduction", minLevel: 10, note: "Song of Defense." },
 ]);
 // [SheetRuntime] END
 
 }
-

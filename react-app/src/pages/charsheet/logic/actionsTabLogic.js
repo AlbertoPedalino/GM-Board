@@ -269,7 +269,16 @@ export function makeWeaponActions(C, attacks, inventory, items = []) {
     });
     const profInfo = getWeaponProficiencyInfo(C, item, weaponOverride);
     const ability = weaponAbility(C, item, weaponOverride);
-    const mod = getMod(getFinal(C, ability));
+    const overrideBlocked = weaponOverride?.requiresProficiency && !profInfo.proficient;
+    const finalAbility = overrideBlocked ? (() => {
+      const props = itemProps(item);
+      const finesse = props.includes('f') || props.includes('fin') || props.includes('finesse');
+      const type = String(item?.type || '').toUpperCase();
+      if (type === 'R') return 'dex';
+      if (finesse) return getMod(getFinal(C, 'dex')) > getMod(getFinal(C, 'str')) ? 'dex' : 'str';
+      return 'str';
+    })() : ability;
+    const mod = getMod(getFinal(C, finalAbility));
     const base = weaponDamageBase(item);
     const damageFormula = base ? `${base}${mod >= 0 ? '+' : ''}${mod}` : '';
     const dtype = weaponDamageType(item);
@@ -293,7 +302,7 @@ export function makeWeaponActions(C, attacks, inventory, items = []) {
       damageFormula,
       damageButtonLabel: damageFormula ? `Damage ${damageFormula}${dtype ? ` ${dtype}` : ''}` : 'Damage',
       rollLabelPrefix: item.name || 'Weapon',
-      desc: `${String(ability).toUpperCase()} weapon attack.${dtype ? ` Damage type: ${dtype}.` : ''}${profInfo.proficient ? '' : ' Not proficient.'}${disAdv ? ' DIS (armor).' : ''}`,
+      desc: `${String(finalAbility).toUpperCase()} weapon attack.${dtype ? ` Damage type: ${dtype}.` : ''}${profInfo.proficient ? '' : ' Not proficient.'}${overrideBlocked ? ' Not proficient for Bladesong.' : ''}${disAdv ? ' DIS (armor).' : ''}`,
       _weaponIndex: index,
       _weaponMastery: mastery || null,
       _weaponMasteryText: masteryText || '',

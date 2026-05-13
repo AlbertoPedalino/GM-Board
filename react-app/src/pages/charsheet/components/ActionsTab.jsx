@@ -362,6 +362,26 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
 
     setStorageJson('5e_slots_used', used);
     onUpdateSheet?.({ spellSlotUsed: used });
+
+    // Arcane Recovery also restores 1 expended Bladesong use
+    if (C?.bladesongActive != null) {
+      const isBladesinger = (String(C.className || '') === 'Wizard' &&
+        (C.subclassShortName === 'Bladesinger' || C.subclassShortName === 'Bladesinging')) ||
+        (C.extraClasses || []).some(ec =>
+          ec.name === 'Wizard' && (ec.subclassShortName === 'Bladesinger' || ec.subclassShortName === 'Bladesinging')
+        );
+      if (isBladesinger) {
+        const bladeMax = Math.max(1, getMod(getFinal(C, 'int')));
+        const bladeCur = Number(resources?.['bladesong'] ?? 0);
+        if (bladeCur < bladeMax) {
+          const nextRes = { ...resources, bladesong: Math.min(bladeMax, bladeCur + 1) };
+          setResources(nextRes);
+          setStorageJson('5e_resources', nextRes);
+          onShowToast?.('Arcane Recovery', `Recovered 1 Bladesong use (${Math.min(bladeMax, bladeCur + 1)}/${bladeMax})`, 1, []);
+        }
+      }
+    }
+
     onShowToast?.(
       slotRecovery.label,
       `Recovered ${recovered} slot${recovered === 1 ? '' : 's'}${details.length ? ` (${details.join(', ')})` : ''}`,
@@ -783,6 +803,46 @@ function AdapterActionCard({ C, action, resources, onResChange, onRoll, onShowTo
           ))}
         </Box>
       </Box>
+
+      {action._toggleKey && onUpdateCharacter ? (() => {
+        const toggleCtx = { C, action, hasRes, resCur };
+        const isActive = C?.bladesongActive === true;
+        const toggleInfo = typeof action._toggleCondition === 'function'
+          ? action._toggleCondition(toggleCtx) : {};
+        const canToggleOn = !isActive && hasRes && resCur > 0
+          && toggleInfo.canActivate !== false;
+        const isSuppressed = isActive && toggleInfo.isSuppressed;
+        const label = isSuppressed ? 'Suppressed' : (isActive ? 'Active' : 'Inactive');
+        return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', px: '10px', py: '5px', border: 1, borderTop: 'none', borderColor: 'divider', borderRadius: '0 0 8px 8px', bgcolor: 'rgba(129,179,232,0.06)', mb: open ? 0 : '4px' }}>
+          <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', fontFamily: '"Cinzel", Georgia, serif', mr: 0.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Status</Typography>
+          <Chip
+            size="small"
+            label={label}
+            variant="outlined"
+            onClick={() => {
+              if (isActive) {
+                onUpdateCharacter(prev => ({ ...prev, bladesongActive: false }));
+              } else if (canToggleOn) {
+                onUpdateCharacter(prev => ({ ...prev, bladesongActive: true }));
+                onResChange?.(action.resKey, -1);
+              }
+            }}
+            sx={{
+              cursor: isActive || canToggleOn ? 'pointer' : 'not-allowed',
+              fontSize: '0.58rem',
+              fontFamily: '"Cinzel", Georgia, serif',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              color: isSuppressed ? '#de675f' : (isActive ? '#58b879' : 'text.secondary'),
+              borderColor: isSuppressed ? '#de675f' : (isActive ? '#58b879' : 'divider'),
+              bgcolor: isSuppressed ? 'rgba(222,103,95,0.14)' : (isActive ? 'rgba(88,184,121,0.14)' : 'transparent'),
+              '&:hover': { borderColor: isActive || canToggleOn ? (isActive ? '#58b879' : 'rgba(202,165,80,0.5)') : 'divider' },
+            }}
+          />
+        </Box>
+        );
+      })() : null}
 
       {hasRes ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', px: '10px', py: '5px', border: 1, borderTop: 'none', borderColor: 'divider', borderRadius: '0 0 8px 8px', bgcolor: 'rgba(202,165,80,0.06)', mb: open ? 0 : '4px' }}>

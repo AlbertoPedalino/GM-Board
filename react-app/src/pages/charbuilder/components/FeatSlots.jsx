@@ -1,4 +1,5 @@
-import { Button, Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Button, Chip, Collapse, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import ChoiceBlock from './ChoiceBlock.jsx';
 import SpellChoiceList from './SpellChoiceList.jsx';
 import { featChoiceSpecs } from '../logic/choiceSpecs.js';
@@ -91,12 +92,35 @@ export function FeatFixedSlot({ spec, feats, character, state, dispatch, accent 
             ))}
           </Stack>
         ) : null}
-        {feat?.entries ? (
-          <Typography variant="body2" color="text.secondary">{renderEntryText(feat.entries).slice(0, 320)}</Typography>
-        ) : null}
+        {feat?.entries ? <ExpandableDesc text={renderEntryText(feat.entries)} /> : null}
         {grants.map((grant) => renderGrantSpec({ grant, character, state, dispatch }))}
       </Stack>
     </Paper>
+  );
+}
+
+function ExpandableDesc({ text }) {
+  const [open, setOpen] = useState(false);
+  const isLong = text.length > 250;
+  return (
+    <Box sx={{ minWidth: 0 }}>
+      <Collapse in={open} collapsedSize={72}>
+        <Typography variant="body2" color="text.secondary" sx={{
+          display: '-webkit-box',
+          WebkitLineClamp: open ? 'unset' : 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}>
+          {text}
+        </Typography>
+      </Collapse>
+      {isLong ? (
+        <Button size="small" onClick={() => setOpen(!open)}
+          sx={{ mt: 0.25, fontSize: '0.7rem', minWidth: 0, px: 0.5, color: 'primary.light', textTransform: 'none' }}>
+          {open ? 'Show less' : 'Show more'}
+        </Button>
+      ) : null}
+    </Box>
   );
 }
 
@@ -154,9 +178,7 @@ export function FeatCategorySlot({ spec, feats, character, state, dispatch }) {
           </List>
         </Paper>
         {!pool.length ? <Typography color="text.secondary">No feats match.</Typography> : null}
-        {selectedFeat?.entries ? (
-          <Typography variant="body2" color="text.secondary">{renderEntryText(selectedFeat.entries).slice(0, 320)}</Typography>
-        ) : null}
+        {selectedFeat?.entries ? <ExpandableDesc text={renderEntryText(selectedFeat.entries)} /> : null}
         {grants.map((grant) => renderGrantSpec({ grant, character, state, dispatch }))}
       </Stack>
     </Paper>

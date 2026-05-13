@@ -301,20 +301,24 @@ export function collectSheetEffects(character = {}) {
     }, character);
   });
 
-  const runtime = character.adapterRuntime || {};
-  [
-    ['classEffects', 'class'],
-    ['subclassEffects', 'subclass'],
-    ['speciesEffects', 'species'],
-    ['featEffects', 'feat'],
-  ].forEach(([key, ownerType]) => {
-    collectFromList(out, runtime[key] || [], {
-      ownerName: ownerType === 'subclass' ? character.subclassShortName : ownerType,
-      ownerType: 'runtime',
-      ownerLevel: Number(character.level || 1),
-      sourceKey: `runtime_${key}`,
-    }, character);
-  });
+  // Fallback for older exported characters (serialized adapterRuntime loses functions
+  // like `condition`). Only use if live registry produced no subclass effects.
+  if (!out.length) {
+    const runtime = character.adapterRuntime || {};
+    [
+      ['classEffects', 'class'],
+      ['subclassEffects', 'subclass'],
+      ['speciesEffects', 'species'],
+      ['featEffects', 'feat'],
+    ].forEach(([key, ownerType]) => {
+      collectFromList(out, runtime[key] || [], {
+        ownerName: ownerType === 'subclass' ? character.subclassShortName : ownerType,
+        ownerType: 'runtime',
+        ownerLevel: Number(character.level || 1),
+        sourceKey: `runtime_${key}`,
+      }, character);
+    });
+  }
 
   return dedupeEffects(out);
 }
@@ -699,6 +703,59 @@ export function collectPreviewDefenseSections(character = {}) {
     resistanceItems.length ? { title: 'Resistances', items: resistanceItems } : null,
     immunityItems.length ? { title: 'Immunities', items: immunityItems } : null,
   ].filter(Boolean);
+}
+
+function bladesongActive(character) {
+  return character?.bladesongActive === true;
+}
+
+function bladesingerIntMod(character) {
+  return Math.max(1, Math.floor((Number(character?.finalScores?.int ?? 10) - 10) / 2));
+}
+
+export function getAcBonusEffects(character = {}) {
+  if (!bladesongActive(character)) return 0;
+  let total = 0;
+  collectSheetEffects(character).forEach((effect) => {
+    if (norm(effect.type) !== 'acbonus') return;
+    if (effect.ability === 'int') total += bladesingerIntMod(character);
+    else total += Number(effect.value ?? 1);
+  });
+  return total;
+}
+
+export function getSkillAdvantageFromEffects(character = {}, skillName) {
+  const s = String(skillName || '').toLowerCase();
+  let found = null;
+  collectSheetEffects(character).forEach((effect) => {
+    if (norm(effect.type) !== 'advantage') return;
+    if (effect.target !== 'skill') return;
+    if (String(effect.skill || '').toLowerCase() !== s) return;
+    found = { source: effect.note || effect.ownerName || 'Advantage' };
+  });
+  return bladesongActive(character) ? found : null;
+}
+
+export function getConcentrationBonus(character = {}) {
+  if (!bladesongActive(character)) return 0;
+  let total = 0;
+  collectSheetEffects(character).forEach((effect) => {
+    if (norm(effect.type) !== 'concentrationbonus') return;
+    if (effect.ability === 'int') total += bladesingerIntMod(character);
+    else total += Number(effect.value ?? 0);
+  });
+  return total;
+}
+
+export function getSpeedBonus(character = {}) {
+  if (!bladesongActive(character)) return 0;
+  let total = 0;
+  collectSheetEffects(character).forEach((effect) => {
+    if (!norm(effect.type).includes('speed')) return;
+    if (norm(effect.type).includes('fly') || norm(effect.type).includes('climb') || norm(effect.type).includes('swim')) return;
+    total += Number(effect.value ?? 0);
+  });
+  return total;
 }
 
 export function collectPreviewEffectProficiencySections(character = {}) {

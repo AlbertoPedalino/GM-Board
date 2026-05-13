@@ -3,6 +3,7 @@ import { AlertCircle, Sparkles } from 'lucide-react';
 import { SKILLS, getSkillProficiency, getSkillBonus, fbonus, SLBL } from '../logic/calculations.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { matchesChoiceRequirement, inventoryHasFlag } from '../../../shared/character/choiceUtils.js';
+import { getSkillAdvantageFromEffects } from '../logic/sheetEffects.js';
 
 const _SKILL_ADVANTAGES = [
   {
@@ -22,6 +23,8 @@ function getSkillAdvantage(C, skillName) {
     if (config.requiresInventoryFlag && !inventoryHasFlag(inv, config.requiresInventoryFlag)) continue;
     return { source: config.label };
   }
+  const fromEffects = getSkillAdvantageFromEffects(C, skillName);
+  if (fromEffects) return fromEffects;
   return null;
 }
 

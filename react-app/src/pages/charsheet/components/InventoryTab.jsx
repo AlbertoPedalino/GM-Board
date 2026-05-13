@@ -3,6 +3,7 @@ import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, Stack }
 import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle } from 'lucide-react';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import { getFinal } from '../logic/calculations.js';
+
 import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { setStorageItem, setStorageJson } from '../../../shared/storage.js';
 import { getArmorPenalties } from '../logic/armorPenalties.js';
@@ -535,6 +536,7 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
                 isArmorer={isArmorer}
                 hasArcaneArmor={hasItemFlag(item, 'arcaneArmor')}
                 onArcaneArmor={toggleArcaneArmor}
+
               />
             ))}
           </Box>
@@ -620,6 +622,7 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
             {item.custom ? <Box component="span" sx={{ fontSize: '0.56rem', color: 'text.secondary' }}>[custom]</Box> : null}
             {hasItemFlag(item, 'pactWeapon') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#9d7fb8', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Pact Weapon]</Box> : null}
             {hasItemFlag(item, 'arcaneArmor') ? <Box component="span" sx={{ ml: 0.5, fontSize: '0.56rem', color: '#58b879', fontFamily: '"Cinzel", Georgia, serif', letterSpacing: '0.06em' }}>[Arcane Armor]</Box> : null}
+
           </Box>
           {meta ? <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary', mt: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{meta}</Typography> : null}
           {penaltyMsg && (
@@ -646,6 +649,7 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
             {hasArcaneArmor ? 'Arcane' : 'Arcane Armor'}
           </Button>
         ) : null}
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
           <QtyButton onClick={() => onQty(index, -1)}><Minus size={12} /></QtyButton>
           <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.8125rem', fontWeight: 700, color: '#edd48a', minWidth: 18, textAlign: 'center' }}>{qty(item)}</Box>

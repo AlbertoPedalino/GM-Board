@@ -192,6 +192,9 @@ export default function CharacterSheet() {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'long');
       setResources(res);
       saveResources(res);
+      if (C.bladesongActive) {
+        updateCurrentCharacter(prev => ({ ...prev, bladesongActive: false }));
+      }
     }
 
     if (C?.speciesName) {
@@ -375,11 +378,11 @@ export default function CharacterSheet() {
     if (!C) return;
     const bonus = getSaveBonus(C, stat);
     const lbl = stat.charAt(0).toUpperCase() + stat.slice(1) + ' Save';
-    rollD20(bonus, lbl, options.disadvantage ? false : options.advantage);
+    rollD20(bonus, lbl, options.disadvantage ? false : (options.advantage || undefined));
   }, [C, rollD20]);
 
   const rollSkill = useCallback((skillName, bonus, options = {}) => {
-    rollD20(bonus, skillName + ' Check', options.disadvantage ? false : options.advantage);
+    rollD20(bonus, skillName + ' Check', options.disadvantage ? false : (options.advantage || undefined));
   }, [rollD20]);
 
   const updateXp = useCallback((val) => {

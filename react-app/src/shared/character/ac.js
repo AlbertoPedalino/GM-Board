@@ -1,4 +1,5 @@
 import { installedRegistry } from '../../adapters/index.js';
+import { getAcBonusEffects } from '../../pages/charsheet/logic/sheetEffects.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : (value == null ? [] : [value]);
@@ -215,8 +216,13 @@ export function computeBestArmorClass(character, items, shieldTrained) {
     sourceType: 'base',
   });
 
+  const acBonus = getAcBonusEffects(character);
+  if (acBonus > 0) {
+    candidates.forEach(c => c.value += acBonus);
+  }
+
   candidates.sort((a, b) => b.value - a.value);
-  return candidates[0] || { value: 10, source: 'Base AC', label: 'AC (Base)', formulaLabel: '10', shieldApplied: false, shieldBonus: 0, sourceType: 'base' };
+  return candidates[0] || { value: 10 + acBonus, source: 'Base AC', label: 'AC (Base)', formulaLabel: '10', shieldApplied: false, shieldBonus: 0, sourceType: 'base' };
 }
 
 export function explainArmorClass(character, items, shieldTrained) {

@@ -1,8 +1,9 @@
 import { Box, Paper, Typography, Tooltip } from '@mui/material';
-import { Dice5, AlertCircle } from 'lucide-react';
+import { Dice5, AlertCircle, Sparkles } from 'lucide-react';
 import { STATS, SLBL, FULL_LBL, hasSaveProficiency, getSaveBonus, fbonus } from '../logic/calculations.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { installedRegistry } from '../../../adapters/index.js';
+import { getConcentrationBonus } from '../logic/sheetEffects.js';
 
 
 function collectSaveEffects(C, stat) {
@@ -51,7 +52,7 @@ export default function SavingThrows({ C, sheet, onRoll }) {
           const tooltipText = hasDisadv ? 'Disadvantage from armor' : hasAdv ? saveEffects.map((effect) => effect.note).filter(Boolean).join(' • ') || 'Advantage' : '';
           
           return (
-            <Box key={st} onClick={() => onRoll(st, { disadvantage: hasDisadv, advantage: hasAdv && !hasDisadv })}
+            <Box key={st} onClick={() => onRoll(st, { disadvantage: hasDisadv || undefined, advantage: hasAdv && !hasDisadv || undefined })}
               sx={{ display: 'flex', alignItems: 'center', gap: 1, py: '3px', cursor: 'pointer', borderRadius: 1, '&:hover': { bgcolor: 'rgba(202,165,80,0.04)' } }}>
               <Box sx={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, transition: 'all 0.1s', border: 1, borderColor: 'divider', bgcolor: prof ? 'primary.main' : 'transparent' }} />
               <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.625rem', fontWeight: 600, color: 'text.secondary', letterSpacing: '0.08em', width: 28, flexShrink: 0 }}>
@@ -62,6 +63,11 @@ export default function SavingThrows({ C, sheet, onRoll }) {
               </Typography>
               <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.75rem', fontWeight: 600, color: 'text.primary', ml: 'auto' }}>
                 {fbonus(bonus)}
+                {st === 'con' && getConcentrationBonus(C) > 0 ? (
+                  <Tooltip title={`Concentration saves: +${getConcentrationBonus(C)} (Bladesong)`}>
+                    <Sparkles size={11} style={{ color: '#70b7a6', marginLeft: 4, verticalAlign: 'middle', cursor: 'help' }} />
+                  </Tooltip>
+                ) : null}
               </Typography>
               {(hasDisadv || hasAdv) && (
                 <Tooltip title={tooltipText}>

@@ -68,7 +68,7 @@ function weaponCategory(item) {
   return '';
 }
 
-function weaponMatchesRule(item, rule) {
+export function weaponMatchesRule(item, rule) {
   if (!item || !rule || typeof rule !== 'object') return false;
   if (rule.type && item.type !== rule.type) return false;
   if (Array.isArray(rule.types) && !rule.types.includes(item.type)) return false;

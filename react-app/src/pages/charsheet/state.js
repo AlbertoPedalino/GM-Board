@@ -3,7 +3,9 @@ import { mapCharacterToBuilderState } from '../../shared/builderSync.js';
 import { getStorageItem, getStorageJson, setStorageItem, setStorageJson } from '../../shared/storage.js';
 
 export function loadCharacter() {
-  return getStorageJson('5e_current_char', null);
+  const ch = getStorageJson('5e_current_char', null);
+  if (ch && ch.bladesongActive == null) ch.bladesongActive = false;
+  return ch;
 }
 
 export function loadSheetState(C) {
