@@ -33,10 +33,10 @@ import {
   tinyMetaChipSx,
 } from './spellsTabStyles.js';
 import { Empty } from './SpellsUiParts.jsx';
-import WildMagicPanel from './WildMagicPanel.jsx';
+import ActionDetailPanel from './ActionDetailPanel.jsx';
 
 const ACTION_DETAIL_RENDERERS = {
-  wildMagic: WildMagicPanel,
+  panel: ActionDetailPanel,
 };
 
 function actionLabel(value) {
