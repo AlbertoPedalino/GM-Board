@@ -260,17 +260,36 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
           {metaLine ? <Box sx={{ fontSize: '0.65rem', color: 'text.secondary', mb: '5px' }}>{metaLine}</Box> : null}
           <Box dangerouslySetInnerHTML={{ __html: body }} />
           {modifierDetailGroups.length ? (
-            <Stack spacing={1} sx={{ mt: 1.25 }}>
+            <Stack spacing={0.8} sx={{ mt: 1 }}>
               {modifierDetailGroups.map((group) => (
-                <Box key={group.label}>
-                  <Typography variant="caption" color="text.secondary">{group.label}</Typography>
-                  <Stack spacing={0.5} sx={{ mt: 0.25 }}>
+                <Box
+                  key={group.label}
+                  sx={{
+                    pt: 0.8,
+                    mt: 0.2,
+                    borderTop: '1px dashed',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: '"Cinzel", Georgia, serif',
+                      fontSize: '0.6rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      color: '#9d7fb8',
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {group.label}
+                  </Typography>
+                  <Stack spacing={0.55} sx={{ mt: 0.45 }}>
                     {group.items.map((modifier) => (
                       <Box key={modifier.key || modifier.label}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                           {modifier.detailTitle || modifier.tagLabel || modifier.label}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.3, mt: 0.1 }}>
                           {modifier.detailText || modifier.description}
                         </Typography>
                       </Box>
