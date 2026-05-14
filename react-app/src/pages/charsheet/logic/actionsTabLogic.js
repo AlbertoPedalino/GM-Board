@@ -10,6 +10,7 @@ import {
   resolveWeaponMasteryForItem,
 } from '../../../shared/character/weaponMastery.js';
 import {
+  itemProps,
   getWeaponDamageDice,
   canUseLightExtraAttack,
   getOffHandDamageMod,
@@ -226,11 +227,6 @@ function classLevel(C, className) {
 
 function hasFeat(C, name) {
   return (C?.allFeatSnapshots || []).some(f => String(f?.name || '').toLowerCase() === String(name).toLowerCase());
-}
-
-function itemProps(item) {
-  return [...(Array.isArray(item?.property) ? item.property : []), ...(Array.isArray(item?.properties) ? item.properties : [])]
-    .map(p => String(p).toLowerCase());
 }
 
 function weaponAbility(C, item, weaponOverride) {

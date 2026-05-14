@@ -1,6 +1,6 @@
 import { getMod, getFinal } from './calculations.js';
 
-function itemProps(item) {
+export function itemProps(item) {
   return [...(Array.isArray(item?.property) ? item.property : []), ...(Array.isArray(item?.properties) ? item.properties : [])]
     .map(p => String(p).toLowerCase());
 }
