@@ -186,10 +186,16 @@ export function getPrimaryClassLevel(character) {
 
 export function getSelectedFeatNames(character) {
   const out = new Set();
+  const isLessonsOriginFeatKey = (key) => (
+    /^warlock_lessons_first_ones_origin_feat(?:_\d+)?$/i.test(key)
+    || /^mc\d+_warlock_lessons_first_ones_origin_feat(?:_\d+)?$/i.test(key)
+    || /^warlock_lessons_feat(?:_\d+)?$/i.test(key)
+    || /^mc\d+_warlock_lessons_feat(?:_\d+)?$/i.test(key)
+  );
   Object.entries(character?.choices || {}).forEach(([key, value]) => {
     if (!value) return;
     if (key.endsWith('_entry') || key.endsWith('_skill') || key.endsWith('_lang') || key.endsWith('_tool') || key.endsWith('_asi') || key.endsWith('_ability') || key.endsWith('_spell_ability') || key.endsWith('_damage') || key.endsWith('_weapon') || key.includes('_spell_')) return;
-    if (!(key === 'feat_origin' || key === 'species_origin_feat' || key.startsWith('feat_') || /^mc\d+_feat_/.test(key) || key.startsWith('paladin_') || key === 'fighter_fighting_style' || key === 'fighter_epic_boon' || key.includes('_fighting_style') || key.includes('_epic_boon') || /^feat_asi_lv\d+$/.test(key))) return;
+    if (!(key === 'feat_origin' || key === 'species_origin_feat' || key.startsWith('feat_') || /^mc\d+_feat_/.test(key) || key.startsWith('paladin_') || key === 'fighter_fighting_style' || key === 'fighter_epic_boon' || key.includes('_fighting_style') || key.includes('_epic_boon') || /^feat_asi_lv\d+$/.test(key) || isLessonsOriginFeatKey(key))) return;
     const values = Array.isArray(value) ? value : [value];
     values.forEach((entry) => {
       if (typeof entry === 'string' && entry) out.add(entry);

@@ -473,11 +473,14 @@ function collectChooseEntries(obj) {
   return entries;
 }
 
-function additionalSpellChoices(feat, slotKey, entryIdx = 0) {
+function additionalSpellChoices(feat, slotKey, entryIdx) {
   const out = [];
   const additional = Array.isArray(feat?.additionalSpells) ? feat.additionalSpells : [];
   if (!additional.length) return out;
-  const grant = additional[Math.min(entryIdx, additional.length - 1)];
+  const hasSelectedEntry = entryIdx != null && !Number.isNaN(Number(entryIdx));
+  if (additional.length > 1 && !hasSelectedEntry) return out;
+  const resolvedEntryIdx = hasSelectedEntry ? Number(entryIdx) : 0;
+  const grant = additional[Math.min(resolvedEntryIdx, additional.length - 1)];
   if (!grant) return out;
   let chooseCounter = 0;
   ['known', 'innate', 'prepared', 'expanded'].forEach((mode) => {
@@ -565,7 +568,7 @@ export function featChoiceSpecs(feat, options = {}) {
     count: ui.weaponMastery.count || 1,
   });
 
-  specs.push(...additionalSpellChoices(feat, slotKey, options.entryIdx || 0));
+  specs.push(...additionalSpellChoices(feat, slotKey, options.entryIdx));
   return specs;
 }
 

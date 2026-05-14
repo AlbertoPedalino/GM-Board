@@ -111,18 +111,38 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
       lockedNames: spellInfo.lockedNames,
       lockedEntries: spellInfo.lockedEntries,
     };
+    const addLeveledEntry = (slotLevel, nextEntry) => {
+      const lv = Number(slotLevel || 0);
+      if (lv <= 0) return;
+      if (!result.leveled[lv]) result.leveled[lv] = [];
+      const castLv = Number(nextEntry?.castLevel || nextEntry?.level || lv);
+      const idx = result.leveled[lv].findIndex((existing) => (
+        norm(existing?.name) === norm(nextEntry?.name)
+        && Number(existing?.castLevel || existing?.level || lv) === castLv
+      ));
+      if (idx >= 0) {
+        const existing = result.leveled[lv][idx];
+        if (existing?.castMode !== 'pact_magic' && nextEntry?.castMode === 'pact_magic') {
+          result.leveled[lv][idx] = nextEntry;
+        }
+        return;
+      }
+      result.leveled[lv].push(nextEntry);
+    };
 
     Object.entries(spellInfo.leveled).forEach(([level, entries]) => {
       entries.forEach((entry) => {
         if (entry.level <= 0) return;
+        const baseLevel = Number(level);
         const castMode = getSpellCastMode(C, entry, pactInfo);
         if (castMode.mode === 'pact_magic') {
-          const lv = castMode.castLevel;
-          if (!result.leveled[lv]) result.leveled[lv] = [];
-          result.leveled[lv].push({ ...entry, castLevel: lv, castMode: 'pact_magic' });
+          const pactLevel = Number(castMode.castLevel || baseLevel);
+          addLeveledEntry(pactLevel, { ...entry, castLevel: pactLevel, castMode: 'pact_magic' });
+          if (slots.regular?.[baseLevel - 1] > 0) {
+            addLeveledEntry(baseLevel, { ...entry, castLevel: baseLevel, castMode: 'regular' });
+          }
         } else {
-          if (!result.leveled[level]) result.leveled[level] = [];
-          result.leveled[level].push({ ...entry });
+          addLeveledEntry(baseLevel, { ...entry, castLevel: baseLevel, castMode: castMode.mode || 'regular' });
         }
       });
     });
@@ -132,12 +152,15 @@ export default function SpellsTab({ C, sheet, onUpdateSpells, onShowToast, onUpd
         if (entry.level <= 0) return;
         if (entry.ritualOnly) return;
         if (!entry.entriesHigherLevel) return;
+        const baseLevel = Number(level);
         const castMode = getSpellCastMode(C, entry, pactInfo);
-        if (castMode.mode === 'pact_magic') return;
-        for (let lv = Number(level) + 1; lv <= maxSlotLv; lv++) {
-          if (slots.regular[lv - 1] > 0 || (slots.pact?.level === lv && slots.pact.count > 0)) {
-            if (!result.leveled[lv]) result.leveled[lv] = [];
-            result.leveled[lv].push({ ...entry, castLevel: lv });
+        for (let lv = baseLevel + 1; lv <= maxSlotLv; lv++) {
+          const hasRegularSlot = slots.regular?.[lv - 1] > 0;
+          const hasPactSlot = slots.pact?.level === lv && slots.pact.count > 0;
+          if (castMode.mode === 'pact_magic') {
+            if (hasRegularSlot) addLeveledEntry(lv, { ...entry, castLevel: lv, castMode: 'regular' });
+          } else if (hasRegularSlot || hasPactSlot) {
+            addLeveledEntry(lv, { ...entry, castLevel: lv, castMode: castMode.mode || 'regular' });
           }
         }
       });

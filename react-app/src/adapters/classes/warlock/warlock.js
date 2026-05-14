@@ -1,6 +1,6 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
 import { setStorageJson } from '../../../shared/storage.js';
-import { warlockHasInvocation, warlockLevel, warlockKnownInvocations } from '../../../shared/character/warlockUtils.js';
+import { warlockHasInvocation, warlockLevel, warlockKnownInvocations, warlockInvocationSelections } from '../../../shared/character/warlockUtils.js';
 import { registerChoiceLevelMap } from '../../../shared/character/choiceLevels.js';
 
 export default function install(registry, context = {}) {
@@ -185,6 +185,18 @@ const _INV_DATA = [
 // Quick lookup: name → description
 const _INV_DESCS = {};
 _INV_DATA.forEach(function(inv) { _INV_DESCS[inv.name] = inv.desc; });
+registerClassSheetChoiceMeta("Warlock", {
+  invocationData: _INV_DATA.map(function (inv) {
+    return {
+      name: inv.name,
+      minLevel: inv.minLevel,
+      prereq: inv.prereq || null,
+      source: inv.source || 'XPHB',
+      repeatable: !!inv.repeatable || /more than once/i.test(String(inv.desc || '')),
+      desc: inv.desc || '',
+    };
+  }),
+});
 
 // Check if a character has a specific Eldritch Invocation chosen (works for both sheet C and charbuilder char)
 function _warlockHasInvocation(C, name) {
@@ -201,11 +213,27 @@ function _warlockAdapterCharacter(localContext) {
 }
 
 function _warlockInvocationCount(C, name) {
-  if (!C || !C.choices) return 0;
-  return Object.entries(C.choices).filter(function(e) {
-    return e[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
-           String(e[1]).split('|')[0].trim() === name;
+  if (!C) return 0;
+  var target = String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return warlockInvocationSelections(C).filter(function (invName) {
+    return String(invName || '').toLowerCase().replace(/[^a-z0-9]/g, '') === target;
   }).length;
+}
+
+function _warlockInvocationCountScoped(C, name, keyPrefix) {
+  if (!C) return 0;
+  var target = String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return warlockInvocationSelections(C, keyPrefix).filter(function (invName) {
+    return String(invName || '').toLowerCase().replace(/[^a-z0-9]/g, '') === target;
+  }).length;
+}
+
+function _warlockHasInvocationScoped(C, name, keyPrefix) {
+  if (!C || !name) return false;
+  var target = String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return warlockInvocationSelections(C, keyPrefix).some(function (invName) {
+    return String(invName || '').toLowerCase().replace(/[^a-z0-9]/g, '') === target;
+  });
 }
 
 function _warlockInvocationPrereqMet(C, inv, threshold) {
@@ -259,11 +287,16 @@ const _INV_LEVELS = [1, 2, 2, 5, 5, 6, 7, 8, 9, 10];
 
 registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
   var _charRef = _warlockAdapterCharacter(adapterContext);
+  var _choicePrefix = String(adapterContext?.keyPrefix || '');
 
   _INV_LEVELS.forEach(function (threshold, i) {
     if (lv >= threshold) {
       var slotInvocations = _INV_DATA
-        .filter(function(inv) { return _warlockInvocationPrereqMet(_charRef, inv, threshold); })
+        .filter(function(inv) {
+          if (Number(threshold || 0) < Number(inv.minLevel || 1)) return false;
+          if (!inv.prereq) return true;
+          return _warlockHasInvocationScoped(_charRef, inv.prereq, _choicePrefix);
+        })
         .map(function(inv) { return inv.name; });
       if (slotInvocations.length) {
         specs.push({
@@ -279,8 +312,8 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
     }
   });
 
-  if (_charRef && _warlockHasInvocation(_charRef, 'Agonizing Blast')) {
-    var agonizingCount = Math.max(1, _warlockInvocationCount(_charRef, 'Agonizing Blast'));
+  if (_charRef && _warlockHasInvocationScoped(_charRef, 'Agonizing Blast', _choicePrefix)) {
+    var agonizingCount = Math.max(1, _warlockInvocationCountScoped(_charRef, 'Agonizing Blast', _choicePrefix));
     for (var agonizingIndex = 1; agonizingIndex <= agonizingCount; agonizingIndex += 1) {
       specs.push({
         key: agonizingCount > 1 ? 'warlock_agonizing_blast_cantrip_' + agonizingIndex : 'warlock_agonizing_blast_cantrip',
@@ -293,8 +326,8 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
     }
   }
 
-  if (_charRef && _warlockHasInvocation(_charRef, 'Repelling Blast')) {
-    var repellingCount = Math.max(1, _warlockInvocationCount(_charRef, 'Repelling Blast'));
+  if (_charRef && _warlockHasInvocationScoped(_charRef, 'Repelling Blast', _choicePrefix)) {
+    var repellingCount = Math.max(1, _warlockInvocationCountScoped(_charRef, 'Repelling Blast', _choicePrefix));
     for (var repellingIndex = 1; repellingIndex <= repellingCount; repellingIndex += 1) {
       specs.push({
         key: repellingCount > 1 ? 'warlock_repelling_blast_cantrip_' + repellingIndex : 'warlock_repelling_blast_cantrip',
@@ -307,8 +340,8 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
     }
   }
 
-  if (_charRef && _warlockHasInvocation(_charRef, 'Eldritch Spear')) {
-    var spearCount = Math.max(1, _warlockInvocationCount(_charRef, 'Eldritch Spear'));
+  if (_charRef && _warlockHasInvocationScoped(_charRef, 'Eldritch Spear', _choicePrefix)) {
+    var spearCount = Math.max(1, _warlockInvocationCountScoped(_charRef, 'Eldritch Spear', _choicePrefix));
     for (var spearIndex = 1; spearIndex <= spearCount; spearIndex += 1) {
       specs.push({
         key: spearCount > 1 ? 'warlock_eldritch_spear_cantrip_' + spearIndex : 'warlock_eldritch_spear_cantrip',
@@ -322,7 +355,7 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
   }
 
   // Pact of the Tome: 3 cantrips from any list + 2 level-1 rituals.
-  if (_charRef && _warlockHasInvocation(_charRef, 'Pact of the Tome')) {
+  if (_charRef && _warlockHasInvocationScoped(_charRef, 'Pact of the Tome', _choicePrefix)) {
     [1, 2, 3].forEach(function (n) {
       specs.push({
         key: 'warlock_tome_cantrip_' + n,
@@ -346,21 +379,23 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
   }
 
   // Lessons of the First Ones: Origin feat choice.
-  if (_charRef && _warlockHasInvocation(_charRef, 'Lessons of the First Ones')) {
-    var lessonsCount = Math.max(1, _warlockInvocationCount(_charRef, 'Lessons of the First Ones'));
-    for (var lessonIndex = 1; lessonIndex <= lessonsCount; lessonIndex += 1) {
+  if (_charRef && _warlockHasInvocationScoped(_charRef, 'Lessons of the First Ones', _choicePrefix)) {
+    var lessonsCount = Math.max(1, _warlockInvocationCountScoped(_charRef, 'Lessons of the First Ones', _choicePrefix));
+    for (var lessonIndex = 0; lessonIndex < lessonsCount; lessonIndex += 1) {
       specs.push({
-        key: lessonsCount > 1 ? 'warlock_lessons_feat_' + lessonIndex : 'warlock_lessons_feat',
-        label: lessonsCount > 1 ? 'Lessons of the First Ones — Origin Feat ' + lessonIndex : 'Lessons of the First Ones — Origin Feat',
+        key: 'warlock_lessons_first_ones_origin_feat_' + lessonIndex,
+        label: lessonsCount > 1 ? 'Lessons of the First Ones — Origin Feat ' + (lessonIndex + 1) : 'Lessons of the First Ones — Origin Feat',
         type: 'feat_cat',
         categories: ['O'],
+        source: 'Lessons of the First Ones',
+        disallowDuplicates: true,
         count: 1,
         level: 2
       });
     }
   }
 
-  if (_charRef && _warlockHasInvocation(_charRef, 'Lifedrinker')) {
+  if (_charRef && _warlockHasInvocationScoped(_charRef, 'Lifedrinker', _choicePrefix)) {
     specs.push({
       key: 'warlock_lifedrinker_damage_type',
       label: 'Lifedrinker — Damage Type',
@@ -805,6 +840,13 @@ if (typeof registerClassRuntimeConfig === 'function') {
     source: 'Warlock: mystic arcanum',
     test: function(key) { var m = String(key).match(/^warlock_mystic_arcanum_(\d+)$/); return m ? Number(m[1]) : null; },
     level: function(spellLv) { return spellLv <= 6 ? 11 : spellLv <= 7 ? 13 : spellLv <= 8 ? 15 : 17; },
+  });
+  registerChoiceLevelMap({
+    source: 'Warlock: lessons origin feats',
+    test: function(key) {
+      return /^warlock_lessons_first_ones_origin_feat_(\d+)$/i.test(String(key || '')) ? 1 : null;
+    },
+    level: function() { return 2; },
   });
 })();
 

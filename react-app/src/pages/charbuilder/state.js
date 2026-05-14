@@ -161,6 +161,16 @@ function clearSpeciesChoices(choices = {}) {
   return next;
 }
 
+function clearChoicePrefix(choices = {}, prefix) {
+  const target = String(prefix || '');
+  if (!target) return { ...choices };
+  const next = { ...choices };
+  Object.keys(next).forEach((key) => {
+    if (String(key).startsWith(target)) delete next[key];
+  });
+  return next;
+}
+
 export function builderReducer(state, action) {
   switch (action.type) {
     case 'data/load-start':
@@ -477,6 +487,11 @@ export function builderReducer(state, action) {
     }
     case 'choice/set':
       return updateNestedCharacter(state, 'choices', { [action.key]: action.value });
+    case 'choice/set-entry': {
+      const base = clearChoicePrefix(state.character.choices || {}, action.clearPrefix);
+      base[action.key] = action.value;
+      return updateCharacter(state, { choices: base });
+    }
     case 'choice/toggle-item': {
       const current = Array.isArray(state.character.choices[action.key]) ? state.character.choices[action.key] : [];
       const exists = current.includes(action.value);

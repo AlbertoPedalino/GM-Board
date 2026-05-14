@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
+import { installedRegistry } from '../../../adapters/index.js';
+import { warlockInvocationSelections } from '../../../shared/character/warlockUtils.js';
 
 const SOURCE_COLOR = {
   class: '#d7ad52',
@@ -13,6 +15,7 @@ export default function FeaturesTab({ C }) {
   if (!C) return null;
 
   const classBuckets = collectClassBuckets(C);
+  const invocationFeatures = collectWarlockInvocationFeatures(C);
   const speciesEntries = C?.speciesSnapshot?.entries || [];
   const bgSnapshot = C?.bgSnapshot || {};
   const backgroundEntries = bgSnapshot.entries || [];
@@ -82,6 +85,12 @@ export default function FeaturesTab({ C }) {
       ))}
 
       <FeatureSection
+        title="Eldritch Invocations"
+        color={SOURCE_COLOR.class}
+        features={invocationFeatures}
+      />
+
+      <FeatureSection
         title={`Species - ${C?.speciesName || '?'}`}
         color={SOURCE_COLOR.species}
         features={speciesEntries?.length ? [{
@@ -117,6 +126,48 @@ export default function FeaturesTab({ C }) {
       />
     </Box>
   );
+}
+
+function collectWarlockInvocationFeatures(C) {
+  const meta = typeof installedRegistry.getClassSheetChoiceMeta === 'function'
+    ? (installedRegistry.getClassSheetChoiceMeta('Warlock') || {})
+    : {};
+  const invocationData = Array.isArray(meta?.invocationData) ? meta.invocationData : [];
+  if (!invocationData.length) return [];
+
+  const invByName = new Map(
+    invocationData.map((entry) => [norm(entry?.name), entry]).filter(([key]) => key),
+  );
+  const out = [];
+  const pushForPrefix = (keyPrefix, ownerLevel = 1) => {
+    const selected = warlockInvocationSelections(C, keyPrefix);
+    if (!selected.length) return;
+    const counts = new Map();
+    selected.forEach((name) => {
+      const clean = cleanChoiceText(name);
+      if (!clean) return;
+      counts.set(clean, (counts.get(clean) || 0) + 1);
+    });
+    counts.forEach((count, selectedName) => {
+      const data = invByName.get(norm(selectedName)) || null;
+      const repeatable = !!data?.repeatable || /more than once/i.test(String(data?.desc || ''));
+      out.push({
+        name: count > 1 ? `${selectedName} x${count}` : selectedName,
+        level: Number(data?.minLevel || ownerLevel || 1),
+        source: repeatable ? 'Invocation - Repeatable' : 'Invocation',
+        sourceKind: 'class',
+        entries: data?.entries || data?.desc || '',
+      });
+    });
+  };
+
+  if (norm(C?.className) === 'warlock') pushForPrefix('', Number(C?.classLevel || C?.level || 1));
+  (C?.extraClasses || []).forEach((extra, index) => {
+    if (norm(extra?.name) !== 'warlock') return;
+    pushForPrefix(`mc${index}_`, Number(extra?.level || 1));
+  });
+
+  return dedupeFeatures(out);
 }
 
 function collectClassBuckets(C) {

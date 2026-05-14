@@ -179,16 +179,39 @@ function _normalizeAbility(raw) {
   return null;
 }
 
+function _extractChoiceSpellSlotKey(key) {
+  const m = String(key || '').match(/^(.*?)_spell_(?:known|innate|prepared|expanded)_/);
+  return m ? m[1] : null;
+}
+
+function _slotKeyBase(slotKey) {
+  return String(slotKey || '').replace(/^mc\d+_/, '');
+}
+
+function _isFeatLikeSlotKey(C, slotKey) {
+  const key = String(slotKey || '');
+  const baseKey = _slotKeyBase(key);
+  return (
+    baseKey === 'feat_origin'
+    || baseKey === 'species_origin_feat'
+    || baseKey.startsWith('feat_')
+    || baseKey.includes('boon')
+    || baseKey.includes('fighting_style')
+    || /^mc\d+_feat_/.test(key)
+    || Object.prototype.hasOwnProperty.call(C?.normalizedChoices?.feats?.byKey || {}, key)
+    || Object.prototype.hasOwnProperty.call(C?.normalizedChoices?.feats?.byKey || {}, baseKey)
+  );
+}
+
 function getChoiceSpellAbility(C, key) {
-  const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
-  if (m) {
-    const abilityKey = `${m[1]}_spell_ability`;
-    const raw = C?.choices?.[abilityKey];
-    const val = _choiceValue(raw);
-    if (val) {
-      const normalized = _normalizeAbility(val);
-      if (normalized) return normalized;
-    }
+  const slotKey = _extractChoiceSpellSlotKey(key);
+  if (!slotKey) return null;
+  const abilityKey = `${slotKey}_spell_ability`;
+  const raw = C?.choices?.[abilityKey];
+  const val = _choiceValue(raw);
+  if (val) {
+    const normalized = _normalizeAbility(val);
+    if (normalized) return normalized;
   }
   return null;
 }
@@ -241,9 +264,8 @@ function _buildFeatMetaMap(C) {
   const map = new Map();
   const choices = C?.choices || {};
   Object.entries(choices).forEach(([key]) => {
-    const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
-    if (!m) return;
-    const slotKey = m[1];
+    const slotKey = _extractChoiceSpellSlotKey(key);
+    if (!slotKey || !_isFeatLikeSlotKey(C, slotKey)) return;
     if (map.has(slotKey)) return;
     let name = _findFeatName(C, slotKey);
     let ability = null;
@@ -256,9 +278,19 @@ function _buildFeatMetaMap(C) {
   return map;
 }
 
-function _getSlotKey(key) {
-  const m = key.match(/^(feat_.+?)_spell_(?:known|innate|prepared|expanded)_/);
-  return m ? m[1] : null;
+function _getSlotKey(C, key) {
+  const slotKey = _extractChoiceSpellSlotKey(key);
+  if (!slotKey || !_isFeatLikeSlotKey(C, slotKey)) return null;
+  return slotKey;
+}
+
+function _ownerClassFromChoiceKey(C, key) {
+  const m = String(key || '').match(/^mc(\d+)_/);
+  if (m) {
+    const idx = Number(m[1]);
+    return C?.extraClasses?.[idx]?.name || null;
+  }
+  return C?.className || null;
 }
 
 function collectChoiceSpells(C, spellIndex) {
@@ -274,19 +306,22 @@ function collectChoiceSpells(C, spellIndex) {
       if (!name) return;
       if (!spellIndex.has(norm(name)) && !/(spell|cantrip|tome|magical|known|prepared|innate|expanded)/i.test(key)) return;
       if (['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(norm(name))) return;
-      const slotKey = _getSlotKey(key);
+      const slotKey = _getSlotKey(C, key);
       const meta = slotKey ? featMetaMap.get(slotKey) : null;
+      const ownerClassName = _ownerClassFromChoiceKey(C, key);
       if (meta) {
         out.push({
           name,
           source: { label: meta.name, color: '#caa550', originType: 'feat', originLabel: meta.name },
           spellcastingAbility: meta.ability,
+          ownerClassName,
         });
       } else {
         out.push({
           name,
           source: sourceFromChoiceKey(C, key),
           spellcastingAbility: getChoiceSpellAbility(C, key),
+          ownerClassName,
         });
       }
     });
@@ -397,7 +432,7 @@ function sourceFromChoiceKey(C, key) {
   if (!featName) featName = _findFeatNameByPrefix(C, key);
   if (!featName) featName = _findFeatNameByScanning(C, key);
   if (!featName) {
-    const slotKey = _getSlotKey(key);
+    const slotKey = _getSlotKey(C, key);
     if (slotKey) featName = _findFeatName(C, slotKey);
   }
   if (featName) return { label: String(featName), color: '#caa550', originType: 'feat', originLabel: String(featName) };

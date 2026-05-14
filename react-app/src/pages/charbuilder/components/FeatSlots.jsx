@@ -47,30 +47,33 @@ function renderGrantSpec({ grant, character, state, dispatch }) {
   return <ChoiceBlock key={grant.key} spec={grant} choices={character.choices} dispatch={dispatch} character={character} />;
 }
 
+function grantLabel(entry) {
+  for (const mode of ['known', 'innate', 'prepared', 'expanded']) {
+    const section = entry?.[mode];
+    if (!section) continue;
+    for (const items of Object.values(section)) {
+      const arr = Array.isArray(items) ? items : items?._;
+      if (!Array.isArray(arr)) continue;
+      for (const item of arr) {
+        if (typeof item === 'string') return item.split('|')[0];
+        if (item?.choose) {
+          const cls = String(item.choose).split('|').find((p) => p.startsWith('class='));
+          if (cls) return cls.slice(6).split(';')[0];
+        }
+      }
+    }
+  }
+  return entry?.name || '?';
+}
+
 export function FeatFixedSlot({ spec, feats, character, state, dispatch, accent = 'secondary' }) {
   const feat = findFeat(feats, spec.fixed);
   const additional = Array.isArray(feat?.additionalSpells) ? feat.additionalSpells : [];
   const entryKey = `${spec.key}_entry`;
-  const entryIdx = additional.length > 1 ? Number(character.choices[entryKey] ?? 0) : 0;
+  const entryChoiceEnabled = additional.length > 1;
+  const rawEntryIdx = character.choices[entryKey];
+  const entryIdx = entryChoiceEnabled && rawEntryIdx != null ? Number(rawEntryIdx) : null;
   const grants = feat ? featChoiceSpecs(feat, { slotKey: spec.key, entryIdx }) : [];
-  const grantLabel = (entry) => {
-    for (const mode of ['known', 'innate', 'prepared', 'expanded']) {
-      const section = entry?.[mode];
-      if (!section) continue;
-      for (const items of Object.values(section)) {
-        const arr = Array.isArray(items) ? items : items?._;
-        if (!Array.isArray(arr)) continue;
-        for (const item of arr) {
-          if (typeof item === 'string') return item.split('|')[0];
-          if (item?.choose) {
-            const cls = String(item.choose).split('|').find((p) => p.startsWith('class='));
-            if (cls) return cls.slice(6).split(';')[0];
-          }
-        }
-      }
-    }
-    return entry?.name || '?';
-  };
   return (
     <Paper variant="outlined" sx={{ p: 1.5, minWidth: 0 }}>
       <Stack spacing={1} sx={{ minWidth: 0 }}>
@@ -79,17 +82,22 @@ export function FeatFixedSlot({ spec, feats, character, state, dispatch, accent 
           <Chip size="small" color={accent} label={feat ? feat.name : spec.fixed} />
         </Stack>
         {additional.length > 1 ? (
-          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+          <Stack spacing={0.6}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700 }}>
+              {feat?.choiceUi?.listLabel || `${feat?.name || 'Feat'} Spell List`}
+            </Typography>
+            <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
             {additional.map((entry, idx) => (
               <Button
                 key={`${spec.key}-entry-${idx}`}
                 size="small"
                 variant={idx === entryIdx ? 'contained' : 'outlined'}
-                onClick={() => dispatch({ type: 'choice/set', key: entryKey, value: idx })}
+                onClick={() => dispatch({ type: 'choice/set-entry', key: entryKey, value: idx, clearPrefix: `${spec.key}_spell_` })}
               >
                 {grantLabel(entry)}
               </Button>
             ))}
+            </Stack>
           </Stack>
         ) : null}
         {feat?.entries ? <ExpandableDescription entries={feat.entries} /> : null}
@@ -221,14 +229,20 @@ export function FeatCategorySlot({ spec, feats, character, state, dispatch }) {
     .filter(([key]) => key !== spec.key)
     .map(([, value]) => Array.isArray(value) ? value : [value])
     .flat()
+    .map((value) => {
+      if (typeof value === 'string') return value;
+      if (value && typeof value === 'object') return value.name || value.label || value.value || null;
+      return null;
+    })
     .filter(Boolean));
   const isFs = (spec.categories || []).some((cat) => String(cat).startsWith('FS'));
+  const disallowDuplicates = isFs || !!spec.disallowDuplicates;
   const pool = feats
     .filter((feat) => {
       const min = featMinLevel(feat);
       if (Number.isFinite(min) && min > effectiveLevel) return false;
       if (!featMatchesCategory(feat, spec.categories)) return false;
-      if (isFs && taken.has(feat.name)) return false;
+      if (disallowDuplicates && taken.has(feat.name)) return false;
       return true;
     })
     .slice(0, 80);
@@ -236,7 +250,9 @@ export function FeatCategorySlot({ spec, feats, character, state, dispatch }) {
   const selectedFeat = feats.find((feat) => feat.name === selected);
   const additional = Array.isArray(selectedFeat?.additionalSpells) ? selectedFeat.additionalSpells : [];
   const entryKey = `${spec.key}_entry`;
-  const entryIdx = additional.length > 1 ? Number(character.choices[entryKey] ?? 0) : 0;
+  const entryChoiceEnabled = additional.length > 1;
+  const rawEntryIdx = character.choices[entryKey];
+  const entryIdx = entryChoiceEnabled && rawEntryIdx != null ? Number(rawEntryIdx) : null;
   const grants = selectedFeat ? featChoiceSpecs(selectedFeat, { slotKey: spec.key, entryIdx }) : [];
   return (
     <Paper variant="outlined" sx={{ p: 1.5, minWidth: 0 }}>
@@ -269,6 +285,25 @@ export function FeatCategorySlot({ spec, feats, character, state, dispatch }) {
           </List>
         </Paper>
         {!pool.length ? <Typography color="text.secondary">No feats match.</Typography> : null}
+        {selectedFeat && additional.length > 1 ? (
+          <Stack spacing={0.6}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700 }}>
+              {selectedFeat?.choiceUi?.listLabel || `${selectedFeat?.name || 'Feat'} Spell List`}
+            </Typography>
+            <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+              {additional.map((entry, idx) => (
+                <Button
+                  key={`${spec.key}-entry-${idx}`}
+                  size="small"
+                  variant={idx === entryIdx ? 'contained' : 'outlined'}
+                  onClick={() => dispatch({ type: 'choice/set-entry', key: entryKey, value: idx, clearPrefix: `${spec.key}_spell_` })}
+                >
+                  {grantLabel(entry)}
+                </Button>
+              ))}
+            </Stack>
+          </Stack>
+        ) : null}
         {selectedFeat?.entries ? <ExpandableDescription entries={selectedFeat.entries} /> : null}
         {grants.map((grant) => renderGrantSpec({ grant, character, state, dispatch }))}
       </Stack>
