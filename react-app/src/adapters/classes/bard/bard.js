@@ -155,19 +155,9 @@ registerClassAdapter("Bard", function (cls, lv, specs, ctx = {}) {
       key: 'bard_magical_secrets_lv10',
       label: 'Magical Secrets (Lv.10)',
       type: 'spell_choice',
-      spellFilter: { spellLevel: null, classes: null, allSpells: true },
+      spellFilter: { spellLevel: null, classes: ['Bard', 'Cleric', 'Druid', 'Wizard'] },
       count: 2,
       level: 10
-    });
-  }
-  if (lv >= 18) {
-    specs.push({
-      key: 'bard_magical_secrets_lv18',
-      label: 'Magical Secrets (Lv.18)',
-      type: 'spell_choice',
-      spellFilter: { spellLevel: null, classes: null, allSpells: true },
-      count: 2,
-      level: 18
     });
   }
   if (lv >= 19) {
@@ -190,12 +180,13 @@ registerClassSheetActions("Bard", [
     desc: "Add half your Proficiency Bonus (rounded down) to any ability check that doesn't already use your Proficiency Bonus." },
   { name: "Expertise",          icon: "", cat: "action", uses: "Passive", minLevel: 2,
     desc: "Choose two skill proficiencies: double your Proficiency Bonus for those skills (lv.2). Choose two more at lv.9." },
-  { name: "Font of Inspiration",icon: "", cat: "action", uses: "Passive", minLevel: 5,
-    desc: "Your Bardic Inspiration recharges on a Short Rest as well as a Long Rest." },
-  { name: "Countercharm",       icon: "", cat: "action", uses: "Action", minLevel: 7,
-    desc: "As an Action, begin a performance that lasts until the end of your next turn. Friendly creatures within 30 ft who can hear you gain Advantage on saving throws against being Charmed or Frightened." },
+  { name: "Font of Inspiration",icon: "", cat: "action", uses: "Spend slot → 1 BI", resKey: "bard_font_insp", minLevel: 5,
+    controller: true,
+    desc: "Expend one spell slot (no action required) to regain one expended use of Bardic Inspiration. Can't exceed your maximum." },
+  { name: "Countercharm",       icon: "", cat: "bonus", uses: "Bonus Action", minLevel: 7,
+    desc: "As a Bonus Action, start a performance that lasts until the start of your next turn. While it lasts, you and friendly creatures within 30 ft who can hear you have Immunity to the Charmed and Frightened conditions." },
   { name: "Magical Secrets",    icon: "", cat: "action", uses: "Passive", minLevel: 10,
-    desc: "Learn 2 spells from any class's spell list (of a level you can cast). They count as Bard spells. Gain 2 more at lv.18." },
+    desc: "Your prepared spell list expands to include Cleric, Druid, and Wizard spells. When you gain a Bard level that increases your prepared spells, the new prepared spells can come from the Bard, Cleric, Druid, or Wizard spell lists." },
   { name: "Superior Inspiration", icon: "", cat: "action", uses: "Passive", minLevel: 18,
     desc: "When you roll Initiative and have fewer than 2 uses of Bardic Inspiration remaining, you regain uses until you have 2." },
   { name: "Words of Creation",  icon: "", cat: "action", uses: "Passive", minLevel: 20,
@@ -204,9 +195,32 @@ registerClassSheetActions("Bard", [
 
 registerClassSheetResources("Bard", [
   { key: 'bardic_insp', name: 'Bardic Inspiration', icon: 'music', recharge: 'SR',
+    srMinLevel: 5,
     actionName: 'Bardic Inspiration',
     max: (lv, { cha } = {}) => Math.max(1, cha ?? 0) },
+  { key: 'bard_font_insp', name: 'Font of Inspiration', icon: 'refresh-ccw', recharge: 'SR',
+    srMinLevel: 5,
+    actionName: 'Font of Inspiration',
+    max: (lv) => lv >= 5 ? 1 : 0 },
 ]);
+
+registerResourceSideEffect('bard_font_insp', ({ C, resources }) => {
+  const chaScore = Number(C?.finalScores?.cha ?? 10);
+  const chaMod = Math.floor((chaScore - 10) / 2);
+  const biMax = Math.max(1, chaMod);
+  const biCur = Number(resources?.['bardic_insp'] ?? biMax);
+  if (biCur >= biMax) {
+    return { type: 'recover_resource', targetResourceKey: 'bardic_insp', amount: 0, label: 'Font of Inspiration' };
+  }
+  return {
+    type: 'spend_slot_recover_resource',
+    targetKey: 'bardic_insp',
+    recoverAmount: 1,
+    recoverMax: biMax,
+    label: 'Font of Inspiration',
+    note: 'Expend a spell slot to regain one use of Bardic Inspiration (no action required).',
+  };
+});
 
 registerClassSheetEffects("Bard", [
   {
@@ -218,6 +232,22 @@ registerClassSheetEffects("Bard", [
     bonus: "halfProficiencyRoundedDown",
     note: "Add half your Proficiency Bonus, rounded down, to ability checks that don't already use your Proficiency Bonus.",
   },
+  {
+    type: "initiativeRecovery",
+    key: "bard_superior_inspiration",
+    label: "Superior Inspiration",
+    minLevel: 18,
+    resourceKey: "bardic_insp",
+    floor: 2,
+    note: "When you roll Initiative and have fewer than 2 uses of Bardic Inspiration, you regain uses until you have 2.",
+  },
+  {
+    type: "spellGrant",
+    key: "bard_words_of_creation",
+    label: "Words of Creation",
+    minLevel: 20,
+    note: "Power Word Heal and Power Word Kill are always prepared. When you cast either, you can target a second creature within 10 ft of the first.",
+  },
 ]);
 
 registerClassSheetChoiceMeta("Bard", {
@@ -227,7 +257,6 @@ registerClassSheetChoiceMeta("Bard", {
     bard_expertise_lv2: "Expertise (Lv.2)",
     bard_expertise_lv9: "Expertise (Lv.9)",
     bard_magical_secrets_lv10: "Magical Secrets (Lv.10)",
-    bard_magical_secrets_lv18: "Magical Secrets (Lv.18)",
     subclass_lore_bonus_skills: "Bonus Proficiencies (Lore)",
     subclass_lore_magical_discoveries: "Magical Discoveries (Lore)",
     bard_instrument_1: "Musical Instrument 1",
@@ -239,8 +268,6 @@ registerClassSheetChoiceMeta("Bard", {
     bard_expertise_4: "Expertise 4",
     bard_magical_secrets_1: "Magical Secrets 1",
     bard_magical_secrets_2: "Magical Secrets 2",
-    bard_magical_secrets_3: "Magical Secrets 3",
-    bard_magical_secrets_4: "Magical Secrets 4",
     subclass_lore_bonus_skill_1: "Bonus Proficiency 1 (Lore)",
     subclass_lore_bonus_skill_2: "Bonus Proficiency 2 (Lore)",
     subclass_lore_bonus_skill_3: "Bonus Proficiency 3 (Lore)",

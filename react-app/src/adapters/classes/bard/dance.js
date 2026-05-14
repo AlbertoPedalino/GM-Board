@@ -143,7 +143,6 @@ registerSubclassSheetActions("Bard_Dance", [
 
 registerSubclassSheetEffects("Bard_Dance", [
 
-  { type: "acFormula", key: "bard_dance_dazzling_footwork", label: "Dazzling Footwork", base: 10, abilities: ["dex", "cha"], allowShield: false, requiresNoArmor: true, minLevel: 3 },
   { type: "unarmedStrikeDamage", value: "Bardic Inspiration die", minLevel: 3, note: "Dazzling Footwork." },
   { type: "initiativeBonus", ability: "cha", minLevel: 6, note: "Tandem Footwork." },
   { type: "evasion", minLevel: 14, note: "Evasion." },

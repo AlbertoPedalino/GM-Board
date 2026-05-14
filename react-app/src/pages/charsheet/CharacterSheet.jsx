@@ -35,6 +35,7 @@ export default function CharacterSheet() {
   const [sheet, setSheet] = useState(null);
   const [tab, setTab] = useState(0);
   const [diceToast, setDiceToast] = useState(null);
+  const [rollLog, setRollLog] = useState([]);
   const [resources, setResources] = useState({});
   const [shortRestOpen, setShortRestOpen] = useState(false);
   const [longRestOpen, setLongRestOpen] = useState(false);
@@ -352,7 +353,9 @@ export default function CharacterSheet() {
   }, [sheet]);
 
   const showDiceToast = useCallback((label, detail, total, rolls, meta) => {
-    setDiceToast({ label, detail, total, rolls, meta, timestamp: Date.now() });
+    const entry = { label, detail, total, rolls, meta, timestamp: Date.now() };
+    setDiceToast(entry);
+    setRollLog(prev => [entry, ...prev].slice(0, 50));
   }, []);
 
   const rollD20 = useCallback((bonus, label, advantage) => {
@@ -424,7 +427,8 @@ export default function CharacterSheet() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4, width: '100%' }}>
-      <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} onUpdateCharacter={updateCurrentCharacter} />
+      <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} onUpdateCharacter={updateCurrentCharacter}
+        rollLog={rollLog} onClearRollLog={() => setRollLog([])} />
       <Box sx={{ maxWidth: 1280, mx: { md: 'auto' }, px: { xs: '0.6rem', md: '1.1rem' }, overflow: 'hidden' }}>
         <Box sx={{ bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', py: '0.55rem' }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={0.6} alignItems={{ md: 'stretch' }}>
@@ -458,7 +462,8 @@ export default function CharacterSheet() {
           <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
             <RightTop C={C} sheet={sheet} onRoll={rollD20}
               onToggleCondition={toggleCondition} onClearConditions={clearConditions}
-              onToggleInspiration={toggleInspiration} />
+              onToggleInspiration={toggleInspiration}
+              resources={resources} setResources={setResources} onShowToast={showDiceToast} />
             <TabsPanel C={C} sheet={sheet} tab={tab} setTab={setTab} onRoll={rollD20}
               resources={resources} setResources={setResources} onRest={doRest} onShowToast={showDiceToast}
               onUpdateInventory={updateInventory} onUpdateCurrency={updateCurrency} onUpdateSpells={updateSpells} onUpdateSheet={syncSheet}

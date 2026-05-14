@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Box, Typography, Chip, Tooltip } from '@mui/material';
 import { Swords, Shield, Sparkles, ListChecks, X, AlertCircle } from 'lucide-react';
 import { getMod, getFinal } from '../logic/calculations.js';
@@ -6,9 +6,45 @@ import { CONDITIONS } from '../logic/calculations.js';
 import { getArmorTrainingInfo } from '../logic/proficiencies.js';
 import { collectResolvedResistanceItems, collectResolvedImmunityItems } from '../logic/sheetEffects.js';
 import { computeBestArmorClass } from '../../../shared/character/ac.js';
+import { resolveInitiativeTriggeredResourceRecoveries } from '../../../shared/character/initiativeEffects.js';
 
-export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearConditions, onToggleInspiration }) {
+export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearConditions, onToggleInspiration, resources, setResources, onShowToast }) {
   const initMod = getMod(getFinal(C, 'dex'));
+  const [lastInitiativeRoll, setLastInitiativeRoll] = useState(null);
+  const [initiativeMessage, setInitiativeMessage] = useState('');
+
+  const handleInitiativeRoll = useCallback(() => {
+    const d20 = Math.floor(Math.random() * 20) + 1;
+    const total = d20 + initMod;
+    setLastInitiativeRoll({ d20, mod: initMod, total });
+
+    const bonusText = initMod >= 0 ? `+${initMod}` : `${initMod}`;
+    const recoveryParts = [];
+
+    if (resources && typeof setResources === 'function') {
+      const result = resolveInitiativeTriggeredResourceRecoveries(C, resources);
+      if (result.resources !== resources) {
+        setResources(result.resources);
+      }
+      recoveryParts.push(...(result.applied || []));
+    }
+
+    if (recoveryParts.length) {
+      const msg = recoveryParts.map(a => `${a.label}: ${a.resourceLabel || a.resourceKey} ${a.from} → ${a.to}`).join(' • ');
+      setInitiativeMessage(msg);
+    } else {
+      setInitiativeMessage('');
+    }
+
+    const toastDetail = recoveryParts.length
+      ? `d20 ${bonusText} = ${total} · ${recoveryParts.map(a => `${a.label}: ${a.resourceLabel || a.resourceKey} ${a.from} → ${a.to}`).join(', ')}`
+      : `d20 ${bonusText} = ${total}`;
+
+    if (typeof onShowToast === 'function') {
+      onShowToast('Initiative', toastDetail, total, [{ v: d20, faces: 20, kept: true }], { bonus: initMod, kept: d20 });
+    }
+  }, [C, resources, setResources, onShowToast, initMod]);
+
   const active = CONDITIONS.filter(c => sheet.activeConditions.includes(c.key));
   const inv = sheet?.sheetInventory || [];
   const equippedShield = inv.find(i => i.equipped && i.type === 'S');
@@ -22,7 +58,19 @@ export default function RightTop({ C, sheet, onRoll, onToggleCondition, onClearC
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ display: 'flex', gap: '0.45rem', mb: '0.4rem', flexWrap: 'wrap' }}>
-        <CircleStat onClick={() => onRoll(initMod, 'Initiative')} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.15 }}>
+          <CircleStat onClick={handleInitiativeRoll} value={initMod >= 0 ? `+${initMod}` : initMod} label="Initiative" clickable />
+          {lastInitiativeRoll && (
+            <Typography variant="caption" sx={{ fontSize: '0.5rem', color: 'text.secondary', textAlign: 'center', lineHeight: 1.2 }}>
+              Last: {lastInitiativeRoll.total} ({lastInitiativeRoll.d20}{lastInitiativeRoll.mod >= 0 ? ` + ${lastInitiativeRoll.mod}` : ` - ${Math.abs(lastInitiativeRoll.mod)}`})
+            </Typography>
+          )}
+          {initiativeMessage && (
+            <Typography variant="caption" sx={{ fontSize: '0.48rem', color: '#58b879', textAlign: 'center', lineHeight: 1.15, maxWidth: 90, wordBreak: 'break-word' }}>
+              {initiativeMessage}
+            </Typography>
+          )}
+        </Box>
         <ACDisplay value={ac} shieldUnproficient={shieldUnproficient} source={acSource} showBadge={showAcBadge} badgeLabel={acSource} />
         <InspirationBlock sheet={sheet} onToggle={onToggleInspiration} />
         <DefensesBlock C={C} />

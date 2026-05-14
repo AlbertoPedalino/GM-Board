@@ -153,10 +153,16 @@ export default function install(registry, context = {}) {
     spellcasting: {
       ability: "cha",
       casterProgression: "full",
-      preparedMode: "known",
+      preparedMode: "prepared",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      spellsKnown: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 19, 20, 22, 22, 22],
       preparedSpellsProgression: _PREP_FULL,
+      alwaysPreparedSpells: [
+        { name: "Power Word Heal", minLevel: 20, level: 9, source: "Words of Creation", sourceType: "class" },
+        { name: "Power Word Kill", minLevel: 20, level: 9, source: "Words of Creation", sourceType: "class" },
+      ],
+      choiceSpellSources: {
+        bard_magical_secrets_lv10: { label: "Magical Secrets", ability: "cha" },
+      },
     },
     skillRules: { jackOfAllTradesMinLevel: 2 },
     featureDice: {

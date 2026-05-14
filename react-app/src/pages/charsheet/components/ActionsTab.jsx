@@ -54,6 +54,8 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   const [convertSlotDialog, setConvertSlotDialog] = useState(null);
   const [convertSlotSelection, setConvertSlotSelection] = useState(null);
   const [wildResurgenceDialog, setWildResurgenceDialog] = useState(null);
+  const [spendSlotRecoverDialog, setSpendSlotRecoverDialog] = useState(null);
+  const [spendSlotRecoverSelection, setSpendSlotRecoverSelection] = useState(null);
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -278,6 +280,82 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     }
   };
 
+  const openSpendSlotRecoverResource = (result) => {
+    if (!result?.targetKey) return;
+    const slots = getSheetSlots(C);
+    const regularSlots = slots?.regular || [];
+    const used = sheet?.spellSlotUsed || {};
+    const created = sheet?.createdSpellSlots || {};
+    const levels = [];
+    for (let lv = 1; lv <= regularSlots.length; lv++) {
+      const total = Number(regularSlots[lv - 1] || 0);
+      if (!total) continue;
+      const usedCount = Number(used[lv] || used[String(lv)] || 0);
+      const createdCount = Number(created[lv] || 0);
+      const available = total - usedCount + createdCount;
+      if (available <= 0) continue;
+      levels.push({ level: lv, available });
+    }
+    if (!levels.length) {
+      onShowToast?.(result?.label || 'Spell Slot Recovery', 'No spell slots available to expend.', 0, []);
+      return;
+    }
+    setSpendSlotRecoverDialog({
+      label: result?.label || 'Spell Slot Recovery',
+      levels,
+      targetKey: result.targetKey,
+      recoverAmount: Math.max(1, Number(result?.recoverAmount || 1)),
+      recoverMax: result?.recoverMax != null ? Number(result.recoverMax) : Infinity,
+      note: result?.note || '',
+    });
+  };
+
+  const confirmSpendSlotRecover = () => {
+    if (!spendSlotRecoverDialog || spendSlotRecoverSelection == null) return;
+    const level = Number(spendSlotRecoverSelection);
+    const targetKey = spendSlotRecoverDialog.targetKey;
+    const amount = spendSlotRecoverDialog.recoverAmount;
+    const max = spendSlotRecoverDialog.recoverMax;
+    const res = { ...resources };
+    const beforeTarget = Number(res[targetKey] || 0);
+    if (max !== Infinity && beforeTarget >= max) {
+      onShowToast?.(spendSlotRecoverDialog.label, `${resNameMap[targetKey] || targetKey} already at maximum.`, 0, []);
+      setSpendSlotRecoverDialog(null);
+      setSpendSlotRecoverSelection(null);
+      return;
+    }
+    const afterTarget = Math.min(max, beforeTarget + amount);
+    const actualRecover = afterTarget - beforeTarget;
+    if (actualRecover <= 0) {
+      onShowToast?.(spendSlotRecoverDialog.label, `${resNameMap[targetKey] || targetKey} already at maximum.`, 0, []);
+      setSpendSlotRecoverDialog(null);
+      setSpendSlotRecoverSelection(null);
+      return;
+    }
+    const created = { ...(sheet?.createdSpellSlots || {}) };
+    const ckey = String(level);
+    if ((created[ckey] || 0) > 0) {
+      created[ckey] = (created[ckey] || 0) - 1;
+      if (created[ckey] <= 0) delete created[ckey];
+      setStorageJson('5e_created_slots', created);
+      onUpdateSheet?.({ createdSpellSlots: created });
+    } else {
+      const used = { ...(sheet?.spellSlotUsed || {}) };
+      const slotsData = getSheetSlots(C);
+      const maxTotal = Number((slotsData?.regular || [])[level - 1] || 0);
+      used[String(level)] = Math.max(0, Math.min(maxTotal, Number(used[String(level)] || 0) + 1));
+      setStorageJson('5e_slots_used', used);
+      onUpdateSheet?.({ spellSlotUsed: used });
+    }
+    res[targetKey] = afterTarget;
+    setResources(res);
+    setStorageJson('5e_resources', res);
+    setSpendSlotRecoverDialog(null);
+    setSpendSlotRecoverSelection(null);
+    const label = resNameMap[targetKey] || targetKey;
+    onShowToast?.(spendSlotRecoverDialog.label, `Recovered ${actualRecover} ${label} by expending a level ${level} spell slot.`, actualRecover, []);
+  };
+
   const applyPactSlotRecovery = (result) => {
     if (!(result?.recover > 0)) return;
     const level = Number(result.slotLevel || 1);
@@ -423,6 +501,8 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           openConvertSlotDialog(result);
         } else if (result?.type === 'wild_resurgence') {
           openWildResurgenceDialog(result);
+        } else if (result?.type === 'spend_slot_recover_resource') {
+          openSpendSlotRecoverResource(result);
         }
       }
     }
@@ -611,6 +691,45 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
         </DialogContent>
         <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
           <Button onClick={() => setWildResurgenceDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(spendSlotRecoverDialog)} onClose={() => setSpendSlotRecoverDialog(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
+          {spendSlotRecoverDialog?.label || 'Spell Slot Recovery'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(26,23,19,0.98)', pt: 1.25 }}>
+          {spendSlotRecoverDialog ? (
+            <Box sx={{ display: 'grid', gap: 0.75 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                Spend one spell slot to recover {resNameMap[spendSlotRecoverDialog.targetKey] || spendSlotRecoverDialog.targetKey}.
+                {spendSlotRecoverDialog.note ? ` ${spendSlotRecoverDialog.note}` : ''}
+              </Typography>
+              {spendSlotRecoverDialog.levels.map(({ level, available }) => (
+                <Box
+                  key={level}
+                  onClick={() => setSpendSlotRecoverSelection(level)}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 1, border: 1,
+                    borderColor: spendSlotRecoverSelection === level ? '#edd48a' : 'divider',
+                    borderRadius: 1, px: 1, py: 0.8, cursor: 'pointer',
+                    bgcolor: spendSlotRecoverSelection === level ? 'rgba(237,212,138,0.1)' : 'transparent',
+                    '&:hover': { borderColor: '#edd48a', bgcolor: 'rgba(237,212,138,0.06)' },
+                  }}
+                >
+                  <Typography sx={{ flex: 1, fontSize: '0.78rem', color: 'text.primary' }}>
+                    {SPELL_LEVEL_LABELS[level] || `Level ${level}`} · {available} available
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
+          <Button onClick={() => setSpendSlotRecoverDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={confirmSpendSlotRecover} disabled={spendSlotRecoverSelection == null}>
+            Spend Slot & Recover
+          </Button>
         </DialogActions>
       </Dialog>
 

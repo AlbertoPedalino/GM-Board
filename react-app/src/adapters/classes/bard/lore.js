@@ -135,13 +135,15 @@ registerSubclassAdapter("Bard_Lore", function (cls, lv, specs) {
         type: 'skill_choice',
         from: allSkills,
         count: 1,
-        level: 3
+        level: 3,
+        candidateSource: 'proficientSkills',
+        excludeAlreadyProficient: true
       });
     });
   }
   if (lv >= 6) {
-    specs.push({ key: 'subclass_lore_magical_discovery_1', label: 'Magical Discoveries 1 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
-    specs.push({ key: 'subclass_lore_magical_discovery_2', label: 'Magical Discoveries 2 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevel: null, classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
+    specs.push({ key: 'subclass_lore_magical_discovery_1', label: 'Magical Discoveries 1 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevels: [0, 1, 2, 3], classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
+    specs.push({ key: 'subclass_lore_magical_discovery_2', label: 'Magical Discoveries 2 (Lore Lv.6)', type: 'spell_choice', spellFilter: { spellLevels: [0, 1, 2, 3], classes: ['Cleric', 'Druid', 'Wizard'] }, count: 1, level: 6 });
   }
 });
 

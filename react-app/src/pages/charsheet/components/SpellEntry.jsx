@@ -77,11 +77,12 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     : 1;
   const beamBonus = resolveDmgBonusValue(C, cantripData?.dmgBonusPerBeam, getMod, getFinal);
 
-  const expandedBeams = baseScaledDamages.flatMap((dmg) => {
-    if (beamCount <= 1) return [{ ...dmg, formula: applyFlatToFormula(dmg.formula, beamBonus) || dmg.formula }];
-    return Array.from({ length: beamCount }, (_, idx) => ({
+  const expandedBeams = baseScaledDamages.flatMap((dmg, idx) => {
+    const baseLabel = baseScaledDamages.length > 1 ? `Damage ${idx + 1}` : 'Damage';
+    if (beamCount <= 1) return [{ ...dmg, label: baseLabel, formula: applyFlatToFormula(dmg.formula, beamBonus) || dmg.formula }];
+    return Array.from({ length: beamCount }, (_, beamIdx) => ({
       ...dmg,
-      label: `Beam ${idx + 1}`,
+      label: `Beam ${beamIdx + 1}`,
       formula: applyFlatToFormula(dmg.formula, beamBonus) || dmg.formula,
     }));
   });
@@ -122,17 +123,19 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
       }) || healWithMod
     : null;
 
+  const levelLabel = castLevel > baseLevel ? ` (Lv.${castLevel})` : '';
+
   const rollAtk = (e) => {
     e.stopPropagation();
     const r = Math.floor(Math.random() * 20) + 1;
     const bonusText = atk >= 0 ? `+${atk}` : `${atk}`;
-    onShowToast(`${entry.name} — Spell Attack`, `d20 ${bonusText} = ${r + atk}`, r + atk, [{ v: r, faces: 20, kept: true }], { bonus: atk, kept: r });
+    onShowToast(`${entry.name} — Spell Attack${levelLabel}`, `d20 ${bonusText} = ${r + atk}`, r + atk, [{ v: r, faces: 20, kept: true }], { bonus: atk, kept: r });
   };
 
   const rollDmg = (e, formula, label) => {
     e.stopPropagation();
     const match = formula.match(/(\d+)d(\d+)(?:\s*\+\s*(\d+))?/);
-    if (!match) { onShowToast(`${entry.name} — ${label}`, formula, 0, []); return; }
+    if (!match) { onShowToast(`${entry.name} — ${label}${levelLabel}`, formula, 0, []); return; }
     const n = parseInt(match[1]);
     const faces = parseInt(match[2]);
     const flat = match[3] ? parseInt(match[3]) : 0;
@@ -140,14 +143,14 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     const rolls = [];
     for (let i = 0; i < n; i++) { const v = Math.floor(Math.random() * faces) + 1; rolls.push({ v, faces }); total += v; }
     total += flat;
-    onShowToast(`${entry.name} — ${label}`, formula, total, rolls);
+    onShowToast(`${entry.name} — ${label}${levelLabel}`, formula, total, rolls);
   };
 
   const rollHeal = (e, formula) => {
     e.stopPropagation();
-    if (!formula) { onShowToast(`${entry.name} — Heal`, '', 0, []); return; }
+    if (!formula) { onShowToast(`${entry.name} — Heal${levelLabel}`, '', 0, []); return; }
     const match = formula.match(/(\d+)d(\d+)(?:\s*\+\s*(\d+))?/);
-    if (!match) { onShowToast(`${entry.name} — Heal`, formula, 0, []); return; }
+    if (!match) { onShowToast(`${entry.name} — Heal${levelLabel}`, formula, 0, []); return; }
     const n = parseInt(match[1]);
     const faces = parseInt(match[2]);
     const flat = match[3] ? parseInt(match[3]) : 0;
@@ -155,7 +158,7 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     const rolls = [];
     for (let i = 0; i < n; i++) { const v = Math.floor(Math.random() * faces) + 1; rolls.push({ v, faces }); total += v; }
     total += flat;
-    onShowToast(`${entry.name} — Heal`, formula, total, rolls);
+    onShowToast(`${entry.name} — Heal${levelLabel}`, formula, total, rolls);
   };
 
   return (
