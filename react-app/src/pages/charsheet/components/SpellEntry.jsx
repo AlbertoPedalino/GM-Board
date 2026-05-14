@@ -71,6 +71,7 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     : damages;
 
   const cantripData = baseLevel === 0 ? getResolvedCantripData(C, entry.name) : null;
+  const modifierTags = (cantripData?.modifierTags || []);
   const characterLevel = Number(C?.level || C?.classLevel || 1);
   const beamCount = typeof cantripData?.beamCount === 'function'
     ? Math.max(1, Number(cantripData.beamCount(characterLevel) || 1))
@@ -200,6 +201,7 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
             {entry.sourceInfo ? <Badge label={entry.sourceInfo.label + (beamBonus ? ` ${beamBonus >= 0 ? '+' : ''}${beamBonus}` : '')} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
+            {modifierTags.map(function (tag) { return <Badge key={tag} label={tag} color="#9d7fb8" bg="rgba(157,127,184,0.16)" />; })}
             {getSpellStatusChips(entry).map((chip) => <Badge key={chip.key} label={chip.label} color={chip.color} bg={chip.bg} />)}
             {ritualOnly ? <Badge label="Ritual only" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
           </Box>

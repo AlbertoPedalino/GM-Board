@@ -286,7 +286,7 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
         key: agonizingCount > 1 ? 'warlock_agonizing_blast_cantrip_' + agonizingIndex : 'warlock_agonizing_blast_cantrip',
         label: agonizingCount > 1 ? 'Agonizing Blast — Warlock Cantrip ' + agonizingIndex : 'Agonizing Blast — Warlock Cantrip',
         type: 'spell_choice',
-        spellFilter: { spellLevel: 0, classes: ['Warlock'] },
+        spellFilter: { spellLevel: 0, classes: ['Warlock'], knownCantripOnly: true, modifierOnly: true },
         count: 1,
         level: 2
       });
@@ -300,7 +300,7 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
         key: repellingCount > 1 ? 'warlock_repelling_blast_cantrip_' + repellingIndex : 'warlock_repelling_blast_cantrip',
         label: repellingCount > 1 ? 'Repelling Blast — Warlock Cantrip ' + repellingIndex : 'Repelling Blast — Warlock Cantrip',
         type: 'spell_choice',
-        spellFilter: { spellLevel: 0, classes: ['Warlock'] },
+        spellFilter: { spellLevel: 0, classes: ['Warlock'], knownCantripOnly: true, modifierOnly: true },
         count: 1,
         level: 2
       });
@@ -314,7 +314,7 @@ registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
         key: spearCount > 1 ? 'warlock_eldritch_spear_cantrip_' + spearIndex : 'warlock_eldritch_spear_cantrip',
         label: spearCount > 1 ? 'Eldritch Spear — Warlock Cantrip ' + spearIndex : 'Eldritch Spear — Warlock Cantrip',
         type: 'spell_choice',
-        spellFilter: { spellLevel: 0, classes: ['Warlock'] },
+        spellFilter: { spellLevel: 0, classes: ['Warlock'], knownCantripOnly: true, modifierOnly: true },
         count: 1,
         level: 2
       });
@@ -613,13 +613,21 @@ if (typeof registerCantripDataModifier === 'function') {
   ].forEach(function (cantripName) {
     registerCantripDataModifier(cantripName, function (data, C) {
       var out = Object.assign({}, data || {});
-      if (_warlockHasInvocation(C, 'Agonizing Blast') && _warlockChoiceMatches(C, 'warlock_agonizing_blast_cantrip', cantripName, 'Eldritch Blast')) out.dmgBonusPerBeam = 'cha';
-      if (_warlockHasInvocation(C, 'Eldritch Spear') && _warlockChoiceMatches(C, 'warlock_eldritch_spear_cantrip', cantripName, 'Eldritch Blast')) {
+      if (_warlockHasInvocation(C, 'Agonizing Blast') && _warlockChoiceMatches(C, 'warlock_agonizing_blast_cantrip', cantripName, null)) {
+        out.dmgBonusPerBeam = 'cha';
+        out.modifierTags = out.modifierTags || [];
+        if (out.modifierTags.indexOf('Agonizing Blast') === -1) out.modifierTags.push('Agonizing Blast');
+      }
+      if (_warlockHasInvocation(C, 'Eldritch Spear') && _warlockChoiceMatches(C, 'warlock_eldritch_spear_cantrip', cantripName, null)) {
         out.range = (30 * Math.max(1, _warlockLevel(C))) + ' ft';
         out.notes = (out.notes ? out.notes + ' · ' : '') + 'Eldritch Spear: range x30';
+        out.modifierTags = out.modifierTags || [];
+        if (out.modifierTags.indexOf('Eldritch Spear') === -1) out.modifierTags.push('Eldritch Spear');
       }
-      if (_warlockHasInvocation(C, 'Repelling Blast') && _warlockChoiceMatches(C, 'warlock_repelling_blast_cantrip', cantripName, 'Eldritch Blast')) {
+      if (_warlockHasInvocation(C, 'Repelling Blast') && _warlockChoiceMatches(C, 'warlock_repelling_blast_cantrip', cantripName, null)) {
         out.notes = (out.notes ? out.notes + ' · ' : '') + 'Repelling Blast: push 10 ft';
+        out.modifierTags = out.modifierTags || [];
+        if (out.modifierTags.indexOf('Repelling Blast') === -1) out.modifierTags.push('Repelling Blast');
       }
       return out;
     });

@@ -6,6 +6,21 @@ import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 
 const SPELL_LEVEL_LABELS = ['Cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 
+function _knownCantripNames(character) {
+  const names = new Set();
+  (character.selectedCantrips || []).forEach(function (name) { names.add(name); });
+  (character.extraClasses || []).forEach(function (ec) {
+    (ec.selectedCantrips || []).forEach(function (name) { names.add(name); });
+  });
+  return names;
+}
+
+function _spellDealsDamage(spell) {
+  if (spell.damageInflict && Array.isArray(spell.damageInflict) && spell.damageInflict.length) return true;
+  if (spell.damage) return true;
+  return false;
+}
+
 export default function SpellChoiceList({ spec, state, dispatch }) {
   const filter = spec.spellFilter || {};
   const levels = useMemo(() => {
@@ -17,11 +32,35 @@ export default function SpellChoiceList({ spec, state, dispatch }) {
   const allSpells = filter.allSpells === true || !classes.length;
   const selected = Array.isArray(state.character.choices[spec.key]) ? state.character.choices[spec.key] : [];
   const max = spec.count || 1;
-  const pool = useMemo(() => state.data.spells
-    .filter((spell) => levels.includes(Number(spell.level)))
-    .filter((spell) => !filter.schools?.length || filter.schools.includes(spell.school) || filter.schools.includes(spell.schoolFull))
-    .filter((spell) => allSpells || spellMatchesAnyClass(spell, classes, state.data.classSpellIndex))
-    .slice(0, 200), [state.data.spells, state.data.classSpellIndex, levels, classes, filter.schools, allSpells]);
+  const pool = useMemo(() => {
+    var spells = state.data.spells
+      .filter((spell) => levels.includes(Number(spell.level)))
+      .filter((spell) => !filter.schools?.length || filter.schools.includes(spell.school) || filter.schools.includes(spell.schoolFull))
+      .filter((spell) => allSpells || spellMatchesAnyClass(spell, classes, state.data.classSpellIndex));
+
+    if (filter.knownCantripOnly) {
+      var known = _knownCantripNames(state.character);
+      spells = spells.filter(function (spell) { return known.has(spell.name); });
+    }
+
+    if (filter.modifierOnly) {
+      var keyBase = spec.key.replace(/^mc\d+_/, '').replace(/_\d+$/, '');
+      var alreadyChosen = new Set();
+      Object.entries(state.character.choices || {}).forEach(function (entry) {
+        var choiceKey = entry[0].replace(/^mc\d+_/, '');
+        if (choiceKey === spec.key) return;
+        var choiceBase = choiceKey.replace(/_\d+$/, '');
+        if (choiceBase !== keyBase) return;
+        var val = String(entry[1] || '').split('|')[0].trim();
+        if (val) alreadyChosen.add(val);
+      });
+      if (alreadyChosen.size) {
+        spells = spells.filter(function (spell) { return !alreadyChosen.has(spell.name); });
+      }
+    }
+
+    return spells.slice(0, 200);
+  }, [state.data.spells, state.data.classSpellIndex, levels, classes, filter.schools, allSpells, filter.knownCantripOnly, filter.modifierOnly, state.character, spec.key]);
 
   return (
     <Paper variant="outlined" sx={{ p: 1.5, minWidth: 0 }}>

@@ -161,6 +161,8 @@ export function buildSpellInfo(C, spellIndex) {
   }
 }
 
+const _MODIFIER_ONLY_CHOICE_KEY = /^warlock_(agonizing_blast|repelling_blast|eldritch_spear)_cantrip/;
+
 function _choiceValue(raw) {
   if (raw == null) return null;
   const val = Array.isArray(raw) ? raw[0] : raw;
@@ -263,6 +265,8 @@ function collectChoiceSpells(C, spellIndex) {
   const featMetaMap = _buildFeatMetaMap(C);
   const out = [];
   Object.entries(C?.choices || {}).forEach(([key, value]) => {
+    const cleanKey = key.replace(/^mc\d+_/, '');
+    if (_MODIFIER_ONLY_CHOICE_KEY.test(cleanKey)) return;
     const values = Array.isArray(value) ? value : [value];
     values.forEach((entry) => {
       if (typeof entry !== 'string') return;
