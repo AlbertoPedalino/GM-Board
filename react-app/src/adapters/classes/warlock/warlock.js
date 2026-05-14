@@ -1,5 +1,7 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
 import { setStorageJson } from '../../../shared/storage.js';
+import { warlockHasInvocation, warlockLevel, warlockKnownInvocations } from '../../../shared/character/warlockUtils.js';
+import { registerChoiceLevelMap } from '../../../shared/character/choiceLevels.js';
 
 export default function install(registry, context = {}) {
   const {
@@ -186,11 +188,7 @@ _INV_DATA.forEach(function(inv) { _INV_DESCS[inv.name] = inv.desc; });
 
 // Check if a character has a specific Eldritch Invocation chosen (works for both sheet C and charbuilder char)
 function _warlockHasInvocation(C, name) {
-  if (!C || !C.choices) return false;
-  return Object.entries(C.choices).some(function(e) {
-    return e[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_') &&
-           String(e[1]).split('|')[0].trim() === name;
-  });
+  return warlockHasInvocation(C, name);
 }
 
 function _warlockAdapterCharacter(localContext) {
@@ -218,13 +216,7 @@ function _warlockInvocationPrereqMet(C, inv, threshold) {
 }
 
 function _warlockLevel(C) {
-  if (!C) return 0;
-  let out = 0;
-  if (String(C.className || '').toLowerCase() === 'warlock') out += Number(C.classLevel || C.level || 0);
-  (C.extraClasses || []).forEach(function (ec) {
-    if (String(ec?.name || '').toLowerCase() === 'warlock') out += Number(ec.level || 0);
-  });
-  return out;
+  return warlockLevel(C);
 }
 
 function _warlockChoiceValue(C, key) {
@@ -258,35 +250,32 @@ function _warlockChoiceMatches(C, baseKey, cantripName, fallback) {
 }
 
 function _knownWarlockInvocationChoices(C) {
-  if (!C?.choices) return [];
-  return Object.entries(C.choices)
-    .filter(function (entry) { return entry[0].replace(/^mc\d+_/, '').startsWith('warlock_invocation_'); })
-    .map(function (entry) { return String(entry[1] || '').split('|')[0].trim(); })
-    .filter(Boolean);
+  return warlockKnownInvocations(C);
 }
 
-// Progressione: [livello_acquisizione, ...]
-// XPHB 2024: 10 total invocations at lv1(+1), lv2(+2), lv5(+2), lv7(+1), lv9(+1), lv12(+1), lv15(+1), lv18(+1)
-const _INV_LEVELS = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
+// XPHB 2024 progression: total invocations per level [1,3,3,3,5,5,6,6,7,7,7,8,8,8,9,9,9,10,10,10]
+// Threshold when each invocation slot unlocks:
+const _INV_LEVELS = [1, 2, 2, 5, 5, 6, 7, 8, 9, 10];
 
 registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
   var _charRef = _warlockAdapterCharacter(adapterContext);
 
   _INV_LEVELS.forEach(function (threshold, i) {
     if (lv >= threshold) {
-      // Each slot shows only invocations available at its unlock level
       var slotInvocations = _INV_DATA
         .filter(function(inv) { return _warlockInvocationPrereqMet(_charRef, inv, threshold); })
         .map(function(inv) { return inv.name; });
-      specs.push({
-        key: 'warlock_invocation_' + (i + 1),
-        label: 'Eldritch Invocation ' + (i + 1) + ' (Lv. ' + threshold + ')',
-        type: 'generic_choice',
-        from: slotInvocations,
-        count: 1,
-        level: threshold,
-        descMap: _INV_DESCS
-      });
+      if (slotInvocations.length) {
+        specs.push({
+          key: 'warlock_invocation_' + (i + 1),
+          label: 'Eldritch Invocation ' + (i + 1) + ' (Lv. ' + threshold + ')',
+          type: 'generic_choice',
+          from: slotInvocations,
+          count: 1,
+          level: threshold,
+          descMap: _INV_DESCS
+        });
+      }
     }
   });
 
@@ -544,12 +533,12 @@ registerClassSheetActions("Warlock", [
     "name": "Eldritch Smite",
     "icon": "zap",
     "cat": "action",
-    "uses": "On Hit",
+    "uses": "Spend a Pact Slot on hit",
     "minLevel": 5,
     "condition": function(C) { return _warlockHasInvocation(C, 'Eldritch Smite') && _warlockHasInvocation(C, 'Pact of the Blade'); },
     "damageFormula": function(ctx) { var lv = Number(ctx.ownerLevel || 1); var slotLevel = lv >= 9 ? 5 : lv >= 7 ? 4 : lv >= 5 ? 3 : 1; return (slotLevel + 1) + 'd8'; },
     "damageButtonLabel": function(ctx) { var lv = Number(ctx.ownerLevel || 1); var slotLevel = lv >= 9 ? 5 : lv >= 7 ? 4 : lv >= 5 ? 3 : 1; return 'Smite ' + (slotLevel + 1) + 'd8 Force'; },
-    "desc": "On Hit: expend a Pact Magic slot when you hit with your Pact Weapon. Deal 1d8 Force plus 1d8 per Pact slot level and knock the target Prone if it is Huge or smaller. Requires Pact of the Blade."
+    "desc": "Once per turn when you hit a creature with your Pact Weapon, you can expend one Pact Magic slot to deal extra Force damage (1d8 per slot level) and knock the target Prone (STR save, Huge or smaller only). Spend the Pact Slot manually in the Spells tab. Requires Pact of the Blade."
   },
   {
     "name": "Lifedrinker",
@@ -627,10 +616,10 @@ if (typeof registerCantripDataModifier === 'function') {
       if (_warlockHasInvocation(C, 'Agonizing Blast') && _warlockChoiceMatches(C, 'warlock_agonizing_blast_cantrip', cantripName, 'Eldritch Blast')) out.dmgBonusPerBeam = 'cha';
       if (_warlockHasInvocation(C, 'Eldritch Spear') && _warlockChoiceMatches(C, 'warlock_eldritch_spear_cantrip', cantripName, 'Eldritch Blast')) {
         out.range = (30 * Math.max(1, _warlockLevel(C))) + ' ft';
-        out.notes = (out.notes ? out.notes + ' · ' : '') + 'Eldritch Spear: extended range';
+        out.notes = (out.notes ? out.notes + ' · ' : '') + 'Eldritch Spear: range x30';
       }
       if (_warlockHasInvocation(C, 'Repelling Blast') && _warlockChoiceMatches(C, 'warlock_repelling_blast_cantrip', cantripName, 'Eldritch Blast')) {
-        out.notes = (out.notes ? out.notes + ' · ' : '') + 'Push 10 ft on hit';
+        out.notes = (out.notes ? out.notes + ' · ' : '') + 'Repelling Blast: push 10 ft';
       }
       return out;
     });
@@ -694,7 +683,7 @@ registerClassSheetResources("Warlock", [
   { "key": "mystic_arcanum_6", "name": "Mystic Arcanum VI",   "icon": "sparkles", "recharge": "LR", "minLevel": 11, "max": function() { return 1; } },
   { "key": "mystic_arcanum_7", "name": "Mystic Arcanum VII",  "icon": "sparkles", "recharge": "LR", "minLevel": 13, "max": function() { return 1; } },
   { "key": "mystic_arcanum_8", "name": "Mystic Arcanum VIII", "icon": "sparkles", "recharge": "LR", "minLevel": 15, "max": function() { return 1; } },
-  { "key": "mystic_arcanum_9", "name": "Mystic Arcanum IX",   "icon": "sparkles", "recharge": "LR", "minLevel": 17, "max": function() { return 1; } }
+  { "key": "mystic_arcanum_9", "name": "Mystic Arcanum IX",   "icon": "sparkles", "recharge": "LR", "minLevel": 17, "max": function() { return 1; } },
 ]);
 
 // Magical Cunning: recover ceil(max Pact Magic slots / 2), or all slots at Warlock 20.
@@ -726,7 +715,7 @@ if (typeof registerClassRuntimeConfig === 'function') {
     spellcasting: {
       ability: 'cha',
       casterProgression: 'pact',
-      preparedMode: 'known',
+      preparedMode: 'prepared',
       alwaysPreparedSpells: [
         { name: 'Contact Other Plane', minLevel: 9, level: 5, source: 'Contact Patron', sourceType: 'class' },
       ],
@@ -748,5 +737,21 @@ if (typeof registerClassRuntimeConfig === 'function') {
     },
   });
 }
+
+// Register choice-to-level mappings for the builder's choice cleanup system.
+// XPHB 2024: invocation slots 1..10 unlock at warlock levels [1,2,2,5,5,6,7,8,9,10].
+(function registerWarlockChoiceLevels() {
+  var invLevels = [1, 2, 2, 5, 5, 6, 7, 8, 9, 10];
+  registerChoiceLevelMap({
+    source: 'Warlock: invocations',
+    test: function(key) { var m = String(key).match(/^warlock_invocation_(\d+)$/); return m ? Number(m[1]) : null; },
+    level: function(slotIdx) { return invLevels[slotIdx - 1] || 99; },
+  });
+  registerChoiceLevelMap({
+    source: 'Warlock: mystic arcanum',
+    test: function(key) { var m = String(key).match(/^warlock_mystic_arcanum_(\d+)$/); return m ? Number(m[1]) : null; },
+    level: function(spellLv) { return spellLv <= 6 ? 11 : spellLv <= 7 ? 13 : spellLv <= 8 ? 15 : 17; },
+  });
+})();
 
 }

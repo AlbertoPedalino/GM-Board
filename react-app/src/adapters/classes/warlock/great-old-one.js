@@ -170,6 +170,7 @@ registerSubclassSheetActions("Warlock_Great Old One", [
 
 registerSubclassSheetEffects("Warlock_Great Old One", [
   { type: "telepathy", value: "CHA mod miles", minLevel: 3, note: "Awakened Mind" },
+  { type: "combatAdvantage", target: "attack", minLevel: 6, note: "Clairvoyant Combatant: Advantage on attacks vs creature contacted via Awakened Mind; it has Disadvantage on attacks against you." },
   { type: "resistance", damageTypes: ["Psychic"], minLevel: 10, note: "Thought Shield" },
 ]);
 registerSubclassSheetResources("Warlock_Great Old One", [
@@ -193,7 +194,10 @@ if (typeof registerSubclassRuntimeConfig === "function") {
         { name: 'Summon Aberration', minLevel: 7, level: 4, source: 'Great Old One', sourceType: 'subclass' },
         { name: 'Modify Memory', minLevel: 9, level: 5, source: 'Great Old One', sourceType: 'subclass' },
         { name: 'Telekinesis', minLevel: 9, level: 5, source: 'Great Old One', sourceType: 'subclass' },
-        { name: 'Hex', minLevel: 10, level: 1, source: 'Great Old One', sourceType: 'subclass' }
+        // TODO: XPHB lists Hex as innate (free cast) at Lv.10, not alwaysPrepared.
+        // Current alwaysPrepared approach is functional but not RAW-perfect.
+        // When the system supports innate/free spell grants, move Hex there.
+        { name: 'Hex', minLevel: 10, level: 1, source: 'Eldritch Hex', sourceType: 'subclass' }
       ],
     },
   });

@@ -56,6 +56,7 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
   const [wildResurgenceDialog, setWildResurgenceDialog] = useState(null);
   const [spendSlotRecoverDialog, setSpendSlotRecoverDialog] = useState(null);
   const [spendSlotRecoverSelection, setSpendSlotRecoverSelection] = useState(null);
+  const [consumePactSlotDialog, setConsumePactSlotDialog] = useState(null);
   const classNames = [C?.className, ...(C?.extraClasses || []).map((e) => e.name)].filter(Boolean);
   const classNamesKey = classNames.join('|');
 
@@ -356,6 +357,46 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
     onShowToast?.(spendSlotRecoverDialog.label, `Recovered ${actualRecover} ${label} by expending a level ${level} spell slot.`, actualRecover, []);
   };
 
+  const openConsumePactSlotDialog = (result) => {
+    const slots = getSheetSlots(C);
+    if (!slots?.pact?.level) {
+      onShowToast?.(result?.label || 'Spend Pact Slot', 'No Pact Magic slots available.', 0, []);
+      return;
+    }
+    const pactLevel = Number(slots.pact.level);
+    const pactCount = Number(slots.pact.count || 0);
+    const used = sheet?.spellSlotUsed || {};
+    const expended = Number(used[pactLevel] || used[String(pactLevel)] || 0);
+    const available = pactCount - expended;
+    if (available <= 0) {
+      onShowToast?.(result?.label || 'Spend Pact Slot', 'No Pact Magic slots available. Take a Short Rest to recover them.', 0, []);
+      return;
+    }
+    setConsumePactSlotDialog({
+      label: result?.label || 'Spend Pact Slot',
+      slotLevel: pactLevel,
+      pactMax: pactCount,
+      maxConsume: Math.min(Number(result?.amount || 1), available),
+      onConsumed: result?.onConsumed || null,
+    });
+  };
+
+  const confirmConsumePactSlot = (consumeCount) => {
+    if (!consumePactSlotDialog) return;
+    const level = consumePactSlotDialog.slotLevel;
+    const pactMax = consumePactSlotDialog.pactMax;
+    const amount = Math.max(1, Math.min(consumeCount || 1, consumePactSlotDialog.maxConsume));
+    const used = { ...(sheet?.spellSlotUsed || {}) };
+    used[String(level)] = Math.min(
+      pactMax,
+      (Number(used[String(level)] || 0) + amount)
+    );
+    setStorageJson('5e_slots_used', used);
+    onUpdateSheet?.({ spellSlotUsed: used });
+    setConsumePactSlotDialog(null);
+    onShowToast?.(consumePactSlotDialog.label, `Expended ${amount} Pact Magic slot${amount > 1 ? 's' : ''} (level ${level}).`, 0, []);
+  };
+
   const applyPactSlotRecovery = (result) => {
     if (!(result?.recover > 0)) return;
     const level = Number(result.slotLevel || 1);
@@ -503,6 +544,8 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           openWildResurgenceDialog(result);
         } else if (result?.type === 'spend_slot_recover_resource') {
           openSpendSlotRecoverResource(result);
+        } else if (result?.type === 'consume_pact_slot') {
+          openConsumePactSlotDialog(result);
         }
       }
     }
@@ -729,6 +772,27 @@ export default function ActionsTab({ C, sheet, onRoll, resources, setResources, 
           <Button onClick={() => setSpendSlotRecoverDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
           <Button variant="contained" onClick={confirmSpendSlotRecover} disabled={spendSlotRecoverSelection == null}>
             Spend Slot & Recover
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(consumePactSlotDialog)} onClose={() => setConsumePactSlotDialog(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"Cinzel", Georgia, serif', color: '#edd48a', bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider' }}>
+          {consumePactSlotDialog?.label || 'Spend Pact Slot'}
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: 'rgba(26,23,19,0.98)', pt: 1.25 }}>
+          {consumePactSlotDialog ? (
+            <Box sx={{ display: 'grid', gap: 0.75 }}>
+              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                Expend one Pact Magic slot (level {consumePactSlotDialog.slotLevel}) to power this feature.
+              </Typography>
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ bgcolor: 'rgba(35,32,26,1)', borderTop: 1, borderColor: 'divider' }}>
+          <Button onClick={() => setConsumePactSlotDialog(null)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+          <Button variant="contained" onClick={() => confirmConsumePactSlot(1)}>
+            Spend Pact Slot
           </Button>
         </DialogActions>
       </Dialog>
@@ -984,7 +1048,7 @@ function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, o
             )
           ) : (
             Array.from({ length: safeMax }, (_, i) => {
-              const available = i < resCur;
+              const available = i >= safeMax - resCur;
               return (
                 <Box
                   key={i}
@@ -997,8 +1061,8 @@ function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, o
                     cursor: 'pointer',
                     border: '1.5px solid',
                     flexShrink: 0,
-                    bgcolor: available ? '#edd48a' : 'transparent',
-                    borderColor: available ? '#edd48a' : 'rgba(202,165,80,0.35)',
+                    bgcolor: available ? 'transparent' : '#edd48a',
+                    borderColor: available ? 'rgba(202,165,80,0.35)' : '#edd48a',
                     '&:hover': { borderColor: '#edd48a' },
                   }}
                 />

@@ -3,6 +3,7 @@ import { installedRegistry } from '../../../adapters/index.js';
 import { renderEntries as renderSafeEntries } from './renderEntries.js';
 import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
 import { isRitualSpell } from '../../../shared/spellTags.js';
+import { warlockHasInvocation } from '../../../shared/character/warlockUtils.js';
 
 const _GENERIC_LABELS = new Set([
   'class', 'subclass', 'species', 'feat', 'feature', 'granted', 'auto',
@@ -71,16 +72,16 @@ function _mergeRow(existing, incoming, incomingLocked) {
   const bHasInfo = srcB.label || srcB.kind || srcB.originType;
 
   if (!aHasInfo && !bHasInfo) {
-    return { ...incoming, locked: existing.locked || incomingLocked };
+    return { ...existing, ...incoming, locked: existing.locked || incomingLocked };
   }
   if (!aHasInfo && bHasInfo) {
-    return { ...incoming, locked: existing.locked || incomingLocked };
+    return { ...existing, ...incoming, locked: existing.locked || incomingLocked };
   }
   if (aHasInfo && !bHasInfo) {
     return { ...existing, locked: existing.locked || incomingLocked };
   }
 
-  return mergeMeta(existing, incoming);
+  return { ...existing, ...mergeMeta(existing, incoming) };
 }
 
 export function buildSpellInfo(C, spellIndex) {
@@ -302,6 +303,7 @@ function collectAutoGrantedSpells(C) {
       [...(cfg?.spellcasting?.alwaysKnownSpells || []), ...(cfg?.spellcasting?.alwaysPreparedSpells || [])].forEach((spell) => {
         const name = typeof spell === 'string' ? spell : spell?.name;
         if (!name || entity.level < Number(spell?.minLevel || 1)) return;
+        if (spell?.invocation && !warlockHasInvocation(C, spell.invocation)) return;
         const hasExplicitSource = !!spell?.source;
         const srcLabel = hasExplicitSource ? spell.source : (entity.subclassShortName ? `${entity.subclassShortName} Spells` : entity.className || 'Auto');
         const srcOriginType = hasExplicitSource ? 'auto_granted' : (entity.subclassShortName ? 'subclass' : 'class');
@@ -321,7 +323,13 @@ function collectAutoGrantedSpells(C) {
     if (!entry?.name) return;
     const key = norm(entry.name);
     if (runtimeByName.has(key)) return;
-    runtimeByName.set(key, { name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6', originType: 'auto_granted', originLabel: entry.source || 'Auto' }, ownerClassName: entry.ownerClassName || C?.className });
+    // Check invocation requirement from runtime config before falling back to saved data
+    const ownerClass = entry.ownerClassName || C?.className;
+    const cfg = ownerClass ? installedRegistry.getClassRuntimeConfig(ownerClass)?.spellcasting : null;
+    const allCfgSpells = [...(cfg?.alwaysKnownSpells || []), ...(cfg?.alwaysPreparedSpells || [])];
+    const cfgEntry = allCfgSpells.find((s) => norm(s?.name || '') === key);
+    if (cfgEntry?.invocation && !warlockHasInvocation(C, cfgEntry.invocation)) return;
+    runtimeByName.set(key, { name: entry.name, level: Number(entry.level ?? 0), source: { label: entry.source || 'Auto', color: '#70b7a6', originType: 'auto_granted', originLabel: entry.source || 'Auto' }, ownerClassName: ownerClass });
   });
 
   return [...runtimeByName.values()];
@@ -329,13 +337,11 @@ function collectAutoGrantedSpells(C) {
 
 function collectAtWillSpells(C) {
   const out = [];
-  const choices = Object.entries(C?.choices || {});
-  const hasInvocation = (name) => choices.some(([key, value]) => key.replace(/^mc\d+_/, '').startsWith('warlock_invocation_') && String(value).split('|')[0].trim() === name);
   const entities = [{ name: C?.className, level: C?.classLevel || C?.level || 1 }, ...(C?.extraClasses || []).map((ec) => ({ name: ec.name, level: ec.level || 1 }))];
   entities.forEach((entity) => {
     (installedRegistry.getClassAtWillSpells(entity.name) || []).forEach((entry) => {
       if (entity.level < Number(entry.minLevel || 1)) return;
-      if (entry.invocation && !hasInvocation(entry.invocation)) return;
+      if (entry.invocation && !warlockHasInvocation(C, entry.invocation)) return;
       out.push({ name: entry.spell, source: { label: entry.invocation || 'At Will', color: '#9d7fb8', kind: 'atWill', originType: 'invocation', originLabel: entry.invocation || 'At Will' } });
     });
   });
@@ -396,6 +402,10 @@ function sourceFromChoiceKey(C, key) {
   if (key.startsWith('species_')) return { label: C?.speciesName || 'Species', color: '#70b7a6', originType: 'species', originLabel: C?.speciesName || 'Species' };
   if (key.includes('tome')) return { label: 'Pact of the Tome', color: '#9d7fb8', originType: 'invocation', originLabel: 'Pact of the Tome' };
   if (key.includes('mystic_arcanum')) return { label: 'M. Arcanum', color: '#d69245', originType: 'mystic_arcanum', originLabel: 'Mystic Arcanum' };
+  if (key.startsWith('warlock_')) {
+    var invName = key.replace(/^warlock_/, '').replace(/_(cantrip|ritual).*$/, '').replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    if (invName) return { label: invName, color: '#9d7fb8', originType: 'invocation', originLabel: invName };
+  }
   return { label: 'Choice', color: '#9d7fb8', originType: 'unknown', originLabel: 'Choice' };
 }
 

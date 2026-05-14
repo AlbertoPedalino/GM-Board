@@ -40,6 +40,18 @@ function Badge({ label, color, bg = 'transparent' }) {
   );
 }
 
+function InvocationBadge({ note }) {
+  if (!note) return null;
+  var colon = note.indexOf(':');
+  if (colon <= 0) return <Badge label={note} color="#f5a623" bg="rgba(245,166,35,0.12)" />;
+  return (
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: '2px', border: 1, borderColor: 'rgba(245,166,35,0.4)', borderRadius: '3px', px: '4px', py: '1px', fontSize: '0.56rem', fontFamily: '"Cinzel", Georgia, serif', lineHeight: 1.35, flexShrink: 0 }}>
+      <Box component="span" sx={{ color: '#edd48a' }}>{note.slice(0, colon).trim()}</Box>
+      <Box component="span" sx={{ color: '#f5a623', ml: 0.2 }}>{note.slice(colon + 1).trim()}</Box>
+    </Box>
+  );
+}
+
 export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spellMod: fallbackSpellMod, C, installedRegistry }) {
   const [open, setOpen] = useState(false);
   const castLevel = entry.castLevel || entry.level || 0;
@@ -199,11 +211,13 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
-            {entry.sourceInfo ? <Badge label={entry.sourceInfo.label} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
+            {entry.sourceInfo ? <Badge label={entry.sourceInfo.label + (beamBonus ? ` ${beamBonus >= 0 ? '+' : ''}${beamBonus}` : '')} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
             {getSpellStatusChips(entry).map((chip) => <Badge key={chip.key} label={chip.label} color={chip.color} bg={chip.bg} />)}
             {ritualOnly ? <Badge label="Ritual only" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
+            {cantripData?.notes ? cantripData.notes.split('·').map(function(note, ni) { var t = note.trim(); return t ? <InvocationBadge key={ni} note={t} /> : null; }) : null}
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            {beamCount > 1 ? <Badge label={`${beamCount} beams`} color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
             {school ? <Badge label={school} color="#c4b393" /> : null}
             {hasConcentrationTag ? <Badge label="C" color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
             {hasRitualTag ? <Badge label="R" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
@@ -211,15 +225,15 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
           </Box>
         </Box>
       </Box>
-      {(ritualOnly || beamCount > 1 || beamBonus) ? (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '4px', mt: '2px', mb: '2px', pl: '9px' }}>
-          {beamCount > 1 ? <Badge label={`${beamCount} beams`} color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
-          {beamBonus ? <Badge label={`+${beamBonus} per beam`} color="#f5a623" bg="rgba(245,166,35,0.12)" /> : null}
-        </Box>
-      ) : null}
+
       {open ? (
         <Box sx={spellBodySx}>
           {metaLine ? <Box sx={{ fontSize: '0.65rem', color: 'text.secondary', mb: '5px' }}>{metaLine}</Box> : null}
+          {cantripData?.notes ? (
+            <Box sx={{ fontSize: '0.72rem', color: '#f5a623', mb: '6px', p: '4px 6px', border: 1, borderColor: 'rgba(245,166,35,0.2)', borderRadius: 1, bgcolor: 'rgba(245,166,35,0.04)' }}>
+              {cantripData.notes}
+            </Box>
+          ) : null}
           <Box dangerouslySetInnerHTML={{ __html: body }} />
           {higherBody ? (
             <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>

@@ -379,6 +379,15 @@ export default function install(registry, context = {}) {
     heal: false, concentration: false,
     notes: "DEX save. Metà danno su successo. 4 meteore (20d6 bludg + 20d6 fire ciascuna) — possono colpire punti diversi."
   });
+  registerSpellData("False Life", {
+    icon: "skull",
+    toHit: false, hasSave: false, saveAbility: null,
+    dmgType: "",
+    baseDie: "2d4+4", upcastDie: "5",
+    range: "Self", aoe: "",
+    heal: false, concentration: false,
+    notes: "Gain temporary HP. +5 temp HP per slot level above 1st."
+  });
 })();
 
 }

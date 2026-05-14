@@ -9,6 +9,25 @@ import {
 } from './constants.js';
 import { getBackgroundPattern, getLevelFromXp } from './logic/calculations.js';
 import { handleBackgroundSelect, handleClassSelect, handleSpellToggle, handleWizardSpellbookToggle } from './stateHandlers.js';
+import { getChoiceLevel } from '../../shared/character/choiceLevels.js';
+
+function hasLevelAbove(key, classLevel) {
+  const k = String(key || '');
+  // Generic: feat_asi_lv{N}, bard_expertise_lv{N}, etc.
+  var match = k.match(/lv(\d+)/i);
+  if (match) return Number(match[1]) > Number(classLevel);
+  // Adapter-registered patterns: invocations, mystic arcanum, etc.
+  var choiceLv = getChoiceLevel(k);
+  return choiceLv != null && Number(classLevel) < choiceLv;
+}
+
+function cleanChoicesForLevel(choices, classLevel) {
+  const out = {};
+  Object.keys(choices || {}).forEach(function(key) {
+    if (!hasLevelAbove(key, classLevel)) out[key] = choices[key];
+  });
+  return out;
+}
 
 function normChoice(value) {
   return String(value || '')
@@ -202,7 +221,8 @@ export function builderReducer(state, action) {
         const total = Math.max(1, Number(action.value) || 1);
         const extras = (state.character.extraClasses || []).reduce((sum, ec) => sum + (Number(ec.level) || 0), 0);
         const classLevel = Math.max(1, total - extras);
-        return updateCharacter(state, { level: total, classLevel });
+        const choices = cleanChoicesForLevel(state.character.choices || {}, classLevel);
+        return updateCharacter(state, { level: total, classLevel, choices });
       }
       return updateCharacter(state, { [action.field]: action.value });
     }
@@ -211,7 +231,8 @@ export function builderReducer(state, action) {
       const level = getLevelFromXp(xp);
       const extras = (state.character.extraClasses || []).reduce((sum, ec) => sum + (Number(ec.level) || 0), 0);
       const classLevel = Math.max(1, level - extras);
-      return updateCharacter(state, { xp, level, classLevel });
+      const choices = cleanChoicesForLevel(state.character.choices || {}, classLevel);
+      return updateCharacter(state, { xp, level, classLevel, choices });
     }
     case 'search/set':
       return { ...state, search: { ...state.search, [action.scope]: action.value } };
@@ -335,7 +356,14 @@ export function builderReducer(state, action) {
         itemIndex === idx ? { ...extraClass, level: newLevel } : extraClass
       ));
       const total = (state.character.classLevel || 1) + extraClasses.reduce((sum, ec) => sum + (ec.level || 1), 0);
-      return updateCharacter(state, { extraClasses, level: total });
+      const prefix = `mc${idx}_`;
+      const choices = { ...(state.character.choices || {}) };
+      Object.keys(choices).forEach(function(key) {
+        if (!key.startsWith(prefix)) return;
+        const withoutPrefix = key.slice(prefix.length);
+        if (hasLevelAbove(withoutPrefix, newLevel)) delete choices[key];
+      });
+      return updateCharacter(state, { extraClasses, level: total, choices });
     }
     case 'species/select': {
       const speciesObj = action.speciesObj || findByNameSource(state.data.species, action.name, action.source);

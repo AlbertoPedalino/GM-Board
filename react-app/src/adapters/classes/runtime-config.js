@@ -252,9 +252,8 @@ export default function install(registry, context = {}) {
     spellcasting: {
       ability: "cha",
       casterProgression: "pact",
-      preparedMode: "known",
+      preparedMode: "prepared",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-      spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
       preparedSpellsProgression: _PREP_WARLOCK,
       alwaysPreparedSpells: [
         { name: "Contact Other Plane", minLevel: 9, level: 5 },

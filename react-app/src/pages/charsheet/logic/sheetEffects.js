@@ -301,25 +301,6 @@ export function collectSheetEffects(character = {}) {
     }, character);
   });
 
-  // Fallback for older exported characters (serialized adapterRuntime loses functions
-  // like `condition`). Only use if live registry produced no subclass effects.
-  if (!out.length) {
-    const runtime = character.adapterRuntime || {};
-    [
-      ['classEffects', 'class'],
-      ['subclassEffects', 'subclass'],
-      ['speciesEffects', 'species'],
-      ['featEffects', 'feat'],
-    ].forEach(([key, ownerType]) => {
-      collectFromList(out, runtime[key] || [], {
-        ownerName: ownerType === 'subclass' ? character.subclassShortName : ownerType,
-        ownerType: 'runtime',
-        ownerLevel: Number(character.level || 1),
-        sourceKey: `runtime_${key}`,
-      }, character);
-    });
-  }
-
   return dedupeEffects(out);
 }
 
