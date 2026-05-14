@@ -61,11 +61,11 @@ function get5eToolsItemUrl(item) {
   if (item.href && String(item.href).startsWith('https://5e.tools/')) return item.href;
   if (item.hash) return `https://5e.tools/items.html#${item.hash}`;
   if (String(item.source || '').toLowerCase() === 'custom') return null;
-  const slug = slugify5eToolsName(item.name);
-  if (!slug) return null;
+  const namePart = String(item.name || '').trim().toLowerCase();
+  if (!namePart) return null;
   const source = normalize5eToolsSource(item.source || item.src || item.sourceShort || item.sourceAbbreviation);
   if (!source) return null;
-  return `https://5e.tools/items.html#${slug}_${source}`;
+  return `https://5e.tools/items.html#${namePart}_${source}`;
 }
 
 export { slugify5eToolsName, normalize5eToolsSource, get5eToolsSpellUrl, get5eToolsItemUrl };

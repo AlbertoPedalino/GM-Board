@@ -997,8 +997,8 @@ function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, o
                     cursor: 'pointer',
                     border: '1.5px solid',
                     flexShrink: 0,
-                    bgcolor: available ? 'transparent' : '#edd48a',
-                    borderColor: available ? 'rgba(202,165,80,0.35)' : '#edd48a',
+                    bgcolor: available ? '#edd48a' : 'transparent',
+                    borderColor: available ? '#edd48a' : 'rgba(202,165,80,0.35)',
                     '&:hover': { borderColor: '#edd48a' },
                   }}
                 />
