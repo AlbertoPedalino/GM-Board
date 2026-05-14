@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { Cross, Sword } from 'lucide-react';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
 import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
@@ -40,6 +40,43 @@ function Badge({ label, color, bg = 'transparent' }) {
   );
 }
 
+function normalizeModifierDetails(cantripData) {
+  const raw = [
+    ...(Array.isArray(cantripData?.modifiers) ? cantripData.modifiers : []),
+    ...(Array.isArray(cantripData?.cantripModifiers) ? cantripData.cantripModifiers : []),
+    ...(Array.isArray(cantripData?.extraDetails) ? cantripData.extraDetails : []),
+  ];
+  const seen = new Set();
+  return raw
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => ({
+      key: item.key || item.label || item.tagLabel || item.detailTitle || null,
+      label: item.label || null,
+      tagLabel: item.tagLabel || item.label || null,
+      detailGroupLabel: item.detailGroupLabel || item.groupLabel || null,
+      detailTitle: item.detailTitle || item.tagLabel || item.label || null,
+      detailText: item.detailText || item.description || null,
+      description: item.description || item.detailText || null,
+    }))
+    .filter((item) => {
+      const dedupeKey = item.key || item.label || item.tagLabel || item.detailTitle;
+      if (!dedupeKey || seen.has(dedupeKey)) return false;
+      if (!item.detailText && !item.description) return false;
+      seen.add(dedupeKey);
+      return true;
+    });
+}
+
+function groupModifierDetails(details) {
+  const groups = new Map();
+  details.forEach((item) => {
+    const label = item.detailGroupLabel || 'Modifier Details';
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(item);
+  });
+  return Array.from(groups.entries()).map(([label, items]) => ({ label, items }));
+}
+
 export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spellMod: fallbackSpellMod, C, installedRegistry }) {
   const [open, setOpen] = useState(false);
   const castLevel = entry.castLevel || entry.level || 0;
@@ -71,7 +108,10 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
     : damages;
 
   const cantripData = baseLevel === 0 ? getResolvedCantripData(C, entry.name) : null;
-  const modifierTags = (cantripData?.modifierTags || []);
+  const modifierDetails = normalizeModifierDetails(cantripData);
+  const modifierDetailGroups = groupModifierDetails(modifierDetails);
+  const detailTagLabels = modifierDetails.map((item) => item.tagLabel).filter(Boolean);
+  const modifierTags = Array.from(new Set([...(cantripData?.modifierTags || []), ...detailTagLabels]));
   const characterLevel = Number(C?.level || C?.classLevel || 1);
   const beamCount = typeof cantripData?.beamCount === 'function'
     ? Math.max(1, Number(cantripData.beamCount(characterLevel) || 1))
@@ -219,6 +259,27 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
         <Box sx={spellBodySx}>
           {metaLine ? <Box sx={{ fontSize: '0.65rem', color: 'text.secondary', mb: '5px' }}>{metaLine}</Box> : null}
           <Box dangerouslySetInnerHTML={{ __html: body }} />
+          {modifierDetailGroups.length ? (
+            <Stack spacing={1} sx={{ mt: 1.25 }}>
+              {modifierDetailGroups.map((group) => (
+                <Box key={group.label}>
+                  <Typography variant="caption" color="text.secondary">{group.label}</Typography>
+                  <Stack spacing={0.5} sx={{ mt: 0.25 }}>
+                    {group.items.map((modifier) => (
+                      <Box key={modifier.key || modifier.label}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {modifier.detailTitle || modifier.tagLabel || modifier.label}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {modifier.detailText || modifier.description}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          ) : null}
           {higherBody ? (
             <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
               <Box sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.08em', color: '#9d7fb8', mb: 0.5 }}>Higher Level</Box>

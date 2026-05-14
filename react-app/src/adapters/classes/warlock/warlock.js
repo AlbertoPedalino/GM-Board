@@ -603,6 +603,31 @@ if (typeof registerClassAtWillSpells === 'function') {
 
 // Eldritch Blast invocation effects — adapter sets flags, sheet computes numeric values
 if (typeof registerCantripDataModifier === 'function') {
+  function _pushCantripModifierMeta(out, meta) {
+    if (!meta || !meta.label) return;
+    out.modifierTags = out.modifierTags || [];
+    var tag = meta.tagLabel || meta.label;
+    if (tag && out.modifierTags.indexOf(tag) === -1) out.modifierTags.push(tag);
+
+    out.modifiers = Array.isArray(out.modifiers) ? out.modifiers.slice() : [];
+    var key = meta.key || meta.label;
+    var hasSame = out.modifiers.some(function (entry) {
+      var entryKey = entry && (entry.key || entry.label || entry.tagLabel);
+      return entryKey === key;
+    });
+    if (!hasSame) {
+      out.modifiers.push({
+        key: key,
+        label: meta.label,
+        tagLabel: meta.tagLabel || meta.label,
+        detailGroupLabel: meta.detailGroupLabel || null,
+        detailTitle: meta.detailTitle || meta.label,
+        detailText: meta.detailText || meta.description || '',
+        description: meta.description || meta.detailText || '',
+      });
+    }
+  }
+
   [
     'Eldritch Blast',
     'Chill Touch',
@@ -615,19 +640,40 @@ if (typeof registerCantripDataModifier === 'function') {
       var out = Object.assign({}, data || {});
       if (_warlockHasInvocation(C, 'Agonizing Blast') && _warlockChoiceMatches(C, 'warlock_agonizing_blast_cantrip', cantripName, null)) {
         out.dmgBonusPerBeam = 'cha';
-        out.modifierTags = out.modifierTags || [];
-        if (out.modifierTags.indexOf('Agonizing Blast') === -1) out.modifierTags.push('Agonizing Blast');
+        _pushCantripModifierMeta(out, {
+          key: 'agonizing-blast',
+          label: 'Agonizing Blast',
+          tagLabel: 'Agonizing Blast',
+          detailGroupLabel: 'Eldritch Invocations',
+          detailTitle: 'Agonizing Blast',
+          detailText: 'You can add your Charisma modifier to the damage rolls of this cantrip.',
+          description: 'You can add your Charisma modifier to the damage rolls of this cantrip.',
+        });
       }
       if (_warlockHasInvocation(C, 'Eldritch Spear') && _warlockChoiceMatches(C, 'warlock_eldritch_spear_cantrip', cantripName, null)) {
         out.range = (30 * Math.max(1, _warlockLevel(C))) + ' ft';
         out.notes = (out.notes ? out.notes + ' · ' : '') + 'Eldritch Spear: range x30';
-        out.modifierTags = out.modifierTags || [];
-        if (out.modifierTags.indexOf('Eldritch Spear') === -1) out.modifierTags.push('Eldritch Spear');
+        _pushCantripModifierMeta(out, {
+          key: 'eldritch-spear',
+          label: 'Eldritch Spear',
+          tagLabel: 'Eldritch Spear',
+          detailGroupLabel: 'Eldritch Invocations',
+          detailTitle: 'Eldritch Spear',
+          detailText: 'When you cast this cantrip, its range is 30 feet times your Warlock level.',
+          description: 'When you cast this cantrip, its range is 30 feet times your Warlock level.',
+        });
       }
       if (_warlockHasInvocation(C, 'Repelling Blast') && _warlockChoiceMatches(C, 'warlock_repelling_blast_cantrip', cantripName, null)) {
         out.notes = (out.notes ? out.notes + ' · ' : '') + 'Repelling Blast: push 10 ft';
-        out.modifierTags = out.modifierTags || [];
-        if (out.modifierTags.indexOf('Repelling Blast') === -1) out.modifierTags.push('Repelling Blast');
+        _pushCantripModifierMeta(out, {
+          key: 'repelling-blast',
+          label: 'Repelling Blast',
+          tagLabel: 'Repelling Blast',
+          detailGroupLabel: 'Eldritch Invocations',
+          detailTitle: 'Repelling Blast',
+          detailText: 'When you hit a Large or smaller creature with this cantrip, you can push that creature up to 10 feet straight away from you.',
+          description: 'When you hit a Large or smaller creature with this cantrip, you can push that creature up to 10 feet straight away from you.',
+        });
       }
       return out;
     });
