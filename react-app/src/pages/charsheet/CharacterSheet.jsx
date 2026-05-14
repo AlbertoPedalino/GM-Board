@@ -424,7 +424,7 @@ export default function CharacterSheet() {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4, width: '100%' }}>
-      <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} />
+      <TopBar C={C} sheet={sheet} onShortRest={openShortRest} onLongRest={openLongRest} onDownload={downloadSheet} onUpdateXp={updateXp} onUpdateCharacter={updateCurrentCharacter} />
       <Box sx={{ maxWidth: 1280, mx: { md: 'auto' }, px: { xs: '0.6rem', md: '1.1rem' }, overflow: 'hidden' }}>
         <Box sx={{ bgcolor: 'rgba(35,32,26,1)', borderBottom: 1, borderColor: 'divider', py: '0.55rem' }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={0.6} alignItems={{ md: 'stretch' }}>

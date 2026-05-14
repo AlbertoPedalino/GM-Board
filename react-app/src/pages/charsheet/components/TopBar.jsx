@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Box, Stack, Typography, Button, TextField } from '@mui/material';
 import { ArrowLeft, Sun, Moon, Download, Wand2, Hammer, Axe, Music, Cross, Feather, Sword, Dumbbell, Shield, Compass, Eye, Sparkles, Flame, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getLevelFromXp, getXpForNextLevel } from '../logic/calculations.js';
+import IconColorPicker from '../../../shared/character/IconColorPicker.jsx';
 
 const CLASS_ICONS = {
   Artificer: Hammer,
@@ -23,7 +25,8 @@ function classIcon(className) {
   return CLASS_ICONS[className] || Wand2;
 }
 
-export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, onUpdateXp }) {
+export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, onUpdateXp, onUpdateCharacter }) {
+  const [colorAnchor, setColorAnchor] = useState(null);
   const navigate = useNavigate();
   const extra = C.extraClasses || [];
   const pLv = C.classLevel || C.level;
@@ -63,14 +66,25 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
         py: { xs: '0.35rem', md: '0.6rem' },
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: { xs: '100%', md: 'auto' } }}>
-          <Box sx={{
-            width: { xs: 36, md: 52 }, height: { xs: 36, md: 52 },
-            borderRadius: '50%', border: 2, borderColor: 'divider',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            bgcolor: 'rgba(46,42,34,1)', fontSize: { xs: '1rem', md: '1.4rem' },
-          }}>
+          <Box
+            onClick={(e) => setColorAnchor(e.currentTarget)}
+            sx={{
+              width: { xs: 36, md: 52 }, height: { xs: 36, md: 52 },
+              borderRadius: '50%', border: 2, borderColor: 'divider', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              bgcolor: C.classIconColor || 'rgba(46,42,34,1)', fontSize: { xs: '1rem', md: '1.4rem' },
+              transition: 'border-color 0.15s',
+              '&:hover': { borderColor: '#caa550' },
+            }}
+          >
             <Icon size={25} />
           </Box>
+          <IconColorPicker
+            anchorEl={colorAnchor}
+            onClose={() => setColorAnchor(null)}
+            currentColor={C.classIconColor}
+            onSelect={(color) => onUpdateCharacter?.(prev => ({ ...prev, classIconColor: color }))}
+          />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontFamily: '"Cinzel", Georgia, serif', fontSize: { xs: '0.85rem', md: '1.1rem' }, fontWeight: 700, color: '#edd48a', letterSpacing: '0.04em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {C.name || 'Unnamed Character'}

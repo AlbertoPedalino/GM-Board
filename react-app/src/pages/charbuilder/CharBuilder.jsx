@@ -21,7 +21,7 @@ import { STEPS } from './constants.js';
 import { adapterRegistry, loadClassAdapters, loadCoreAdapters } from '../../adapters/index.js';
 import { getMod, getFinal } from '../charsheet/logic/calculations.js';
 import { adaptBuilderData } from '../../adapters/adapterPipeline.js';
-import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, extractSheetData, importSheetPayload } from './logic/index.js';
+import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, extractSheetData, importSheetPayload, patchCharacterField } from './logic/index.js';
 import { builderReducer, initialBuilderState } from './state.js';
 import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, SpeciesStep } from './steps/index.js';
 import { mergeSheetIntoBuilder } from '../../shared/builderSync.js';
@@ -278,7 +278,10 @@ export default function CharBuilder() {
           </Box>
 
           <Box sx={{ minWidth: 0 }}>
-            <PreviewPane character={state.character} items={state.data.items} />
+            <PreviewPane character={state.character} items={state.data.items} onUpdate={(field, value) => {
+              dispatch({ type: 'field/set', field, value });
+              if (field === 'classIconColor') patchCharacterField(field, value);
+            }} />
           </Box>
         </Box>
 

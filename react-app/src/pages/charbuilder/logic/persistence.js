@@ -80,6 +80,22 @@ function mergeNormalizedChoices(normalizedChoices, typedProfs) {
   return normalized;
 }
 
+export function patchCharacterField(field, value) {
+  const key = '5e_current_char';
+  try {
+    const current = JSON.parse(localStorage.getItem(key) || '{}');
+    current[field] = value;
+    localStorage.setItem(key, JSON.stringify(current));
+    const charId = localStorage.getItem('gb_active_char_id');
+    if (charId) {
+      const scopedKey = `gb:char:${charId}:${key}`;
+      const scoped = JSON.parse(localStorage.getItem(scopedKey) || '{}');
+      scoped[field] = value;
+      localStorage.setItem(scopedKey, JSON.stringify(scoped));
+    }
+  } catch {}
+}
+
 function normalizeProficiencyChoicesForPersistence(character = {}) {
   const typedProfs = collectTypedProficiencyChoices(character.choices || {});
 
@@ -327,6 +343,7 @@ export function makeSheetPayload(character, data) {
     currency: character.currency || { cp: 0, sp: 0, ep: 0, gp: 10, pp: 0 },
     grantSpellNames: choiceSpellNames,
     spellSnapshots,
+    classIconColor: character.classIconColor || null,
   };
 }
 

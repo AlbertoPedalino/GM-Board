@@ -1,7 +1,28 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, Chip, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
-import { ChevronDown, Feather, Languages, Layers, Shield, Sparkles, Sword } from 'lucide-react';
+import { ChevronDown, Feather, Languages, Layers, Shield, Sparkles, Sword, Wand2, Hammer, Axe, Music, Cross, Dumbbell, Compass, Eye, Flame, BookOpen } from 'lucide-react';
 import { STAT_LABELS, STATS } from '../constants.js';
+import IconColorPicker from '../../../shared/character/IconColorPicker.jsx';
+
+const CLASS_ICONS = {
+  Artificer: Hammer,
+  Barbarian: Axe,
+  Bard: Music,
+  Cleric: Cross,
+  Druid: Feather,
+  Fighter: Sword,
+  Monk: Dumbbell,
+  Paladin: Shield,
+  Ranger: Compass,
+  Rogue: Eye,
+  Sorcerer: Sparkles,
+  Warlock: Flame,
+  Wizard: BookOpen,
+};
+
+function classIcon(className) {
+  return CLASS_ICONS[className] || Wand2;
+}
 import { calcMaxHp, formatMod, getAllFinalScores, getPrimaryClassLevel } from '../logic/calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
@@ -527,24 +548,21 @@ function ChoiceCard({ entry, source }) {
   );
 }
 
-function PreviewPaneImpl({ character, items = [] }) {
+function PreviewPaneImpl({ character, items = [], onUpdate }) {
+  const [colorAnchor, setColorAnchor] = useState(null);
   const scores = getAllFinalScores(character);
   const hp = calcMaxHp(character);
   const primaryLv = getPrimaryClassLevel(character);
-  const partitioned = partitionChoices(character.choices);
-  const proficiencySections = collectPreviewProficiencies(character);
-  const weaponMasteries = collectResolvedWeaponMasteries(character, items);
-
-  const classActions = installedRegistry
-    .getClassSheetActions(character.className)
-    .filter((action) => !action.minLevel || primaryLv >= Number(action.minLevel));
-  const classResources = installedRegistry
-    .getClassSheetResources(character.className)
-    .filter((resource) => !resource.minLevel || primaryLv >= Number(resource.minLevel));
+  const proficiencySections = collectAllProficiencies(character);
+  const weaponMasteries = collectResolvedWeaponMasteries(character, items).map((entry) => entry.weaponName);
+  const classActions = character.className
+    ? installedRegistry.getClassSheetActions(character.className)
+    : [];
+  const classResources = character.className
+    ? installedRegistry.getClassSheetResources(character.className)
+    : [];
   const subclassActions = character.subclassShortName
     ? installedRegistry.getSubclassSheetActions(character.className, character.subclassShortName)
-      .filter((action) => !action.minLevel || primaryLv >= Number(action.minLevel))
-      .map((action) => ({ ...action, fromSubclass: true }))
     : [];
   const subclassResources = character.subclassShortName
     ? installedRegistry.getSubclassSheetResources(character.className, character.subclassShortName)
@@ -554,16 +572,37 @@ function PreviewPaneImpl({ character, items = [] }) {
   const speciesActions = character.speciesName
     ? installedRegistry.getSpeciesSheetActions(character.speciesName, character.speciesSource)
     : [];
+  const partitioned = partitionChoices(character.choices);
 
   return (
     <Paper variant="outlined" sx={{ p: 1, position: { md: 'sticky' }, top: 64, maxHeight: { md: 'calc(100vh - 76px)' }, overflow: 'auto', minWidth: 0 }}>
       <Stack spacing={1} sx={{ minWidth: 0 }}>
-        <Stack spacing={0.25}>
-          <Typography variant="h2" sx={{ color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Preview</Typography>
-          <Typography variant="h1" noWrap sx={{ color: '#edd48a' }}>{character.name || 'Unnamed Character'}</Typography>
-          <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.66rem' }}>
-            Lv {character.level} {character.speciesName} {character.className} - {hp || '-'} HP
-          </Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Box
+            onClick={(e) => setColorAnchor(e.currentTarget)}
+            sx={{
+              width: 36, height: 36, borderRadius: '50%', border: 2, borderColor: 'divider', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              bgcolor: character.classIconColor || 'rgba(46,42,34,1)',
+              transition: 'border-color 0.15s',
+              '&:hover': { borderColor: '#caa550' },
+            }}
+          >
+            {(() => { const I = classIcon(character.className); return <I size={18} />; })()}
+          </Box>
+          <IconColorPicker
+            anchorEl={colorAnchor}
+            onClose={() => setColorAnchor(null)}
+            currentColor={character.classIconColor}
+            onSelect={(color) => onUpdate?.('classIconColor', color)}
+          />
+          <Stack spacing={0.25}>
+            <Typography variant="h2" sx={{ color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Preview</Typography>
+            <Typography variant="h1" noWrap sx={{ color: '#edd48a' }}>{character.name || 'Unnamed Character'}</Typography>
+            <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.66rem' }}>
+              Lv {character.level} {character.speciesName} {character.className} - {hp || '-'} HP
+            </Typography>
+          </Stack>
         </Stack>
 
         <Grid container spacing={0.55}>
