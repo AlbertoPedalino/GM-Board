@@ -163,47 +163,52 @@ export default function SpellEntry({ entry, onShowToast, atk: fallbackAtk, spell
 
   return (
     <Box>
-      <Box onClick={() => setOpen(!open)} sx={spellRowSx}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', minWidth: 0 }}>
+      <Box onClick={() => setOpen(!open)}
+        sx={{ ...spellRowSx, flexDirection: 'column', gap: '3px', alignItems: 'stretch' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
           <SpellNameIcon spell={entry} />
           <Typography noWrap sx={{ overflow: 'hidden', minWidth: 0, fontSize: '0.875rem', color: 'text.primary', textOverflow: 'ellipsis' }}>{entry.name}</Typography>
-          {castLevel > baseLevel ? <Badge label={SPELL_LEVEL_LABELS[castLevel]} color="#d69245" bg="rgba(214,146,69,0.14)" /> : null}
-        </Box>
-        {getSpellStatusChips(entry).map((chip) => <Badge key={chip.key} label={chip.label} color={chip.color} bg={chip.bg} />)}
-        {entry.sourceInfo ? <Badge label={entry.sourceInfo.label} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
-
-        {ritualOnly ? <Badge label="Ritual only" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
-        {(hasAttack || hasDamage || hasHeal) ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, mr: '6px' }}>
-            {hasAttack ? (
-              <Button size="small" variant="outlined"
-                onClick={rollAtk}
-                sx={{ ...inlineButtonSx, borderColor: 'rgba(77,149,214,0.4)', color: '#4d95d6' }}>
-                <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(atk)}
-              </Button>
-            ) : null}
-            {scaledDamages.map((dmg, i) => (
-              <Button key={i} size="small" variant="outlined"
-                onClick={(e) => rollDmg(e, dmg.formula, dmg.label || `Damage ${i + 1}`)}
-                sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
-                <Sword size={12} style={{ marginRight: 2 }} /> {beamCount > 1 ? `Beam ${i + 1} ${dmg.formula}` : `Dmg ${dmg.formula}`}
-              </Button>
-            ))}
-            {hasHeal ? (
-              <Button size="small" variant="outlined"
-                onClick={(e) => rollHeal(e, healDisplayFormula)}
-                sx={{ ...inlineButtonSx, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
-                <Cross size={12} style={{ marginRight: 2 }} /> Heal {healDisplayFormula}
-              </Button>
+          {castLevel > baseLevel ? <Badge label={`Lv.${castLevel}`} color="#d69245" bg="rgba(214,146,69,0.14)" /> : null}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', ml: 'auto', flexShrink: 0 }}>
+            {(hasAttack || hasDamage || hasHeal) ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {hasAttack ? (
+                  <Button size="small" variant="outlined"
+                    onClick={rollAtk}
+                    sx={{ ...inlineButtonSx, borderColor: 'rgba(77,149,214,0.4)', color: '#4d95d6' }}>
+                    <Sword size={12} style={{ marginRight: 2 }} /> Hit {fbonus(atk)}
+                  </Button>
+                ) : null}
+                {scaledDamages.map((dmg, i) => (
+                  <Button key={i} size="small" variant="outlined"
+                    onClick={(e) => rollDmg(e, dmg.formula, dmg.label || `Damage ${i + 1}`)}
+                    sx={{ ...inlineButtonSx, borderColor: 'rgba(255,107,53,0.4)', color: '#ff6b35' }}>
+                    <Sword size={12} style={{ marginRight: 2 }} /> {beamCount > 1 ? `Beam ${i + 1} ${dmg.formula}` : `Dmg ${dmg.formula}`}
+                  </Button>
+                ))}
+                {hasHeal ? (
+                  <Button size="small" variant="outlined"
+                    onClick={(e) => rollHeal(e, healDisplayFormula)}
+                    sx={{ ...inlineButtonSx, borderColor: 'rgba(88,184,121,0.4)', color: '#58b879' }}>
+                    <Cross size={12} style={{ marginRight: 2 }} /> Heal {healDisplayFormula}
+                  </Button>
+                ) : null}
+              </Box>
             ) : null}
           </Box>
-        ) : null}
-        <Box sx={{ flex: 1 }} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
-          {school ? <Badge label={school} color="#c4b393" /> : null}
-          {hasConcentrationTag ? <Badge label="C" color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
-          {hasRitualTag ? <Badge label="R" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
-          <Badge {...getCastBadge(entry)} />
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexWrap: 'wrap' }}>
+            {entry.sourceInfo ? <Badge label={entry.sourceInfo.label} color={entry.sourceInfo.color || '#9d7fb8'} bg="rgba(157,127,184,0.16)" /> : null}
+            {getSpellStatusChips(entry).map((chip) => <Badge key={chip.key} label={chip.label} color={chip.color} bg={chip.bg} />)}
+            {ritualOnly ? <Badge label="Ritual only" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            {school ? <Badge label={school} color="#c4b393" /> : null}
+            {hasConcentrationTag ? <Badge label="C" color="#9d7fb8" bg="rgba(157,127,184,0.16)" /> : null}
+            {hasRitualTag ? <Badge label="R" color="#58b879" bg="rgba(63,166,108,0.14)" /> : null}
+            <Badge {...getCastBadge(entry)} />
+          </Box>
         </Box>
       </Box>
       {(ritualOnly || beamCount > 1 || beamBonus) ? (

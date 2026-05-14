@@ -459,7 +459,7 @@ export default function CharacterSheet() {
           <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
             <Skills C={C} sheet={sheet} onRoll={rollSkill} />
           </Box>
-          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+          <Box sx={{ minWidth: 0 }}>
             <RightTop C={C} sheet={sheet} onRoll={rollD20}
               onToggleCondition={toggleCondition} onClearConditions={clearConditions}
               onToggleInspiration={toggleInspiration}

@@ -77,8 +77,8 @@ const ROLL_LOG_SX = {
   },
   label: { fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.7rem', color: '#edd48a', fontWeight: 700, letterSpacing: '0.04em', mb: 0.15 },
   formula: { fontSize: '0.6rem', color: 'text.secondary', fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2 },
-  rollBreakdown: { fontSize: '0.58rem', color: '#70b7a6', fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2 },
-  total: { fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.1rem', color: 'primary.main', fontWeight: 700, flexShrink: 0, ml: 'auto', pl: 0.5, lineHeight: 1 },
+  rollBreakdown: { fontSize: '0.58rem', color: '#70b7a6', fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2, my: 0 },
+  total: { fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.1rem', color: 'primary.main', fontWeight: 700, flexShrink: 0, pl: 0.5, lineHeight: 1, my: 0 },
   empty: { fontSize: '0.75rem', color: 'text.secondary', fontStyle: 'italic', textAlign: 'center', py: 3 },
 };
 
@@ -226,16 +226,19 @@ export default function TopBar({ C, sheet, onShortRest, onLongRest, onDownload, 
                 ? `${diceText}${bonus !== 0 ? formatMod(bonus) : ''} = ${entry.total}`
                 : '';
               return (
-              <Box key={entry.timestamp + '-' + i} sx={ROLL_LOG_SX.entry}>
-                <Typography sx={ROLL_LOG_SX.label}>{labelParts.clean}</Typography>
-                <Typography sx={ROLL_LOG_SX.formula}>{formulaText}{suffixStr}</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', minHeight: 18 }}>
+              <Box key={entry.timestamp + '-' + i} sx={{ ...ROLL_LOG_SX.entry, display: 'flex', gap: 0.5 }}>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={ROLL_LOG_SX.label}>{labelParts.clean}</Typography>
+                  <Typography sx={ROLL_LOG_SX.formula}>{formulaText}{suffixStr}</Typography>
                   {breakdownText ? (
                     <Typography sx={ROLL_LOG_SX.rollBreakdown}>{breakdownText}</Typography>
                   ) : null}
-                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-                    <Typography sx={ROLL_LOG_SX.total}>{entry.total}</Typography>
-                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 32, pr: 0.5 }}>
+                  <Typography sx={ROLL_LOG_SX.total}>
+                    <Box component="span" sx={{ fontSize: '0.68rem', color: '#edd48a', fontWeight: 500, mr: 0.35 }}>Result = </Box>
+                    {entry.total}
+                  </Typography>
                 </Box>
               </Box>
               );
