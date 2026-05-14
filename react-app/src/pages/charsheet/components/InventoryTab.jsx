@@ -3,6 +3,13 @@ import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, Stack }
 import { Backpack, Check, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle } from 'lucide-react';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import { getFinal } from '../logic/calculations.js';
+import {
+  isWeapon,
+  canOneHand,
+  canTwoHand,
+  equipToSlot as equipToSlotHelper,
+  getSlotConflictWarnings,
+} from '../logic/equipmentSlots.js';
 
 import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
 import { setStorageItem, setStorageJson } from '../../../shared/storage.js';
@@ -278,6 +285,7 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
     });
     return groups;
   }, [resolvedInv]);
+  const slotWarnings = useMemo(() => getSlotConflictWarnings(inv), [inv]);
   const inventoryStats = useMemo(() => {
     const totalItems = inv.reduce((sum, item) => sum + qty(item), 0);
     const totalWeight = inv.reduce((sum, item) => sum + Number(item.weight || item.weightLb || 0) * qty(item), 0);
@@ -356,6 +364,12 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
       if (targetType === 'S' && type === 'S' && item.equipped) return { ...item, equipped: false };
       return item;
     });
+    updateInv(next);
+  }, [updateInv]);
+
+  const equipToSlot = useCallback((index, slot) => {
+    const current = invRef.current || [];
+    const next = equipToSlotHelper(current, index, slot);
     updateInv(next);
   }, [updateInv]);
 
@@ -522,6 +536,11 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
         return (
           <Box key={group.key}>
             <SectionHeader icon={group.icon} label={group.label} />
+            {group.key === 'weapon' && slotWarnings.length > 0 ? slotWarnings.map((w, i) => (
+              <Alert key={i} severity="warning" sx={{ fontSize: '0.65rem', py: '2px', px: '8px', mb: '3px' }}>
+                {w}
+              </Alert>
+            )) : null}
             {inGroup.map(({ item, index }) => (
               <InventoryRow
                 key={`${item.name}-${item.source}-${index}`}
@@ -530,6 +549,7 @@ export default function InventoryTab({ C, sheet, onUpdateInventory, onUpdateCurr
                 onQty={adjustQty}
                 onRemove={removeItem}
                 onEquip={toggleEquipped}
+                onEquipSlot={equipToSlot}
                 penaltyMsg={getPenaltyMessage(C, item)}
                 canPactWeapon={canUsePactWeaponFlag(C, item)}
                 onPactWeapon={togglePactWeapon}
@@ -593,7 +613,7 @@ const getPenaltyMessage = (() => {
   };
 })();
 
-const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, penaltyMsg, canPactWeapon, onPactWeapon, isArmorer, hasArcaneArmor, onArcaneArmor }) {
+const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, onEquip, onEquipSlot, penaltyMsg, canPactWeapon, onPactWeapon, isArmorer, hasArcaneArmor, onArcaneArmor }) {
   const [open, setOpen] = useState(false);
   const type = String(item.type || '').toUpperCase();
   const canEquip = ['M', 'R', 'LA', 'MA', 'HA', 'S', 'SCF', 'WD', 'RD', 'ST', 'WI', 'WEAPON', 'ARMOR'].includes(type);
@@ -631,7 +651,19 @@ const InventoryRow = memo(function InventoryRow({ item, index, onQty, onRemove, 
             </Typography>
           )}
         </Box>
-        {canEquip ? (
+        {isWeapon(item) ? (
+          <Box sx={{ display: 'flex', gap: '2px' }}>
+            {canOneHand(item) ? (
+              <SlotBtn active={item.equippedSlot === 'mainHand'} onClick={() => onEquipSlot(index, 'mainHand')} label="MH" />
+            ) : null}
+            {canOneHand(item) ? (
+              <SlotBtn active={item.equippedSlot === 'offHand'} onClick={() => onEquipSlot(index, 'offHand')} label="OH" />
+            ) : null}
+            {canTwoHand(item) ? (
+              <SlotBtn active={item.equippedSlot === 'twoHands'} onClick={() => onEquipSlot(index, 'twoHands')} label="2H" />
+            ) : null}
+          </Box>
+        ) : canEquip ? (
           <Button size="small" onClick={() => onEquip(index)} startIcon={item.equipped ? <Check size={11} /> : null}
             sx={{ minWidth: 0, px: '7px', py: '2px', border: 1, borderColor: item.equipped ? '#2ca797' : 'divider', borderRadius: '3px', color: item.equipped ? '#2ca797' : 'text.secondary', bgcolor: item.equipped ? 'rgba(26,188,156,0.12)' : 'transparent', fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.58rem' }}>
             {item.equipped ? 'Equip.' : 'Equip'}
@@ -673,6 +705,28 @@ function QtyButton({ children, danger = false, onClick }) {
     <IconButton size="small" onClick={onClick}
       sx={{ width: 20, height: 20, border: 1, borderColor: 'divider', borderRadius: '3px', color: 'text.secondary', '&:hover': { borderColor: danger ? '#de675f' : '#caa550', color: danger ? '#de675f' : '#caa550' } }}>
       {children}
+    </IconButton>
+  );
+}
+
+function SlotBtn({ active, onClick, label }) {
+  return (
+    <IconButton size="small" onClick={onClick}
+      sx={{
+        width: 24, height: 24,
+        border: 1,
+        borderColor: active ? '#caa550' : 'divider',
+        borderRadius: '3px',
+        color: active ? '#edd48a' : 'text.secondary',
+        bgcolor: active ? 'rgba(202,165,80,0.14)' : 'transparent',
+        fontFamily: '"Cinzel", Georgia, serif',
+        fontSize: '0.48rem',
+        fontWeight: 700,
+        letterSpacing: '0.04em',
+        '&:hover': { borderColor: '#caa550', color: '#caa550' },
+      }}
+    >
+      {label}
     </IconButton>
   );
 }

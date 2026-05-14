@@ -360,6 +360,7 @@ function normalizeItem(item) {
     weaponCategory: item.weaponCategory || null,
     mastery: Array.isArray(item.mastery) ? item.mastery.map((m) => String(m).split('|')[0]) : null,
     dmg1: item.dmg1 || null,
+    dmg2: item.dmg2 || null,
     dmgType: item.dmgType || null,
     ac: item.ac || null,
     strength: item.strength || null,

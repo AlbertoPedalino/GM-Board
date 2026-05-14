@@ -9,6 +9,12 @@ import {
   normalizeWeaponName,
   resolveWeaponMasteryForItem,
 } from '../../../shared/character/weaponMastery.js';
+import {
+  getWeaponDamageDice,
+  canUseLightExtraAttack,
+  getOffHandDamageMod,
+  hasTwoWeaponFightingStyle,
+} from './equipmentSlots.js';
 
 export const FILTERS = ['all', 'action', 'bonus', 'reaction'];
 export const CAT_COLORS = { attack: '#de675f', action: '#caa550', bonus: '#70b7a6', reaction: '#9d7fb8' };
@@ -252,6 +258,60 @@ function weaponDamageType(item) {
   return item?.damage?.[0]?.type || item?.dmgType || '';
 }
 
+function makeWeaponAction(C, item, index, overrides, selectedMasteriesByWeapon, inventory, items, opts = {}) {
+  const weaponOverride = overrides.find(o => {
+    const type = String(item?.type || '').toUpperCase();
+    if (o.weaponTypes && !o.weaponTypes.includes(type)) return false;
+    if (o.itemFlag && !(item?.flags || []).includes(o.itemFlag)) return false;
+    if (typeof o.condition === 'function' && !o.condition(C)) return false;
+    return true;
+  });
+  const profInfo = getWeaponProficiencyInfo(C, item, weaponOverride);
+  const ability = weaponAbility(C, item, weaponOverride);
+  const overrideBlocked = weaponOverride?.requiresProficiency && !profInfo.proficient;
+  const finalAbility = overrideBlocked ? (() => {
+    const props = itemProps(item);
+    const finesse = props.includes('f') || props.includes('fin') || props.includes('finesse');
+    const type = String(item?.type || '').toUpperCase();
+    if (type === 'R') return 'dex';
+    if (finesse) return getMod(getFinal(C, 'dex')) > getMod(getFinal(C, 'str')) ? 'dex' : 'str';
+    return 'str';
+  })() : ability;
+  const mod = getMod(getFinal(C, finalAbility));
+  const base = opts.damageBase != null ? opts.damageBase : weaponDamageBase(item);
+  const finalMod = opts.damageMod != null ? opts.damageMod : mod;
+  const damageFormula = base ? base + (finalMod !== 0 ? (finalMod >= 0 ? '+' : '') + finalMod : '') : '';
+  const dtype = weaponDamageType(item);
+  const untrainedArmor = hasNonProficientArmor(C, inventory);
+  const disAdv = untrainedArmor && (finalAbility === 'str' || finalAbility === 'dex');
+  const selectedEntry = selectedMasteriesByWeapon.get(normalizeWeaponName(item?.name || '')) || null;
+  const directMastery = selectedEntry ? resolveWeaponMasteryForItem(item) : null;
+  const dbItem = selectedEntry && !directMastery
+    ? findWeaponItemByName(items, item?.name || '', item?.source || '')
+    : null;
+  const mastery = selectedEntry
+    ? (selectedEntry.mastery || directMastery || resolveWeaponMasteryForItem(dbItem))
+    : null;
+  const masteryText = mastery ? getWeaponMasteryReminderText(mastery) : '';
+  return {
+    name: opts.name || item.name || 'Weapon',
+    cat: opts.cat || 'attack',
+    uses: opts.uses || 'Equipped',
+    _source: 'Weapon',
+    attackBonus: profInfo.proficient ? getPB(C) + mod : mod,
+    damageFormula,
+    damageButtonLabel: damageFormula ? `Damage ${damageFormula}${dtype ? ` ${dtype}` : ''}` : 'Damage',
+    rollLabelPrefix: opts.rollLabelPrefix || item.name || 'Weapon',
+    desc: opts.desc || `${String(finalAbility).toUpperCase()} weapon attack.${dtype ? ` Damage type: ${dtype}.` : ''}${profInfo.proficient ? '' : ' Not proficient.'}${overrideBlocked ? ' Not proficient for Bladesong.' : ''}${disAdv ? ' DIS (armor).' : ''}`,
+    _weaponIndex: index,
+    _weaponMastery: mastery || null,
+    _weaponMasteryText: masteryText || '',
+    _weaponSlot: item.equippedSlot || null,
+    _notProficient: !profInfo.proficient,
+    _disadvantage: disAdv,
+  };
+}
+
 export function makeWeaponActions(C, attacks, inventory, items = []) {
   const overrides = installedRegistry.getWeaponAbilityOverrides();
   const selectedMasteriesByWeapon = new Map(
@@ -259,57 +319,65 @@ export function makeWeaponActions(C, attacks, inventory, items = []) {
       .map((entry) => [normalizeWeaponName(entry.weaponName), entry])
       .filter(([name]) => !!name),
   );
-  const weaponActions = attacks.map((item, index) => {
-    const weaponOverride = overrides.find(o => {
-      const type = String(item?.type || '').toUpperCase();
+
+  const weaponActions = [];
+  const hasTWF = hasTwoWeaponFightingStyle(C);
+  const offHandItem = attacks.find(i => i.equippedSlot === 'offHand');
+  const canLightExtra = offHandItem && canUseLightExtraAttack(C, inventory);
+
+  attacks.forEach((item) => {
+    if (item.equippedSlot === 'offHand' && canLightExtra) return;
+    const base = getWeaponDamageDice(item, item.equippedSlot);
+    weaponActions.push(makeWeaponAction(C, item, attacks.indexOf(item), overrides, selectedMasteriesByWeapon, inventory, items, { damageBase: base }));
+  });
+
+  if (canLightExtra && offHandItem) {
+    const ohIndex = attacks.indexOf(offHandItem);
+    const ohOverride = overrides.find(o => {
+      const type = String(offHandItem?.type || '').toUpperCase();
       if (o.weaponTypes && !o.weaponTypes.includes(type)) return false;
-      if (o.itemFlag && !(item?.flags || []).includes(o.itemFlag)) return false;
+      if (o.itemFlag && !(offHandItem?.flags || []).includes(o.itemFlag)) return false;
       if (typeof o.condition === 'function' && !o.condition(C)) return false;
       return true;
     });
-    const profInfo = getWeaponProficiencyInfo(C, item, weaponOverride);
-    const ability = weaponAbility(C, item, weaponOverride);
-    const overrideBlocked = weaponOverride?.requiresProficiency && !profInfo.proficient;
-    const finalAbility = overrideBlocked ? (() => {
-      const props = itemProps(item);
-      const finesse = props.includes('f') || props.includes('fin') || props.includes('finesse');
-      const type = String(item?.type || '').toUpperCase();
-      if (type === 'R') return 'dex';
-      if (finesse) return getMod(getFinal(C, 'dex')) > getMod(getFinal(C, 'str')) ? 'dex' : 'str';
-      return 'str';
-    })() : ability;
-    const mod = getMod(getFinal(C, finalAbility));
-    const base = weaponDamageBase(item);
-    const damageFormula = base ? `${base}${mod >= 0 ? '+' : ''}${mod}` : '';
-    const dtype = weaponDamageType(item);
-    const untrainedArmor = hasNonProficientArmor(C, inventory);
-    const disAdv = untrainedArmor && (ability === 'str' || ability === 'dex');
-    const selectedEntry = selectedMasteriesByWeapon.get(normalizeWeaponName(item?.name || '')) || null;
-    const directMastery = selectedEntry ? resolveWeaponMasteryForItem(item) : null;
-    const dbItem = selectedEntry && !directMastery
-      ? findWeaponItemByName(items, item?.name || '', item?.source || '')
+    const ohProfInfo = getWeaponProficiencyInfo(C, offHandItem, ohOverride);
+    const ohAbility = weaponAbility(C, offHandItem, ohOverride);
+    const ohMod = getMod(getFinal(C, ohAbility));
+    const ohBase = weaponDamageBase(offHandItem);
+    const ohDtype = weaponDamageType(offHandItem);
+    const ohDmgMod = getOffHandDamageMod(ohMod, hasTWF);
+    const ohSelectedEntry = selectedMasteriesByWeapon.get(normalizeWeaponName(offHandItem?.name || '')) || null;
+    const ohDirectMastery = ohSelectedEntry ? resolveWeaponMasteryForItem(offHandItem) : null;
+    const ohDbItem = ohSelectedEntry && !ohDirectMastery
+      ? findWeaponItemByName(items, offHandItem?.name || '', offHandItem?.source || '')
       : null;
-    const mastery = selectedEntry
-      ? (selectedEntry.mastery || directMastery || resolveWeaponMasteryForItem(dbItem))
+    const ohMastery = ohSelectedEntry
+      ? (ohSelectedEntry.mastery || ohDirectMastery || resolveWeaponMasteryForItem(ohDbItem))
       : null;
-    const masteryText = mastery ? getWeaponMasteryReminderText(mastery) : '';
-    return {
-      name: item.name || 'Weapon',
-      cat: 'attack',
-      uses: 'Equipped',
+    const ohMasteryText = ohMastery ? getWeaponMasteryReminderText(ohMastery) : '';
+    const isNick = ohMastery === 'Nick';
+    const ohDamageFormula = ohBase ? ohBase + (ohDmgMod !== 0 ? (ohDmgMod >= 0 ? '+' : '') + ohDmgMod : '') : '';
+
+    weaponActions.push({
+      name: offHandItem.name,
+      cat: isNick ? 'attack' : 'bonus',
+      uses: isNick ? 'Part of Attack action (Nick)' : 'Bonus Action (Light)',
       _source: 'Weapon',
-      attackBonus: profInfo.proficient ? getPB(C) + mod : mod,
-      damageFormula,
-      damageButtonLabel: damageFormula ? `Damage ${damageFormula}${dtype ? ` ${dtype}` : ''}` : 'Damage',
-      rollLabelPrefix: item.name || 'Weapon',
-      desc: `${String(finalAbility).toUpperCase()} weapon attack.${dtype ? ` Damage type: ${dtype}.` : ''}${profInfo.proficient ? '' : ' Not proficient.'}${overrideBlocked ? ' Not proficient for Bladesong.' : ''}${disAdv ? ' DIS (armor).' : ''}`,
-      _weaponIndex: index,
-      _weaponMastery: mastery || null,
-      _weaponMasteryText: masteryText || '',
-      _notProficient: !profInfo.proficient,
-      _disadvantage: disAdv,
-    };
-  });
+      _attackColor: true,
+      attackBonus: ohProfInfo.proficient ? getPB(C) + ohMod : ohMod,
+      damageFormula: ohDamageFormula,
+      damageButtonLabel: ohDamageFormula ? `Damage ${ohDamageFormula}${ohDtype ? ` ${ohDtype}` : ''}` : 'Damage',
+      rollLabelPrefix: `Off-hand ${offHandItem.name}`,
+      desc: `Off-hand ${String(ohAbility).toUpperCase()} weapon attack via Light property.${ohDtype ? ` Damage type: ${ohDtype}.` : ''}${hasTWF ? ' Two-Weapon Fighting applies ability modifier to damage.' : ''}${ohProfInfo.proficient ? '' : ' Not proficient.'}${isNick ? ' Nick mastery: this attack is part of the Attack action (not a Bonus Action).' : ''}`,
+      _weaponIndex: ohIndex,
+      _weaponSlot: offHandItem.equippedSlot || null,
+      _weaponMastery: ohMastery || null,
+      _weaponMasteryText: ohMasteryText || '',
+      _notProficient: !ohProfInfo.proficient,
+      _disadvantage: false,
+    });
+  }
+
   const monkLevel = classLevel(C, 'Monk');
   const useDexUnarmed = monkLevel > 0 && getMod(getFinal(C, 'dex')) > getMod(getFinal(C, 'str'));
   const ability = useDexUnarmed ? 'dex' : 'str';
@@ -321,8 +389,8 @@ export function makeWeaponActions(C, attacks, inventory, items = []) {
     uses: monkLevel ? 'Martial Arts' : 'Attack',
     _source: 'Basic',
     attackBonus: getPB(C) + mod,
-    damageFormula: `${die}${mod >= 0 ? '+' : ''}${mod}`,
-    damageButtonLabel: `Damage ${die}${mod >= 0 ? '+' : ''}${mod} bludgeoning`,
+    damageFormula: die + (mod !== 0 ? (mod >= 0 ? '+' : '') + mod : ''),
+    damageButtonLabel: `Damage ${die}${mod !== 0 ? (mod >= 0 ? '+' : '') + mod : ''} bludgeoning`,
     rollLabelPrefix: 'Unarmed Strike',
     desc: `${String(ability).toUpperCase()} attack. Damage: ${die} + ${String(ability).toUpperCase()} modifier bludgeoning.`,
   });

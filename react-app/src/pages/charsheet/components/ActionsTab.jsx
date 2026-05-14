@@ -706,7 +706,7 @@ function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, o
     <Box sx={{ overflow: 'hidden' }}>
       <Box onClick={handleCardClick} sx={{ ...spellRowSx, mb: 0, py: '7px', cursor: 'pointer' }}>
         {action.cat && CAT_COLORS[action.cat] && (
-          <Box sx={{ width: 6, height: 28, borderRadius: 1, bgcolor: CAT_COLORS[action.cat], flexShrink: 0, opacity: 0.95 }} />
+          <Box sx={{ width: 6, height: 28, borderRadius: 1, bgcolor: action._attackColor ? CAT_COLORS.attack : CAT_COLORS[action.cat], flexShrink: 0, opacity: 0.95 }} />
         )}
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -769,7 +769,7 @@ function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, o
               size="small"
               label={action.cat}
               variant="outlined"
-              sx={{ ...tinyMetaChipSx, color: CAT_COLORS[action.cat] || 'text.secondary', borderColor: CAT_COLORS[action.cat] || 'divider', bgcolor: `${CAT_COLORS[action.cat] || 'transparent'}14` }}
+              sx={{ ...tinyMetaChipSx, color: action._attackColor ? CAT_COLORS.attack : (CAT_COLORS[action.cat] || 'text.secondary'), borderColor: action._attackColor ? CAT_COLORS.attack : (CAT_COLORS[action.cat] || 'divider'), bgcolor: action._attackColor ? `${CAT_COLORS.attack}14` : `${CAT_COLORS[action.cat] || 'transparent'}14` }}
             />
           ) : null}
           {action.minLevel ? (
@@ -793,6 +793,9 @@ function AdapterActionCard({ C, sheet, action, resources, onResChange, onRoll, o
           ) : null}
           {action._disadvantage ? (
             <Chip size="small" label="DIS" variant="outlined" sx={{ ...tinyMetaChipSx, color: '#d69245', borderColor: '#d69245', bgcolor: 'rgba(213,138,61,0.14)' }} />
+          ) : null}
+          {action._weaponSlot ? (
+            <Chip size="small" label={action._weaponSlot} variant="outlined" sx={{ ...tinyMetaChipSx, color: '#58b879', borderColor: 'rgba(88,184,121,0.55)', bgcolor: 'rgba(88,184,121,0.12)' }} />
           ) : null}
           {inlinePills.map((pill, idx) => (
             <Chip
