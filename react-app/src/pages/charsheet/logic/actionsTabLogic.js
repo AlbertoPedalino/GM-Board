@@ -379,6 +379,7 @@ export function makeWeaponActions(C, attacks, inventory, items = []) {
   const ability = useDexUnarmed ? 'dex' : 'str';
   const mod = getMod(getFinal(C, ability));
   const die = monkLevel >= 17 ? '1d12' : monkLevel >= 11 ? '1d10' : monkLevel >= 5 ? '1d8' : monkLevel >= 1 ? '1d6' : hasFeat(C, 'Tavern Brawler') ? '1d4' : '1';
+  const unarmedSaveDc = 8 + getPB(C) + mod;
   weaponActions.push({
     name: 'Unarmed Strike',
     cat: 'attack',
@@ -389,6 +390,10 @@ export function makeWeaponActions(C, attacks, inventory, items = []) {
     damageButtonLabel: `Damage ${die}${mod !== 0 ? (mod >= 0 ? '+' : '') + mod : ''} bludgeoning`,
     rollLabelPrefix: 'Unarmed Strike',
     desc: `${String(ability).toUpperCase()} attack. Damage: ${die} + ${String(ability).toUpperCase()} modifier bludgeoning.`,
+    detailType: 'unarmedStrike',
+    unarmedStrikeSaveDc: unarmedSaveDc,
+    unarmedStrikeAbility: ability,
+    unarmedStrikeMod: mod,
   });
   return weaponActions;
 }

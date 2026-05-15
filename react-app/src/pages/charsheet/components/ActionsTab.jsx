@@ -34,9 +34,11 @@ import {
 } from './spellsTabStyles.js';
 import { Empty } from './SpellsUiParts.jsx';
 import ActionDetailPanel from './ActionDetailPanel.jsx';
+import UnarmedStrikeOptionsPanel from './UnarmedStrikeOptionsPanel.jsx';
 
 const ACTION_DETAIL_RENDERERS = {
   panel: ActionDetailPanel,
+  unarmedStrike: UnarmedStrikeOptionsPanel,
 };
 
 function actionLabel(value) {
