@@ -151,7 +151,7 @@ registerClassAdapter("Rogue", function (cls, lv, specs, ctx = {}) {
       key: 'rogue_thieves_cant_lang',
       label: "Bonus Language (Thieves' Cant)",
       type: 'language_choice',
-      from: _ALL_LANGS || [],
+      from: _STD_LANGS || [],
       count: 1,
       level: 1
     });

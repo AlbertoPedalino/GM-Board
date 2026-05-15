@@ -8,11 +8,18 @@ import {
   splitTypedProficiencies,
   uniqueProficiencyLabels,
 } from '../../../shared/character/typedProficiencies.js';
+import {
+  STANDARD_LANGUAGES,
+  EXOTIC_LANGUAGES,
+  ALL_LANGUAGES,
+  SPECIAL_LANGUAGES,
+  getLanguageOptions,
+} from '../../../shared/character/languages.js';
 
 const ALL_SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
-const STD_LANGS = ['Common', 'Common Sign Language', 'Draconic', 'Dwarvish', 'Elvish', 'Giant', 'Gnomish', 'Goblin', 'Halfling', 'Orc'];
-const EXOTIC_LANGS = ['Abyssal', 'Celestial', 'Deep Speech', 'Infernal', 'Primordial', 'Sylvan', 'Undercommon'];
-const ALL_LANGS = [...STD_LANGS, ...EXOTIC_LANGS];
+const STD_LANGS = STANDARD_LANGUAGES;
+const EXOTIC_LANGS = EXOTIC_LANGUAGES;
+const ALL_LANGS = ALL_LANGUAGES;
 const ARTISAN_TOOLS = ["Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies", "Carpenter's Tools", "Cartographer's Tools", "Cobbler's Tools", "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools", "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies", "Potter's Tools", "Smith's Tools", "Tinker's Tools", "Weaver's Tools", "Woodcarver's Tools"];
 const MUSICAL = ['Bagpipes', 'Drum', 'Dulcimer', 'Flute', 'Hand Drum', 'Horn', 'Lute', 'Lyre', 'Pan Flute', 'Shawm', 'Viol'];
 const GAMING = ['Dice Set', 'Dragonchess Set', 'Playing Card Set', 'Three-Dragon Ante Set'];
@@ -377,11 +384,12 @@ export function speciesChoiceSpecs(character) {
   const species = character.speciesObj;
   if (!species) return [];
   const specs = [];
+  const speciesLangFrom = getLanguageOptions({ includeCommon: false });
   specs.push({
     key: 'species_language_bonus',
     label: 'Species Languages',
     type: 'language_choice',
-    from: ALL_LANGS.filter((language) => language !== 'Common'),
+    from: speciesLangFrom,
     count: 2,
     level: 1,
   });

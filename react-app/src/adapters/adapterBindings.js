@@ -193,7 +193,7 @@ function getGenericSpeciesChoiceSpecs(species) {
     if (spec) specs.push(spec);
   });
   asArray(species?.languageProficiencies || species?.languages).forEach((block, index) => {
-    const fallback = block?.anyExotic ? EXOTIC_LANGUAGES : block?.anyStandard ? STANDARD_LANGUAGES : ALL_LANGUAGES;
+    const fallback = block?.anyExotic ? EXOTIC_LANGUAGES : STANDARD_LANGUAGES;
     const spec = choiceFromChoose(`species_language_${index}`, 'Language', 'language_choice', block, fallback);
     if (spec) specs.push(spec);
   });
@@ -220,7 +220,7 @@ function getGenericBackgroundChoiceSpecs(background) {
     if (spec) specs.push(spec);
   });
   asArray(background?.languageProficiencies).forEach((block, index) => {
-    const fallback = block?.anyExotic ? EXOTIC_LANGUAGES : block?.anyStandard ? STANDARD_LANGUAGES : ALL_LANGUAGES;
+    const fallback = block?.anyExotic ? EXOTIC_LANGUAGES : STANDARD_LANGUAGES;
     const spec = choiceFromChoose(`bg_language_${index}`, 'Background Language', 'language_choice', block, fallback);
     if (spec) specs.push(spec);
   });

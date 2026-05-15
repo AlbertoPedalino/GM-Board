@@ -572,6 +572,8 @@ export function collectAllProficiencies(C) {
     });
   });
 
+  langSet.add('Common');
+
   const sections = [];
   if (armorSet.size) sections.push({ title: 'Armor', items: Array.from(armorSet) });
   if (weaponSet.size) sections.push({ title: 'Weapons', items: Array.from(weaponSet) });
