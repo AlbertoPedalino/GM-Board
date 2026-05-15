@@ -147,14 +147,6 @@ registerClassAdapter("Rogue", function (cls, lv, specs, ctx = {}) {
       count: 2,
       level: 1
     });
-    specs.push({
-      key: 'rogue_thieves_cant_lang',
-      label: "Bonus Language (Thieves' Cant)",
-      type: 'language_choice',
-      from: _STD_LANGS || [],
-      count: 1,
-      level: 1
-    });
   }
   if (lv >= 6) {
     specs.push({

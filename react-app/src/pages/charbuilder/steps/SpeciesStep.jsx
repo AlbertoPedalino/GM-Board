@@ -2,10 +2,9 @@ import { Chip, Stack, Typography } from '@mui/material';
 import { Sparkles } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
-import { FeatCategorySlot } from '../components/FeatSlots.jsx';
+import { FeatCategorySlot, ExpandableDescription } from '../components/FeatSlots.jsx';
 import SearchList from '../components/SearchList.jsx';
 import { speciesChoiceSpecs } from '../logic/choiceSpecs.js';
-import { renderEntryText } from '../logic/text.js';
 
 export default function SpeciesStep({ state, dispatch }) {
   const { character, search } = state;
@@ -30,11 +29,7 @@ export default function SpeciesStep({ state, dispatch }) {
               ))}
                 {item.speed ? <Chip size="small" label={`Speed ${typeof item.speed === 'number' ? item.speed : item.speed.walk || 30}`} /> : null}
               </Stack>
-              {item.entries ? (
-                <Typography variant="body2" color="text.secondary">
-                  {renderEntryText(item.entries).slice(0, 180)}
-                </Typography>
-              ) : null}
+              {item.entries ? <ExpandableDescription entries={item.entries} initialClamp={2} /> : null}
             </Stack>
           )}
         />

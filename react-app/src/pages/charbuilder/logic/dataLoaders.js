@@ -55,10 +55,27 @@ export async function loadSpecies() {
 }
 
 export async function loadBackgrounds() {
-  const data = await getJson('backgrounds.json');
-  return (data.background || [])
-    .filter((background) => ALLOWED_SOURCES.includes(background.source))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const [data, fluffData] = await Promise.allSettled([
+    getJson('backgrounds.json'),
+    getJson('fluff-backgrounds.json'),
+  ]);
+  const backgrounds = (data.status === 'fulfilled' ? (data.value.background || []) : [])
+    .filter((background) => ALLOWED_SOURCES.includes(background.source));
+  if (fluffData.status === 'fulfilled') {
+    const fluffIndex = {};
+    (fluffData.value.backgroundFluff || []).forEach((entry) => {
+      const key = `${entry.name}_${entry.source}`;
+      if (entry.entries?.length) {
+        const first = entry.entries[0];
+        fluffIndex[key] = typeof first === 'string' ? first : (first?.entries?.[0] || '');
+      }
+    });
+    backgrounds.forEach((bg) => {
+      const key = `${bg.name}_${bg.source}`;
+      if (fluffIndex[key]) bg._lore = fluffIndex[key];
+    });
+  }
+  return backgrounds.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function loadFeats() {

@@ -1,33 +1,13 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Card, CardContent, Chip, Divider, Grid, Paper, Stack, Typography } from '@mui/material';
-import { ChevronDown, Feather, Languages, Layers, Shield, Sparkles, Sword, Wand2, Hammer, Axe, Music, Cross, Dumbbell, Compass, Eye, Flame, BookOpen } from 'lucide-react';
+import { ChevronDown, Feather, Languages, Layers, Shield, Sparkles, Sword } from 'lucide-react';
 import { STAT_LABELS, STATS } from '../constants.js';
-import IconColorPicker from '../../../shared/character/IconColorPicker.jsx';
-
-const CLASS_ICONS = {
-  Artificer: Hammer,
-  Barbarian: Axe,
-  Bard: Music,
-  Cleric: Cross,
-  Druid: Feather,
-  Fighter: Sword,
-  Monk: Dumbbell,
-  Paladin: Shield,
-  Ranger: Compass,
-  Rogue: Eye,
-  Sorcerer: Sparkles,
-  Warlock: Flame,
-  Wizard: BookOpen,
-};
-
-function classIcon(className) {
-  return CLASS_ICONS[className] || Wand2;
-}
 import { calcMaxHp, formatMod, getAllFinalScores, getPrimaryClassLevel } from '../logic/calculations.js';
 import { installedRegistry } from '../../../adapters/index.js';
 import { collectAllProficiencies } from '../../charsheet/logic/proficiencies.js';
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
 import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/proficiencyDisplay.js';
+import { ExpandableDescription } from './FeatSlots.jsx';
 import {
   parseTypedProficiencyValue,
   extractFixedProficiencyLabels,
@@ -44,6 +24,122 @@ const SOURCE_COLOR = {
 };
 
 const darkChipText = '#17120d';
+
+
+const PANEL_SX = {
+  p: 1.25,
+  position: { md: 'sticky' },
+  top: 64,
+  maxHeight: { md: 'calc(100vh - 76px)' },
+  overflow: 'auto',
+  minWidth: 0,
+  borderColor: 'rgba(237, 212, 138, 0.22)',
+  bgcolor: 'rgba(17, 16, 14, 0.72)',
+};
+
+const SECTION_CARD_SX = {
+  minWidth: 0,
+  borderColor: 'rgba(237, 212, 138, 0.18)',
+  bgcolor: 'rgba(255, 255, 255, 0.025)',
+  backgroundImage: 'none',
+};
+
+const SECTION_HEADER_SX = {
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  fontSize: '0.66rem',
+  fontWeight: 800,
+  lineHeight: 1.2,
+};
+
+function EmptyCaption({ children }) {
+  return (
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.72rem', lineHeight: 1.45 }}>
+      {children}
+    </Typography>
+  );
+}
+
+function PreviewSection({ icon: Icon, title, subtitle, tone = '#edd48a', children, emptyText }) {
+  const hasContent = Boolean(children);
+  return (
+    <Card variant="outlined" sx={SECTION_CARD_SX}>
+      <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+        <Stack spacing={0.85} sx={{ minWidth: 0 }}>
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+            {Icon ? <Icon size={15} color={tone} /> : null}
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ ...SECTION_HEADER_SX, color: tone }} noWrap>
+                {title}
+              </Typography>
+              {subtitle ? (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.68rem', lineHeight: 1.2 }} noWrap>
+                  {subtitle}
+                </Typography>
+              ) : null}
+            </Box>
+          </Stack>
+          {hasContent ? children : emptyText ? <EmptyCaption>{emptyText}</EmptyCaption> : null}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PreviewHeader({ character, hp }) {
+  const subtitle = [
+    `Lv ${character.level || 1}`,
+    character.speciesName,
+    character.className,
+  ].filter(Boolean).join(' ');
+
+  return (
+    <Card variant="outlined" sx={{ ...SECTION_CARD_SX, borderColor: 'rgba(237, 212, 138, 0.32)' }}>
+      <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+        <Stack spacing={0.4} sx={{ minWidth: 0 }}>
+          <Typography sx={{ ...SECTION_HEADER_SX, color: 'primary.main' }}>Preview</Typography>
+          <Typography
+            variant="h2"
+            noWrap
+            sx={{ color: '#edd48a', fontSize: '1.15rem', lineHeight: 1.15, fontWeight: 800 }}
+          >
+            {character.name || 'Unnamed Character'}
+          </Typography>
+          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap alignItems="center">
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', lineHeight: 1.2 }}>
+              {subtitle || 'No class selected'}
+            </Typography>
+            <Chip size="small" label={`${hp || '-'} HP`} sx={{ ...filledChipSx('#edd48a'), height: 19, fontSize: '0.62rem' }} />
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AbilityScoreGrid({ scores }) {
+  return (
+    <Grid container spacing={0.6}>
+      {STATS.map((stat) => (
+        <Grid key={stat} item xs={4}>
+          <Card variant="outlined" sx={{ textAlign: 'center', ...SECTION_CARD_SX }}>
+            <CardContent sx={{ p: 0.65, '&:last-child': { pb: 0.65 } }}>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.61rem', fontWeight: 700, letterSpacing: '0.04em' }}>
+                {STAT_LABELS[stat]}
+              </Typography>
+              <Typography variant="h2" sx={{ fontSize: '1rem', lineHeight: 1.15, color: 'text.primary' }}>
+                {scores[stat] ?? '-'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.68rem' }}>
+                {formatMod(scores[stat])}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );
+}
 
 function filledChipSx(bg) {
   return {
@@ -333,7 +429,13 @@ function collectPreviewProficiencies(character) {
   });
 
   collectPreviewEffectProficiencySections(sheetLike).forEach((section) => {
-    mergePreviewSection(sections, section.title, section.items);
+    if (section.title === 'Armor Training') {
+      mergePreviewSection(sections, 'Armor', section.items);
+    } else if (section.title === 'Weapon Training') {
+      mergePreviewSection(sections, 'Weapons', section.items);
+    } else {
+      mergePreviewSection(sections, section.title, section.items);
+    }
   });
 
   const skillItems = collectSkillProficiencies(character);
@@ -346,92 +448,98 @@ function AcFormulasSection({ character }) {
   const formulas = collectAcFormulas(character);
   if (!formulas.length) return null;
   return (
-    <Stack spacing={0.5} sx={{ minWidth: 0 }}>
-      <Stack direction="row" spacing={0.75} alignItems="center">
-        <Shield size={16} color={SOURCE_COLOR.class} />
-        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.class }}>
-          Armor Class
-        </Typography>
+    <PreviewSection icon={Shield} title="Defense" subtitle="Armor Class formulas" tone={SOURCE_COLOR.class}>
+      <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+        {formulas.map((f) => {
+          const val = computeAcFormulaValue(character, f);
+          const abils = (f.abilities || []).map((a) => a.toUpperCase());
+          const hasArmor = !!getEquippedArmor(character, []);
+          const blocked = (f.requiresNoArmor && hasArmor) ? 'Blocked: wearing armor' : '';
+          return (
+            <Box key={f.key} sx={{ minWidth: 0 }}>
+              <Typography variant="body2" sx={{ color: 'text.primary', fontSize: '0.78rem', fontWeight: 700, lineHeight: 1.25 }}>
+                {f.label}: {val}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', lineHeight: 1.35 }}>
+                {f.base} + {abils.join(' + ')}{blocked ? ` — ${blocked}` : ''}
+              </Typography>
+            </Box>
+          );
+        })}
       </Stack>
-      {formulas.map((f) => {
-        const val = computeAcFormulaValue(character, f);
-        const abils = (f.abilities || []).map((a) => a.toUpperCase());
-        const hasArmor = !!getEquippedArmor(character, []);
-        const blocked = (f.requiresNoArmor && hasArmor) ? ' (blocked: wearing armor)' : '';
-        return (
-          <Typography key={f.key} variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-            {f.label}: {f.base} + {abils.join(' + ')} = {val}{blocked}
-          </Typography>
-        );
-      })}
-    </Stack>
+    </PreviewSection>
   );
 }
 
 function ProficiencySection({ sections }) {
   if (!sections.length) return null;
   return (
-    <Stack spacing={1} sx={{ minWidth: 0 }}>
-      <Stack direction="row" spacing={0.75} alignItems="center">
-        <Languages size={16} color={SOURCE_COLOR.subclass} />
-        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.subclass }}>
-          Proficiencies / Languages
-        </Typography>
-      </Stack>
-      {sections.map((section) => (
-        <Box key={section.title} sx={{ minWidth: 0 }}>
-          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 700 }}>
-            {section.title}
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5, width: '100%', minWidth: 0, maxWidth: '100%', overflowX: 'hidden' }}>
-            {section.items.map((item) => (
-              <Chip
-                key={`${section.title}-${item}`}
-                size="small"
-                variant="outlined"
-                label={item}
-                sx={{
-                  ...outlinedChipSx(section.title === 'Languages' ? SOURCE_COLOR.subclass : '#edd48a'),
-                  flex: '0 1 auto',
-                  minWidth: 0,
-                  height: 21,
-                  maxWidth: '100%',
-                  '& .MuiChip-label': {
-                    color: section.title === 'Languages' ? SOURCE_COLOR.subclass : '#edd48a',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    fontSize: '0.62rem',
-                    fontWeight: 700,
-                  },
-                }}
-              />
-            ))}
+    <PreviewSection icon={Languages} title="Proficiencies" subtitle="Skills, equipment, languages" tone={SOURCE_COLOR.subclass}>
+      <Stack spacing={0.85} sx={{ minWidth: 0 }}>
+        {sections.map((section) => (
+          <Box key={section.title} sx={{ minWidth: 0 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                color: 'text.secondary',
+                fontSize: '0.64rem',
+                fontWeight: 800,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {section.title}
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.45, mt: 0.45, width: '100%', minWidth: 0, maxWidth: '100%', overflowX: 'hidden' }}>
+              {section.items.map((item) => (
+                <Chip
+                  key={`${section.title}-${item}`}
+                  size="small"
+                  variant="outlined"
+                  label={item}
+                  sx={{
+                    ...outlinedChipSx(section.title === 'Languages' ? SOURCE_COLOR.subclass : '#edd48a'),
+                    flex: '0 1 auto',
+                    minWidth: 0,
+                    height: 20,
+                    maxWidth: '100%',
+                    '& .MuiChip-label': {
+                      color: section.title === 'Languages' ? SOURCE_COLOR.subclass : '#edd48a',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontSize: '0.61rem',
+                      fontWeight: 700,
+                    },
+                  }}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
-      ))}
-    </Stack>
+        ))}
+      </Stack>
+    </PreviewSection>
   );
 }
 
 function WeaponMasterySection({ items }) {
   if (!items.length) return null;
   return (
-    <Stack spacing={1} sx={{ minWidth: 0 }}>
-      <Stack direction="row" spacing={0.75} alignItems="center">
-        <Sword size={16} color={SOURCE_COLOR.class} />
-        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.class }}>
-          Weapon Masteries
-        </Typography>
-      </Stack>
-      <Box component="ul" sx={{ m: 0, pl: 2.25, color: 'text.secondary' }}>
+    <PreviewSection icon={Sword} title="Weapon Masteries" subtitle="Resolved from selected weapons" tone={SOURCE_COLOR.class}>
+      <Box component="ul" sx={{ m: 0, pl: 2.1, color: 'text.secondary' }}>
         {items.map((item) => (
-          <Typography key={`${item.weaponName}-${item.mastery || 'none'}`} component="li" variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography
+            key={`${item.weaponName}-${item.mastery || 'none'}`}
+            component="li"
+            variant="caption"
+            sx={{ color: 'text.secondary', fontSize: '0.72rem', lineHeight: 1.45 }}
+          >
             {item.mastery ? `${item.weaponName} — ${item.mastery}` : item.weaponName}
           </Typography>
         ))}
       </Box>
-    </Stack>
+    </PreviewSection>
   );
 }
 
@@ -439,7 +547,7 @@ function normName(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-function ClassSection({ icon: Icon, title, classFeatures, subFeatures, subclassName, level, runtimeActions, runtimeResources, choiceCards }) {
+function ClassSection({ icon: Icon, title, subtitle, classFeatures, subFeatures, subclassName, level, runtimeActions, runtimeResources, choiceCards }) {
   const valid = classFeatures.filter((feature) => !feature?.isReprinted && (feature.level || 0) <= level);
   const validSub = subFeatures.filter((feature) => !feature?.isReprinted && (feature.level || 0) <= level && feature.subclassShortName === subclassName);
   const runtimeByName = new Map();
@@ -474,23 +582,41 @@ function ClassSection({ icon: Icon, title, classFeatures, subFeatures, subclassN
     byLevel[lv].s.push({ feature, runtimeChips: enrich(feature) });
   });
   const levels = Object.keys(byLevel).map(Number).sort((a, b) => a - b);
+  const hasContent = levels.length || choiceCards?.length;
 
   return (
-    <Stack spacing={1} sx={{ minWidth: 0 }}>
-      <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap>
-        {Icon ? <Icon size={16} color={SOURCE_COLOR.class} /> : null}
-        <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.class }}>{title}</Typography>
-      </Stack>
-      {levels.map((lv) => (
-        <LevelGroup
-          key={`lvg-${lv}`}
-          level={lv}
-          classFeatures={byLevel[lv].c}
-          subFeatures={byLevel[lv].s}
-        />
-      ))}
-      {choiceCards}
-    </Stack>
+    <PreviewSection icon={Icon} title={title} subtitle={subtitle} tone={SOURCE_COLOR.class} emptyText="No class features yet.">
+      {hasContent ? (
+        <Stack spacing={0.85} sx={{ minWidth: 0 }}>
+          {levels.map((lv) => (
+            <LevelGroup
+              key={`lvg-${lv}`}
+              level={lv}
+              classFeatures={byLevel[lv].c}
+              subFeatures={byLevel[lv].s}
+            />
+          ))}
+          {choiceCards?.length ? (
+            <Stack spacing={0.55} sx={{ minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  color: 'text.secondary',
+                  fontSize: '0.64rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Selected Choices
+              </Typography>
+              {choiceCards}
+            </Stack>
+          ) : null}
+        </Stack>
+      ) : null}
+    </PreviewSection>
   );
 }
 
@@ -548,88 +674,46 @@ function ChoiceCard({ entry, source }) {
   );
 }
 
-function PreviewPaneImpl({ character, items = [], onUpdate }) {
-  const [colorAnchor, setColorAnchor] = useState(null);
+function PreviewPaneImpl({ character, items = [], adaptersVersion = 0 }) {
   const scores = getAllFinalScores(character);
   const hp = calcMaxHp(character);
   const primaryLv = getPrimaryClassLevel(character);
-  const proficiencySections = collectAllProficiencies(character);
-  const weaponMasteries = collectResolvedWeaponMasteries(character, items).map((entry) => entry.weaponName);
-  const classActions = character.className
-    ? installedRegistry.getClassSheetActions(character.className)
-    : [];
-  const classResources = character.className
-    ? installedRegistry.getClassSheetResources(character.className)
-    : [];
+  const partitioned = partitionChoices(character.choices);
+  const proficiencySections = collectPreviewProficiencies(character);
+  const weaponMasteries = collectResolvedWeaponMasteries(character, items);
+
+  const classActions = installedRegistry
+    .getClassSheetActions(character.className)
+    .filter((action) => !action.minLevel || primaryLv >= Number(action.minLevel));
+  const classResources = installedRegistry
+    .getClassSheetResources(character.className)
+    .filter((resource) => !resource.minLevel || primaryLv >= Number(resource.minLevel));
   const subclassActions = character.subclassShortName
     ? installedRegistry.getSubclassSheetActions(character.className, character.subclassShortName)
+      .filter((action) => !action.minLevel || primaryLv >= Number(action.minLevel))
+      .map((action) => ({ ...action, fromSubclass: true }))
     : [];
   const subclassResources = character.subclassShortName
     ? installedRegistry.getSubclassSheetResources(character.className, character.subclassShortName)
       .filter((resource) => !resource.minLevel || primaryLv >= Number(resource.minLevel))
     : [];
 
-  const speciesActions = character.speciesName
-    ? installedRegistry.getSpeciesSheetActions(character.speciesName, character.speciesSource)
-    : [];
-  const partitioned = partitionChoices(character.choices);
-
   return (
-    <Paper variant="outlined" sx={{ p: 1, position: { md: 'sticky' }, top: 64, maxHeight: { md: 'calc(100vh - 76px)' }, overflow: 'auto', minWidth: 0 }}>
+    <Paper variant="outlined" sx={PANEL_SX}>
       <Stack spacing={1} sx={{ minWidth: 0 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Box
-            onClick={(e) => setColorAnchor(e.currentTarget)}
-            sx={{
-              width: 36, height: 36, borderRadius: '50%', border: 2, borderColor: 'divider', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              bgcolor: character.classIconColor || 'rgba(46,42,34,1)',
-              transition: 'border-color 0.15s',
-              '&:hover': { borderColor: '#caa550' },
-            }}
-          >
-            {(() => { const I = classIcon(character.className); return <I size={18} />; })()}
-          </Box>
-          <IconColorPicker
-            anchorEl={colorAnchor}
-            onClose={() => setColorAnchor(null)}
-            currentColor={character.classIconColor}
-            onSelect={(color) => onUpdate?.('classIconColor', color)}
-          />
-          <Stack spacing={0.25}>
-            <Typography variant="h2" sx={{ color: 'primary.main', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Preview</Typography>
-            <Typography variant="h1" noWrap sx={{ color: '#edd48a' }}>{character.name || 'Unnamed Character'}</Typography>
-            <Typography variant="body2" color="text.secondary" noWrap sx={{ fontSize: '0.66rem' }}>
-              Lv {character.level} {character.speciesName} {character.className} - {hp || '-'} HP
-            </Typography>
-          </Stack>
-        </Stack>
+        <PreviewHeader character={character} hp={hp} />
 
-        <Grid container spacing={0.55}>
-          {STATS.map((stat) => (
-            <Grid key={stat} item xs={4}>
-              <Card variant="outlined" sx={{ textAlign: 'center' }}>
-                <CardContent sx={{ p: 0.55, '&:last-child': { pb: 0.55 } }}>
-                  <Typography variant="caption" color="text.secondary" display="block">{STAT_LABELS[stat]}</Typography>
-                  <Typography variant="h2">{scores[stat] ?? '-'}</Typography>
-                  <Typography variant="caption" color="text.secondary" display="block">{formatMod(scores[stat])}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <AbilityScoreGrid scores={scores} />
 
         <AcFormulasSection character={character} />
-        <Divider />
         <ProficiencySection sections={proficiencySections} />
-        {proficiencySections.length ? <Divider /> : null}
         <WeaponMasterySection items={weaponMasteries} />
-        {weaponMasteries.length ? <Divider /> : null}
 
         {character.cls ? (
           <ClassSection
             icon={Sword}
-            title={`${character.className} ${primaryLv}${character.subclassShortName ? ` - ${character.subclassShortName}` : ''}`}
+            title={character.className || 'Class'}
+            subtitle={`Level ${primaryLv}${character.subclassShortName ? ` • ${character.subclassShortName}` : ''}`}
             classFeatures={character.allFeatures || []}
             subFeatures={character.allSubFeatures || []}
             subclassName={character.subclassShortName}
@@ -659,10 +743,10 @@ function PreviewPaneImpl({ character, items = [], onUpdate }) {
           const ecChoices = partitioned.multiclass[index] || [];
           return (
             <Box key={`${extra.name}-${index}`} sx={{ minWidth: 0 }}>
-              <Divider sx={{ mb: 1 }} />
               <ClassSection
                 icon={Shield}
-                title={`MC ${index + 1} - ${extra.name} ${ecLv}${extra.subclassShortName ? ` - ${extra.subclassShortName}` : ''}`}
+                title={`Multiclass ${index + 1}: ${extra.name}`}
+                subtitle={`Level ${ecLv}${extra.subclassShortName ? ` • ${extra.subclassShortName}` : ''}`}
                 classFeatures={extra.allFeatures || []}
                 subFeatures={extra.allSubFeatures || []}
                 subclassName={extra.subclassShortName}
@@ -675,62 +759,48 @@ function PreviewPaneImpl({ character, items = [], onUpdate }) {
           );
         })}
 
-        <Divider />
-
-        <Stack spacing={1} sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={0.75} alignItems="center">
-            <Sparkles size={16} color={SOURCE_COLOR.species} />
-            <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.species }}>
-              Species - {character.speciesName || '?'}
-            </Typography>
+        <PreviewSection
+          icon={Sparkles}
+          title="Species"
+          subtitle={character.speciesName || 'Not selected'}
+          tone={SOURCE_COLOR.species}
+          emptyText="No species abilities yet."
+        >
+          <Stack spacing={0.6} sx={{ minWidth: 0 }}>
+            {(() => {
+              const s = character.speciesObj || character.speciesSnapshot;
+              return s?.entries?.length ? <ExpandableDescription entries={s.entries} initialClamp={2} /> : null;
+            })()}
+            {partitioned.species.map((entry) => (
+              <ChoiceCard key={entry.key} entry={entry} source="species" />
+            ))}
           </Stack>
-          {speciesActions.map((action) => (
-            <FeatureCard
-              key={action.name}
-              name={action.name}
-              level={action.minLevel || null}
-              source="species"
-              sublabel={action.cat}
-              body={action.desc}
-            />
-          ))}
-          {partitioned.species.map((entry) => (
-            <ChoiceCard key={entry.key} entry={entry} source="species" />
-          ))}
-          {!speciesActions.length && !partitioned.species.length ? (
-            <Typography variant="caption" color="text.secondary">No species abilities yet.</Typography>
-          ) : null}
-        </Stack>
+        </PreviewSection>
 
-        <Divider />
-        <Stack spacing={1} sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={0.75} alignItems="center">
-            <Feather size={16} color={SOURCE_COLOR.background} />
-            <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.background }}>
-              Background - {character.backgroundName || '?'}
-            </Typography>
-          </Stack>
-          {partitioned.background.map((entry) => (
-            <ChoiceCard key={entry.key} entry={entry} source="background" />
-          ))}
-          {!partitioned.background.length ? (
-            <Typography variant="caption" color="text.secondary">No background choices yet.</Typography>
+        <PreviewSection
+          icon={Feather}
+          title="Background"
+          subtitle={character.backgroundName || 'Not selected'}
+          tone={SOURCE_COLOR.background}
+          emptyText="No background choices yet."
+        >
+          {partitioned.background.length ? (
+            <Stack spacing={0.6} sx={{ minWidth: 0 }}>
+              {partitioned.background.map((entry) => (
+                <ChoiceCard key={entry.key} entry={entry} source="background" />
+              ))}
+            </Stack>
           ) : null}
-        </Stack>
+        </PreviewSection>
 
         {partitioned.feat.length ? (
-          <>
-            <Divider />
-            <Stack spacing={1} sx={{ minWidth: 0 }}>
-              <Stack direction="row" spacing={0.75} alignItems="center">
-                <Layers size={16} color={SOURCE_COLOR.feat} />
-                <Typography variant="overline" sx={{ letterSpacing: 1, color: SOURCE_COLOR.feat }}>Feats</Typography>
-              </Stack>
+          <PreviewSection icon={Layers} title="Feats" tone={SOURCE_COLOR.feat}>
+            <Stack spacing={0.6} sx={{ minWidth: 0 }}>
               {partitioned.feat.map((entry) => (
                 <ChoiceCard key={entry.key} entry={entry} source="feat" />
               ))}
             </Stack>
-          </>
+          </PreviewSection>
         ) : null}
 
       </Stack>
@@ -738,4 +808,4 @@ function PreviewPaneImpl({ character, items = [], onUpdate }) {
   );
 }
 
-export default memo(PreviewPaneImpl, (prev, next) => prev.character === next.character && prev.items === next.items);
+export default memo(PreviewPaneImpl, (prev, next) => prev.character === next.character && prev.items === next.items && prev.adaptersVersion === next.adaptersVersion);

@@ -180,7 +180,8 @@ export function ExpandableDescription({ entries, initialClamp = 3, simpleText })
   }
   const arr = Array.isArray(entries) ? entries : (entries ? [entries] : []);
   const rendered = arr.flatMap((e, i) => renderEntryNode(e, `e${i}`)).filter(Boolean);
-  const isLong = rendered.length > initialClamp;
+  const totalText = renderEntryText(entries);
+  const isLong = rendered.length > initialClamp || totalText.length > 250;
   const visible = open ? rendered : rendered.slice(0, initialClamp);
   return (
     <Box sx={{ minWidth: 0 }}>

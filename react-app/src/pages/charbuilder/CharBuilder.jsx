@@ -278,10 +278,7 @@ export default function CharBuilder() {
           </Box>
 
           <Box sx={{ minWidth: 0 }}>
-            <PreviewPane character={state.character} items={state.data.items} onUpdate={(field, value) => {
-              dispatch({ type: 'field/set', field, value });
-              if (field === 'classIconColor') patchCharacterField(field, value);
-            }} />
+            <PreviewPane character={state.character} items={state.data.items} adaptersVersion={state.adaptersVersion} />
           </Box>
         </Box>
 
