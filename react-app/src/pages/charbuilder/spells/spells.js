@@ -1,6 +1,7 @@
 import { installedRegistry } from '../../../adapters/index.js';
 import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../constants.js';
-import { getFinalScore, getPrimaryClassLevel, statMod } from '../logic/calculations.js';
+import { getPrimaryClassLevel } from '../logic/calculations.js';
+import { getClassSpellLimits } from '../../../shared/character/spellProgression.js';
 
 export function normClassKey(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -180,15 +181,6 @@ export function collectAutoGrantedSpells(character, profile = getSpellcastingPro
   });
 }
 
-export function applyPreparedFormula(formula, abilityMod, level) {
-  if (!formula || typeof formula !== 'object') return null;
-  const divisor = Number(formula.levelDivisor || 1) || 1;
-  const rawLevel = Number(level || 1) / divisor;
-  const levelTerm = String(formula.levelRound || 'floor') === 'ceil' ? Math.ceil(rawLevel) : Math.floor(rawLevel);
-  const total = abilityMod + (formula.addLevel ? levelTerm : 0);
-  return Math.max(Number(formula.min || 0), total);
-}
-
 function normalizeCasterProgression(value) {
   const progression = String(value || '').toLowerCase();
   if (progression === '1/3' || progression === 'third') return 'third';
@@ -207,24 +199,7 @@ function slotsForProgression(progression, level) {
 export function getSpellCounts(character) {
   const level = getClassSpellLevel(character);
   const profile = getSpellcastingProfile(character);
-
-  const rawCantrips = character.cls?.cantripProgression;
-  const rawSpellsKnown = character.cls?.spellsKnownProgression;
-  const rawPrepared = character.cls?.preparedSpellsProgression;
-
-  const cantrips = profile.cantripKnown?.[level - 1] ?? profile.cantripProgression?.[level - 1] ?? rawCantrips?.[level - 1] ?? 0;
-
-  let prepared = profile.preparedSpellsProgression?.[level - 1] ?? rawPrepared?.[level - 1] ?? null;
-  const known = profile.spellsKnown?.[level - 1] ?? rawSpellsKnown?.[level - 1] ?? null;
-
-  if (profile.preparedFormula) {
-    const ability = profile.preparedFormula.ability || profile.ability || 'int';
-    prepared = applyPreparedFormula(profile.preparedFormula, statMod(getFinalScore(character, ability)), level) ?? prepared;
-  }
-
-  const spells = profile.preparedMode === 'known'
-    ? (known ?? prepared ?? 0)
-    : (prepared ?? known ?? 0);
+  const { cantrips, spells } = getClassSpellLimits(profile, level);
   return { cantrips, spells, profile };
 }
 

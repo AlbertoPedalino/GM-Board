@@ -4,6 +4,7 @@ import { renderEntries as renderSafeEntries } from './renderEntries.js';
 import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
 import { isRitualSpell } from '../../../shared/spellTags.js';
 import { warlockHasInvocation } from '../../../shared/character/warlockUtils.js';
+import { getClassSpellLimits } from '../../../shared/character/spellProgression.js';
 
 const _GENERIC_LABELS = new Set([
   'class', 'subclass', 'species', 'feat', 'feature', 'granted', 'auto',
@@ -656,8 +657,7 @@ export function getSpellLimits(C) {
     const level = clampLevel(entity.level);
     const profile = getSpellcastingProfile(entity);
     if (!hasSpellcastingProfile(profile)) return sum;
-    const cantrips = profile.cantripKnown?.[level - 1] ?? profile.cantripProgression?.[level - 1] ?? null;
-    const spells = profile.spellsKnown?.[level - 1] ?? profile.preparedSpellsProgression?.[level - 1] ?? null;
+    const { cantrips, spells } = getClassSpellLimits(profile, level);
     return {
       cantrips: addLimit(sum.cantrips, cantrips),
       spells: addLimit(sum.spells, spells),

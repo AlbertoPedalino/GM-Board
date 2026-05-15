@@ -282,8 +282,8 @@ function _knownWarlockInvocationChoices(C) {
 }
 
 // XPHB 2024 progression: total invocations per level [1,3,3,3,5,5,6,6,7,7,7,8,8,8,9,9,9,10,10,10]
-// Threshold when each invocation slot unlocks:
-const _INV_LEVELS = [1, 2, 2, 5, 5, 6, 7, 8, 9, 10];
+// Threshold when each invocation slot unlocks (slot 6 at lv7, slot 7 at lv9, slot 8 at lv12...):
+const _INV_LEVELS = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
 
 registerClassAdapter("Warlock", function (cls, lv, specs, adapterContext = {}) {
   var _charRef = _warlockAdapterCharacter(adapterContext);
@@ -828,9 +828,9 @@ if (typeof registerClassRuntimeConfig === 'function') {
 }
 
 // Register choice-to-level mappings for the builder's choice cleanup system.
-// XPHB 2024: invocation slots 1..10 unlock at warlock levels [1,2,2,5,5,6,7,8,9,10].
+// XPHB 2024: invocation slots 1..10 unlock at warlock levels [1,2,2,5,5,7,9,12,15,18].
 (function registerWarlockChoiceLevels() {
-  var invLevels = [1, 2, 2, 5, 5, 6, 7, 8, 9, 10];
+  var invLevels = [1, 2, 2, 5, 5, 7, 9, 12, 15, 18];
   registerChoiceLevelMap({
     source: 'Warlock: invocations',
     test: function(key) { var m = String(key).match(/^warlock_invocation_(\d+)$/); return m ? Number(m[1]) : null; },

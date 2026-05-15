@@ -182,7 +182,6 @@ export default function install(registry, context = {}) {
       preparedMode: "prepared",
       cantripKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
       preparedSpellsProgression: _PREP_FULL,
-      preparedFormula: { ability: "wis", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
       ritualCasting: true,
       choiceSpellSources: {
         cleric_thaumaturge_cantrip: { label: "Divine Order (Thaumaturge)", ability: "wis" },
@@ -197,7 +196,6 @@ export default function install(registry, context = {}) {
       preparedMode: "prepared",
       cantripKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
       preparedSpellsProgression: _PREP_FULL,
-      preparedFormula: { ability: "wis", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
       ritualCasting: true,
       choiceSpellSources: {
         druid_magician_cantrip: { label: "Primal Order (Magician)", ability: "wis" },
@@ -218,7 +216,6 @@ export default function install(registry, context = {}) {
       casterProgression: "half",
       preparedMode: "prepared",
       preparedSpellsProgression: _PREP_HALF,
-      preparedFormula: { ability: "cha", addLevel: true, levelDivisor: 2, levelRound: "floor", min: 1 },
     },
   });
   regClass("Ranger", {
@@ -241,9 +238,8 @@ export default function install(registry, context = {}) {
     spellcasting: {
       ability: "cha",
       casterProgression: "full",
-      preparedMode: "known",
+      preparedMode: "prepared",
       cantripKnown: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-      spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
       preparedSpellsProgression: _PREP_SORCERER,
     },
   });
@@ -273,7 +269,6 @@ export default function install(registry, context = {}) {
       preparedMode: "prepared",
       cantripKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
       preparedSpellsProgression: _PREP_WIZARD,
-      preparedFormula: { ability: "int", addLevel: true, levelDivisor: 1, levelRound: "floor", min: 1 },
       ritualCasting: true,
       choiceSpellSources: {
         wizard_spell_mastery_l1: { label: "Spell Mastery (Lv.18)", ability: "int" },

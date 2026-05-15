@@ -17,7 +17,7 @@ import { Plus, Search, X } from 'lucide-react';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
 import { SCHOOL_LABELS, SLBL, getFinal, getMod, getPB } from '../logic/calculations.js';
 import { loadSpells } from '../../charbuilder/logic/dataLoaders.js';
-import { applyPreparedFormula, spellMatchesClass } from '../../charbuilder/spells/spells.js';
+import { spellMatchesClass } from '../../charbuilder/spells/spells.js';
 import { installedRegistry, loadClassAdapters, loadCoreAdapters, loadSpellsAdapters } from '../../../adapters/index.js';
 import { setStorageJson } from '../../../shared/storage.js';
 import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
@@ -39,6 +39,7 @@ import {
   toSnapshot,
   upsertSnapshot,
 } from '../logic/spellsTabLogic.js';
+import { getClassSpellLimits } from '../../../shared/character/spellProgression.js';
 import { getPactMagicInfo, getSpellCastMode } from '../../../shared/character/pactMagic.js';
 import {
   addButtonSx,
@@ -593,16 +594,7 @@ function getBucketCounts(bucket) {
 function getPickerLimits(C, picker) {
   const level = Math.max(1, Math.min(20, Number(picker?.level || 1)));
   const profile = picker?.profile || getSpellcastingProfile(picker);
-  const snapshot = picker?.snapshot || {};
-  let cantrips = snapshot.cantripProgression?.[level - 1] ?? profile.cantripKnown?.[level - 1] ?? profile.cantripProgression?.[level - 1] ?? null;
-  let spells = snapshot.preparedSpellsProgression?.[level - 1]
-    ?? profile.preparedSpellsProgression?.[level - 1]
-    ?? profile.spellsKnown?.[level - 1]
-    ?? null;
-  if (spells == null && profile.preparedFormula) {
-    const ability = String(profile.preparedFormula.ability || profile.ability || 'int').toLowerCase();
-    spells = applyPreparedFormula(profile.preparedFormula, getMod(getFinal(C, ability)), level);
-  }
+  const { cantrips, spells } = getClassSpellLimits(profile, level);
   return {
     cantrips: normalizeLimit(cantrips),
     spells: normalizeLimit(spells),
