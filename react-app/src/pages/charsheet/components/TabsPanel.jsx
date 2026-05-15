@@ -27,7 +27,7 @@ export default function TabsPanel({
         {tab === 1 && <SpellsTab C={C} sheet={sheet} resources={resources} setResources={setResources} onUpdateSpells={onUpdateSpells} onShowToast={onShowToast} onUpdateSheet={onUpdateSheet} />}
         {tab === 2 && <InventoryTab C={C} sheet={sheet} onUpdateInventory={onUpdateInventory} onUpdateCurrency={onUpdateCurrency} />}
         {tab === 3 && <FeaturesTab C={C} />}
-        {tab === 4 && <NotesTab sheet={sheet} />}
+        {tab === 4 && <NotesTab sheet={sheet} onUpdateSheet={onUpdateSheet} />}
       </Box>
     </Paper>
   );

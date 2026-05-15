@@ -46,7 +46,9 @@ export function loadSheetState(C) {
 
   const xpStored = parseInt(getStorageItem('5e_xp', C.xp || 0));
 
-  const notes = getStorageItem('5e_notes', '');
+  const notesRaw = getStorageItem('5e_notes', '');
+  let notes;
+  try { notes = JSON.parse(notesRaw); } catch { notes = notesRaw; }
 
   return {
     currentHP, maxHP, maxHPBonus, tempHP, deathSaves, usedHD, usedHDPools, spellSlotUsed, createdSpellSlots,
