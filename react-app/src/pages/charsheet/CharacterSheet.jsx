@@ -120,11 +120,9 @@ export default function CharacterSheet() {
   }, [updateCurrentCharacter]);
 
   const openShortRest = useCallback(() => {
-    const pools = getHitDicePools(C, sheet.usedHDPools, sheet.usedHD);
-    const firstAvailable = pools.find((pool) => pool.remaining > 0);
-    setHdToSpend(firstAvailable ? { [firstAvailable.key]: 1 } : {});
+    setHdToSpend({});
     setShortRestOpen(true);
-  }, [C, sheet]);
+  }, []);
 
   const confirmShortRest = useCallback(() => {
     const s = { ...sheet };
@@ -137,6 +135,7 @@ export default function CharacterSheet() {
     const rolls = [];
     pools.forEach((pool) => {
       const n = Math.max(0, Math.min(Number(hdToSpend[pool.key] || 0), pool.remaining));
+      if (!n) return;
       spendByPool[pool.key] = n;
       for (let i = 0; i < n; i++) {
         const v = Math.floor(Math.random() * pool.faces) + 1;
@@ -146,16 +145,18 @@ export default function CharacterSheet() {
     });
     const totalSpent = getUsedHitDiceTotal(spendByPool);
 
-    s.currentHP = Math.min(s.maxHP, s.currentHP + totalHeal);
-    const nextUsedPools = {};
-    pools.forEach((pool) => {
-      nextUsedPools[pool.key] = pool.used + (spendByPool[pool.key] || 0);
-    });
-    s.usedHDPools = nextUsedPools;
-    s.usedHD = getUsedHitDiceTotal(nextUsedPools);
-    saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
-    setStorageItem('5e_hd_used', s.usedHD);
-    setStorageJson('5e_hd_used_pools', s.usedHDPools);
+    if (totalSpent > 0) {
+      s.currentHP = Math.min(s.maxHP, s.currentHP + totalHeal);
+      const nextUsedPools = {};
+      pools.forEach((pool) => {
+        nextUsedPools[pool.key] = pool.used + (spendByPool[pool.key] || 0);
+      });
+      s.usedHDPools = nextUsedPools;
+      s.usedHD = getUsedHitDiceTotal(nextUsedPools);
+      saveHPState(s.currentHP, s.tempHP, s.maxHPBonus);
+      setStorageItem('5e_hd_used', s.usedHD);
+      setStorageJson('5e_hd_used_pools', s.usedHDPools);
+    }
 
     if (C) {
       res = applyResourceRest(res, getAllResourceDefs(C), C, 'short');
@@ -165,7 +166,10 @@ export default function CharacterSheet() {
 
     setSheet(s);
     setShortRestOpen(false);
-    showDiceToast('Short Rest', `Healed ${totalHeal} HP (${totalSpent} HD spent)`, totalHeal, rolls);
+    const msg = totalSpent > 0
+      ? `Healed ${totalHeal} HP (${totalSpent} HD spent)`
+      : 'Short Rest complete (no Hit Dice spent).';
+    showDiceToast('Short Rest', msg, totalHeal, rolls);
   }, [sheet, resources, C, hdToSpend]);
 
   const openLongRest = useCallback(() => {
@@ -477,7 +481,7 @@ export default function CharacterSheet() {
         <DialogTitle sx={sheetDialogTitleSx}>Short Rest</DialogTitle>
         <DialogContent sx={sheetDialogContentSx}>
           <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mb: 2 }}>
-            Spend Hit Dice by class to recover HP. Each die adds CON mod ({conMod}).
+            Optionally spend Hit Dice to recover HP. Each die adds CON mod ({conMod}). Resources that recharge on a Short Rest will still recover even if you spend no Hit Dice.
           </Typography>
           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mb: 1 }}>
             Available: {totalHitDiceRemaining} HD
@@ -514,12 +518,12 @@ export default function CharacterSheet() {
             })}
           </Stack>
           <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', textAlign: 'center', mt: 1.25 }}>
-            Spending {totalHitDiceToSpend} HD
+            {totalHitDiceToSpend > 0 ? `Spending ${totalHitDiceToSpend} HD` : 'No Hit Dice will be spent'}
           </Typography>
         </DialogContent>
         <DialogActions sx={sheetDialogActionsSx}>
           <Button onClick={() => setShortRestOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
-          <Button variant="contained" onClick={confirmShortRest} disabled={totalHitDiceToSpend === 0}>
+          <Button variant="contained" onClick={confirmShortRest}>
             Take Short Rest
           </Button>
         </DialogActions>

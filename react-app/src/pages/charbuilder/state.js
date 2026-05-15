@@ -249,25 +249,20 @@ export function builderReducer(state, action) {
     case 'class-tab/set':
       return updateCharacter(state, { activeClassTab: action.tab });
     case 'multiclass/add': {
-      const classObject = action.classObject || state.data.classes.find((cls) => cls.name !== state.character.className) || state.data.classes[0] || null;
-      if (!classObject) return state;
-      const subclasses = state.data.subclasses.filter((subclass) => subclass.className === classObject.name && (subclass.classSource === classObject.source || !subclass.classSource));
-      const allFeatures = state.data.classFeatures.filter((feature) => feature.className === classObject.name && (feature.classSource === classObject.source || !feature.classSource));
-      const allSubFeatures = state.data.subclassFeatures.filter((feature) => feature.className === classObject.name && (feature.classSource === classObject.source || !feature.classSource));
       const extraClasses = [
         ...state.character.extraClasses,
         {
-          name: classObject.name,
-          source: classObject.source,
+          name: '',
+          source: '',
           level: 1,
-          cls: classObject,
+          cls: null,
           subclassShortName: '',
-          subclasses,
-          allFeatures,
-          allSubFeatures,
+          subclasses: [],
+          allFeatures: [],
+          allSubFeatures: [],
         },
       ];
-      const total = (state.character.classLevel || 1) + extraClasses.reduce((sum, ec) => sum + (ec.level || 1), 0);
+      const total = (state.character.classLevel || 1) + extraClasses.filter((ec) => ec.name).reduce((sum, ec) => sum + (ec.level || 1), 0);
       return updateCharacter(state, {
         activeClassTab: extraClasses.length,
         extraClasses,
@@ -365,7 +360,7 @@ export function builderReducer(state, action) {
       const extraClasses = state.character.extraClasses.map((extraClass, itemIndex) => (
         itemIndex === idx ? { ...extraClass, level: newLevel } : extraClass
       ));
-      const total = (state.character.classLevel || 1) + extraClasses.reduce((sum, ec) => sum + (ec.level || 1), 0);
+      const total = (state.character.classLevel || 1) + extraClasses.filter((ec) => ec.name).reduce((sum, ec) => sum + (ec.level || 1), 0);
       const prefix = `mc${idx}_`;
       const choices = { ...(state.character.choices || {}) };
       Object.keys(choices).forEach(function(key) {
