@@ -33,7 +33,19 @@ export async function loadClassIndex() {
     const data = entry.value;
     cache[file] = data;
     classes.push(...(data.class || []).filter((cls) => ALLOWED_SOURCES.includes(cls.source)));
-    subclasses.push(...(data.subclass || []).filter((subclass) => ALLOWED_SOURCES.includes(subclass.source)));
+    const allSubs = (data.subclass || []).filter(
+      (sub) => ALLOWED_SOURCES.includes(sub.source) || ALLOWED_SOURCES.includes(sub.classSource)
+    );
+    const subByKey = {};
+    allSubs.forEach((sub) => {
+      const key = `${sub.className}|${sub.classSource}|${sub.shortName}`;
+      const existing = subByKey[key];
+      if (!existing) { subByKey[key] = sub; return; }
+      const existingOK = ALLOWED_SOURCES.includes(existing.source);
+      const subOK = ALLOWED_SOURCES.includes(sub.source);
+      if (subOK && !existingOK) subByKey[key] = sub;
+    });
+    subclasses.push(...Object.values(subByKey));
     classFeatures.push(...(data.classFeature || []).filter((feature) => !feature.isReprinted));
     subclassFeatures.push(...(data.subclassFeature || []).filter((feature) => !feature.isReprinted));
   });

@@ -130,9 +130,9 @@ registerSubclassAdapter("Cleric_Light", function (cls, lv, specs) {
 // [SheetRuntime] START
 registerSubclassSheetActions("Cleric_Light", [
   { name: "Warding Flare", icon: "", cat: "reaction", uses: "WIS mod / LR", resKey: "warding_flare", minLevel: 3,
-    desc: "Reaction when a creature within 30 ft that you can see makes an attack roll: impose Disadvantage on that attack roll, causing light to flare. Uses = WIS modifier (min 1) per Long Rest." },
+    desc: "Reaction when you are attacked by a creature within 30 ft that you can see: impose Disadvantage on that attack roll, causing light to flare. A creature that can't be Blinded is immune. Uses = WIS modifier (min 1) per Long Rest." },
   { name: "Improved Warding Flare", icon: "", cat: "reaction", uses: "WIS mod / SR+LR", resKey: "warding_flare", minLevel: 6,
-    desc: "Warding Flare now recharges on Short or Long Rest. Additionally, when you use Warding Flare, the target of the triggering attack gains Temporary HP equal to 2d6 + your WIS modifier." },
+    desc: "Warding Flare now recharges on Short or Long Rest. Additionally, you can now use Warding Flare when a creature within 30 ft that you can see attacks a creature other than you." },
   { name: "Channel: Radiance of the Dawn", icon: "", cat: "action", uses: "1 Channel", resKey: "channel_div",
     damageFormula: ({ ownerLevel }) => {
       const lv = Number(ownerLevel || 1);
@@ -140,8 +140,8 @@ registerSubclassSheetActions("Cleric_Light", [
     },
     damageButtonLabel: ({ formula }) => `${formula} radiant`,
     desc: "Magic action: emit a flash of light in a 30-ft Emanation from yourself. Any magical Darkness in the area is dispelled. Each creature of your choice in the area must make a CON save or take 2d10 + Cleric level Radiant damage (half on success)." },
-  { name: "Corona of Light", icon: "", cat: "bonus", uses: "WIS mod / LR", resKey: "corona_light", minLevel: 17,
-    desc: "Magic action: emanate an aura of sunlight for 1 minute or until dismissed (no action required). Emit Bright Light in a 60-ft radius and Dim Light for an additional 30 ft. Enemies in the Bright Light have Disadvantage on saving throws against your Radiance of the Dawn and any spell that deals Fire or Radiant damage." },
+  { name: "Corona of Light", icon: "", cat: "action", uses: "WIS mod / LR", resKey: "corona_light", minLevel: 17,
+    desc: "Activate an aura of sunlight for 1 minute or until you dismiss it using another action. Emit Bright Light in a 60-ft radius and Dim Light for an additional 30 ft. Enemies in the Bright Light have Disadvantage on saving throws against any spell that deals Fire or Radiant damage." },
 ]);
 registerSubclassSheetResources("Cleric_Light", [
   { key: "warding_flare", name: "Warding Flare", icon: "sun", recharge: "SR", srMinLevel: 6,
@@ -171,8 +171,8 @@ if (typeof registerSubclassRuntimeConfig === "function") {
 registerSubclassSheetEffects("Cleric_Light", [
 
   { type: "reactionDefense", key: "warding_flare", minLevel: 3, note: "Warding Flare: impose Disadvantage on an attack within 30 ft." },
-  { type: "tempHp", minLevel: 6, note: "Improved Warding Flare: target gains 2d6 + WIS mod Temporary HP." },
-  { type: "aura", key: "corona_light", minLevel: 17, note: "Corona of Light: enemies in bright light have Disadvantage on saves against Radiance of the Dawn and Fire/Radiant spells." },
+  { type: "reactionDefense", key: "warding_flare", minLevel: 6, note: "Improved Warding Flare: can also protect allies." },
+  { type: "aura", key: "corona_light", minLevel: 17, note: "Corona of Light: enemies in bright light have Disadvantage on saves against Fire/Radiant spells." },
 ]);
 // [SheetRuntime] END
 

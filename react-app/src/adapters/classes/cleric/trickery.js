@@ -121,7 +121,7 @@ export default function install(registry, context = {}) {
   } = createAdapterBindings(registry, context);
 // Trickery Domain (XPHB): tutte le feature sono passive o azioni fisse, nessuna scelta di build.
 // L3: Blessing of the Trickster, Invoke Duplicity (CD)
-// L6: Trickster's Transposition
+// L6: Cloak of Shadows (CD)
 // L17: Improved Duplicity
 registerSubclassAdapter("Cleric_Trickery", function (cls, lv, specs) {
   // nessuna spec
@@ -129,14 +129,14 @@ registerSubclassAdapter("Cleric_Trickery", function (cls, lv, specs) {
 
 // [SheetRuntime] START
 registerSubclassSheetActions("Cleric_Trickery", [
-  { name: "Blessing of the Trickster", icon: "", cat: "action", uses: "Until LR or reuse", minLevel: 3,
-    desc: "Magic action: choose yourself or a willing creature within 30 ft to have Advantage on DEX (Stealth) checks. Lasts until you finish a Long Rest or use this feature again." },
-  { name: "Channel: Invoke Duplicity", icon: "", cat: "bonus", uses: "1 Channel / 1 min", resKey: "channel_div",
-    desc: "Bonus Action: expend one use of Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space within 30 ft (not Concentration). Lasts 1 minute or until dismissed or Incapacitated. Benefits while active — Cast Spells: cast spells as if in the illusion's space (use your own senses); Distract: when both you and the illusion are within 5 ft of a creature that can see the illusion, you have Advantage on attack rolls against it; Move: Bonus Action to move the illusion up to 30 ft (within 120 ft of you)." },
-  { name: "Trickster's Transposition", icon: "", cat: "bonus", uses: "With Invoke Duplicity", minLevel: 6,
-    desc: "Whenever you take the Bonus Action to create or move the illusion of Invoke Duplicity, you can teleport, swapping places with the illusion." },
+  { name: "Blessing of the Trickster", icon: "", cat: "action", uses: "1 hour or reuse", minLevel: 3,
+    desc: "Touch a willing creature other than yourself to give it Advantage on DEX (Stealth) checks. Lasts 1 hour or until you use this feature again." },
+  { name: "Channel: Invoke Duplicity", icon: "", cat: "bonus", uses: "1 Channel / 1 min (C)", resKey: "channel_div",
+    desc: "Bonus Action: expend one use of Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space within 30 ft. Requires Concentration (as if concentrating on a spell). Lasts 1 minute or until dismissed or Incapacitated. Benefits while active — Cast Spells: cast spells as if in the illusion's space (use your own senses); Distract: when both you and the illusion are within 5 ft of a creature that can see the illusion, you have Advantage on attack rolls against it; Move: Bonus Action to move the illusion up to 30 ft (within 120 ft of you)." },
+  { name: "Channel: Cloak of Shadows", icon: "", cat: "action", uses: "1 Channel", resKey: "channel_div", minLevel: 6,
+    desc: "As an action, expend one use of Channel Divinity to become Invisible until the end of your next turn. You become visible if you make an attack roll or cast a spell." },
   { name: "Improved Duplicity", icon: "", cat: "action", uses: "Passive", minLevel: 17,
-    desc: "Your Invoke Duplicity illusion gains two upgrades — Shared Distraction: you and your allies have Advantage on attack rolls against any creature within 5 ft of the illusion; Healing Illusion: when the illusion ends, you or one creature of your choice within 5 ft of it regains HP equal to your Cleric level." },
+    desc: "You can create up to four duplicates of yourself, instead of one, when you use Invoke Duplicity. As a Bonus Action on your turn, you can move any number of them up to 30 ft, to a maximum range of 120 ft." },
 ]);
 if (typeof registerSubclassRuntimeConfig === "function") {
   registerSubclassRuntimeConfig("Cleric_Trickery", {
@@ -160,8 +160,8 @@ if (typeof registerSubclassRuntimeConfig === "function") {
 registerSubclassSheetEffects("Cleric_Trickery", [
 
   { type: "skillAdvantage", skill: "Stealth", minLevel: 3, note: "Blessing of the Trickster." },
-  { type: "teleport", minLevel: 6, note: "Trickster's Transposition while using Invoke Duplicity." },
-  { type: "advantage", target: "attack", minLevel: 17, note: "Improved Duplicity: allies gain Advantage against creatures near the illusion." },
+  { type: "invisibility", minLevel: 6, note: "Cloak of Shadows: become Invisible until end of next turn." },
+  { type: "passiveNote", minLevel: 17, note: "Improved Duplicity: create up to 4 duplicates with Invoke Duplicity." },
 ]);
 // [SheetRuntime] END
 

@@ -50,6 +50,7 @@ export const initialCharacter = {
   allSubFeatures: [],
   level: 1,
   subclassShortName: '',
+  subclassSource: '',
   extraClasses: [],
   speciesName: '',
   speciesSource: '',
@@ -209,6 +210,7 @@ export function builderReducer(state, action) {
       const backgroundObj = findByNameSource(data.backgrounds, state.character.backgroundName, state.character.backgroundSource) || state.character.backgroundObj;
       const className = classObject?.name || state.character.className;
       const classSource = classObject?.source || state.character.classSource;
+      const subclassSource = state.character.subclassSource || '';
       return {
         ...state,
         data,
@@ -220,7 +222,7 @@ export function builderReducer(state, action) {
           backgroundObj,
           subclasses: data.subclasses.filter((subclass) => subclass.className === className && (subclass.classSource === classSource || !subclass.classSource)),
           allFeatures: data.classFeatures.filter((feature) => feature.className === className && (feature.classSource === classSource || !feature.classSource)),
-          allSubFeatures: data.subclassFeatures.filter((feature) => feature.className === className && (feature.classSource === classSource || !feature.classSource)),
+          allSubFeatures: data.subclassFeatures.filter((feature) => feature.className === className && (feature.classSource === classSource || !feature.classSource) && (!subclassSource || !feature._copy || feature.subclassSource === subclassSource)),
         },
       };
     }
@@ -300,7 +302,16 @@ export function builderReducer(state, action) {
       Object.keys(choices).forEach((key) => {
         if (key.startsWith('subclass_') || key.includes('_skill_') || key.includes('_exp_')) delete choices[key];
       });
-      return updateCharacter(state, { subclassShortName: action.subclassShortName, choices });
+      const selectedSubclass = (state.character.subclasses || []).find(
+        (s) => s.shortName === action.subclassShortName
+      );
+      const subclassSource = selectedSubclass?.source || '';
+      const allSubFeatures = state.data.subclassFeatures.filter(
+        (feature) => feature.className === state.character.className
+          && (feature.classSource === state.character.classSource || !feature.classSource)
+          && (!subclassSource || !feature._copy || feature.subclassSource === subclassSource)
+      );
+      return updateCharacter(state, { subclassShortName: action.subclassShortName, subclassSource, allSubFeatures, choices });
     }
     case 'extra-class/select': {
       const idx = Number(action.index);
@@ -348,9 +359,19 @@ export function builderReducer(state, action) {
       Object.keys(choices).forEach((key) => {
         if (key.startsWith(`${prefix}subclass_`) || (key.startsWith(prefix) && (key.includes('_skill_') || key.includes('_exp_')))) delete choices[key];
       });
-      const extraClasses = state.character.extraClasses.map((extraClass, itemIndex) => (
-        itemIndex === idx ? { ...extraClass, subclassShortName: action.subclassShortName } : extraClass
-      ));
+      const extraClasses = state.character.extraClasses.map((extraClass, itemIndex) => {
+        if (itemIndex !== idx) return extraClass;
+        const selectedSubclass = (extraClass.subclasses || []).find(
+          (s) => s.shortName === action.subclassShortName
+        );
+        const subclassSource = selectedSubclass?.source || '';
+        const allSubFeatures = state.data.subclassFeatures.filter(
+          (feature) => feature.className === extraClass.name
+            && (feature.classSource === extraClass.source || !feature.classSource)
+            && (!subclassSource || !feature._copy || feature.subclassSource === subclassSource)
+        );
+        return { ...extraClass, subclassShortName: action.subclassShortName, subclassSource, allSubFeatures };
+      });
       return updateCharacter(state, { extraClasses, choices });
     }
     case 'extra-class/level': {

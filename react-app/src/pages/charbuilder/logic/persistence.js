@@ -238,6 +238,7 @@ export function makeSheetPayload(character, data) {
     className: character.className,
     classSource: character.classSource,
     subclassShortName: character.subclassShortName || null,
+    subclassSource: character.subclassSource || null,
     extraClasses: character.extraClasses || [],
     speciesName: character.speciesName,
     speciesSource: character.speciesSource,
@@ -435,6 +436,7 @@ function buildBuilderStateFromSheetPayload(data) {
     className: data.className || data.clsSnapshot?.name || '',
     classSource: data.classSource || data.clsSnapshot?.source || '',
     subclassShortName: data.subclassShortName || '',
+    subclassSource: data.subclassSource || '',
     extraClasses: data.extraClasses || [],
 
     speciesName,

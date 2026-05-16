@@ -188,7 +188,7 @@ registerSubclassSheetActions("Cleric_Life", [
     inlinePills: ({ ownerLevel }) => [
       { icon: "heart", label: "Pool", value: `${Math.max(1, Number(ownerLevel || 1) * 5)} HP` }
     ],
-    desc: "Magic action: present your Holy Symbol and expend one use of Channel Divinity to restore HP equal to 5 × your Cleric level. Choose Bloodied creatures within 30 ft of yourself (including you) and divide those HP among them. Cannot restore a creature beyond half its HP maximum." },
+    desc: "As an action, present your Holy Symbol and expend one use of Channel Divinity to restore HP equal to 5 × your Cleric level. Choose any creatures within 30 ft of yourself and divide those HP among them. Cannot restore a creature beyond half its HP maximum. Cannot be used on Undead or Constructs." },
   { name: "Blessed Healer", icon: "", cat: "action", uses: "Passive", minLevel: 6,
     desc: "When you cast a spell with a spell slot that restores HP to one creature other than you, you regain HP equal to 2 + the spell slot's level." },
   { name: "Supreme Healing", icon: "", cat: "action", uses: "Passive", minLevel: 17,

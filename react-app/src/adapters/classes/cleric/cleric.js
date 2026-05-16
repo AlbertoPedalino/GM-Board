@@ -332,7 +332,7 @@ registerClassSheetActions("Cleric", [
     "healButtonLabel": ({ formula }) => `Heal ${String(formula || "")}`,
     "damageButtonLabel": ({ formula }) => `${String(formula || "")} radiant/necrotic`,
     "rollLabelPrefix": "Divine Spark",
-    "desc": "Channel Divinity option. Choose a creature within 30 ft: it either regains HP or takes Radiant or Necrotic damage (your choice) equal to 1d8 + WIS modifier (scales by level: 2d8 at lv.7, 3d8 at lv.13, 4d8 at lv.18)."
+    "desc": "Channel Divinity option. As a Magic action, point your Holy Symbol at a creature within 30 ft. Roll 1d8 + WIS modifier (scales by level: 2d8 at lv.7, 3d8 at lv.13, 4d8 at lv.18). Either restore that many HP, or force the creature to make a CON save — on failure it takes Radiant or Necrotic damage (your choice) equal to that total; on success it takes half."
   },
   {
     "name": "Sear Undead",
