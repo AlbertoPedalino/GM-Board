@@ -2,8 +2,7 @@ import { Box, Button, IconButton, Paper, Stack, Typography } from '@mui/material
 import { Trash2, X } from 'lucide-react';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';
 import RollActorLabel from '../../../shared/character/RollActorLabel.jsx';
-import DieFace2D from '../../../shared/character/DieFace2D.jsx';
-import { rollOutcome, rollLogDieColor } from '../../../shared/character/rollLogPresentation.js';
+import RollCalculation from '../../../shared/character/RollCalculation.jsx';
 
 export default function RollLog({ maxHeight = 320, onClose, sx }) {
   const { state, dispatch } = useEncounterBuilder();
@@ -26,30 +25,16 @@ export default function RollLog({ maxHeight = 320, onClose, sx }) {
         <Stack spacing={0.75} sx={{ maxHeight, overflow: 'auto' }}>
           {state.rollLog.length ? state.rollLog.map((entry, index) => (
             <Box key={`${entry.timeStr}-${index}`} sx={entrySx}>
-              <Box sx={{ ...resultSx, color: rollOutcome(entry).color }}>{entry.result ?? '—'}</Box>
               <Box sx={{ minWidth: 0 }}>
                 <RollActorLabel entry={entry} />
                 <Typography fontWeight={700} noWrap>{entry.type}</Typography>
                 {entry.visibility === 'gm' ? <Typography variant="caption" color="text.secondary">GM only</Typography> : null}
-                {entry.rolls?.length ? (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.4, my: 0.5 }}>
-                    {entry.rolls.map((die, dieIndex) => (
-                      <DieFace2D
-                        key={dieIndex}
-                        value={die.v}
-                        faces={die.faces}
-                        color={rollLogDieColor(die)}
-                        dimmed={die.kept === false}
-                      />
-                    ))}
-                  </Box>
-                ) : null}
+                <RollCalculation entry={entry} />
                 {entry.note ? (
                   <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', whiteSpace: 'normal', lineHeight: 1.35 }}>
                     {entry.note}
                   </Typography>
                 ) : null}
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflowWrap: 'anywhere' }}>{entry.mathStr}</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{entry.timeStr}</Typography>
               </Box>
             </Box>
@@ -63,23 +48,9 @@ export default function RollLog({ maxHeight = 320, onClose, sx }) {
 }
 
 const entrySx = {
-  display: 'grid',
-  gridTemplateColumns: '42px minmax(0,1fr)',
-  gap: 1,
-  alignItems: 'center',
   p: 1,
   border: '1px solid',
   borderColor: 'divider',
   borderRadius: 1,
   bgcolor: 'rgba(255,255,255,0.025)',
-};
-
-const resultSx = {
-  width: 38,
-  height: 38,
-  borderRadius: 1,
-  display: 'grid',
-  placeItems: 'center',
-  fontWeight: 800,
-  bgcolor: 'rgba(255,255,255,0.04)',
 };

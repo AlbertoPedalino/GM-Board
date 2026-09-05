@@ -45,7 +45,8 @@ test('the sheet roll log omits a zero stat modifier', () => {
 
   fireEvent.click(screen.getByRole('button', { name: 'LOG (1)' }));
 
-  expect(screen.getByText('12 (d20) = 12')).toBeInTheDocument();
+  expect(screen.getByRole('img', { name: 'd20 showing 12' })).toBeInTheDocument();
+  expect(screen.getByText('=')).toBeInTheDocument();
   expect(screen.queryByText(/\+\s*0/)).not.toBeInTheDocument();
 });
 
@@ -69,6 +70,7 @@ test('the sheet roll log does not invent a zero modifier for plain custom dice',
 
   fireEvent.click(screen.getByRole('button', { name: 'LOG (1)' }));
 
-  expect(screen.getByText('4 (d6) = 4')).toBeInTheDocument();
-  expect(screen.queryByText('4 (d6) + 0 = 4')).not.toBeInTheDocument();
+  expect(screen.getByRole('img', { name: 'd6 showing 4' })).toBeInTheDocument();
+  expect(screen.getByText('=')).toBeInTheDocument();
+  expect(screen.queryByText(/\+\s*0/)).not.toBeInTheDocument();
 });

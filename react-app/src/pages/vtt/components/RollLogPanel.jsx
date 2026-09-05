@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { Dices, Trash2 } from 'lucide-react';
 import CustomRollDialog from '../../../shared/character/CustomRollDialog.jsx';
-import DieFace2D from '../../../shared/character/DieFace2D.jsx';
-import { resolveToastLayout } from '../../../shared/character/rollToastLayout.js';
+import RollCalculation from '../../../shared/character/RollCalculation.jsx';
 import RollActorLabel from '../../../shared/character/RollActorLabel.jsx';
-import { rollOutcome, rollLogDieColor } from '../../../shared/character/rollLogPresentation.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import { fullscreenContainer } from '../logic/fullscreenContainer.js';
 import {
@@ -85,51 +83,15 @@ export default function RollLogPanel({ feed, onCustomRoll, onClear }) {
 }
 
 function RollRow({ roll }) {
-  const outcome = rollOutcome(roll);
-  const layout = resolveToastLayout({
-    label: roll.label,
-    detail: roll.detail,
-    total: roll.total,
-    rolls: roll.rolls,
-    meta: { mode: roll.mode, bonus: roll.bonus },
-  });
-
   return (
     <Box sx={rowSx}>
       <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline' }}>
         <RollActorLabel entry={roll} />
         <Typography sx={labelSx}>{roll.label}</Typography>
         {roll.visibility === 'gm' ? <Typography sx={tagSx}>GM only</Typography> : null}
-        {layout.modeChip ? (
-          <Typography sx={{ ...tagSx, color: 'text.secondary' }}>{layout.modeChip.label}</Typography>
-        ) : null}
-        <Box sx={{ flex: 1 }} />
-        {layout.total == null ? null : (
-          <Typography sx={{ ...totalSx, color: outcome.color }}>{layout.total}</Typography>
-        )}
       </Stack>
-      <StaticDiceRow dice={layout.dice.map((die, index) => ({ ...die, color: rollLogDieColor(roll.rolls[index]) }))} modifier={layout.modifier} />
-      {roll.detail ? <Typography sx={detailSx}>{roll.detail}</Typography> : null}
+      <RollCalculation entry={roll} />
       {roll.note ? <Typography sx={detailSx}>{roll.note}</Typography> : null}
-    </Box>
-  );
-}
-
-function StaticDiceRow({ dice, modifier }) {
-  if (!dice?.length && !modifier) return null;
-  return (
-    <Box sx={diceRowSx}>
-      {(dice || []).map((die, index) => (
-        <DieFace2D
-          key={`${die.faces}:${index}`}
-          value={die.value}
-          faces={die.faces}
-          color={die.color}
-          dimmed={die.dimmed}
-          size={34}
-        />
-      ))}
-      {modifier ? <Typography sx={modifierSx}>{modifier}</Typography> : null}
     </Box>
   );
 }
@@ -146,26 +108,4 @@ const rowSx = {
 const labelSx = { fontSize: '0.66rem', color: 'text.secondary', minWidth: 0 };
 const tagSx = { fontSize: '0.52rem', fontWeight: 800, letterSpacing: '0.06em' };
 
-const totalSx = {
-  fontSize: '0.82rem',
-  fontWeight: 800,
-  fontVariantNumeric: 'tabular-nums',
-};
-
 const detailSx = { fontSize: '0.6rem', color: 'text.secondary', lineHeight: 1.35 };
-
-const diceRowSx = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: 0.4,
-  my: 0.4,
-  alignItems: 'center',
-};
-
-const modifierSx = {
-  fontFamily: '"Cinzel", Georgia, serif',
-  fontSize: '0.8rem',
-  fontWeight: 700,
-  color: 'text.secondary',
-  ml: 0.3,
-};

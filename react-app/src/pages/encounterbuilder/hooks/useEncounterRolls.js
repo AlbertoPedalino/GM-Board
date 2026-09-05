@@ -30,6 +30,8 @@ export function useEncounterRolls({ instanceId, players, campaigns, dispatch }) 
       visibility: roll.visibility,
       ...normalizeRollIdentity(roll),
       rolls: roll.rolls,
+      bonus: roll.bonus,
+      mode: roll.mode,
     } });
   }, [dispatch]);
 

@@ -37,7 +37,8 @@ describe('RollLogPanel', () => {
       />,
     );
 
-    expect(screen.getByText('d20 = 12')).toBeInTheDocument();
+    expect(screen.getByText('d20')).toBeInTheDocument();
+    expect(screen.getByText('=')).toBeInTheDocument();
     expect(screen.queryByText(/\+\s*0/)).not.toBeInTheDocument();
   });
 });

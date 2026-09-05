@@ -35,3 +35,28 @@ test.each(['encounter', 'map', 'player'])('%s log uses the same result colours a
   expect(log.getByText('■B').parentElement).toHaveStyle({ color: '#3498db' });
   expect(log.getByText('Wizard').parentElement).toHaveStyle({ color: '#b05ce0' });
 });
+
+test.each(['encounter', 'map', 'player'])('%s log places dice, modifier and total in one calculation without bracketed duplicates', (panel) => {
+  const feed = [
+    { id: 'heal', actorName: 'Johnny Walker', label: 'Healing Word — Heal', detail: '2d4+3', total: 8, rolls: [{ v: 4, faces: 4 }, { v: 1, faces: 4 }] },
+    { id: 'damage', actorName: 'Dire Wolf', label: 'Damage', detail: '1d10 [5] + 3', total: 8, rolls: [{ v: 5, faces: 10 }] },
+  ];
+  context.state.rollLog = feed.map((roll) => ({ ...roll, actor: roll.actorName, type: roll.label, result: roll.total, mathStr: roll.detail }));
+  render(<MemoryRouter>
+    {panel === 'encounter' ? <RollLog /> : panel === 'map' ? <RollLogPanel feed={feed} /> : (
+      <TopBar C={{ name: 'Johnny Walker', className: 'Bard', level: 1, extraClasses: [] }} sheet={{ xpStored: 0 }} embedded rollLog={feed} />
+    )}
+  </MemoryRouter>);
+  if (panel === 'player') fireEvent.click(screen.getByRole('button', { name: 'LOG (2)' }));
+  expect(screen.getByText('2d4 + 3')).toBeInTheDocument();
+  expect(screen.getByText('1d10 + 3')).toBeInTheDocument();
+  expect(screen.queryByText(/\[5\]/)).not.toBeInTheDocument();
+  const calculations = screen.getAllByRole('group', { name: 'Roll calculation' });
+  expect(within(calculations[0]).getAllByRole('img')).toHaveLength(2);
+  expect(within(calculations[1]).getAllByRole('img')).toHaveLength(1);
+  for (const calculation of calculations) {
+    expect(within(calculation).getByText('+ 3')).toBeInTheDocument();
+    expect(within(calculation).getByText('=')).toBeInTheDocument();
+    expect(within(calculation).getByText('8')).toBeInTheDocument();
+  }
+});

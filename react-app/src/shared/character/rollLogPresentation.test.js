@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rollOutcome, rollLogDieColor, normalizeRollIdentity, ROLL_LOG_COLORS } from './rollLogPresentation.js';
+import { rollOutcome, rollLogDieColor, normalizeRollIdentity, ROLL_LOG_COLORS, rollLogCalculation } from './rollLogPresentation.js';
 import { normalizeRoll } from '../vtt/rollFeed.js';
 import { addRollLogEntry } from '../../pages/encounterbuilder/logic/dice.js';
 import { encounterRollActor } from '../../pages/encounterbuilder/logic/rollActor.js';
@@ -42,4 +42,35 @@ test('generic GM and library rolls do not borrow the current monster marker; uns
   assert.deepEqual(encounterRollActor({}), { actorName: 'GM' });
   assert.deepEqual(encounterRollActor({ combat, selectedStatblock: { monster: { name: 'Dragon' } } }), { actorName: 'Dragon' });
   assert.equal(normalizeRollIdentity({ actorColor: 'url(https://invalid)', actorShape: '<svg>' }).actorColor, null);
+});
+
+test('single and multiple dice use the same formula and separate flat modifier', () => {
+  for (const detail of ['2d4+3', '2d4 [4, 1] + 3']) {
+    const layout = rollLogCalculation({ detail, total: 8, rolls: [{ v: 4, faces: 4 }, { v: 1, faces: 4 }] });
+    assert.equal(layout.formula, '2d4 + 3');
+    assert.equal(layout.modifier, 3);
+  }
+  const layout = rollLogCalculation({ mathStr: '1d10 [5] + 3', result: 8, rolls: [{ v: 5, faces: 10 }] });
+  assert.equal(layout.formula, '1d10 + 3');
+  assert.equal(layout.modifier, 3);
+});
+
+test('negative dice and combined modifiers stay distinct in the calculation', () => {
+  const layout = rollLogCalculation({ detail: '2+1d8-1d4-5', total: 1, rolls: [{ v: 6, faces: 8 }, { v: 2, faces: 4 }] });
+  assert.deepEqual(layout.dice.map((die) => die.sign), [1, -1]);
+  assert.equal(layout.modifier, -3);
+});
+
+test('advantage excludes the discarded die when recovering a legacy modifier', () => {
+  const layout = rollLogCalculation({ mathStr: 'Advantage: keep 17; d20 +5 = 22', result: 22, rolls: [
+    { v: 2, faces: 20, kept: false }, { v: 17, faces: 20, kept: true },
+  ] });
+  assert.equal(layout.modifier, 5);
+  assert.equal(layout.formula, 'd20 + 5');
+  assert.equal(layout.modeLabel, 'ADV');
+});
+
+test('entries without structured dice retain their original detail', () => {
+  assert.equal(rollLogCalculation({ mathStr: '1d10 [5] + 3', result: 8 }).formula, '1d10 [5] + 3');
+  assert.equal(rollLogCalculation({ detail: 'Rest complete', total: null }).total, undefined);
 });

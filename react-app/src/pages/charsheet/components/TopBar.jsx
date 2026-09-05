@@ -14,21 +14,8 @@ import { primaryClassLevel } from '../../../shared/character/classLevel.js';
 import { classIcon } from '../../../shared/character/classIcon.js';
 import CustomRollDialog from '../../../shared/character/CustomRollDialog.jsx';
 import RollActorLabel from '../../../shared/character/RollActorLabel.jsx';
+import RollCalculation from '../../../shared/character/RollCalculation.jsx';
 import { rollOutcome } from '../../../shared/character/rollLogPresentation.js';
-
-function formatRollValues(rolls) {
-  if (!rolls?.length) return '';
-  return rolls.map((r) => {
-    let text = String(r.v);
-    if (r.faces) text += ` (d${r.faces})`;
-    return text;
-  }).join(', ');
-}
-
-function formatMod(mod) {
-  if (mod == null) return '';
-  return mod >= 0 ? ` + ${mod}` : ` - ${Math.abs(mod)}`;
-}
 
 function cleanFormula(detail) {
   if (!detail) return '';
@@ -48,12 +35,6 @@ function splitLabel(label, detail) {
   return result;
 }
 
-function modFromDice(rolls, total) {
-  if (!rolls?.length) return null;
-  const diceSum = rolls.reduce((s, r) => s + (r.v || 0), 0);
-  return total - diceSum;
-}
-
 const ROLL_LOG_SX = {
   entry: {
     border: 1, borderColor: 'divider', borderRadius: 1, px: 1, py: 0.5, mb: 0.4,
@@ -61,8 +42,6 @@ const ROLL_LOG_SX = {
   },
   label: { fontFamily: '"Cinzel", Georgia, serif', fontSize: '0.7rem', color: 'text.primary', fontWeight: 700, letterSpacing: '0.04em', mb: 0.15 },
   formula: { fontSize: '0.6rem', color: 'text.secondary', fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2 },
-  rollBreakdown: { fontSize: '0.58rem', color: 'text.secondary', fontFamily: '"JetBrains Mono", monospace', lineHeight: 1.2, my: 0 },
-  total: { fontFamily: '"Cinzel", Georgia, serif', fontSize: '1.1rem', fontWeight: 700, flexShrink: 0, pl: 0.5, lineHeight: 1, my: 0 },
   empty: { fontSize: '0.75rem', color: 'text.secondary', fontStyle: 'italic', textAlign: 'center', py: 3 },
 };
 
@@ -326,21 +305,12 @@ export default function TopBar({ C, sheet, charId, readOnly = false, embedded = 
           ) : (
             rollLog.slice(0, 50).map((entry, i) => {
               const formulaText = cleanFormula(entry.detail);
-              const diceText = formatRollValues(entry.rolls);
-              const bonus = entry.meta?.bonus != null ? entry.meta.bonus : modFromDice(entry.rolls, entry.total);
               const labelParts = splitLabel(entry.label, formulaText);
               const extra = labelParts.suffix
                 ? labelParts.suffix.replace(formulaText, '').trim()
                 : '';
-              const suffixStr = extra ? ` ${extra}` : '';
-              const breakdownText = diceText && bonus != null
-                ? `${diceText}${bonus !== 0 ? formatMod(bonus) : ''} = ${entry.total}`
-                : '';
               const outcome = rollOutcome(entry);
               const { isCrit, isFail } = outcome;
-              const mode = entry.meta?.mode;
-              const modeLabel = mode === 'advantage' ? 'ADV' : mode === 'disadvantage' ? 'DIS' : null;
-              const modeColor = 'text.secondary';
               return (
               <Box key={entry.timestamp + '-' + i} sx={{
                 ...ROLL_LOG_SX.entry, display: 'flex', gap: 0.5,
@@ -349,31 +319,15 @@ export default function TopBar({ C, sheet, charId, readOnly = false, embedded = 
                   <RollActorLabel entry={entry} />
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.15 }}>
                     <Typography sx={{ ...ROLL_LOG_SX.label, mb: 0 }}>{labelParts.clean}</Typography>
-                    {modeLabel && (
-                      <Box component="span" sx={{ fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.06em', color: modeColor, border: 1, borderColor: modeColor, borderRadius: 0.5, px: 0.4, py: 0.1, lineHeight: 1.2 }}>
-                        {modeLabel}
-                      </Box>
-                    )}
                   </Box>
                   {(isCrit || isFail) && (
                     <Typography sx={{ fontSize: '0.55rem', fontWeight: 900, letterSpacing: '0.08em', color: outcome.color, fontFamily: '"Cinzel", Georgia, serif', mb: 0.15 }}>
                       {isCrit ? 'NATURAL 20!' : 'NATURAL 1'}
                     </Typography>
                   )}
-                  <Typography sx={ROLL_LOG_SX.formula}>{formulaText}{suffixStr}</Typography>
+                  <RollCalculation entry={entry} />
+                  {extra ? <Typography sx={ROLL_LOG_SX.formula}>{extra}</Typography> : null}
                   {entry.note ? <Typography sx={ROLL_LOG_SX.formula}>{entry.note}</Typography> : null}
-                  {breakdownText ? (
-                    <Typography sx={ROLL_LOG_SX.rollBreakdown}>{breakdownText}</Typography>
-                  ) : null}
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 32, pr: 0.5 }}>
-                  <Typography sx={{
-                    ...ROLL_LOG_SX.total,
-                    color: outcome.color,
-                    ...((isCrit || isFail) ? { fontSize: '1.3rem' } : {}),
-                  }}>
-                    {entry.total}
-                  </Typography>
                 </Box>
               </Box>
               );

@@ -98,6 +98,8 @@ export function addRollLogEntry(log, roll, actor, now = new Date()) {
       actor: actor || null,
       ...normalizeRollIdentity(roll),
       rolls: roll.rolls,
+      bonus: roll.bonus,
+      mode: roll.mode,
       naturalD20: roll.naturalD20,
       type: roll.type,
       result: roll.result,
