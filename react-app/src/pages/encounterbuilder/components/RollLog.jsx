@@ -2,7 +2,8 @@ import { Box, Button, IconButton, Paper, Stack, Typography } from '@mui/material
 import { Trash2, X } from 'lucide-react';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';
 import RollActorLabel from '../../../shared/character/RollActorLabel.jsx';
-import { rollOutcome } from '../../../shared/character/rollLogPresentation.js';
+import DieFace2D from '../../../shared/character/DieFace2D.jsx';
+import { rollOutcome, rollLogDieColor } from '../../../shared/character/rollLogPresentation.js';
 
 export default function RollLog({ maxHeight = 320, onClose, sx }) {
   const { state, dispatch } = useEncounterBuilder();
@@ -30,12 +31,25 @@ export default function RollLog({ maxHeight = 320, onClose, sx }) {
                 <RollActorLabel entry={entry} />
                 <Typography fontWeight={700} noWrap>{entry.type}</Typography>
                 {entry.visibility === 'gm' ? <Typography variant="caption" color="text.secondary">GM only</Typography> : null}
+                {entry.rolls?.length ? (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.4, my: 0.5 }}>
+                    {entry.rolls.map((die, dieIndex) => (
+                      <DieFace2D
+                        key={dieIndex}
+                        value={die.v}
+                        faces={die.faces}
+                        color={rollLogDieColor(die)}
+                        dimmed={die.kept === false}
+                      />
+                    ))}
+                  </Box>
+                ) : null}
                 {entry.note ? (
                   <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', whiteSpace: 'normal', lineHeight: 1.35 }}>
                     {entry.note}
                   </Typography>
                 ) : null}
-                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>{entry.mathStr}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflowWrap: 'anywhere' }}>{entry.mathStr}</Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{entry.timeStr}</Typography>
               </Box>
             </Box>
