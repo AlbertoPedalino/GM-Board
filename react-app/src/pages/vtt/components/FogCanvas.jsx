@@ -3,11 +3,11 @@ import { Box } from '@mui/material';
 import { useResizeTick } from '../hooks/useResizeTick.js';
 import { decodeCells } from '../../../shared/vtt/fog.js';
 import { cellSize, worldToScreen } from '../../../shared/vtt/geometry.js';
+import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 
-// The fog is painted at one pixel per cell on an offscreen canvas and then
-// scaled up with interpolation and a light edge blur. Filling ten thousand
-// rectangles on every brush frame is the slow option; this way a stroke costs
-// a few thousand byte writes and one drawImage.
+// Cover the entire viewport, then erase only explored cells using an offscreen
+// mask. Blurring a finite rectangle of covered cells fades its outer edges and
+// exposes the map border; blurring the reveal mask only softens explored edges.
 export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
   const canvasRef = useRef(null);
   // Redraw when the box changes: the canvas is measured in its own pixels.
@@ -28,16 +28,25 @@ export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
 
     // Match the backing store to the CSS size so the fog is not blurry on HiDPI.
     const ratio = window.devicePixelRatio || 1;
-    if (canvas.width !== width * ratio || canvas.height !== height * ratio) {
-      canvas.width = width * ratio;
-      canvas.height = height * ratio;
+    const pixelWidth = Math.ceil(width * ratio);
+    const pixelHeight = Math.ceil(height * ratio);
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
     }
 
     const context = canvas.getContext('2d');
     if (!context) return;
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    context.clearRect(0, 0, width, height);
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, pixelWidth, pixelHeight);
     if (!fog) return;
+
+    // Paint in backing-store pixels so fractional device ratios cannot leave
+    // a translucent last row/column. Everything outside saved fog is covered
+    // too, including grid-offset margins and maps larger than an old fog mask.
+    context.fillStyle = vttAlpha(VTT_COLORS.black, opacity);
+    context.fillRect(0, 0, pixelWidth, pixelHeight);
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     const { cols, rows } = fog;
     let buffer = bufferRef.current;
@@ -52,11 +61,10 @@ export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
 
     const bytes = decodeCells(fog.cells, Math.ceil((cols * rows) / 8));
     const image = bufferContext.createImageData(cols, rows);
-    const alpha = Math.round(Math.max(0, Math.min(1, opacity)) * 255);
     for (let index = 0; index < cols * rows; index += 1) {
       const revealed = bytes[index >> 3] & (1 << (index & 7));
-      // Black where the cell is still covered, fully transparent where explored.
-      image.data[index * 4 + 3] = revealed ? 0 : alpha;
+      // The mask removes fog only where the GM explicitly revealed a cell.
+      image.data[index * 4 + 3] = revealed ? 255 : 0;
     }
     bufferContext.putImageData(image, 0, 0);
 
@@ -69,6 +77,7 @@ export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
     // show the staircase a round brush is meant to avoid.
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
+    context.globalCompositeOperation = 'destination-out';
     // A fraction of one fog cell softens diagonal stair steps, including fog
     // saved at older resolutions. Scale with the map and backing-store ratio
     // so zooming and HiDPI displays keep the same edge softness in world space.
@@ -81,6 +90,7 @@ export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
       rows * size * view.zoom,
     );
     context.filter = 'none';
+    context.globalCompositeOperation = 'source-over';
   }, [fog, grid, opacity, view, resizeTick]);
 
   return (
