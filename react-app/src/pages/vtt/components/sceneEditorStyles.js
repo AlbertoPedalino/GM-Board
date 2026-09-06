@@ -1,5 +1,6 @@
 import { battleMapSurfaceSx } from './battleMapSurface.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
+import { SHEET_SIDE_BY_SIDE_QUERY } from '../../../shared/vtt/sheetLayout.js';
 
 export const sceneTopbarSx = {
   ...battleMapSurfaceSx,
@@ -92,17 +93,23 @@ export const contentLayoutSx = {
 };
 
 export const contentLayoutOpenSx = {
-  gridTemplateColumns: {
-    xs: 'minmax(0, 1fr)',
-    lg: 'var(--sheet-grid-columns)',
-  },
-  columnGap: { xs: 1, lg: 0 },
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  columnGap: 1,
   rowGap: 1,
   // One column means map above sheet, which cannot both fit a phone: that stack
   // scrolls. Side by side there is nothing to scroll — each half handles its own.
-  overflowY: { xs: 'auto', lg: 'visible' },
-  gridTemplateRows: { xs: 'auto auto', lg: 'auto' },
-  alignContent: { xs: 'start', lg: 'stretch' },
+  overflowY: 'auto',
+  // Auto rows can shrink the sheet's frame below its overflowing contents.
+  // The stacked layout must reserve the full height even after lazy loading.
+  gridTemplateRows: 'max-content max-content',
+  alignContent: 'start',
+  [SHEET_SIDE_BY_SIDE_QUERY]: {
+    gridTemplateColumns: 'var(--sheet-grid-columns)',
+    columnGap: 0,
+    overflowY: 'visible',
+    gridTemplateRows: 'minmax(0, 1fr)',
+    alignContent: 'stretch',
+  },
 };
 
 export const viewportCellSx = {
@@ -113,21 +120,26 @@ export const viewportCellSx = {
 
 // Stacked, the map takes a slice of the screen instead of all of it.
 export const viewportCellStackedSx = {
-  height: { xs: 'clamp(320px, 52dvh, 520px)', lg: 'auto' },
+  height: 'clamp(320px, 52dvh, 520px)',
+  [SHEET_SIDE_BY_SIDE_QUERY]: { height: 'auto' },
 };
 
 export const sheetViewSx = {
   minWidth: 0,
-  minHeight: 0,
-  height: { lg: '100%' },
-  overflow: { xs: 'visible', lg: 'auto' },
+  minHeight: 'auto',
+  overflow: 'hidden',
+  [SHEET_SIDE_BY_SIDE_QUERY]: {
+    minHeight: 0,
+    height: '100%',
+    overflow: 'auto',
+    contain: 'layout paint',
+  },
   border: '1px solid',
   borderColor: 'gmboard.vtt.goldBorderStrong',
   borderRadius: 1.5,
   bgcolor: vttAlpha(VTT_COLORS.overlaySurface, 0.88),
   backgroundImage: `linear-gradient(145deg, ${vttAlpha(VTT_COLORS.white, 0.025)}, transparent 42%)`,
   boxShadow: `0 18px 52px ${vttAlpha(VTT_COLORS.black, 0.46)}`,
-  contain: { xs: 'none', lg: 'layout paint' },
   isolation: 'isolate',
   '& > *': {
     width: '100%',

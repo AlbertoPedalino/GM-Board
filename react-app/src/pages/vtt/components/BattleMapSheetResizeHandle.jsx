@@ -6,6 +6,7 @@ import {
   DEFAULT_SHEET_SPLIT,
   MAX_MAP_SPLIT,
   MIN_MAP_SPLIT,
+  SHEET_SIDE_BY_SIDE_QUERY,
   normalizeSheetSplit,
   sheetGridColumns,
   sheetSplitAtPointer,
@@ -109,7 +110,8 @@ export default function BattleMapSheetResizeHandle({ containerRef, value, onComm
 }
 
 const handleSx = {
-  display: { xs: 'none', lg: 'flex' },
+  display: 'none',
+  [SHEET_SIDE_BY_SIDE_QUERY]: { display: 'flex' },
   alignSelf: 'stretch',
   minHeight: 120,
   alignItems: 'center',

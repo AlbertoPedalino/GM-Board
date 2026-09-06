@@ -412,31 +412,38 @@ export default function SceneViewport({
     imageUrl,
   ]);
 
-  // Real fullscreen where the browser has it: the map is the whole point of the
-  // page, and the browser's own chrome is worth the pixels at the table.
-  //
-  // iOS has no Fullscreen API for anything but a video, which is why the button
-  // did nothing on a phone — exactly where the screen is smallest and it matters
-  // most. There the map covers the window instead, which is as close as a page
-  // is allowed to get.
-  const toggleFullscreen = useCallback(() => {
+  // iPad's native fullscreen can dismiss itself during map pan/pinch gestures.
+  // Use the window-covering mode on iOS, including iPads identifying as Macs.
+  const toggleFullscreen = useCallback(async () => {
     const host = hostRef.current;
     if (!host) return;
     const request = host.requestFullscreen || host.webkitRequestFullscreen;
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
-    if (!request) {
-      setCovering((current) => !current);
+    if (covering) {
+      setCovering(false);
       return;
     }
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
     try {
-      if (document.fullscreenElement || document.webkitFullscreenElement) exit.call(document);
-      else request.call(host);
+      if (document.fullscreenElement || document.webkitFullscreenElement) await exit?.call(document);
+      else if (ios || !request) setCovering(true);
+      else await request.call(host);
     } catch (_) {
-      setCovering((current) => !current);
+      setCovering(true);
     }
-  }, []);
+  }, [covering]);
 
   const fullscreenActive = fullscreen || covering;
+
+  useEffect(() => {
+    if (!covering) return undefined;
+    const leaveOnEscape = (event) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) setCovering(false);
+    };
+    document.addEventListener('keydown', leaveOnEscape);
+    return () => document.removeEventListener('keydown', leaveOnEscape);
+  }, [covering]);
 
   useEffect(() => {
     onFullscreenChange?.(fullscreenActive);
@@ -1774,6 +1781,7 @@ const hostSx = {
   // gives the table no silhouette of the image bounds.
   bgcolor: VTT_COLORS.black,
   touchAction: 'none',
+  overscrollBehavior: 'none',
   // The fullscreen element keeps its own height rule, or the map would sit in a
   // letterboxed strip in the middle of a black screen. The webkit spelling is
   // still what Safari matches.

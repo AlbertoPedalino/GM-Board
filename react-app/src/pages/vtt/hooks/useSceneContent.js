@@ -39,16 +39,19 @@ export function useSceneContent({ scene, isGm, spectator, notify }) {
       setTokens((current) => attachSecrets(sceneTokens, secrets, current));
       setRoster(toRoster(characterRows));
       setDrawings(sceneDrawings);
+      // A reconnect can supersede the initial request. Whichever request wins
+      // must release the loading screen; optional vitals do not hold it open.
+      setLoading(false);
       try {
         const vitals = await readCampaignVitals(characterRows);
         if (request === loadRequestRef.current) setRoster((current) => mergeVitals(current, vitals));
       } catch (_) {}
     } catch (cause) {
-      if (initial && request === loadRequestRef.current) {
+      if (request === loadRequestRef.current) {
         notify('error', cause?.message || 'Could not load this scene.');
       }
     } finally {
-      if (initial && request === loadRequestRef.current) setLoading(false);
+      if (request === loadRequestRef.current) setLoading(false);
     }
   }, [isGm, notify, scene.campaignId, scene.id, spectator]);
 

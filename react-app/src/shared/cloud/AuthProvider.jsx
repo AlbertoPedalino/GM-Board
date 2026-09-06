@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { supabase, isCloudConfigured, usernameToEmail } from './supabaseClient.js';
 
 const AuthContext = createContext(null);
@@ -8,37 +8,63 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState(isCloudConfigured() ? 'loading' : 'anon');
+  const profileRequestRef = useRef(0);
 
   const loadProfile = useCallback(async (uid) => {
+    const request = ++profileRequestRef.current;
     if (!supabase || !uid) { setProfile(null); return; }
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, username, role')
-      .eq('id', uid)
-      .maybeSingle();
-    setProfile(data || null);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, username, role')
+        .eq('id', uid)
+        .maybeSingle();
+      if (request === profileRequestRef.current) setProfile(data || null);
+    } catch (_) {
+      if (request === profileRequestRef.current) setProfile(null);
+    }
   }, []);
 
   useEffect(() => {
     if (!supabase) return;
     let alive = true;
+    let authEventReceived = false;
+    let profileTimer;
+    let currentUserId = null;
 
-    supabase.auth.getSession().then(({ data }) => {
+    const applySession = (session) => {
       if (!alive) return;
-      const u = data?.session?.user || null;
+      const u = session?.user || null;
+      clearTimeout(profileTimer);
+      if (currentUserId !== (u?.id || null)) {
+        currentUserId = u?.id || null;
+        profileRequestRef.current += 1;
+        setProfile(null);
+      }
       setUser(u);
       setStatus(u ? 'authed' : 'anon');
-      if (u) loadProfile(u.id);
+      // Auth notifications can run while the session refresh holds its lock.
+      // Start cloud requests in a later task, after the callback has returned.
+      if (u) profileTimer = setTimeout(() => { if (alive) loadProfile(u.id); }, 0);
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!authEventReceived) applySession(data?.session);
+    }).catch(() => {
+      if (!authEventReceived) applySession(null);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user || null;
-      setUser(u);
-      setStatus(u ? 'authed' : 'anon');
-      if (u) loadProfile(u.id); else setProfile(null);
+      authEventReceived = true;
+      applySession(session);
     });
 
-    return () => { alive = false; sub?.subscription?.unsubscribe(); };
+    return () => {
+      alive = false;
+      clearTimeout(profileTimer);
+      profileRequestRef.current += 1;
+      sub?.subscription?.unsubscribe();
+    };
   }, [loadProfile]);
 
   const signIn = useCallback(async (username, password) => {

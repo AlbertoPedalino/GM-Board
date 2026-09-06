@@ -12,7 +12,8 @@ describe('BattleMapSheetResizeHandle', () => {
         onCommit={onCommit}
       />,
     );
-    const separator = screen.getByRole('separator');
+    // jsdom does not evaluate the media query that reveals the handle on tablets.
+    const separator = screen.getByRole('separator', { hidden: true });
 
     fireEvent.keyDown(separator, { key: 'ArrowRight' });
     expect(onCommit).toHaveBeenLastCalledWith(62);
@@ -33,7 +34,7 @@ describe('BattleMapSheetResizeHandle', () => {
         onCommit={onCommit}
       />,
     );
-    const separator = screen.getByRole('separator');
+    const separator = screen.getByRole('separator', { hidden: true });
 
     const dispatchPointer = (type, clientX) => {
       const event = new Event(type, { bubbles: true });

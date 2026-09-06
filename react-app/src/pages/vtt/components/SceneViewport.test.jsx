@@ -962,6 +962,37 @@ test('fullscreen exposes a sheet button and opens the sheet inside the viewport'
   expect(onSelectionChange).toHaveBeenCalledWith('borin');
 });
 
+test('an iPad identifying as a Mac uses stable window coverage even with native fullscreen available', () => {
+  vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel');
+  Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 5 });
+  const { viewport } = renderLaserViewport(vi.fn());
+  const request = vi.fn();
+  viewport.requestFullscreen = request;
+  try {
+    fireEvent.click(screen.getByRole('button', { name: 'Fullscreen map' }));
+    expect(request).not.toHaveBeenCalled();
+    expect(viewport).toHaveStyle({ position: 'fixed' });
+    fireEvent.pointerDown(viewport, { button: 0, clientX: 60, clientY: 60 });
+    fireEvent.pointerMove(viewport, { clientX: 100, clientY: 120 });
+    fireEvent.pointerUp(viewport, { clientX: 100, clientY: 120 });
+    expect(screen.getByRole('button', { name: 'Leave fullscreen' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Leave fullscreen' }));
+    expect(viewport).toHaveStyle({ position: 'relative' });
+  } finally {
+    delete navigator.maxTouchPoints;
+  }
+});
+
+test('a rejected fullscreen request falls back to window coverage and can exit', async () => {
+  const { viewport } = renderLaserViewport(vi.fn());
+  viewport.requestFullscreen = vi.fn().mockRejectedValue(new Error('Fullscreen denied'));
+  fireEvent.click(screen.getByRole('button', { name: 'Fullscreen map' }));
+  await screen.findByRole('button', { name: 'Leave fullscreen' });
+  expect(viewport).toHaveStyle({ position: 'fixed' });
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(screen.getByRole('button', { name: 'Fullscreen map' })).toBeInTheDocument();
+});
+
 test('a replacement picture is framed from its prepared dimensions before paint', () => {
   const rectSpy = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
     bottom: 600,
