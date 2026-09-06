@@ -1,4 +1,4 @@
-import { getMulticlassProficiencies } from '../../../../shared/character/multiclassProficiencies.js';
+import { getMulticlassProficiencies } from '../../../../shared/character/progression/multiclassProficiencies.js';
 import {
   dedupeRules,
   formatRule,

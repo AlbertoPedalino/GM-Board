@@ -1,5 +1,5 @@
 import { Chip, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
-import SharedSearchField from '../../../shared/character/SearchField.jsx';
+import SharedSearchField from '../../../shared/ui/SearchField.jsx';
 
 export function SearchField({ value, onChange, placeholder }) {
   return (

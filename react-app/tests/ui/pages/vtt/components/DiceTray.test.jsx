@@ -10,7 +10,7 @@ vi.mock('../../../../../src/shared/vtt/dicePhysics.js', async (importOriginal) =
   simulateThrow: mocks.simulateThrow,
 }));
 
-vi.mock('../../../../../src/shared/character/Die3D.jsx', () => ({
+vi.mock('../../../../../src/shared/character/dice/Die3D.jsx', () => ({
   default: () => <div data-testid="die" />,
 }));
 

@@ -1,5 +1,5 @@
-import { collectOwnedFeatNames } from '../../../shared/character/selectedFeats.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { collectOwnedFeatNames } from '../../../shared/character/progression/selectedFeats.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 import { collectEquipmentProficiencySets } from '../../charsheet/logic/proficiency/index.js';
 import { ARMOR_KIND_KEYS, armorSetTrainsKind } from '../../charsheet/logic/proficiency/armorRules.js';
 import { getWeaponCategory, weaponMatchesRule } from '../../charsheet/logic/proficiency/weaponRules.js';

@@ -4,8 +4,8 @@ import { ChevronDown, Eye } from 'lucide-react';
 import { getSkillBonus } from '../logic/calculations.js';
 import { collectSenses } from '../logic/visionSenses.js';
 import { loadSenseDescriptions, getSenseDescriptionEntries, getFeatureDescriptionEntries } from '../logic/senseDescriptions.js';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import CollapsibleBody from '../../../shared/character/CollapsibleBody.jsx';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import CollapsibleBody from '../../../shared/ui/CollapsibleBody.jsx';
 
 export default function Senses({ C }) {
   const passPerc = 10 + getSkillBonus(C, { n: 'Perception', a: 'wis' });

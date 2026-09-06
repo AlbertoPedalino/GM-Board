@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Chip, List, ListItemButton, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { BookOpen } from 'lucide-react';
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 import BuilderPanel from './BuilderPanel.jsx';
 import { SPELL_LEVEL_LABELS } from '../constants.js';
 import { collectAutoGrantedSpells, getSpellCounts, maxSpellLevel, spellMatchesAnyClass } from '../spells/spells.js';
-import { SpellMiniTags, SpellReferenceBody, SpellRowLabel, SpellSelectButton } from '../../../shared/character/SpellReference.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { entityChipSx } from '../../../shared/entityColors.js';
+import { SpellMiniTags, SpellReferenceBody, SpellRowLabel, SpellSelectButton } from '../../../shared/character/spells/SpellReference.jsx';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { entityChipSx } from '../../../shared/ui/entityColors.js';
 
 export default function SpellSelectionPanel({ state, dispatch }) {
   const [wizardMode, setWizardMode] = useState('prepare');

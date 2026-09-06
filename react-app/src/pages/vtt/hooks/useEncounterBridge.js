@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { SECTION_REGISTRY } from '../../../shared/sectionRegistry.js';
+import { SECTION_REGISTRY } from '../../../shared/instances/sectionRegistry.js';
 import { persistFights, readPersistedInstance, readRegistry } from '../../encounterbuilder/logic/storage.js';
 import { restoreFight } from '../../encounterbuilder/logic/combat.js';
 import {

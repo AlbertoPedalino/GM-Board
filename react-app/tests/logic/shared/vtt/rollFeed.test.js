@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DICE_LIMITS } from '../../../../src/shared/character/dice.js';
+import { DICE_LIMITS } from '../../../../src/shared/character/dice/dice.js';
 import {
   MAX_FEED,
   MAX_ROLL_ID_LENGTH,

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Box, Chip, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import { Flag, Radio } from 'lucide-react';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
-import { listLiveScenes } from '../../../shared/cloud/vtt.js';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
+import { listLiveScenes } from '../../../shared/cloud/api/vtt.js';
 
 // Several campaigns can be running at the same time, so a player picks the table
 // first. They never pick a scene: once inside, the GM decides what is on it and

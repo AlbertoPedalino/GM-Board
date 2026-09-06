@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   subscriptionState: null,
 }));
 
-vi.mock('../../../../src/shared/cloud/AuthProvider.jsx', () => ({
+vi.mock('../../../../src/shared/cloud/auth/AuthProvider.jsx', () => ({
   useAuth: () => ({ cloudEnabled: true, status: 'authed', user: { id: 'user-1' } }),
 }));
 

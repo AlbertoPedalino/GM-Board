@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { builderReducer, initialBuilderState } from '../../../../src/pages/charbuilder/state.js';
-import { countActiveFilterValues } from '../../../../src/shared/character/itemFilters.js';
+import { countActiveFilterValues } from '../../../../src/shared/character/inventory/itemFilters.js';
 
 const EQUIPMENT_UI_ACTIONS = [
   { type: 'inventory/filter', filter: 'weapon' },

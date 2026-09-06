@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useToast } from '../../../shared/ToastProvider.jsx';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
-import { patchCharacterData } from '../../../shared/cloud/cloudCharacters.js';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
+import { patchCharacterData } from '../../../shared/cloud/api/cloudCharacters.js';
 import { combatantToSheetPatch, sheetPatchKey } from '../logic/sheetSync.js';
 
 const SYNC_DEBOUNCE_MS = 650;

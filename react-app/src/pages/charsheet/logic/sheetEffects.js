@@ -1,11 +1,11 @@
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
-import { canonicalDisplayLabel, cleanProficiencyText } from '../../../shared/character/proficiencyDisplay.js';
-import { matchesRequiredChoice } from '../../../shared/character/lineageMatch.js';
-import { inventoryHasFlag } from '../../../shared/character/choiceUtils.js';
-import { weaponFilterMatches } from '../../../shared/character/weaponFilters.js';
-import { collectOwnedFeatNames } from '../../../shared/character/selectedFeats.js';
-import { isFeatKey, isFeatDetailKey } from '../../../shared/featChoiceKeys.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { canonicalDisplayLabel, cleanProficiencyText } from '../../../shared/character/progression/proficiencyDisplay.js';
+import { matchesRequiredChoice } from '../../../shared/character/progression/lineageMatch.js';
+import { inventoryHasFlag } from '../../../shared/character/progression/choiceUtils.js';
+import { weaponFilterMatches } from '../../../shared/character/inventory/weaponFilters.js';
+import { collectOwnedFeatNames } from '../../../shared/character/progression/selectedFeats.js';
+import { isFeatKey, isFeatDetailKey } from '../../../shared/character/progression/featChoiceKeys.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 
 function asArray(value) {
   if (value == null) return [];

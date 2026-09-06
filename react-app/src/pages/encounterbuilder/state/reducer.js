@@ -41,7 +41,7 @@ import { PLAYER_COLORS } from '../logic/constants.js';
 import { makeSavedEncounter, normalizeEncounterQuest } from '../logic/storage.js';
 import { clampInt, hydrateEncounterItems, monsterKey, toEncounterMonster } from '../logic/monsterUtils.js';
 import { combatantToSheetPatch, resolveCombatVitals } from '../logic/sheetSync.js';
-import { SYNCED_VITALS, pickCharacterVitals } from '../../../shared/character/vitals.js';
+import { SYNCED_VITALS, pickCharacterVitals } from '../../../shared/character/combat/vitals.js';
 import { fightWithTokenVitals } from '../../../shared/vtt/encounterSync.js';
 
 export const DEFAULT_PARTY = Object.freeze({ count: 4, level: 5 });

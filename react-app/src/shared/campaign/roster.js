@@ -3,7 +3,7 @@
 // piece on a map has no use for AC, HP or initiative, and pulling that mapper in
 // would drag the class adapters into the VTT bundle for nothing.
 
-import { normalizeConditions } from '../character/conditions.js';
+import { normalizeConditions } from '../character/combat/conditions.js';
 
 const HEX_COLOR_RE = /^#[0-9a-f]{6}$/i;
 

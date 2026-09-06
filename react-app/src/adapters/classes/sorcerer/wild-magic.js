@@ -1,5 +1,5 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
-import { classLevel } from '../../../shared/character/classLevel.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
 
 export default function install(registry, context = {}) {
   const {

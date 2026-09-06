@@ -2,7 +2,7 @@ import { Button, Tooltip } from '@mui/material';
 import { Sword } from 'lucide-react';
 import { fbonus, effectiveD20Modifier } from '../logic/calculations.js';
 import { inlineButtonSx } from './spellsTabStyles.js';
-import { attackRollerToneSx } from '../../../shared/entityColors.js';
+import { attackRollerToneSx } from '../../../shared/ui/entityColors.js';
 
 // Single source for the "Hit +X" attack-roll button (weapon + spell). It both
 // renders the modifier and fires the roll, so the two can never diverge: the

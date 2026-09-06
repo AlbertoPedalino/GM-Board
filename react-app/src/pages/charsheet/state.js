@@ -1,5 +1,5 @@
 import { calcMaxHP } from './logic/calculations.js';
-import { normalizeCurrency } from '../../shared/character/currency.js';
+import { normalizeCurrency } from '../../shared/character/inventory/currency.js';
 
 export function deriveSheetState(C) {
   const baseMax = Math.max(1, calcMaxHP(C));

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 import { supabase } from '../../../shared/cloud/supabaseClient.js';
-import { updateTokensBySourceRef } from '../../../shared/cloud/vtt.js';
+import { updateTokensBySourceRef } from '../../../shared/cloud/api/vtt.js';
 import {
   monsterRefs,
   rowBelongsToFight,

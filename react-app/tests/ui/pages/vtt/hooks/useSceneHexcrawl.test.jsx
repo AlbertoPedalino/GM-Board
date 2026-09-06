@@ -11,7 +11,7 @@ const cloud = vi.hoisted(() => ({
   subscribeHexcrawl: vi.fn(),
 }));
 
-vi.mock('../../../../../src/shared/cloud/hexcrawl.js', () => cloud);
+vi.mock('../../../../../src/shared/cloud/api/hexcrawl.js', () => cloud);
 
 vi.mock('../../../../../src/shared/hexcrawl/useCampaignClock.js', () => ({
   useCampaignClock: () => ({

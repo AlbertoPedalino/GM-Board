@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Box, Typography, Chip, Button, alpha } from '@mui/material';
 import { ChevronDown, ListChecks, X, Minus, Plus } from 'lucide-react';
 import { EXHAUSTION_MAX } from '../logic/calculations.js';
-import { CONDITIONS } from '../../../shared/character/conditions.js';
+import { CONDITIONS } from '../../../shared/character/combat/conditions.js';
 import {
   CONDITION_ACCENT as COND_ACCENT,
   ConditionCard,
   ConditionPill,
-} from '../../../shared/character/ConditionChips.jsx';
+} from '../../../shared/character/combat/ConditionChips.jsx';
 
 const DEAD_ACCENT = '#e5484d';
 

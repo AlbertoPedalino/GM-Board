@@ -1,8 +1,8 @@
 import { Fragment, useState } from 'react';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { getRollTable, rollTable } from '../../../shared/character/rollTables.js';
+import { getRollTable, rollTable } from '../../../shared/character/dice/rollTables.js';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
-import { classLevel } from '../../../shared/character/classLevel.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
 
 // Lenient variant: falls back to the TOTAL character level when the character
 // has no levels in `className` (used by generic feature panels that still want a

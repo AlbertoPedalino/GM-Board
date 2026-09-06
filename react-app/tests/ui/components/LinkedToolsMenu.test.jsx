@@ -16,17 +16,17 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => mocks.navigate,
   Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
 }));
-vi.mock('../../../src/shared/cloud/AuthProvider.jsx', () => ({
+vi.mock('../../../src/shared/cloud/auth/AuthProvider.jsx', () => ({
   useAuth: () => mocks.auth,
 }));
-vi.mock('../../../src/shared/cloud/cloudSections.js', () => ({
+vi.mock('../../../src/shared/cloud/sections/cloudSections.js', () => ({
   getCloudSection: (sectionKey) => ({
     fetchInstanceMeta: (id) => mocks.fetchInstanceMeta(sectionKey, id),
     listInstances: () => mocks.listInstances(sectionKey),
   }),
 }));
-vi.mock('../../../src/shared/ToastProvider.jsx', () => ({ useToast: () => ({ notify: mocks.notify }) }));
-vi.mock('../../../src/shared/instanceLinks.js', async (importOriginal) => ({
+vi.mock('../../../src/shared/ui/ToastProvider.jsx', () => ({ useToast: () => ({ notify: mocks.notify }) }));
+vi.mock('../../../src/shared/instances/instanceLinks.js', async (importOriginal) => ({
   ...await importOriginal(),
   readLocalToolInstances: mocks.readLocalToolInstances,
   setLocalInstanceLink: mocks.setLocalInstanceLink,

@@ -8,7 +8,7 @@ import SpellChoiceList from '../components/SpellChoiceList.jsx';
 import ReplicateMagicItemChoice from '../components/ReplicateMagicItemChoice.jsx';
 import BeastChoice from '../components/BeastChoice.jsx';
 import { classChoiceSpecs } from '../logic/choiceSpecs.js';
-import { buildOptionalFeatureEntryLookup } from '../../../shared/character/optionalFeatures.js';
+import { buildOptionalFeatureEntryLookup } from '../../../shared/character/progression/optionalFeatures.js';
 import NamePanel from '../components/NamePanel.jsx';
 import XpPanel from '../components/XpPanel.jsx';
 import ClassPanel from '../components/ClassPanel.jsx';

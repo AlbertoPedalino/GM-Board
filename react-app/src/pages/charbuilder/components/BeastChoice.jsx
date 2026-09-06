@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { Check } from 'lucide-react';
 import SelectionSearch from './SelectionSearch.jsx';
-import { useOptionSearch } from '../../../shared/character/searchText.js';
+import { useOptionSearch } from '../../../shared/content/searchText.js';
 import {
   eligibleBeasts,
   beastRefValue,
@@ -20,8 +20,8 @@ import {
   findBeast,
   parseBeastRef,
   wildShapeKnownFormsLimit,
-} from '../../../shared/character/beasts.js';
-import { classLevel } from '../../../shared/character/classLevel.js';
+} from '../../../shared/character/forms/beasts.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
 
 // Wild Shape known-forms picker. Mirrors the Replicate Magic Item flow: the
 // player builds a personal list of beasts (filtered to the Wild Shape CR cap for

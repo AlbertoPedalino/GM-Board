@@ -8,8 +8,8 @@
 // The payload is the sheet's own toast entry, so a roll reads on the map exactly
 // as it read to the player who made it.
 
-import { DICE_LIMITS } from '../character/dice.js';
-import { normalizeRollIdentity } from '../character/rollLogPresentation.js';
+import { DICE_LIMITS } from '../character/dice/dice.js';
+import { normalizeRollIdentity } from '../character/dice/rollLogPresentation.js';
 
 export const ROLL_TTL_MS = 8000;
 export const MAX_FEED = 40;

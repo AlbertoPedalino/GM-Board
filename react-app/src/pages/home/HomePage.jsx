@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { alpha, Box, Button, Typography, Card, CardContent } from '@mui/material';
 import { ScrollText, UserPen, LayoutDashboard, Swords, StickyNote, Flag, Map, Trash2 } from 'lucide-react';
-import { REGISTRY_META } from '../../shared/localStorageRegistries.js';
-import { clearAppLocalStorage, listAppLocalStorageKeys } from '../../shared/storage.js';
+import { REGISTRY_META } from '../../shared/storage/localStorageRegistries.js';
+import { clearAppLocalStorage, listAppLocalStorageKeys } from '../../shared/storage/storage.js';
 import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
 
 export const TOOLS = [

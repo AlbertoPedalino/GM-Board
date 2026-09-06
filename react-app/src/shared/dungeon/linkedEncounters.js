@@ -9,9 +9,9 @@
 // Any link missing is not an error to shout about — a map may simply not be part
 // of a set — so this answers with null and the panel says what to link.
 
-import { readRegistry } from '../localStorageRegistries.js';
-import { SECTION_REGISTRY } from '../sectionRegistry.js';
-import { normalizeLinkGroupId } from '../linkGroupId.js';
+import { readRegistry } from '../storage/localStorageRegistries.js';
+import { SECTION_REGISTRY } from '../instances/sectionRegistry.js';
+import { normalizeLinkGroupId } from '../instances/linkGroupId.js';
 
 function instancesOf(sectionKey) {
   const section = SECTION_REGISTRY[sectionKey];

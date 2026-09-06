@@ -1,6 +1,6 @@
 import { Box, Chip, Typography } from '@mui/material';
-import { resolveToastLayout } from '../../../shared/character/rollToastLayout.js';
-import DiceRow from '../../../shared/character/DiceRow.jsx';
+import { resolveToastLayout } from '../../../shared/character/dice/rollToastLayout.js';
+import DiceRow from '../../../shared/character/dice/DiceRow.jsx';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 
 const FONT = '"Cinzel", Georgia, serif';

@@ -2,12 +2,12 @@ import { Box, Chip, Paper, Tooltip, Typography } from '@mui/material';
 import { Footprints, AlertCircle } from 'lucide-react';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { getFinal, exhaustionSpeedPenalty } from '../logic/calculations.js';
-import { getSpeedZeroConditions } from '../../../shared/character/conditions.js';
+import { getSpeedZeroConditions } from '../../../shared/character/combat/conditions.js';
 import { collectMovementEffects, effectSummary, effectTitle, getSpeedBonus } from '../logic/sheetEffects.js';
-import { collectItemEffects } from '../../../shared/character/itemEffects.js';
+import { collectItemEffects } from '../../../shared/character/inventory/itemEffects.js';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
-import { carryCapacity, formatWeight, totalCarriedWeight } from '../../../shared/character/weight.js';
-import { getActiveWildShape } from '../../../shared/character/wildShapeForm.js';
+import { carryCapacity, formatWeight, totalCarriedWeight } from '../../../shared/character/inventory/weight.js';
+import { getActiveWildShape } from '../../../shared/character/forms/wildShapeForm.js';
 
 function normalizeSpeed(speed) {
   if (typeof speed === 'number') return { walk: speed };

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Tooltip } from '@mui/material';
 import { HeartPulse, Sparkles, Skull } from 'lucide-react';
-import HpStepper from '../../../shared/character/HpStepper.jsx';
+import HpStepper from '../../../shared/character/combat/HpStepper.jsx';
 import { EXHAUSTION_MAX } from '../logic/calculations.js';
 
 const CINZEL = '"Cinzel", Georgia, serif';

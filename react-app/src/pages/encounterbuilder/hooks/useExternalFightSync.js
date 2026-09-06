@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { SECTION_REGISTRY } from '../../../shared/sectionRegistry.js';
+import { SECTION_REGISTRY } from '../../../shared/instances/sectionRegistry.js';
 import { readPersistedInstance } from '../logic/storage.js';
 import { externalDelta } from '../logic/externalSync.js';
 

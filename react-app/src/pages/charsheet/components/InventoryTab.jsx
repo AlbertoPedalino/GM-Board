@@ -1,10 +1,10 @@
 import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Box, Button, IconButton, TextField, Tooltip, Typography, Alert, alpha } from '@mui/material';
 import { Backpack, Check, ChevronDown, ChevronRight, Minus, Package, Plus, Shield, Sparkles, Swords, Trash2, AlertTriangle, Archive } from 'lucide-react';
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
 import { getFinal } from '../logic/calculations.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 import {
   isWeapon,
   canOneHand,
@@ -13,52 +13,52 @@ import {
   getSlotConflictWarnings,
 } from '../logic/equipmentSlots.js';
 
-import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
-import MiniBadge from '../../../shared/character/MiniBadge.jsx';
-import { INVENTORY_SOURCE_PRIORITY, sourceRank } from '../../../shared/character/sourcePriority.js';
-import { addInventoryEntries, setOneInventoryUnitCarried } from '../../../shared/character/itemContainers.js';
-import { ITEM_ATTUNEMENT } from '../../../shared/entityColors.js';
+import { ItemNameIcon } from '../../../shared/content/FiveEToolsLink.jsx';
+import MiniBadge from '../../../shared/ui/MiniBadge.jsx';
+import { INVENTORY_SOURCE_PRIORITY, sourceRank } from '../../../shared/content/sourcePriority.js';
+import { addInventoryEntries, setOneInventoryUnitCarried } from '../../../shared/character/inventory/itemContainers.js';
+import { ITEM_ATTUNEMENT } from '../../../shared/ui/entityColors.js';
 import {
   attunementRequirementText,
   countAttunedItems,
   getAttunementEligibility,
   toggleItemAttunement,
-} from '../../../shared/character/itemAttunement.js';
-import { isConsumableTome, extractTomeBonus, hasAbilityChoice, getAbilityChoiceGroups } from '../../../shared/character/itemEffects.js';
+} from '../../../shared/character/inventory/itemAttunement.js';
+import { isConsumableTome, extractTomeBonus, hasAbilityChoice, getAbilityChoiceGroups } from '../../../shared/character/inventory/itemEffects.js';
 import { getArmorPenalties } from '../logic/armorPenalties.js';
 import { getCharacterAttunementState } from '../logic/attunement.js';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
-import { CurrencyRow } from '../../../shared/character/CurrencyCoinBox.jsx';
-import { setCoinAmount, updateCustomCurrency } from '../../../shared/character/currency.js';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { ItemReferenceBody, QuantityAdder } from '../../../shared/character/ItemReference.jsx';
-import { itemDisplayName } from '../../../shared/character/itemIdentity.js';
+import { CurrencyRow } from '../../../shared/character/inventory/CurrencyCoinBox.jsx';
+import { setCoinAmount, updateCustomCurrency } from '../../../shared/character/inventory/currency.js';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { ItemReferenceBody, QuantityAdder } from '../../../shared/character/inventory/ItemReference.jsx';
+import { itemDisplayName } from '../../../shared/character/inventory/itemIdentity.js';
 import {
   carryCapacity,
   formatWeight,
   isItemCarried,
   itemQty as qty,
   totalCarriedWeight,
-} from '../../../shared/character/weight.js';
+} from '../../../shared/character/inventory/weight.js';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
-import { buildItemTags } from '../../../shared/character/craftedItems.js';
+import { buildItemTags } from '../../../shared/character/inventory/craftedItems.js';
 import {
   itemChargeCurrent,
   itemChargeMaximum,
   setInventoryItemCharges,
   shouldShowItemCharges,
-} from '../../../shared/character/itemCharges.js';
-import ItemFilterPanel from '../../../shared/character/ItemFilterPanel.jsx';
-import { hasActiveItemFilters, itemMatchesFilters } from '../../../shared/character/itemFilters.js';
-import { useItemFilters } from '../../../shared/character/useItemFilters.js';
-import { usePagedList } from '../../../shared/character/usePagedList.js';
+} from '../../../shared/character/inventory/itemCharges.js';
+import ItemFilterPanel from '../../../shared/character/inventory/ItemFilterPanel.jsx';
+import { hasActiveItemFilters, itemMatchesFilters } from '../../../shared/character/inventory/itemFilters.js';
+import { useItemFilters } from '../../../shared/character/inventory/useItemFilters.js';
+import { usePagedList } from '../../../shared/ui/usePagedList.js';
 import {
   ITEM_GROUP_CHIPS,
   ITEM_GROUP_KEYS,
   OWNED_ITEM_CHIPS,
   itemGroupKey as itemType,
   matchesItemGroupChip,
-} from '../../../shared/character/itemGroups.js';
+} from '../../../shared/character/inventory/itemGroups.js';
 
 // Keys and labels come from the shared chip taxonomy; the sheet only adds the
 // icons, which are its own presentation. The add-item search gets the plain set

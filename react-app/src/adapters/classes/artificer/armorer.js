@@ -4,7 +4,7 @@ import {
   REPLICATE_ARMORER_CHOICE_KEY,
   REPLICATE_GENERAL_CHOICE_KEY,
   isReplicateArmorItem,
-} from '../../../shared/character/replicateMagicItem.js';
+} from '../../../shared/character/inventory/replicateMagicItem.js';
 
 export default function install(registry, context = {}) {
   const getPB = context?.getPB;

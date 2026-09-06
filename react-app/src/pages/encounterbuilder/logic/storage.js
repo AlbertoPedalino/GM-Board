@@ -8,10 +8,10 @@ import {
   restoreScopedPayload,
   snapshotScopedPayload,
   touchRegistryEntry,
-} from '../../../shared/scopedStoragePayload.js';
-import { SECTION_REGISTRY } from '../../../shared/sectionRegistry.js';
-import { makeSectionInstanceId } from '../../../shared/sectionInstances.js';
-import { normalizeLinkGroupId } from '../../../shared/linkGroupId.js';
+} from '../../../shared/storage/scopedStoragePayload.js';
+import { SECTION_REGISTRY } from '../../../shared/instances/sectionRegistry.js';
+import { makeSectionInstanceId } from '../../../shared/instances/sectionInstances.js';
+import { normalizeLinkGroupId } from '../../../shared/instances/linkGroupId.js';
 
 const SECTION = SECTION_REGISTRY.encounters;
 export const REGISTRY_KEY = SECTION.registryKey;

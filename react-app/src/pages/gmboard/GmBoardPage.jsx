@@ -4,7 +4,7 @@ import { Box, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { Map, Castle, ScrollText, Table, BookOpen } from 'lucide-react';
 import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
 import LinkedToolsMenu from '../../components/LinkedToolsMenu.jsx';
-import { useSeedInstance } from '../../shared/useSeedInstance.js';
+import { useSeedInstance } from '../../shared/instances/useSeedInstance.js';
 import { resolveInstance } from './storage.js';
 import { GmBoardProvider, useGmBoard } from './state/GmBoardContext.jsx';
 import HexcrawlView from './components/HexcrawlView.jsx';

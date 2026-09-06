@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useAuth } from '../cloud/AuthProvider.jsx';
+import { useAuth } from '../cloud/auth/AuthProvider.jsx';
 import { supabase } from '../cloud/supabaseClient.js';
 import {
   cameraMessage, normalizeCameraSource, presenterInspectionMessage, presenterStateMessage,

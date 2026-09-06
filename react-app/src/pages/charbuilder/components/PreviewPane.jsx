@@ -5,19 +5,19 @@ import { STAT_LABELS, STATS } from '../constants.js';
 import { calcMaxHp, formatMod, getAllFinalScores, getPrimaryClassLevel } from '../logic/calculations.js';
 import { collectAllProficiencies, collectEquipmentProficiencySets } from '../../charsheet/logic/proficiencies.js';
 import { collectPreviewDefenseSections, collectPreviewEffectProficiencySections } from '../../charsheet/logic/sheetEffects.js';
-import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/proficiencyDisplay.js';
+import { collapseWeaponProficiencies, uniqueDisplayLabels } from '../../../shared/character/progression/proficiencyDisplay.js';
 import {
   parseTypedProficiencyValue,
   extractFixedProficiencyLabels,
-} from '../../../shared/character/typedProficiencies.js';
-import { collectResolvedWeaponMasteries } from '../../../shared/character/weaponMastery.js';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { EntryAccordion, partitionNamedEntries, splitNamedEntries } from '../../../shared/character/EntryAccordion.jsx';
-import { collectAcFormulas, getEquippedArmor, getEquippedShield, computeAcFormulaValue } from '../../../shared/character/ac.js';
-import { collectOwnedFeatNames } from '../../../shared/character/selectedFeats.js';
+} from '../../../shared/character/progression/typedProficiencies.js';
+import { collectResolvedWeaponMasteries } from '../../../shared/character/combat/weaponMastery.js';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { EntryAccordion, partitionNamedEntries, splitNamedEntries } from '../../../shared/content/EntryAccordion.jsx';
+import { collectAcFormulas, getEquippedArmor, getEquippedShield, computeAcFormulaValue } from '../../../shared/character/combat/ac.js';
+import { collectOwnedFeatNames } from '../../../shared/character/progression/selectedFeats.js';
 import { buildPreviewSheetCharacter } from '../logic/previewSheet.js';
 
-import { ENTITY_COLORS as SOURCE_COLOR, NEUTRAL_TONE } from '../../../shared/entityColors.js';
+import { ENTITY_COLORS as SOURCE_COLOR, NEUTRAL_TONE } from '../../../shared/ui/entityColors.js';
 
 const darkChipText = '#17120d';
 const PROFICIENCY_TONE = NEUTRAL_TONE;

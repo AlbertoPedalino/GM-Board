@@ -8,12 +8,12 @@ import {
   Cloud, Dices, DoorOpen, Eye, EyeOff, Lock, LockOpen, MonitorOff, MonitorPlay, Pencil, Pointer,
   Radio, Ruler, Shapes, SquareDashedMousePointer, Users,
 } from 'lucide-react';
-import { useToast } from '../../../shared/ToastProvider.jsx';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 import { withSheetVitals } from '../../../shared/campaign/roster.js';
-import { usePortraits } from '../../../shared/character/usePortraits.js';
-import { patchCharacterData } from '../../../shared/cloud/cloudCharacters.js';
-import { DEAD_CONDITION_KEY, setConditionActive } from '../../../shared/character/conditions.js';
+import { usePortraits } from '../../../shared/character/profile/usePortraits.js';
+import { patchCharacterData } from '../../../shared/cloud/api/cloudCharacters.js';
+import { DEAD_CONDITION_KEY, setConditionActive } from '../../../shared/character/combat/conditions.js';
 import {
   clearLiveScene,
   createDrawing,
@@ -34,7 +34,7 @@ import {
   updateScene,
   updateToken,
   uploadMapImage,
-} from '../../../shared/cloud/vtt.js';
+} from '../../../shared/cloud/api/vtt.js';
 import {
   applyTokenEvent,
   dropGhost,
@@ -97,7 +97,7 @@ import HexResultDialog from './HexResultDialog.jsx';
 import { useConditionEntries } from '../../encounterbuilder/hooks/useConditionEntries.js';
 import EncounterImportDialog from './EncounterImportDialog.jsx';
 import MonsterPickerDialog from './MonsterPickerDialog.jsx';
-import DiceToast from '../../../shared/character/DiceToast.jsx';
+import DiceToast from '../../../shared/character/dice/DiceToast.jsx';
 import RollLogPanel from './RollLogPanel.jsx';
 import PlayerPanel from './PlayerPanel.jsx';
 import RosterPanel from './RosterPanel.jsx';

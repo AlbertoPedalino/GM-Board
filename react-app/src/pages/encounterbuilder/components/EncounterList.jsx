@@ -3,7 +3,7 @@ import {
 } from '@mui/material';
 import { useMemo } from 'react';
 import { Minus, Plus, Save, Swords, Trash2 } from 'lucide-react';
-import { useToast } from '../../../shared/ToastProvider.jsx';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
 import { calculateDifficulty } from '../logic/difficulty.js';
 import { listQuestNames } from '../logic/library.js';
 import { formatNumber } from '../logic/monsterUtils.js';

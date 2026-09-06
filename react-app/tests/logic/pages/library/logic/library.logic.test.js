@@ -22,7 +22,7 @@ if (!globalThis.window) {
 globalThis.window.confirm = () => true;
 globalThis.prompt = (_message, defaultValue) => defaultValue;
 
-const { REGISTRY_META, readRegistry, deleteRegistryEntry, renameRegistryEntry } = await import('../../../../../src/shared/localStorageRegistries.js');
+const { REGISTRY_META, readRegistry, deleteRegistryEntry, renameRegistryEntry } = await import('../../../../../src/shared/storage/localStorageRegistries.js');
 const { resolveTool, LIBRARY_TOOLS } = await import('../../../../../src/pages/library/logic/tools.js');
 const { mergeCharacterRows, canDeleteRow, deletePlanFor, loadCharacterRows } = await import('../../../../../src/pages/library/logic/characterRows.js');
 const { mergeInstanceRows, loadInstanceRows, sectionDeletePlan, shouldPullCloudCopy } = await import('../../../../../src/pages/library/logic/instanceRows.js');

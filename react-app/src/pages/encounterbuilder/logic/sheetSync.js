@@ -1,15 +1,15 @@
 import { clampInt, numberOr } from './monsterUtils.js';
-import { SYNCED_VITALS } from '../../../shared/character/vitals.js';
+import { SYNCED_VITALS } from '../../../shared/character/combat/vitals.js';
 import {
   DEAD_CONDITION_KEY,
   normalizeConditions,
   setConditionActive,
-} from '../../../shared/character/conditions.js';
+} from '../../../shared/character/combat/conditions.js';
 
 // The synced-field contract (which fields, how they map/clamp) lives in
 // shared/character/vitals.js. These functions are the encounter-side combat
 // mappers driven by that single registry; adding a field there flows through here.
-export { SYNCED_DATA_KEYS } from '../../../shared/character/vitals.js';
+export { SYNCED_DATA_KEYS } from '../../../shared/character/combat/vitals.js';
 
 function finiteNumber(value) {
   const n = Number(value);

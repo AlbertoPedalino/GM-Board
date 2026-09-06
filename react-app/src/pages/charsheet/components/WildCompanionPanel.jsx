@@ -2,14 +2,14 @@ import { useMemo, useState } from 'react';
 import { Box, Button, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { Sparkles } from 'lucide-react';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
-import HpPoolBar from '../../../shared/character/HpPoolBar.jsx';
-import SearchField from '../../../shared/character/SearchField.jsx';
-import { filterOptions } from '../../../shared/character/searchText.js';
-import { findFamiliarBeasts } from '../../../shared/character/beasts.js';
-import { WILD_SHAPE_RESOURCE_KEY } from '../../../shared/character/wildShapeForm.js';
+import HpPoolBar from '../../../shared/character/combat/HpPoolBar.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
+import { filterOptions } from '../../../shared/content/searchText.js';
+import { findFamiliarBeasts } from '../../../shared/character/forms/beasts.js';
+import { WILD_SHAPE_RESOURCE_KEY } from '../../../shared/character/forms/wildShapeForm.js';
 import { getSheetSlots } from '../logic/spellsTabLogic.js';
-import { consumeSlot, getRegularSlotUsed } from '../../../shared/character/spellSlots.js';
-import { rollD20, rollFormula, formatD20Detail, buildD20Meta } from '../../../shared/character/dice.js';
+import { consumeSlot, getRegularSlotUsed } from '../../../shared/character/spells/spellSlots.js';
+import { rollD20, rollFormula, formatD20Detail, buildD20Meta } from '../../../shared/character/dice/dice.js';
 import { BeastNameLink, BeastStatBlock, BeastPickerRow, panelSx, headerSx, subSx, dismissButtonSx } from './BeastStatBlock.jsx';
 import { useBeastsDb } from '../hooks/useBeastsDb.js';
 import {
@@ -18,7 +18,7 @@ import {
   setWildCompanionHpPatch,
   summonWildCompanionPatch,
   dismissWildCompanionPatch,
-} from '../../../shared/character/wildCompanionForm.js';
+} from '../../../shared/character/forms/wildCompanionForm.js';
 
 // Sheet panel for the Druid's Wild Companion (XPHB 2024). Casts Find Familiar by
 // expending either a Wild Shape use or a spell slot: pick any Beast of CR 0 to

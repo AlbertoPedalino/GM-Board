@@ -13,7 +13,7 @@ import {
   effectPolarity,
   effectShortLabel,
   normalizeEffects,
-} from '../../../shared/character/combatEffects.js';
+} from '../../../shared/character/combat/combatEffects.js';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';
 import MarkerRow from './MarkerRow.jsx';
 

@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Chip, Paper, Stack, Typography } from '@mui/material';
 import { GraduationCap } from 'lucide-react';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { ENTITY_COLORS } from '../../../shared/entityColors.js';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { ENTITY_COLORS } from '../../../shared/ui/entityColors.js';
 
 const BG = ENTITY_COLORS.background;
 

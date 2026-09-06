@@ -1,5 +1,5 @@
 import { ScrollText, LayoutDashboard, Swords, StickyNote } from 'lucide-react';
-import { REGISTRY_META } from '../../../shared/localStorageRegistries.js';
+import { REGISTRY_META } from '../../../shared/storage/localStorageRegistries.js';
 
 // Single data-driven table: slug -> registry key, identity, and routes. Every
 // component that needs tool metadata reads from here instead of branching on

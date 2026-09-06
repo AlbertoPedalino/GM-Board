@@ -14,11 +14,11 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => mocks.navigate,
 }));
 
-vi.mock('../../../../src/shared/cloud/AuthProvider.jsx', () => ({
+vi.mock('../../../../src/shared/cloud/auth/AuthProvider.jsx', () => ({
   useAuth: () => ({ cloudEnabled: true, status: 'authed' }),
 }));
 
-vi.mock('../../../../src/shared/cloud/cloudSections.js', () => ({
+vi.mock('../../../../src/shared/cloud/sections/cloudSections.js', () => ({
   getCloudSection: () => ({
     listInstances: mocks.listInstances,
     fetchInstanceMeta: mocks.fetchInstanceMeta,
@@ -28,7 +28,7 @@ vi.mock('../../../../src/shared/cloud/cloudSections.js', () => ({
   }),
 }));
 
-vi.mock('../../../../src/shared/localStorageRegistries.js', async (importOriginal) => ({
+vi.mock('../../../../src/shared/storage/localStorageRegistries.js', async (importOriginal) => ({
   ...await importOriginal(),
   readRegistry: () => [{ id: 'local-board', name: 'Local Board', updatedAt: 1 }],
   cancelPendingRegistryPush: vi.fn(),

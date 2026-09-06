@@ -5,7 +5,7 @@ import TableEditorGrid from './TableEditorGrid.jsx';
 import { EDITOR_TABS } from '../logic/constants.js';
 import { confirmDiscard } from '../logic/confirmDiscard.js';
 import { useGmBoard } from '../state/GmBoardContext.jsx';
-import { useToast } from '../../../shared/ToastProvider.jsx';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
 
 const WEATHER_COLUMNS = [
   { field: 's', label: 'Season', editable: false },

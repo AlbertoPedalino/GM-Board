@@ -10,7 +10,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { Check, Handshake, Skull, Sparkles, X } from 'lucide-react';
-import SheetDialog from '../../../shared/character/SheetDialog.jsx';
+import SheetDialog from '../../../shared/ui/SheetDialog.jsx';
 import {
   getNpcAttitude,
   MAX_INTEREST,

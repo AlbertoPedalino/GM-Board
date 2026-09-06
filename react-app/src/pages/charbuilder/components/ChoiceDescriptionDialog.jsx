@@ -1,6 +1,6 @@
 import { Typography } from '@mui/material';
 import { Info } from 'lucide-react';
-import SheetDialog from '../../../shared/character/SheetDialog.jsx';
+import SheetDialog from '../../../shared/ui/SheetDialog.jsx';
 
 export default function ChoiceDescriptionDialog({ value, onClose }) {
   return (

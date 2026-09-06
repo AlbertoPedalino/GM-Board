@@ -2,13 +2,13 @@ import { useState, useCallback } from 'react';
 import { Box, Typography, Chip, Tooltip } from '@mui/material';
 import { Swords, Shield, Sparkles, AlertCircle } from 'lucide-react';
 import { getInitiative } from '../logic/calculations.js';
-import { getConditionsWithEffect } from '../../../shared/character/conditions.js';
+import { getConditionsWithEffect } from '../../../shared/character/combat/conditions.js';
 import { getArmorTrainingInfo } from '../logic/proficiencies.js';
 import { collectResolvedResistanceItems, collectResolvedImmunityItems, getInitiativeAdvantageFromEffects } from '../logic/sheetEffects.js';
 import { advantageVisual } from './advantageMark.jsx';
-import { collectItemResistanceItems, collectItemImmunityItems, collectItemConditionImmunityItems, collectItemEffects } from '../../../shared/character/itemEffects.js';
-import { computeBestArmorClass } from '../../../shared/character/ac.js';
-import { resolveInitiativeTriggeredResourceRecoveries } from '../../../shared/character/initiativeEffects.js';
+import { collectItemResistanceItems, collectItemImmunityItems, collectItemConditionImmunityItems, collectItemEffects } from '../../../shared/character/inventory/itemEffects.js';
+import { computeBestArmorClass } from '../../../shared/character/combat/ac.js';
+import { resolveInitiativeTriggeredResourceRecoveries } from '../../../shared/character/combat/initiativeEffects.js';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
 import ConditionsBlock from './ConditionsBlock.jsx';
 

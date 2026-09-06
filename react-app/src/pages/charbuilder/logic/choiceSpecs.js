@@ -1,22 +1,22 @@
 import { STATS, STAT_LABELS } from '../constants.js';
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
-import { getPrimaryClassLevel } from '../logic/calculations.js';
-import { backgroundOriginFeat } from '../../../shared/character/selectedFeats.js';
-import { getMulticlassChoiceSpecs } from '../../../shared/character/multiclassProficiencies.js';
-import { strip5eMarkup } from '../../../shared/character/spellEntries.js';
+import { getPrimaryClassLevel } from './calculations.js';
+import { backgroundOriginFeat } from '../../../shared/character/progression/selectedFeats.js';
+import { getMulticlassChoiceSpecs } from '../../../shared/character/progression/multiclassProficiencies.js';
+import { strip5eMarkup } from '../../../shared/character/spells/spellEntries.js';
 import {
   parseTypedProficiencyValue,
   splitTypedProficiencies,
   uniqueProficiencyLabels,
-} from '../../../shared/character/typedProficiencies.js';
+} from '../../../shared/character/progression/typedProficiencies.js';
 import {
   STANDARD_LANGUAGES,
   EXOTIC_LANGUAGES,
   ALL_LANGUAGES,
   SPECIAL_LANGUAGES,
   getLanguageOptions,
-} from '../../../shared/character/languages.js';
-import { filterByRequiredChoice } from '../../../shared/character/lineageMatch.js';
+} from '../../../shared/character/progression/languages.js';
+import { filterByRequiredChoice } from '../../../shared/character/progression/lineageMatch.js';
 
 const ALL_SKILLS = ['Acrobatics', 'Animal Handling', 'Arcana', 'Athletics', 'Deception', 'History', 'Insight', 'Intimidation', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Performance', 'Persuasion', 'Religion', 'Sleight of Hand', 'Stealth', 'Survival'];
 const STD_LANGS = STANDARD_LANGUAGES;

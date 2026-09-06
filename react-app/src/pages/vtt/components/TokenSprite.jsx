@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Tooltip, Typography } from '@mui/material';
 import { RotateCw, Skull } from 'lucide-react';
-import { describeEffect, effectId, effectPolarity } from '../../../shared/character/combatEffects.js';
-import { DEAD_CONDITION_KEY, conditionLabel } from '../../../shared/character/conditions.js';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { classIcon } from '../../../shared/character/classIcon.js';
+import { describeEffect, effectId, effectPolarity } from '../../../shared/character/combat/combatEffects.js';
+import { DEAD_CONDITION_KEY, conditionLabel } from '../../../shared/character/combat/conditions.js';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { classIcon } from '../../../shared/character/profile/classIcon.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import { fullscreenContainer } from '../logic/fullscreenContainer.js';
 import MapObjectGlyph from './MapObjectGlyph.jsx';

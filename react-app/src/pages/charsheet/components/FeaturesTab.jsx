@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Box, Typography, Chip } from '@mui/material';
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
-import { warlockInvocationSelections } from '../../../shared/character/warlockUtils.js';
-import { buildOptionalFeatureEntryLookup } from '../../../shared/character/optionalFeatures.js';
-import CollapsibleBody from '../../../shared/character/CollapsibleBody.jsx';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { entriesToTextBlocks } from '../../../shared/character/spellEntries.js';
-import { backgroundFeatNames } from '../../../shared/character/selectedFeats.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { warlockInvocationSelections } from '../../../shared/character/progression/warlockUtils.js';
+import { buildOptionalFeatureEntryLookup } from '../../../shared/character/progression/optionalFeatures.js';
+import CollapsibleBody from '../../../shared/ui/CollapsibleBody.jsx';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { entriesToTextBlocks } from '../../../shared/character/spells/spellEntries.js';
+import { backgroundFeatNames } from '../../../shared/character/progression/selectedFeats.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 
-import { ENTITY_COLORS as SOURCE_COLOR } from '../../../shared/entityColors.js';
+import { ENTITY_COLORS as SOURCE_COLOR } from '../../../shared/ui/entityColors.js';
 
 export default function FeaturesTab({ C }) {
   if (!C) return null;

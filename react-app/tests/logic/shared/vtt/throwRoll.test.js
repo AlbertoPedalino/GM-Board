@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DICE_LIMITS } from '../../../../src/shared/character/dice.js';
-import { faceNumbering } from '../../../../src/shared/character/dice3d.js';
-import { dieGeometry } from '../../../../src/shared/character/polyhedra.js';
+import { DICE_LIMITS } from '../../../../src/shared/character/dice/dice.js';
+import { faceNumbering } from '../../../../src/shared/character/dice/dice3d.js';
+import { dieGeometry } from '../../../../src/shared/character/dice/polyhedra.js';
 import { simulateThrow, thrownDieSize } from '../../../../src/shared/vtt/dicePhysics.js';
 import { throwFormula } from '../../../../src/shared/vtt/throwRoll.js';
 

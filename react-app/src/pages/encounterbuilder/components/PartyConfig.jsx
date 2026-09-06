@@ -1,6 +1,6 @@
 import { Box, Button, IconButton, Paper, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { ExternalLink, Minus, Plus, Trash2 } from 'lucide-react';
-import PortraitBadge from '../../../shared/character/PortraitBadge.jsx';
+import PortraitBadge from '../../../shared/character/profile/PortraitBadge.jsx';
 import ColorField from '../../../components/ColorField.jsx';
 import { campaignSheetUrl } from '../logic/campaignSheetUrl.js';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';

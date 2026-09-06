@@ -3,7 +3,7 @@ import {
 } from '@mui/material';
 import { Play, RotateCcw, ScrollText, Trash2, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useToast } from '../../../shared/ToastProvider.jsx';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
 import {
   groupLibraryByQuest, listQuestNames, mergeLibrary, toTime,
 } from '../logic/library.js';

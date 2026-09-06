@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import CharacterSheet from '../charsheet/CharacterSheet.jsx';
-import { getCloudCharacter } from '../../shared/cloud/cloudCharacters.js';
-import { useCloudCharacterLive } from '../../shared/cloud/useCloudCharacterLive.js';
-import { pickCharacterVitals } from '../../shared/character/vitals.js';
+import { getCloudCharacter } from '../../shared/cloud/api/cloudCharacters.js';
+import { useCloudCharacterLive } from '../../shared/cloud/sync/useCloudCharacterLive.js';
+import { pickCharacterVitals } from '../../shared/character/combat/vitals.js';
 
 function charIdFromUrl() {
   return new URLSearchParams(window.location.search).get('id');

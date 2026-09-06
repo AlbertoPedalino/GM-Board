@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Stack, Typography } from '@mui/material';
 import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
 import LinkedToolsMenu from '../../components/LinkedToolsMenu.jsx';
-import { useSeedInstance } from '../../shared/useSeedInstance.js';
+import { useSeedInstance } from '../../shared/instances/useSeedInstance.js';
 import NoteBoard from './components/NoteBoard.jsx';
 import { DmScreenProvider, useDmScreen } from './state/DmScreenContext.jsx';
 import { resolveInstance } from './storage.js';

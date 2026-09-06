@@ -1,14 +1,14 @@
 import { getMod, getFinal, getPB } from './calculations.js';
-import { classLevel, primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { classLevel, primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
-import { hasActionRequirement } from '../../../shared/character/choiceUtils.js';
+import { hasActionRequirement } from '../../../shared/character/progression/choiceUtils.js';
 import { getWeaponProficiencyInfo, hasNonProficientArmor } from './proficiencies.js';
 import {
   collectResolvedWeaponMasteries,
   findWeaponItemByName,
   normalizeWeaponName,
   resolveWeaponMasteryForItem,
-} from '../../../shared/character/weaponMastery.js';
+} from '../../../shared/character/combat/weaponMastery.js';
 import {
   itemProps,
   getWeaponDamageDice,
@@ -20,20 +20,20 @@ import {
   isWieldingWeaponOrShield,
   isWeapon,
 } from './equipmentSlots.js';
-import { weaponEnhancement } from '../../../shared/character/itemBonus.js';
-import { parseBeastActions } from '../../../shared/character/beasts.js';
-import { getActiveWildShape } from '../../../shared/character/wildShapeForm.js';
-import { isItemEffectActive } from '../../../shared/character/itemAttunement.js';
-import { itemDisplayName, matchesItemReference } from '../../../shared/character/itemIdentity.js';
+import { weaponEnhancement } from '../../../shared/character/inventory/itemBonus.js';
+import { parseBeastActions } from '../../../shared/character/forms/beasts.js';
+import { getActiveWildShape } from '../../../shared/character/forms/wildShapeForm.js';
+import { isItemEffectActive } from '../../../shared/character/inventory/itemAttunement.js';
+import { itemDisplayName, matchesItemReference } from '../../../shared/character/inventory/itemIdentity.js';
 import { getMeleeStrDamageBonus, getWeaponEffectBonuses } from './sheetEffects.js';
 import { alpha } from '@mui/material';
-import { ACTION_COLORS, CHIP_TONES, ENTITY_COLORS } from '../../../shared/entityColors.js';
+import { ACTION_COLORS, CHIP_TONES, ENTITY_COLORS } from '../../../shared/ui/entityColors.js';
 import {
   getActionRollers,
   resolveActionRollers,
-} from '../../../shared/character/rollers.js';
+} from '../../../shared/character/dice/rollers.js';
 
-export { getActionRollers } from '../../../shared/character/rollers.js';
+export { getActionRollers } from '../../../shared/character/dice/rollers.js';
 
 export const FILTERS = ['all', 'action', 'bonus', 'reaction'];
 // Weapon/unarmed attacks get a red left-bar so attacks stand apart from other

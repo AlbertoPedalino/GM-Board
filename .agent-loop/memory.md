@@ -17,17 +17,28 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Use MUI `sx` and theme tokens; no new CSS, `styled()`, inline `style`, or component color literals.
 - Existing `pages/library/styles.js` contains legacy literals; do not spread them.
 - Icons: `lucide-react`.
-- Entity tinting: `shared/entityColors.js`.
+- Entity tinting: `shared/ui/entityColors.js`.
 - Toasts: `ToastProvider` / `AppToast`.
-- Shared UI: `src/components/`; page-specific UI: page folder.
+- App-level widgets: `src/components/`; reusable presentation primitives/hooks: `src/shared/ui/`; page-specific UI: page folder.
 - Use responsive `sx`; theme radius is 8.
 - `theme.palette.gmboard.badge.cloud` owns cloud-origin badge color.
 - `react-window` is reserved for new lists expected to render hundreds of rows.
 
+## Shared Code Layout
+
+- Structure guide: `react-app/src/shared/README.md`. Group shared modules by responsibility; keep imports direct rather than adding compatibility barrels at retired paths.
+- `shared/character/`: `combat`, `dice`, `forms`, `inventory`, `profile`, `progression`, `resources`, `spells`. Domain components stay beside their rules.
+- `shared/content/`: entry rendering, 5etools links, source filtering/priority, text search. These are shared by multiple tools, not specific to character sheets.
+- `shared/ui/`: generic components/hooks, toast provider, entity colors, route titles.
+- `shared/instances/`: section identity, linked tool groups, instance creation. `shared/storage/`: generic localStorage, registry persistence, scoped payloads.
+- `shared/cloud/`: `api` for resource operations, `auth` for authentication/account UI, `sections` for generic tool adapters, `sync` for autosync/realtime. The common `supabaseClient.js` stays at the cloud root.
+- `shared/campaign`, `dungeon`, `hexcrawl`, and `vtt` retain their feature-specific modules.
+- Keep `src/` free of tests and empty placeholder folders; tests mirror source categories under `tests/logic` and `tests/ui`.
+
 ## Entry Points
 
 - `src/main.jsx`: StrictMode → ThemeProvider → CssBaseline → ToastProvider → BrowserRouter → AuthProvider → App.
-- `src/App.jsx` mounts `CloudAutoSync` and updates `document.title` from the current route via `shared/pageTitle.js`.
+- `src/App.jsx` mounts `CloudAutoSync` and updates `document.title` from the current route via `shared/ui/pageTitle.js`.
 - Routes: `/`, `/charbuilder`, `/charsheet`, `/gmboard`, `/dm-screen`, `/library/:tool`, `/campaigns`, `/campaign-sheet`, `/encounter-builder`.
 - `/gmsheets` redirects to `/library/characters`; legacy builder/sheet routes redirect.
 - Home is eager; tool pages are route-lazy.
@@ -69,14 +80,14 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 ## Registries
 
-- Registry metadata and generic rename/delete: `shared/localStorageRegistries.js`.
+- Registry metadata and generic rename/delete: `shared/storage/localStorageRegistries.js`.
 - Generic deletion removes scoped keys, clears matching active id, and emits section delete event.
 - Generic rename updates `updatedAt` and emits section save event.
 - `gb_char_registry` delegates to character store.
 - Shared `readRegistry` is uncapped unless `{ limit }` is supplied.
 - Section-native registries historically cap at 20.
-- `shared/scopedStoragePayload.js` snapshots/restores raw scoped strings and updates registry metadata.
-- `shared/sectionRegistry.js` is the lightweight source for section identity, routes, prefixes, table names, and save/delete event names.
+- `shared/storage/scopedStoragePayload.js` snapshots/restores raw scoped strings and updates registry metadata.
+- `shared/instances/sectionRegistry.js` is the lightweight source for section identity, routes, prefixes, table names, and save/delete event names.
 
 ## GM Board
 
@@ -88,7 +99,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Core state/results autosave; tables manual-save.
 - Legacy unscoped migration applies only to `default`.
 - Events: `gb:board-saved`, `gb:board-deleted`.
-- Tests: `pages/gmboard/logic/gmboard.logic.test.js`.
+- Tests: `tests/logic/pages/gmboard/logic/gmboard.logic.test.js`.
 
 ## DM Screen
 
@@ -110,11 +121,12 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Missing-token fallback: XMM Skeleton.
 - Conditions sync to sheets; encounter-local effects do not.
 - Events: `gb:encounter-saved`, `gb:encounter-deleted`.
-- Tests: `pages/encounterbuilder/logic/encounterbuilder.logic.test.js` plus component tests.
+- Tests: `tests/logic/pages/encounterbuilder/logic/encounterbuilder.logic.test.js` plus component tests under `tests/ui/pages/encounterbuilder/`.
 
 ## Battle Map / VTT
 
 - Root: `src/pages/vtt/`; scene orchestration is `components/SceneEditor.jsx` and rendering is `SceneViewport.jsx` / `TokenSprite.jsx`.
+- Fog strokes sweep a round brush along fractional fog-cell coordinates between pointer events, so fast diagonal motion has no gaps. Each new drag resets its previous point. `FogCanvas` adds a light blur proportional to the fog-cell size, zoom, and device pixel ratio. Saved fog bitsets and resolution remain compatible; regressions cover reveal/hide, fast motion, and separate strokes.
 - The right tool rail has an explicit cursor tool. Selecting draw, erase, text, fog, ruler, or laser activates that behavior immediately; laser stays active until another tool is selected. While any non-cursor tool is active, the entire token/object interaction subtree becomes pointer-transparent, so the selected tool can start directly over a piece; token drag, resize, death-save dots, pills, and context menus return only with the cursor tool.
 - A GM-only projector mode opens a campaign-bound spectator view whose only control is the bottom-right fullscreen button. It is started explicitly from the compact scene-actions menu, independently of `Go live`; only after that opt-in do the `Spectator` and `Freeze projector` / `Resume projector` controls appear, and the opt-in survives a GM-page refresh for the tab. The projector follows whichever scene is currently Live (including later live-scene switches), reproduces the player boundary explicitly even under the GM session (no GM-layer/staged tokens, GM drawings, or secret labels), and keeps ordinary player views unchanged. The GM-window camera source lives in per-tab `sessionStorage`, survives refresh and scene-editor remounts, and is re-announced when realtime reconnects. Freeze snapshots or reconnects both camera and Map/Background selection; tokens, fog, live-scene selection, and other scene state remain live while frozen. Sync targets that exact GM window through ephemeral Supabase broadcast, sends the world-space centre plus zoom, interpolates on the spectator, adapts to different viewport sizes, and never persists presenter data to Supabase.
 - The scene header is a compact translucent battle-map surface: scene title and stats form one identity block, role is a small badge, GM live/projector actions are grouped, and the Map/Sheet switch is aligned as the final control with responsive wrapping.
@@ -122,7 +134,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Dice results wait for the physical settle/paint hold; dice and coins are never snapped or forcibly straightened to the chosen face after motion. A d100 uses the shared neutral `D100Orb`: one clipped faceted texture rather than 100 composited face trees. On the battle map its texture follows the physics while its authoritative value fades in separately on the final frame, so no face alignment or snap is required; roll toasts use the same already-settled orb with its result visible.
 - Token condition pills stay mounted across the hover gap and expose rules tooltips. Expanded pills collapse while dragging; the movement-distance badge is centred over the token.
 - Battle-map dialogs share the translucent black/gold surface from `components/battleMapSurface.js`, including Pieces, encounter import, monster placement, token menu, roll log, and embedded sheet dialogs.
-- Pieces has a transparent inner surface. Character previews use the sheet portrait, the same 5px player-colour ring as the map, and the shared primary-class icon fallback from `shared/character/classIcon.js` instead of initials.
+- Pieces has a transparent inner surface. Character previews use the sheet portrait, the same 5px player-colour ring as the map, and the shared primary-class icon fallback from `shared/character/profile/classIcon.js` instead of initials.
 - Pieces, monster placement, and encounter import support native drag placement. The viewport shows the actual token preview at grid scale under the pointer and drops at the hovered cell.
 - The token context menu is a compact 360px surface: reduced typography/controls, 19–20px pills, and side-by-side Conditions and Advantage/Disadvantage columns.
 - `Dead` is a shared assignable condition. Dead tokens are dimmed/grayscaled and wear a skull badge; `Dead` is not also counted in the numbered conditions badge.
@@ -138,12 +150,12 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - The viewport's non-passive wheel listener zooms only the map surface. Events whose pointer target is inside a viewport control, floating sheet, MUI dialog, popover, or popper are left untouched so the scrollable UI directly under the cursor receives the wheel, including while fullscreen portals live inside the map element.
 - The map/sheet divider previews its grid ratio through a CSS custom property at most once per animation frame and commits React state only on release, avoiding full SceneEditor rerenders during drag. Roll Log history never remounts animated 3D dice: each saved result is a static accessible 2D die silhouette with its landed value; only the live map throw uses physics/3D. Rolls originated on the current battle-map screen remain in its log/toast/physical-dice queue but suppress their token speech bubble; remote screens still show that bubble, based on local event origin rather than character ownership (so GM rolls from a PC sheet are also suppressed for the GM).
 - Encounter↔map bridge supports imported monster `sourceRef`s and roster character `sourceId`s in both directions. Character HP/death-save/condition writes go through the sheet source of truth; monster values remain on the token/fight.
-- Relevant tests: `shared/vtt/encounterSync.test.js`, `rollFeed.test.js`, `sheetLayout.test.js`, `shared/cloud/vtt.test.jsx`, `components/TokenMenu.test.jsx`, `TokenSprite.test.jsx`, `RosterPanel.test.jsx`, `SceneViewport.test.jsx`, `SceneToolRail.test.jsx`, `DiceTray.test.jsx`, `RollLogPanel.test.jsx`, and `BattleMapSheetResizeHandle.test.jsx`.
+- Relevant tests: logic under `tests/logic/shared/vtt/`, cloud VTT operations at `tests/ui/shared/cloud/api/vtt.test.jsx`, and map components under `tests/ui/pages/vtt/components/` (including viewport, tokens, pieces, dice, roll log, sheet resize).
 
 ## Combat Sheet Sync
 
 - Synced fields: `currentHP`, `tempHP`, `maxHPBonus`, `deathSaves`, `activeConditions`.
-- Shared ownership: `shared/character/vitals.js`.
+- Shared ownership: `shared/character/combat/vitals.js`.
 - Outbound: `useFightSheetSync`; inbound realtime: `useSheetRealtime`.
 - Manual PCs/monsters retain local vitals.
 - `activeEffects` never sync.
@@ -163,7 +175,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Builder: `pages/charbuilder/CharBuilder.jsx`.
 - Sheet: `pages/charsheet/CharacterSheet.jsx`.
 - Keys: `gb:char:<id>`, `gb:chars`, `gb:active_char`.
-- Helpers: `shared/character/store.js`.
+- Helpers: `shared/character/profile/store.js`.
 - Local delete emits `gb:char-deleted`; it never cascades cloud deletion.
 - Logged-in saved characters autosync; imported JSON remains a draft until saved/uploaded.
 
@@ -189,14 +201,15 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 ## Tests
 
-- Section cloud: `src/shared/cloud/cloudSections.test.js`.
-- Autosync: `src/shared/cloud/cloudAutoSyncEngine.test.js`.
-- Picker/freshness/merge: `src/pages/library/logic/library.logic.test.js`.
-- Authenticated local-origin open regression: `src/pages/library/SectionPicker.test.jsx`.
-- Linked tools: `src/shared/instanceLinks.test.js` and `src/components/LinkedToolsMenu.test.jsx`.
-- Route titles: `src/shared/pageTitle.test.js`.
-- SQL assertions: `src/shared/cloud/sectionsSql.test.js`.
-- Node tests: `*.test.js`; Vitest/jsdom: `*.test.jsx`.
+- Section cloud: `tests/logic/shared/cloud/sections/cloudSections.test.js`.
+- Autosync: `tests/logic/shared/cloud/sync/cloudAutoSyncEngine.test.js`.
+- Picker/freshness/merge: `tests/logic/pages/library/logic/library.logic.test.js`.
+- Authenticated local-origin open regression: `tests/ui/pages/library/SectionPicker.test.jsx`.
+- Linked tools: `tests/logic/shared/instances/instanceLinks.test.js` and `tests/ui/components/LinkedToolsMenu.test.jsx`.
+- Route titles: `tests/logic/shared/ui/pageTitle.test.js`.
+- SQL assertions: `tests/logic/shared/cloud/sections/sectionsSql.test.js` and `tests/logic/shared/cloud/api/`.
+- Node suites: `tests/logic/**/*.test.js`; Vitest/jsdom suites: `tests/ui/**/*.test.jsx`; shared UI setup: `tests/setup.js`. Each tree mirrors `src/`.
+- `npm test` runs VTT hygiene, logic and UI; `npm run test:logic` runs `node --test tests/logic`; `npm run test:ui` runs Vitest. Runner instructions: `tests/README.md`.
 - Network tests inject/mock Supabase and never hit a live service.
 
 ## Verification

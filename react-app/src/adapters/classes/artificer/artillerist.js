@@ -8,7 +8,7 @@ import {
   CANNON_MENDING_HEAL,
   CANNON_MOVE_FT,
   getActiveCannons,
-} from '../../../shared/character/eldritchCannonForm.js';
+} from '../../../shared/character/forms/eldritchCannonForm.js';
 
 export default function install(registry, context = {}) {
   const {

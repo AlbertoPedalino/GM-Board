@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   subscriptionState: null,
 }));
 
-vi.mock('../../../../src/shared/cloud/AuthProvider.jsx', () => ({
+vi.mock('../../../../src/shared/cloud/auth/AuthProvider.jsx', () => ({
   useAuth: () => mocks.auth,
 }));
 
@@ -20,7 +20,7 @@ vi.mock('../../../../src/shared/cloud/supabaseClient.js', () => ({
   },
 }));
 
-vi.mock('../../../../src/shared/cloud/vtt.js', () => ({
+vi.mock('../../../../src/shared/cloud/api/vtt.js', () => ({
   listLiveScenes: mocks.listLiveScenes,
 }));
 

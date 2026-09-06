@@ -7,10 +7,10 @@ import {
   STATS,
   THIRD_SLOTS,
 } from '../constants.js';
-import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
-import { getFeatAsiBonus } from '../../../shared/character/abilityBonuses.js';
-import { collectOwnedFeatNames } from '../../../shared/character/selectedFeats.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/combat/hp.js';
+import { getFeatAsiBonus } from '../../../shared/character/progression/abilityBonuses.js';
+import { collectOwnedFeatNames } from '../../../shared/character/progression/selectedFeats.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 
 export function formatMod(value) {
   const mod = Math.floor((Number(value || 0) - 10) / 2);

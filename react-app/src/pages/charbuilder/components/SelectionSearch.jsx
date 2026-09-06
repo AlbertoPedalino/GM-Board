@@ -1,4 +1,4 @@
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 
 // Text-search utils + the useOptionSearch hook now live in
 // shared/character/searchText.js (app-wide). This file is the builder-styled

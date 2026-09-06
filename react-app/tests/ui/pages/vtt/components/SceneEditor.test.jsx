@@ -29,16 +29,16 @@ beforeEach(() => {
   updateSceneMock.mockResolvedValue(null);
 });
 
-vi.mock('../../../../../src/shared/cloud/vtt.js', async (importOriginal) => ({
+vi.mock('../../../../../src/shared/cloud/api/vtt.js', async (importOriginal) => ({
   ...await importOriginal(),
   signMapImage: signMapImageMock,
   updateScene: updateSceneMock,
 }));
 
-vi.mock('../../../../../src/shared/ToastProvider.jsx', () => ({
+vi.mock('../../../../../src/shared/ui/ToastProvider.jsx', () => ({
   useToast: () => ({ notify: notifyMock }),
 }));
-vi.mock('../../../../../src/shared/cloud/AuthProvider.jsx', () => ({
+vi.mock('../../../../../src/shared/cloud/auth/AuthProvider.jsx', () => ({
   useAuth: () => ({ user: { id: 'gm-1' } }),
 }));
 vi.mock('../../../../../src/shared/vtt/useSceneRole.js', () => ({
@@ -52,7 +52,7 @@ vi.mock('../../../../../src/shared/vtt/useSceneLive.js', () => ({
     sendPresenterState: sendPresenterStateMock,
   }),
 }));
-vi.mock('../../../../../src/shared/character/usePortraits.js', () => ({ usePortraits: () => ({}) }));
+vi.mock('../../../../../src/shared/character/profile/usePortraits.js', () => ({ usePortraits: () => ({}) }));
 vi.mock('../../../../../src/pages/encounterbuilder/hooks/useMonsterDb.js', () => ({
   useMonsterDb: () => ({ monsters: [] }),
 }));

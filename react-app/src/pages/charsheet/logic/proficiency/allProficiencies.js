@@ -1,8 +1,8 @@
-import { getMulticlassProficiencies } from '../../../../shared/character/multiclassProficiencies.js';
+import { getMulticlassProficiencies } from '../../../../shared/character/progression/multiclassProficiencies.js';
 import {
   parseTypedProficiencyValue as parseTypedProficiencyValueShared,
   isChoicePlaceholderValue,
-} from '../../../../shared/character/typedProficiencies.js';
+} from '../../../../shared/character/progression/typedProficiencies.js';
 import {
   addFixedLabels,
   collectFixedFeatureProfs,

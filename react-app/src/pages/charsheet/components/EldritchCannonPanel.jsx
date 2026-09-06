@@ -6,15 +6,15 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
 import { getMod, getFinal, getPB } from '../logic/calculations.js';
 import { getSheetSlots } from '../logic/spellsTabLogic.js';
-import { consumeSlot, getRegularSlotUsed } from '../../../shared/character/spellSlots.js';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { RichText } from '../../../shared/character/RichText.jsx';
-import RollerButtons from '../../../shared/character/RollerButtons.jsx';
-import HpPoolBar from '../../../shared/character/HpPoolBar.jsx';
+import { consumeSlot, getRegularSlotUsed } from '../../../shared/character/spells/spellSlots.js';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { RichText } from '../../../shared/content/RichText.jsx';
+import RollerButtons from '../../../shared/character/dice/RollerButtons.jsx';
+import HpPoolBar from '../../../shared/character/combat/HpPoolBar.jsx';
 import AttackRollButton from './AttackRollButton.jsx';
 import { panelSx, headerSx, subSx, rowSx, dismissButtonSx } from './BeastStatBlock.jsx';
 import { inlineButtonSx } from './spellsTabStyles.js';
-import { ACTION_COLORS } from '../../../shared/entityColors.js';
+import { ACTION_COLORS } from '../../../shared/ui/entityColors.js';
 import {
   CANNON_AC,
   CANNON_DAMAGE_IMMUNITIES,
@@ -29,7 +29,7 @@ import {
   removeCannonPatch,
   updateCannonHpPatch,
   eldritchCannonRuleGroups,
-} from '../../../shared/character/eldritchCannonForm.js';
+} from '../../../shared/character/forms/eldritchCannonForm.js';
 
 const CINZEL = '"Cinzel", Georgia, serif';
 

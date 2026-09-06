@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Button, Tooltip } from '@mui/material';
 import { Network } from 'lucide-react';
 import LinkedToolsMenu, { LINKED_TOOLS_BUTTON_SX } from '../../../components/LinkedToolsMenu.jsx';
-import { readCampaignHexcrawlBoard } from '../../../shared/cloud/hexcrawl.js';
+import { readCampaignHexcrawlBoard } from '../../../shared/cloud/api/hexcrawl.js';
 
 // The map's LINKS button.
 //

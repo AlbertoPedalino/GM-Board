@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { equipToSlot } from '../../../../../src/pages/charsheet/logic/equipmentSlots.js';
-import { isItemEquipped } from '../../../../../src/shared/character/itemGroups.js';
+import { isItemEquipped } from '../../../../../src/shared/character/inventory/itemGroups.js';
 
 test('equipping one of a stack splits it and leaves the rest loose', () => {
   const next = equipToSlot([{ name: 'Dagger', source: 'XPHB', qty: 4 }], 0, 'mainHand');

@@ -1,7 +1,7 @@
 import { adapterRegistry as installedRegistry } from '../../../../adapters/registry.js';
-import { canonicalProficiencyLabel } from '../../../../shared/character/proficiencyDisplay.js';
-import { primaryClassLevel } from '../../../../shared/character/classLevel.js';
-import { isChoicePlaceholderValue } from '../../../../shared/character/typedProficiencies.js';
+import { canonicalProficiencyLabel } from '../../../../shared/character/progression/proficiencyDisplay.js';
+import { primaryClassLevel } from '../../../../shared/character/progression/classLevel.js';
+import { isChoicePlaceholderValue } from '../../../../shared/character/progression/typedProficiencies.js';
 import { normKey } from './weaponRules.js';
 
 export const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];

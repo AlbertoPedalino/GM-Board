@@ -2,15 +2,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, Stack, TextField, MenuItem, Chip, CircularProgress, IconButton, Divider } from '@mui/material';
 import { Cloud, Flag, Users, Plus, ScrollText, Copy, LogIn, LogOut, X, Trash2, Eye } from 'lucide-react';
-import { useAuth } from '../../shared/cloud/AuthProvider.jsx';
-import AuthDialog from '../../shared/cloud/AuthDialog.jsx';
-import { useToast } from '../../shared/ToastProvider.jsx';
+import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
+import AuthDialog from '../../shared/cloud/auth/AuthDialog.jsx';
+import { useToast } from '../../shared/ui/ToastProvider.jsx';
 import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
 import {
   createCampaign, joinCampaign, listMyCampaigns,
   listCampaignCharacters, listCampaignMembers, setCharacterCampaign, leaveCampaign, deleteCampaign,
-} from '../../shared/cloud/campaigns.js';
-import { listMyCharacters } from '../../shared/cloud/cloudCharacters.js';
+} from '../../shared/cloud/api/campaigns.js';
+import { listMyCharacters } from '../../shared/cloud/api/cloudCharacters.js';
 import { summarizeCharacter } from './sheetSummary.js';
 import { resolveCampaignsPageState } from './campaignsPageState.js';
 import { ensureSheetRuntimeAdapters } from '../charsheet/logic/sheetRuntimeAdapters.js';

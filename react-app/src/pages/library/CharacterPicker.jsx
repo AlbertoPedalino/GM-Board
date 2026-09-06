@@ -2,15 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import { Download, Save } from 'lucide-react';
-import { useAuth } from '../../shared/cloud/AuthProvider.jsx';
-import { useToast } from '../../shared/ToastProvider.jsx';
-import SheetDialog from '../../shared/character/SheetDialog.jsx';
+import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
+import { useToast } from '../../shared/ui/ToastProvider.jsx';
+import SheetDialog from '../../shared/ui/SheetDialog.jsx';
 import {
   listAllCharacters, listMyCharacters, fetchCloudMeta, pullCharacter,
   deleteCloudCharacter, deleteOwnCloudCharacter,
-} from '../../shared/cloud/cloudCharacters.js';
-import { deleteCharacter } from '../../shared/character/store.js';
-import { readRegistry, renameRegistryEntry, REGISTRY_META } from '../../shared/localStorageRegistries.js';
+} from '../../shared/cloud/api/cloudCharacters.js';
+import { deleteCharacter } from '../../shared/character/profile/store.js';
+import { readRegistry, renameRegistryEntry, REGISTRY_META } from '../../shared/storage/localStorageRegistries.js';
 import { createCharacterExport } from '../charbuilder/logic/characterExport.js';
 import { supabase } from '../../shared/cloud/supabaseClient.js';
 import { loadCharacterRows, canDeleteRow, deletePlanFor } from './logic/characterRows.js';

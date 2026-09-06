@@ -6,12 +6,12 @@ import {
   EXHAUSTION_KEY,
   conditionLabel,
   normalizeConditions,
-} from '../../../shared/character/conditions.js';
+} from '../../../shared/character/combat/conditions.js';
 import {
   CONDITION_ACCENT,
   ConditionCard,
   ConditionPill,
-} from '../../../shared/character/ConditionChips.jsx';
+} from '../../../shared/character/combat/ConditionChips.jsx';
 import { useConditionEntries } from '../hooks/useConditionEntries.js';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';
 import MarkerRow from './MarkerRow.jsx';

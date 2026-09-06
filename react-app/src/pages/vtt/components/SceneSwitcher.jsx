@@ -3,7 +3,7 @@ import {
   CircularProgress, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography,
 } from '@mui/material';
 import { Layers, Radio } from 'lucide-react';
-import { listScenes } from '../../../shared/cloud/vtt.js';
+import { listScenes } from '../../../shared/cloud/api/vtt.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import { battleMapDialogPaperSx } from './battleMapSurface.js';
 

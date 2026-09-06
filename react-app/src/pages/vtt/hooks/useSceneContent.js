@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { mergeVitals, readCampaignVitals } from '../../../shared/campaign/characterVitals.js';
 import { toRoster, toRosterEntry } from '../../../shared/campaign/roster.js';
-import { listCampaignCharacters } from '../../../shared/cloud/campaigns.js';
+import { listCampaignCharacters } from '../../../shared/cloud/api/campaigns.js';
 import {
   listDrawings, listTokenSecrets, listTokens, signMapImage,
-} from '../../../shared/cloud/vtt.js';
+} from '../../../shared/cloud/api/vtt.js';
 import { toDrawing } from '../../../shared/vtt/drawing.js';
 
 function attachSecrets(tokens, secrets, held = []) {

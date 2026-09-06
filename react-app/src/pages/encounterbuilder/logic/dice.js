@@ -1,5 +1,5 @@
 import { LOG_MAX } from './constants.js';
-import { normalizeRollIdentity } from '../../../shared/character/rollLogPresentation.js';
+import { normalizeRollIdentity } from '../../../shared/character/dice/rollLogPresentation.js';
 
 export function rollDie(faces, rng = Math.random) {
   return Math.floor(rng() * faces) + 1;

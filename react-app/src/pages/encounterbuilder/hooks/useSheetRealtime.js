@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 import { supabase } from '../../../shared/cloud/supabaseClient.js';
 import { summarizeCharacter } from '../../campaigns/sheetSummary.js';
 import { sheetVitalsToCombat, sheetVitalsToSheetPatch } from '../logic/sheetSync.js';

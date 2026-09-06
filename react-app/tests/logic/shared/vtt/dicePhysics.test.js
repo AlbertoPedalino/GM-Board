@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dieGeometry } from '../../../../src/shared/character/polyhedra.js';
+import { dieGeometry } from '../../../../src/shared/character/dice/polyhedra.js';
 import {
   THROWN_DIE_SIZE,
   orientationMatrix,

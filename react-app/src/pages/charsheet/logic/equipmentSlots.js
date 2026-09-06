@@ -1,4 +1,4 @@
-import { inventoryStackKey, isInventoryItemStackable } from '../../../shared/character/itemIdentity.js';
+import { inventoryStackKey, isInventoryItemStackable } from '../../../shared/character/inventory/itemIdentity.js';
 
 export function itemProps(item) {
   return [...(Array.isArray(item?.property) ? item.property : []), ...(Array.isArray(item?.properties) ? item.properties : [])]

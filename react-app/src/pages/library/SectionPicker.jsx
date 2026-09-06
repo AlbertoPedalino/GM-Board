@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useAuth } from '../../shared/cloud/AuthProvider.jsx';
-import { getCloudSection } from '../../shared/cloud/cloudSections.js';
+import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
+import { getCloudSection } from '../../shared/cloud/sections/cloudSections.js';
 import {
   cancelPendingRegistryPush,
   deleteRegistryEntry,
   readRegistry,
   renameRegistryEntry,
-} from '../../shared/localStorageRegistries.js';
+} from '../../shared/storage/localStorageRegistries.js';
 import InstanceRow from './components/InstanceRow.jsx';
 import {
   loadInstanceRows,

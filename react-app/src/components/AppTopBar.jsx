@@ -1,7 +1,7 @@
 import { Box, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { ArrowLeft, Home } from 'lucide-react';
-import CloudMenu from '../shared/cloud/CloudMenu.jsx';
+import CloudMenu from '../shared/cloud/auth/CloudMenu.jsx';
 
 export const APP_TOP_BAR_HEIGHT = '48px';
 

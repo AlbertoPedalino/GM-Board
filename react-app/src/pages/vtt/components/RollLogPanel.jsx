@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { Dices, Trash2 } from 'lucide-react';
-import CustomRollDialog from '../../../shared/character/CustomRollDialog.jsx';
-import RollCalculation from '../../../shared/character/RollCalculation.jsx';
-import RollActorLabel from '../../../shared/character/RollActorLabel.jsx';
+import CustomRollDialog from '../../../shared/character/dice/CustomRollDialog.jsx';
+import RollCalculation from '../../../shared/character/dice/RollCalculation.jsx';
+import RollActorLabel from '../../../shared/character/dice/RollActorLabel.jsx';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import { fullscreenContainer } from '../logic/fullscreenContainer.js';
 import {

@@ -1,6 +1,6 @@
 import { Avatar, Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material';
 import { ExternalLink, X } from 'lucide-react';
-import PortraitBadge from '../../../shared/character/PortraitBadge.jsx';
+import PortraitBadge from '../../../shared/character/profile/PortraitBadge.jsx';
 import CampaignSheetView from '../../campaignsheet/CampaignSheetView.jsx';
 import { campaignSheetUrl } from '../logic/campaignSheetUrl.js';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';

@@ -4,9 +4,9 @@ import { Dice5, Sparkles, ChevronDown } from 'lucide-react';
 import { STATS, SLBL, FULL_LBL, hasSaveProficiency, getSaveBonus, fbonus, effectiveD20Modifier } from '../logic/calculations.js';
 import { getConcentrationBonus, getD20FloorReminders } from '../logic/sheetEffects.js';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
-import { aggregateSavingThrowBonus } from '../../../shared/character/itemBonus.js';
-import { collectItemEffects } from '../../../shared/character/itemEffects.js';
-import { itemEffectInventory } from '../../../shared/character/wildShapeForm.js';
+import { aggregateSavingThrowBonus } from '../../../shared/character/inventory/itemBonus.js';
+import { collectItemEffects } from '../../../shared/character/inventory/itemEffects.js';
+import { itemEffectInventory } from '../../../shared/character/forms/wildShapeForm.js';
 import { collectSaveModifiers, fixedModifiersForAbility, summarizeSaveModifiers } from '../logic/saveModifiers.js';
 import { advantageVisual, autoFailVisual } from './advantageMark.jsx';
 

@@ -6,12 +6,12 @@ import {
   isReplicateArmorItem,
   replicateChoiceLabel,
   resolveReplicateChoice,
-} from '../../../shared/character/replicateMagicItem.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+} from '../../../shared/character/inventory/replicateMagicItem.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 import {
   MAGIC_ITEM_TINKER_DRAIN_RESOURCE,
   MAGIC_ITEM_TINKER_TRANSMUTE_RESOURCE,
-} from '../../../shared/character/magicItemTinker.js';
+} from '../../../shared/character/inventory/magicItemTinker.js';
 
 const _REPLICATE_BUCKET_LABEL = Object.fromEntries(REPLICATE_BUCKETS.map((b) => [b.id, b.label]));
 

@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CombatantEffects from '../../../../../src/pages/encounterbuilder/components/CombatantEffects.jsx';
-import { MAX_EFFECTS } from '../../../../../src/shared/character/combatEffects.js';
+import { MAX_EFFECTS } from '../../../../../src/shared/character/combat/combatEffects.js';
 
 // The real provider drags in the monster DB, persistence and supabase realtime.
 // The component only ever needs `dispatch`, so that is all this stands in for.

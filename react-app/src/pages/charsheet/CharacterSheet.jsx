@@ -9,28 +9,28 @@ import SavingThrows from './components/SavingThrows.jsx';
 import Senses from './components/Senses.jsx';
 import Proficiencies from './components/Proficiencies.jsx';
 import HitDiceSpendControl from './components/HitDiceSpendControl.jsx';
-import SheetDialog from '../../shared/character/SheetDialog.jsx';
+import SheetDialog from '../../shared/ui/SheetDialog.jsx';
 import Skills from './components/Skills.jsx';
 import Movement from './components/Movement.jsx';
 import RightTop from './components/RightTop.jsx';
 import TabsPanel from './components/TabsPanel.jsx';
-import DiceToast from '../../shared/character/DiceToast.jsx';
+import DiceToast from '../../shared/character/dice/DiceToast.jsx';
 import { deriveSheetState } from './state.js';
 import { ProficiencySetsProvider } from './context/ProficiencySetsContext.jsx';
 import { SheetActionsProvider } from './context/SheetActionsContext.jsx';
-import { clearCraftedByFlag, VANISH_ON_LONG_REST_FLAGS } from '../../shared/character/craftedItems.js';
-import { collectReplicatePlanChoices } from '../../shared/character/replicateMagicItem.js';
-import { pruneReplicatedItemsForPlans } from '../../shared/character/magicItemTinker.js';
-import { buildD20Meta, formatD20Detail, rollD20 as rollD20Dice } from '../../shared/character/dice.js';
-import { aggregateSavingThrowBonus } from '../../shared/character/itemBonus.js';
-import { itemEffectInventory } from '../../shared/character/wildShapeForm.js';
-import { longRestCharacterPatch } from '../../shared/character/longRest.js';
+import { clearCraftedByFlag, VANISH_ON_LONG_REST_FLAGS } from '../../shared/character/inventory/craftedItems.js';
+import { collectReplicatePlanChoices } from '../../shared/character/inventory/replicateMagicItem.js';
+import { pruneReplicatedItemsForPlans } from '../../shared/character/inventory/magicItemTinker.js';
+import { buildD20Meta, formatD20Detail, rollD20 as rollD20Dice } from '../../shared/character/dice/dice.js';
+import { aggregateSavingThrowBonus } from '../../shared/character/inventory/itemBonus.js';
+import { itemEffectInventory } from '../../shared/character/forms/wildShapeForm.js';
+import { longRestCharacterPatch } from '../../shared/character/resources/longRest.js';
 import { calcMaxHP, getMod, getFinal, getSaveBonus, clampExhaustion, exhaustionD20Penalty, EXHAUSTION_MAX } from './logic/calculations.js';
 import {
   DEAD_CONDITION_KEY,
   setConditionActive,
   toggleCondition as toggleConditionKey,
-} from '../../shared/character/conditions.js';
+} from '../../shared/character/combat/conditions.js';
 import { normalizeCharacterAttunement } from './logic/attunement.js';
 import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax, resourceFullValue } from './logic/restResources.js';
 import { clearedToggles } from './logic/toggleState.js';
@@ -38,17 +38,17 @@ import { applyFreeCastRest, getFreeCastDefsForCharacter } from './logic/spellsTa
 import { adapterRegistry as installedRegistry } from '../../adapters/registry.js';
 import { ensureSheetRuntimeAdapters } from './logic/sheetRuntimeAdapters.js';
 import { loadItems, loadOptionalFeatures, loadConditions, reconcileInventoryWithItemsDb } from '../charbuilder/logic/dataLoaders.js';
-import { fetchCloudMeta, updateCloudCharacterData } from '../../shared/cloud/cloudCharacters.js';
+import { fetchCloudMeta, updateCloudCharacterData } from '../../shared/cloud/api/cloudCharacters.js';
 import { isCloudConfigured } from '../../shared/cloud/supabaseClient.js';
-import { useRollChannel } from '../../shared/cloud/useRollChannel.js';
+import { useRollChannel } from '../../shared/cloud/sync/useRollChannel.js';
 import { normalizeRoll } from '../../shared/vtt/rollFeed.js';
-import { SYNCED_VITALS, clampCharacterVitals } from '../../shared/character/vitals.js';
+import { SYNCED_VITALS, clampCharacterVitals } from '../../shared/character/combat/vitals.js';
 import {
   getActiveCharId,
   loadCharacter as storeLoadCharacter,
   patchCharacter as storePatchCharacter,
   setActiveCharId,
-} from '../../shared/character/store.js';
+} from '../../shared/character/profile/store.js';
 
 function getCharIdFromUrl() {
   return new URLSearchParams(window.location.search).get('char') || getActiveCharId();

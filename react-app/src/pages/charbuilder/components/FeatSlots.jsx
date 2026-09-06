@@ -4,9 +4,9 @@ import { Lock } from 'lucide-react';
 import ChoiceBlock from './ChoiceBlock.jsx';
 import ExpandableSelectionList from './ExpandableSelectionList.jsx';
 import SpellChoiceList from './SpellChoiceList.jsx';
-import { EntryAccordion, partitionNamedEntries } from '../../../shared/character/EntryAccordion.jsx';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { findSpellListEntryIndexByClass } from '../../../shared/character/featSpellLists.js';
+import { EntryAccordion, partitionNamedEntries } from '../../../shared/content/EntryAccordion.jsx';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { findSpellListEntryIndexByClass } from '../../../shared/character/spells/featSpellLists.js';
 import { featChoiceSpecs } from '../logic/choiceSpecs.js';
 import { buildFeatPrerequisiteContext, meetsFeatPrerequisites } from '../logic/featPrerequisites.js';
 

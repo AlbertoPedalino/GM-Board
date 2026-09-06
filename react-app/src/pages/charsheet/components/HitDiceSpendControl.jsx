@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import PipButton from '../../../shared/character/PipButton.jsx';
+import PipButton from '../../../shared/ui/PipButton.jsx';
 
 // Interactive Hit Dice pips for the Short Rest dialog. Mirrors the look of
 // the old standalone Hit Dice panel: hollow pips are dice already used,

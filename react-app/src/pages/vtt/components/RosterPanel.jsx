@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import ColorField from '../../../components/ColorField.jsx';
 import { placedCharacterIds } from '../../../shared/campaign/roster.js';
-import { usePortraits } from '../../../shared/character/usePortraits.js';
+import { usePortraits } from '../../../shared/character/profile/usePortraits.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import PiecePreview, { beginPiecePointerDrag } from './PiecePreview.jsx';
 

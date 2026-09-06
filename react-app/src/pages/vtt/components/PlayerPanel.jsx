@@ -1,7 +1,7 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { MapPin, Plus } from 'lucide-react';
 import { placedCharacterIds } from '../../../shared/campaign/roster.js';
-import { usePortraits } from '../../../shared/character/usePortraits.js';
+import { usePortraits } from '../../../shared/character/profile/usePortraits.js';
 import PiecePreview, { beginPiecePointerDrag } from './PiecePreview.jsx';
 
 // What a player can do to the board. Deliberately short: place their own

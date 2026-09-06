@@ -1,21 +1,21 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Box, Button, Chip, Divider, IconButton, List, ListItemButton, ListItemText, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { Backpack, Coins, PackagePlus, Trash2 } from 'lucide-react';
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 import BuilderPanel from '../components/BuilderPanel.jsx';
-import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
+import { ItemNameIcon } from '../../../shared/content/FiveEToolsLink.jsx';
 import { equipmentTypeCandidates } from '../logic/dataLoaders.js';
-import { CurrencyRow } from '../../../shared/character/CurrencyCoinBox.jsx';
-import { findInventoryItem } from '../../../shared/character/itemContainers.js';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { ItemReferenceBody, QuantityAdder } from '../../../shared/character/ItemReference.jsx';
-import { strip5eMarkup } from '../../../shared/character/spellEntries.js';
-import { formatWeight, totalCarriedWeight } from '../../../shared/character/weight.js';
-import ItemFilterPanel from '../../../shared/character/ItemFilterPanel.jsx';
-import { itemMatchesFilters } from '../../../shared/character/itemFilters.js';
-import { useItemFilters } from '../../../shared/character/useItemFilters.js';
-import { ITEM_GROUP_CHIPS, OWNED_ITEM_CHIPS, matchesItemGroupChip } from '../../../shared/character/itemGroups.js';
-import { usePagedList } from '../../../shared/character/usePagedList.js';
+import { CurrencyRow } from '../../../shared/character/inventory/CurrencyCoinBox.jsx';
+import { findInventoryItem } from '../../../shared/character/inventory/itemContainers.js';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { ItemReferenceBody, QuantityAdder } from '../../../shared/character/inventory/ItemReference.jsx';
+import { strip5eMarkup } from '../../../shared/character/spells/spellEntries.js';
+import { formatWeight, totalCarriedWeight } from '../../../shared/character/inventory/weight.js';
+import ItemFilterPanel from '../../../shared/character/inventory/ItemFilterPanel.jsx';
+import { itemMatchesFilters } from '../../../shared/character/inventory/itemFilters.js';
+import { useItemFilters } from '../../../shared/character/inventory/useItemFilters.js';
+import { ITEM_GROUP_CHIPS, OWNED_ITEM_CHIPS, matchesItemGroupChip } from '../../../shared/character/inventory/itemGroups.js';
+import { usePagedList } from '../../../shared/ui/usePagedList.js';
 
 const CHOICE_KEYS = ['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e'];
 

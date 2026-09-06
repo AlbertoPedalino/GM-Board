@@ -1,14 +1,14 @@
-import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/hp.js';
-import { getFeatAsiBonus } from '../../../shared/character/abilityBonuses.js';
+import { computeMaxHp as sharedComputeMaxHp } from '../../../shared/character/combat/hp.js';
+import { getFeatAsiBonus } from '../../../shared/character/progression/abilityBonuses.js';
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
-import { extractFixedProficiencyLabels } from '../../../shared/character/typedProficiencies.js';
-import { getFinalAbilityScore } from '../../../shared/character/itemEffects.js';
-import { wildShapeAbilityScore, wildShapeSaveBonus, wildShapeSaveProficient, wildShapeSkillBonus } from '../../../shared/character/wildShapeForm.js';
-import { getProficiencyBonus } from '../../../shared/character/proficiency.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
-import { XP_THRESHOLDS } from '../../../shared/character/xp.js';
+import { extractFixedProficiencyLabels } from '../../../shared/character/progression/typedProficiencies.js';
+import { getFinalAbilityScore } from '../../../shared/character/inventory/itemEffects.js';
+import { wildShapeAbilityScore, wildShapeSaveBonus, wildShapeSaveProficient, wildShapeSkillBonus } from '../../../shared/character/forms/wildShapeForm.js';
+import { getProficiencyBonus } from '../../../shared/character/progression/proficiency.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
+import { XP_THRESHOLDS } from '../../../shared/character/progression/xp.js';
 import { collectSheetEffects } from './sheetEffects.js';
-import { getNormalizedChoices } from '../../../shared/choiceNormalization.js';
+import { getNormalizedChoices } from '../../../shared/character/progression/choiceNormalization.js';
 
 const STATS = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const SLBL = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };

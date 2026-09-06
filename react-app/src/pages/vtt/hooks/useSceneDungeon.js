@@ -1,11 +1,11 @@
 import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
-import { readSceneDungeon, saveSceneDungeon } from '../../../shared/cloud/dungeon.js';
-import { saveInstanceFight } from '../../../shared/cloud/encounterFights.js';
+import { readSceneDungeon, saveSceneDungeon } from '../../../shared/cloud/api/dungeon.js';
+import { saveInstanceFight } from '../../../shared/cloud/api/encounterFights.js';
 import {
   readCampaignHexcrawlBoard, readHexcrawlBoard,
-} from '../../../shared/cloud/hexcrawl.js';
+} from '../../../shared/cloud/api/hexcrawl.js';
 import { createDungeon } from '../../gmboard/logic/dungeon.js';
 import { encounterBudget, fillBudget } from '../../../shared/dungeon/roomBudget.js';
 import { crXP, getCR } from '../../encounterbuilder/logic/monsterUtils.js';
@@ -14,7 +14,7 @@ import { seededRandom } from '../../../shared/dungeon/seededRandom.js';
 import {
   encounterInstanceForBoard, missingLinkReason, pickEncounterInstance,
 } from '../../../shared/dungeon/linkedEncounters.js';
-import { getCloudSection } from '../../../shared/cloud/cloudSections.js';
+import { getCloudSection } from '../../../shared/cloud/sections/cloudSections.js';
 import { sendEncounterToBuilder } from '../../encounterbuilder/logic/handoff.js';
 
 // The dungeon a map is being played as: how many rooms, what is in them, and

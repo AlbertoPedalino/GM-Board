@@ -18,8 +18,8 @@
 // spread into collectVisionEntries.
 
 import { collectSenseEffects } from './sheetEffects.js';
-import { getItemSenses } from '../../../shared/character/itemEffects.js';
-import { getActiveWildShape } from '../../../shared/character/wildShapeForm.js';
+import { getItemSenses } from '../../../shared/character/inventory/itemEffects.js';
+import { getActiveWildShape } from '../../../shared/character/forms/wildShapeForm.js';
 
 export const SENSE_LABELS = {
   darkvision: 'Darkvision',

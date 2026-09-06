@@ -2,8 +2,8 @@
 // No Supabase import here on purpose: this is the part that stays testable with
 // plain `node --test`.
 
-import { normalizeEffects } from '../character/combatEffects.js';
-import { normalizeConditions } from '../character/conditions.js';
+import { normalizeEffects } from '../character/combat/combatEffects.js';
+import { normalizeConditions } from '../character/combat/conditions.js';
 import { normalizeFog } from './fog.js';
 import { normalizeMapObjectKey, normalizeMapObjectStroke } from './mapObjects.js';
 import { VTT_COLORS } from './colors.js';

@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import { makeSheetPayload, saveCharacter } from '../logic/persistence.js';
 import { createCharacterExport } from '../logic/characterExport.js';
-import { getActiveCharId } from '../../../shared/character/store.js';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
+import { getActiveCharId } from '../../../shared/character/profile/store.js';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 
 function charIdFromUrl() {
   const id = new URLSearchParams(window.location.search).get('char');

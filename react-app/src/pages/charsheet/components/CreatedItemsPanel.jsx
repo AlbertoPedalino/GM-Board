@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import { Minus, Plus } from 'lucide-react';
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 import { loadItems } from '../../charbuilder/logic/dataLoaders.js';
-import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { ItemReferenceBody } from '../../../shared/character/ItemReference.jsx';
+import { ItemNameIcon } from '../../../shared/content/FiveEToolsLink.jsx';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { ItemReferenceBody } from '../../../shared/character/inventory/ItemReference.jsx';
 import {
   addCraftedItem,
   removeOneCrafted,
   craftedCount,
   craftedCountFor,
-} from '../../../shared/character/craftedItems.js';
+} from '../../../shared/character/inventory/craftedItems.js';
 import { collectAllProficiencies } from '../logic/proficiency/index.js';
 import { getMod, getFinal } from '../logic/calculations.js';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
@@ -21,7 +21,7 @@ import {
   exactCreatedItemKey,
   prepareCreatedItemData,
   resolveCreatedItemValue,
-} from '../../../shared/character/createdItemResolution.js';
+} from '../../../shared/character/inventory/createdItemResolution.js';
 
 // Generic interactive "create items from a list" panel. Driven entirely by the
 // action's `detail` config so Replicate Magic Item, Tinker's Magic and Fast

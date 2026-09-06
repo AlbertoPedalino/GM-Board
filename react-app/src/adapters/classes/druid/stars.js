@@ -1,6 +1,6 @@
 import { createAdapterBindings } from '../../adapterBindings.js';
-import { getChoiceValue } from '../../../shared/character/choiceUtils.js';
-import { ENTITY_COLORS } from '../../../shared/entityColors.js';
+import { getChoiceValue } from '../../../shared/character/progression/choiceUtils.js';
+import { ENTITY_COLORS } from '../../../shared/ui/entityColors.js';
 
 export default function install(registry, context = {}) {
   const getPB = context?.getPB;

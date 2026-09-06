@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Plus, Sparkles } from 'lucide-react';
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
 import { SLBL, getFinal, getMod, getPB, effectiveD20Modifier } from '../logic/calculations.js';
 import { loadSpells } from '../../charbuilder/logic/dataLoaders.js';
@@ -17,10 +17,10 @@ import { spellMatchesClass } from '../../charbuilder/spells/spells.js';
 import { installedRegistry, loadClassAdapters, loadCoreAdapters, loadSpellsAdapters } from '../../../adapters/index.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
-import { aggregateSpellBonuses } from '../../../shared/character/itemBonus.js';
-import { itemEffectInventory } from '../../../shared/character/wildShapeForm.js';
+import { aggregateSpellBonuses } from '../../../shared/character/inventory/itemBonus.js';
+import { itemEffectInventory } from '../../../shared/character/forms/wildShapeForm.js';
 import { getSpellSaveDcBonus } from '../logic/sheetEffects.js';
-import SheetDialog from '../../../shared/character/SheetDialog.jsx';
+import SheetDialog from '../../../shared/ui/SheetDialog.jsx';
 import {
   buildSpellInfo,
   canManageSpells,
@@ -38,8 +38,8 @@ import {
   toSnapshot,
   upsertSnapshot,
 } from '../logic/spellsTabLogic.js';
-import { getClassSpellLimits } from '../../../shared/character/spellProgression.js';
-import { getPactMagicInfo, getSpellCastMode } from '../../../shared/character/pactMagic.js';
+import { getClassSpellLimits } from '../../../shared/character/spells/spellProgression.js';
+import { getPactMagicInfo, getSpellCastMode } from '../../../shared/character/spells/pactMagic.js';
 import {
   addButtonSx,
   compactInputSx,
@@ -50,10 +50,10 @@ import {
 } from './spellsTabStyles.js';
 import SpellEntry, { SourceBadge } from './SpellEntry.jsx';
 import { Empty, SlotPanel, SpellSection, StatBox } from './SpellsUiParts.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { SpellMiniTags, SpellReferenceBody, SpellRowLabel, SpellSelectButton } from '../../../shared/character/SpellReference.jsx';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { SpellMiniTags, SpellReferenceBody, SpellRowLabel, SpellSelectButton } from '../../../shared/character/spells/SpellReference.jsx';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
-import { getPactSlotUsed, getPactSlotUsedKey, getRegularSlotUsed } from '../../../shared/character/spellSlots.js';
+import { getPactSlotUsed, getPactSlotUsedKey, getRegularSlotUsed } from '../../../shared/character/spells/spellSlots.js';
 
 const SPELL_ACTION_FILTERS = [
   { key: 'all', label: 'All' },

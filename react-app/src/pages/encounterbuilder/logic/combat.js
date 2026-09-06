@@ -7,14 +7,14 @@ import {
   toggleCondition as toggleConditionKey,
   DEAD_CONDITION_KEY,
   EXHAUSTION_KEY,
-} from '../../../shared/character/conditions.js';
+} from '../../../shared/character/combat/conditions.js';
 import {
   addCustomEffect,
   normalizeEffects,
   removeEffect,
   setEffectDuration,
   toggleEffect,
-} from '../../../shared/character/combatEffects.js';
+} from '../../../shared/character/combat/combatEffects.js';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 

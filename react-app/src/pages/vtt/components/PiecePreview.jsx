@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { classIcon } from '../../../shared/character/classIcon.js';
+import { classIcon } from '../../../shared/character/profile/classIcon.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 
 export const PIECE_POINTER_DRAG_EVENT = 'gb:vtt-piece-pointer-drag';

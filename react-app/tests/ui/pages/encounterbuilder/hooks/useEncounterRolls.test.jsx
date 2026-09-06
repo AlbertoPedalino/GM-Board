@@ -4,7 +4,7 @@ import { useEncounterRolls } from '../../../../../src/pages/encounterbuilder/hoo
 import { encounterReducer, createInitialState } from '../../../../../src/pages/encounterbuilder/state/reducer.js';
 
 const channel = vi.hoisted(() => ({ publish: vi.fn(), onRoll: null, campaignId: null }));
-vi.mock('../../../../../src/shared/cloud/useRollChannel.js', () => ({ useRollChannel: (options) => {
+vi.mock('../../../../../src/shared/cloud/sync/useRollChannel.js', () => ({ useRollChannel: (options) => {
   channel.onRoll = options.onRoll;
   channel.campaignId = options.campaignId;
   return { publish: channel.publish };

@@ -6,7 +6,7 @@ import { useGmBoardPersistence } from '../hooks/useGmBoardPersistence.js';
 import { resolveProceed, resolveAdvanceOnly, resolveManualAdvance } from '../logic/hex.js';
 import { clockFromResult, clockFromState } from '../../../shared/hexcrawl/hexEntry.js';
 import { useCampaignClock } from '../../../shared/hexcrawl/useCampaignClock.js';
-import { setCampaignHexcrawlBoard } from '../../../shared/cloud/hexcrawl.js';
+import { setCampaignHexcrawlBoard } from '../../../shared/cloud/api/hexcrawl.js';
 import { createDungeon, isValidRoomCount } from '../logic/dungeon.js';
 import { createQuests } from '../logic/quest.js';
 

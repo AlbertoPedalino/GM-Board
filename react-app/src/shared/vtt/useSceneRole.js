@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../cloud/AuthProvider.jsx';
-import { listMyCampaigns } from '../cloud/campaigns.js';
-import { listMyCharacters } from '../cloud/cloudCharacters.js';
+import { useAuth } from '../cloud/auth/AuthProvider.jsx';
+import { listMyCampaigns } from '../cloud/api/campaigns.js';
+import { listMyCharacters } from '../cloud/api/cloudCharacters.js';
 
 // Who the viewer is on this scene: the campaign's GM, or a player who may move
 // the pieces standing for their own sheets.

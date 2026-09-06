@@ -1,8 +1,8 @@
 import { Box, Button, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { Trash2, X } from 'lucide-react';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';
-import RollActorLabel from '../../../shared/character/RollActorLabel.jsx';
-import RollCalculation from '../../../shared/character/RollCalculation.jsx';
+import RollActorLabel from '../../../shared/character/dice/RollActorLabel.jsx';
+import RollCalculation from '../../../shared/character/dice/RollCalculation.jsx';
 
 export default function RollLog({ maxHeight = 320, onClose, sx }) {
   const { state, dispatch } = useEncounterBuilder();

@@ -13,13 +13,13 @@ import {
 } from '@mui/material';
 import { Trash2 } from 'lucide-react';
 import { VTT_COLORS } from '../../../shared/vtt/colors.js';
-import { EFFECT_GROUPS, toggleEffect } from '../../../shared/character/combatEffects.js';
+import { EFFECT_GROUPS, toggleEffect } from '../../../shared/character/combat/combatEffects.js';
 import {
   ASSIGNABLE_CONDITIONS,
   DEAD_CONDITION_KEY,
   setConditionActive,
   toggleCondition,
-} from '../../../shared/character/conditions.js';
+} from '../../../shared/character/combat/conditions.js';
 import { fullscreenContainer } from '../logic/fullscreenContainer.js';
 import { battleMapDialogPaperSx } from './battleMapSurface.js';
 

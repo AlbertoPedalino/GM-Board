@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Box, Button, Collapse, Link, Typography } from '@mui/material';
 import { ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import { SKILLS, getMod } from '../logic/calculations.js';
-import { beast5eToolsUrl, parseBeastActions, parseBeastActionsRich } from '../../../shared/character/beasts.js';
-import { formatRollTitle } from '../../../shared/character/dice.js';
+import { beast5eToolsUrl, parseBeastActions, parseBeastActionsRich } from '../../../shared/character/forms/beasts.js';
+import { formatRollTitle } from '../../../shared/character/dice/dice.js';
 
 // Shared presentational layer for a normalized beast snapshot, used by both the
 // Wild Shape and Wild Companion sheet panels. Renders a compact Monster-Manual

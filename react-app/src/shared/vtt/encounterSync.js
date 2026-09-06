@@ -9,12 +9,12 @@
 //
 // Everything here is pure: the callers own the storage reads and the writes.
 
-import { effectId, normalizeEffects } from '../character/combatEffects.js';
+import { effectId, normalizeEffects } from '../character/combat/combatEffects.js';
 import {
   DEAD_CONDITION_KEY,
   normalizeConditions,
   setConditionActive,
-} from '../character/conditions.js';
+} from '../character/combat/conditions.js';
 
 const SEPARATOR = ':';
 

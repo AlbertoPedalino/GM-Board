@@ -1,7 +1,7 @@
 import { deriveSheetState } from '../charsheet/state.js';
 import { getInitiative, getSkillBonus } from '../charsheet/logic/calculations.js';
-import { computeBestArmorClass } from '../../shared/character/ac.js';
-import { pickCharacterVitals } from '../../shared/character/vitals.js';
+import { computeBestArmorClass } from '../../shared/character/combat/ac.js';
+import { pickCharacterVitals } from '../../shared/character/combat/vitals.js';
 
 const PERCEPTION = { a: 'wis', n: 'Perception' };
 

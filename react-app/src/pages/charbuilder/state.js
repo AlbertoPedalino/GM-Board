@@ -9,7 +9,7 @@ import {
 } from './constants.js';
 import { getBackgroundPattern, getPrimaryClassLevel } from './logic/calculations.js';
 import { handleBackgroundSelect, handleClassSelect, handleSpellToggle, handleWizardSpellbookToggle } from './stateHandlers.js';
-import { getChoiceLevel } from '../../shared/character/choiceLevels.js';
+import { getChoiceLevel } from '../../shared/character/progression/choiceLevels.js';
 import {
   normalizeCoinAmount,
   setCoinAmount,
@@ -17,11 +17,11 @@ import {
   updateCustomCurrency,
   removeCustomCurrency,
   reorderCurrency,
-} from '../../shared/character/currency.js';
-import { addInventoryEntries } from '../../shared/character/itemContainers.js';
-import { emptyItemFilters } from '../../shared/character/itemFilters.js';
-import { isFeatKey, isFeatDetailKey } from '../../shared/featChoiceKeys.js';
-import { normalizeCharacterChoices } from '../../shared/choiceNormalization.js';
+} from '../../shared/character/inventory/currency.js';
+import { addInventoryEntries } from '../../shared/character/inventory/itemContainers.js';
+import { emptyItemFilters } from '../../shared/character/inventory/itemFilters.js';
+import { isFeatKey, isFeatDetailKey } from '../../shared/character/progression/featChoiceKeys.js';
+import { normalizeCharacterChoices } from '../../shared/character/progression/choiceNormalization.js';
 
 // Fields whose value feeds normalizeCharacterChoices. When a reducer patch touches
 // any of them, normalizedChoices is rebuilt so it stays the single source of truth

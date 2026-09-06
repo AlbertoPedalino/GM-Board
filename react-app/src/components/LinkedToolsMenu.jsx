@@ -14,8 +14,8 @@ import {
   Typography,
 } from '@mui/material';
 import { LayoutDashboard, Link2, Network, Plus, StickyNote, Swords, Unlink } from 'lucide-react';
-import { useAuth } from '../shared/cloud/AuthProvider.jsx';
-import { getCloudSection } from '../shared/cloud/cloudSections.js';
+import { useAuth } from '../shared/cloud/auth/AuthProvider.jsx';
+import { getCloudSection } from '../shared/cloud/sections/cloudSections.js';
 import {
   makeLinkGroupId,
   mergeLinkedInstanceRows,
@@ -23,10 +23,10 @@ import {
   readLocalToolInstances,
   resolveGroupMerge,
   setLocalInstanceLink,
-} from '../shared/instanceLinks.js';
-import { createSectionInstance } from '../shared/sectionInstances.js';
-import { SECTION_KEYS, SECTION_REGISTRY } from '../shared/sectionRegistry.js';
-import { useToast } from '../shared/ToastProvider.jsx';
+} from '../shared/instances/instanceLinks.js';
+import { createSectionInstance } from '../shared/instances/sectionInstances.js';
+import { SECTION_KEYS, SECTION_REGISTRY } from '../shared/instances/sectionRegistry.js';
+import { useToast } from '../shared/ui/ToastProvider.jsx';
 
 const TOOL_UI = {
   gmboard: { label: 'GM Board', icon: LayoutDashboard },

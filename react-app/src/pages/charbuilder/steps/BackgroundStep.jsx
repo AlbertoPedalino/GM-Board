@@ -7,10 +7,10 @@ import SearchList from '../components/SearchList.jsx';
 import { STAT_LABELS } from '../constants.js';
 import { getBackgroundPattern, getBackgroundPool } from '../logic/calculations.js';
 import { backgroundChoiceSpecs, fixedKeysFromBlocks } from '../logic/choiceSpecs.js';
-import { NEUTRAL_TONE } from '../../../shared/entityColors.js';
-import { backgroundOriginFeat } from '../../../shared/character/selectedFeats.js';
-import { backgroundFeatOptionLabel } from '../../../shared/character/backgroundFeatOptions.js';
-import { strip5eMarkup } from '../../../shared/character/spellEntries.js';
+import { NEUTRAL_TONE } from '../../../shared/ui/entityColors.js';
+import { backgroundOriginFeat } from '../../../shared/character/progression/selectedFeats.js';
+import { backgroundFeatOptionLabel } from '../../../shared/character/progression/backgroundFeatOptions.js';
+import { strip5eMarkup } from '../../../shared/character/spells/spellEntries.js';
 
 
 function titleCase(value) {

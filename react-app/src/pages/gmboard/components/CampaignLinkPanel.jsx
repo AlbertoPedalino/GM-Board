@@ -3,8 +3,8 @@ import {
   Box, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
 import { Link2 } from 'lucide-react';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
-import { listMyCampaigns } from '../../../shared/cloud/campaigns.js';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
+import { listMyCampaigns } from '../../../shared/cloud/api/campaigns.js';
 import { useGmBoard } from '../state/GmBoardContext.jsx';
 
 // Which table this board keeps time for. Bound, the clock and the weather stop

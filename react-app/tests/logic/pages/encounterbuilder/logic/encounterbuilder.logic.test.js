@@ -19,7 +19,7 @@ import {
   toggleCombatantCondition,
   toggleCombatantEffect,
 } from '../../../../../src/pages/encounterbuilder/logic/combat.js';
-import { effectId } from '../../../../../src/shared/character/combatEffects.js';
+import { effectId } from '../../../../../src/shared/character/combat/combatEffects.js';
 import { rollDice, rollDiceFormula } from '../../../../../src/pages/encounterbuilder/logic/dice.js';
 import {
   buildFumbleFormula,
@@ -48,7 +48,7 @@ import {
   sheetVitalsToSheetPatch,
 } from '../../../../../src/pages/encounterbuilder/logic/sheetSync.js';
 import { createInitialState, encounterReducer } from '../../../../../src/pages/encounterbuilder/state/reducer.js';
-import { SYNCED_VITALS } from '../../../../../src/shared/character/vitals.js';
+import { SYNCED_VITALS } from '../../../../../src/shared/character/combat/vitals.js';
 import { toEncounterPlayer } from '../../../../../src/pages/encounterbuilder/logic/campaignPlayer.js';
 
 test('an encounter keeps its selected quest when saved and loaded', () => {

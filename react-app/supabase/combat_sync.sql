@@ -7,7 +7,7 @@
 -- must send the complete value — it replaces, it does not merge.
 --
 -- The allowed[] list below must match SYNCED_DATA_KEYS in
--- src/shared/character/vitals.js; an encounter test asserts the two never
+-- src/shared/character/combat/vitals.js; an encounter test asserts the two never
 -- drift. Re-run this file after adding a key there, or writes of the new field
 -- are silently dropped.
 -- ============================================================================

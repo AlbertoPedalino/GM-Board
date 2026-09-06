@@ -2,7 +2,7 @@ import { adapterRegistry as installedRegistry } from '../../../adapters/registry
 import {
   enforceAttunementRules,
   resolveAttunementLimit,
-} from '../../../shared/character/itemAttunement.js';
+} from '../../../shared/character/inventory/itemAttunement.js';
 import { collectSheetEffects } from './sheetEffects.js';
 
 function hasSpellcastingConfig(config) {

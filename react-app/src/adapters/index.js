@@ -107,7 +107,7 @@ export async function loadClassAdapters(classNames, context = {}) {
 }
 
 export async function loadSpellsAdapters(context = {}) {
-  const spellsPaths = Object.keys(adapterModules).filter((path) => path.startsWith('./spells/'));
+  const spellsPaths = Object.keys(adapterModules).filter((path) => path.startsWith('./spells'));
   await loadPaths(spellsPaths, context);
   return adapterRegistry;
 }

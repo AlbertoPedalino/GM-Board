@@ -1,8 +1,8 @@
 import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
-import { formatRollTitle } from '../../../shared/character/dice.js';
-import { useRollChannel } from '../../../shared/cloud/useRollChannel.js';
+import { formatRollTitle } from '../../../shared/character/dice/dice.js';
+import { useRollChannel } from '../../../shared/cloud/sync/useRollChannel.js';
 import {
   addRoll,
   currentBubbles,

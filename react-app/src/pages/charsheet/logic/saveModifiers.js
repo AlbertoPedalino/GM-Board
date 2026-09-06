@@ -20,11 +20,11 @@
 // that adapter; nothing in this file changes. A brand-new *domain* (armor,
 // items, …) = one collector spread into collectSaveModifiers.
 
-import { collectItemEffects } from '../../../shared/character/itemEffects.js';
+import { collectItemEffects } from '../../../shared/character/inventory/itemEffects.js';
 import { getEquippedArmorPenalties } from './armorPenalties.js';
 import { collectSheetEffects } from './sheetEffects.js';
 import { SLBL, STATS } from './calculations.js';
-import { getConditionsWithEffect } from '../../../shared/character/conditions.js';
+import { getConditionsWithEffect } from '../../../shared/character/combat/conditions.js';
 
 function titleCase(value) {
   return String(value || '').replace(/\b\w/g, (c) => c.toUpperCase());

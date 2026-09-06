@@ -11,7 +11,7 @@
 // originating feature's name, then falls back to the raw effect note.
 
 import { loadSenses, loadOptionalFeatures, loadFeats } from '../../charbuilder/logic/dataLoaders.js';
-import { sourceRank, CORE_2024_SOURCE_PRIORITY } from '../../../shared/character/sourcePriority.js';
+import { sourceRank, CORE_2024_SOURCE_PRIORITY } from '../../../shared/content/sourcePriority.js';
 
 const _byType = new Map(); // compactKey(sense name) -> { entries, rank }
 const _byFeature = new Map(); // compactKey(feature name) -> { entries, rank }

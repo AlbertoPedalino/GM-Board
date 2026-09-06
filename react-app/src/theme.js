@@ -7,7 +7,7 @@ function activePortalContainer() {
   if (typeof document === 'undefined') return null;
   return document.fullscreenElement || document.webkitFullscreenElement || document.body;
 }
-import { chipTintStyle } from './shared/entityColors.js';
+import { chipTintStyle } from './shared/ui/entityColors.js';
 import { VTT_COLORS, vttAlpha } from './shared/vtt/colors.js';
 
 export const theme = createTheme({

@@ -13,8 +13,8 @@ import {
   getWeaponMasteryChoiceCount,
   getWeaponMasteryChoiceNames,
   WEAPON_MASTERY_RULES,
-} from '../shared/character/weaponMastery.js';
-import { backgroundOriginFeat } from '../shared/character/backgroundFeatOptions.js';
+} from '../shared/character/combat/weaponMastery.js';
+import { backgroundOriginFeat } from '../shared/character/progression/backgroundFeatOptions.js';
 
 export function splitClassSubclass(rawKey) {
   const value = String(rawKey || '');

@@ -4,7 +4,7 @@ import { useVttRolls } from '../../../../../src/pages/vtt/hooks/useVttRolls.js';
 
 const channel = vi.hoisted(() => ({ onRoll: null, publish: vi.fn() }));
 
-vi.mock('../../../../../src/shared/cloud/useRollChannel.js', () => ({
+vi.mock('../../../../../src/shared/cloud/sync/useRollChannel.js', () => ({
   useRollChannel: ({ onRoll }) => {
     channel.onRoll = onRoll;
     return { publish: channel.publish };

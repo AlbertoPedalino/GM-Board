@@ -1,8 +1,8 @@
 import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import { Layers } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
-import { levelFromXp, xpForLevel, xpProgressPct, MAX_LEVEL } from '../../../shared/character/xp.js';
-import XpDeltaControl from '../../../shared/character/XpDeltaControl.jsx';
+import { levelFromXp, xpForLevel, xpProgressPct, MAX_LEVEL } from '../../../shared/character/progression/xp.js';
+import XpDeltaControl from '../../../shared/character/progression/XpDeltaControl.jsx';
 
 export default function XpPanel({ character, dispatch }) {
   const xp = Number(character.xp ?? 0);

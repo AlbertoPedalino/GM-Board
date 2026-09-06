@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   fireRemoteChange: null,
 }));
 
-vi.mock('../../../../../src/shared/cloud/encounterFights.js', () => ({
+vi.mock('../../../../../src/shared/cloud/api/encounterFights.js', () => ({
   listInstanceFights: mocks.listInstanceFights,
   saveInstanceFight: mocks.saveInstanceFight,
   deleteInstanceFight: mocks.deleteInstanceFight,
@@ -21,11 +21,11 @@ vi.mock('../../../../../src/shared/cloud/encounterFights.js', () => ({
   },
 }));
 
-vi.mock('../../../../../src/shared/cloud/AuthProvider.jsx', () => ({
+vi.mock('../../../../../src/shared/cloud/auth/AuthProvider.jsx', () => ({
   useAuth: () => ({ cloudEnabled: true, status: 'authed' }),
 }));
 
-vi.mock('../../../../../src/shared/ToastProvider.jsx', () => ({
+vi.mock('../../../../../src/shared/ui/ToastProvider.jsx', () => ({
   useToast: () => ({ notify: mocks.notify }),
 }));
 

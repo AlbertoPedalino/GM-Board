@@ -1,9 +1,9 @@
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
 import { getFinal, getMod, getPB } from './calculations.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
-import { resolveScalingFormula } from '../../../shared/character/scalingFormula.js';
-import { rechargesOnRest, isKnownRecharge } from '../../../shared/character/rechargeRules.js';
-import { hasActionRequirement } from '../../../shared/character/choiceUtils.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
+import { resolveScalingFormula } from '../../../shared/character/dice/scalingFormula.js';
+import { rechargesOnRest, isKnownRecharge } from '../../../shared/character/resources/rechargeRules.js';
+import { hasActionRequirement } from '../../../shared/character/progression/choiceUtils.js';
 function resourceOwnerLevel(def, character) {
   return Number(def?.ownerLevel ?? primaryClassLevel(character));
 }

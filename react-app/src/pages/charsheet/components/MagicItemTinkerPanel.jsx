@@ -8,19 +8,19 @@ import {
   consumeSlot,
   getAvailablePactSlots,
   getRegularSlotUsed,
-} from '../../../shared/character/spellSlots.js';
-import { classLevel } from '../../../shared/character/classLevel.js';
-import { removeOneCrafted } from '../../../shared/character/craftedItemState.js';
+} from '../../../shared/character/spells/spellSlots.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
+import { removeOneCrafted } from '../../../shared/character/inventory/craftedItemState.js';
 import {
   itemChargeCurrent,
   itemChargeMaximum,
-} from '../../../shared/character/itemCharges.js';
+} from '../../../shared/character/inventory/itemCharges.js';
 import {
   collectReplicatePlanChoices,
   hasImprovedArmorer,
   replicateChoiceLabel,
   resolveReplicateChoice,
-} from '../../../shared/character/replicateMagicItem.js';
+} from '../../../shared/character/inventory/replicateMagicItem.js';
 import {
   MAGIC_ITEM_TINKER_DRAIN_RESOURCE,
   MAGIC_ITEM_TINKER_TRANSMUTE_RESOURCE,
@@ -30,7 +30,7 @@ import {
   replaceReplicatedItem,
   replicatedNonArmorCount,
   setReplicatedItemCharges,
-} from '../../../shared/character/magicItemTinker.js';
+} from '../../../shared/character/inventory/magicItemTinker.js';
 
 const sectionSx = {
   p: 0.8,

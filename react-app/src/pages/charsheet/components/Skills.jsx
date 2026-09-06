@@ -1,13 +1,13 @@
 import { Box, Paper, Typography, Tooltip } from '@mui/material';
 import { advantageVisual, conditionalDisadvantageVisual } from './advantageMark.jsx';
 import { SKILLS, getSkillTraining, getSkillBonus, fbonus, SLBL, effectiveD20Modifier } from '../logic/calculations.js';
-import { describeCheckDisadvantage } from '../../../shared/character/conditions.js';
+import { describeCheckDisadvantage } from '../../../shared/character/combat/conditions.js';
 import { getEquippedArmorPenalties } from '../logic/armorPenalties.js';
 import { getSkillAdvantageFromEffects } from '../logic/sheetEffects.js';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
-import { aggregateAbilityCheckBonus } from '../../../shared/character/itemBonus.js';
-import { getItemAdvantageOnSkill } from '../../../shared/character/itemEffects.js';
-import { isWildShaped, itemEffectInventory } from '../../../shared/character/wildShapeForm.js';
+import { aggregateAbilityCheckBonus } from '../../../shared/character/inventory/itemBonus.js';
+import { getItemAdvantageOnSkill } from '../../../shared/character/inventory/itemEffects.js';
+import { isWildShaped, itemEffectInventory } from '../../../shared/character/forms/wildShapeForm.js';
 
 function SkillProficiencyDot({ training }) {
   const dotColor = training === 'exp' ? 'secondary.main' : training ? 'primary.main' : 'divider';

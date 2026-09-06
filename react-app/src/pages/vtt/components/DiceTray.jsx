@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Box } from '@mui/material';
-import Die3D from '../../../shared/character/Die3D.jsx';
-import D100Orb from '../../../shared/character/D100Orb.jsx';
-import { faceNumbering } from '../../../shared/character/dice3d.js';
-import { dieGeometry } from '../../../shared/character/polyhedra.js';
+import Die3D from '../../../shared/character/dice/Die3D.jsx';
+import D100Orb from '../../../shared/character/dice/D100Orb.jsx';
+import { faceNumbering } from '../../../shared/character/dice/dice3d.js';
+import { dieGeometry } from '../../../shared/character/dice/polyhedra.js';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import {
   TRAY,

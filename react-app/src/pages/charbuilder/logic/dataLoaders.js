@@ -5,10 +5,10 @@ import {
   ITEM_SUMMARIES,
   SPELL_FILES,
 } from '../constants.js';
-import { normalizeBeast } from '../../../shared/character/beasts.js';
-import { dedupeSpellsBySourcePriority, normalizeSpellRecord } from '../../../shared/character/spellNormalization.js';
-import { itemIdentityKey } from '../../../shared/character/itemIdentity.js';
-import { resolveReplicateCraftedItem } from '../../../shared/character/replicateMagicItem.js';
+import { normalizeBeast } from '../../../shared/character/forms/beasts.js';
+import { dedupeSpellsBySourcePriority, normalizeSpellRecord } from '../../../shared/character/spells/spellNormalization.js';
+import { itemIdentityKey } from '../../../shared/character/inventory/itemIdentity.js';
+import { resolveReplicateCraftedItem } from '../../../shared/character/inventory/replicateMagicItem.js';
 import {
   BACKGROUND_ALLOWED_SOURCES,
   CLASS_ALLOWED_SOURCES,
@@ -19,12 +19,12 @@ import {
   SPELL_SOURCE_PRIORITY,
   isAllowedSource,
   sourceRank,
-} from '../../../shared/character/sourcePriority.js';
+} from '../../../shared/content/sourcePriority.js';
 import {
   compareSourcePriority,
   isSupportedSubclassFeature,
   isSupportedSubclassRecord,
-} from '../../../shared/character/sourceFiltering.js';
+} from '../../../shared/content/sourceFiltering.js';
 import {
   isExcludedByVariant,
   matchesItemRequirements,

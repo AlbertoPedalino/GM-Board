@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../cloud/AuthProvider.jsx';
-import { listCampaignCharacters, listMyCampaigns } from '../cloud/campaigns.js';
+import { useAuth } from '../cloud/auth/AuthProvider.jsx';
+import { listCampaignCharacters, listMyCampaigns } from '../cloud/api/campaigns.js';
 
 // Loads the campaigns where the signed-in user is GM, together with their
 // character rows. The caller supplies `mapRows` because consumers want different

@@ -4,8 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import App from './App.jsx';
 import { theme } from './theme.js';
-import { AuthProvider } from './shared/cloud/AuthProvider.jsx';
-import { ToastProvider } from './shared/ToastProvider.jsx';
+import { AuthProvider } from './shared/cloud/auth/AuthProvider.jsx';
+import { ToastProvider } from './shared/ui/ToastProvider.jsx';
 
 const basename = import.meta.env.BASE_URL.replace(/\/+$/, '');
 

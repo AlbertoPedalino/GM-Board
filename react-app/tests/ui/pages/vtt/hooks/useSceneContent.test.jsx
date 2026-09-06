@@ -6,8 +6,8 @@ const cloud = vi.hoisted(() => ({
   listTokens: vi.fn(), listDrawings: vi.fn(), listTokenSecrets: vi.fn(),
   listCampaignCharacters: vi.fn(), readCampaignVitals: vi.fn(), signMapImage: vi.fn(),
 }));
-vi.mock('../../../../../src/shared/cloud/vtt.js', () => cloud);
-vi.mock('../../../../../src/shared/cloud/campaigns.js', () => cloud);
+vi.mock('../../../../../src/shared/cloud/api/vtt.js', () => cloud);
+vi.mock('../../../../../src/shared/cloud/api/campaigns.js', () => cloud);
 vi.mock('../../../../../src/shared/campaign/characterVitals.js', () => ({
   readCampaignVitals: cloud.readCampaignVitals, mergeVitals: (roster) => roster,
 }));

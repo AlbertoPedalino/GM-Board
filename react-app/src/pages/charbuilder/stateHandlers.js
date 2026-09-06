@@ -1,5 +1,5 @@
 import { getBackgroundPattern } from './logic/calculations.js';
-import { findSpellListEntryIndexByClass } from '../../shared/character/featSpellLists.js';
+import { findSpellListEntryIndexByClass } from '../../shared/character/spells/featSpellLists.js';
 
 function normKey(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');

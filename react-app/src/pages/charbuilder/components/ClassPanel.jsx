@@ -2,11 +2,11 @@ import { Box, Button, Chip, IconButton, List, ListItemButton, ListItemText, Pape
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import BuilderPanel from './BuilderPanel.jsx';
 import { SearchField } from './SearchList.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { describeMulticlassProficiencies } from '../../../shared/character/multiclassProficiencies.js';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { describeMulticlassProficiencies } from '../../../shared/character/progression/multiclassProficiencies.js';
 import { getPrimaryClassLevel } from '../logic/calculations.js';
 import { checkMulticlassPrerequisite, getMulticlassProficienciesGained } from '../logic/multiclassRules.js';
-import { classIcon } from '../../../shared/character/classIcon.js';
+import { classIcon } from '../../../shared/character/profile/classIcon.js';
 
 // Renders the multiclass proficiency summary (data shaped by
 // describeMulticlassProficiencies). Pure view: a "grants nothing" note when the

@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Chip, List, ListItemButton, Paper, Stack, Typography } from '@mui/material';
 import { spellMatchesAnyClass } from '../spells/spells.js';
-import { SpellMiniTags, SpellReferenceBody, SpellRowLabel, SpellSelectButton } from '../../../shared/character/SpellReference.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
+import { SpellMiniTags, SpellReferenceBody, SpellRowLabel, SpellSelectButton } from '../../../shared/character/spells/SpellReference.jsx';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
 import SelectionSearch from './SelectionSearch.jsx';
-import { filterOptions, SEARCH_MIN_OPTIONS } from '../../../shared/character/searchText.js';
+import { filterOptions, SEARCH_MIN_OPTIONS } from '../../../shared/content/searchText.js';
 
 function _knownCantripNames(character) {
   const names = new Set();

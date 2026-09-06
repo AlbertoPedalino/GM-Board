@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { levelHeaderSx, panelSurfaceSx, statBoxSx } from './spellsTabStyles.js';
-import { getPactSlotUsed, getRegularSlotUsed } from '../../../shared/character/spellSlots.js';
+import { getPactSlotUsed, getRegularSlotUsed } from '../../../shared/character/spells/spellSlots.js';
 
 export function StatBox({ value, label }) {
   return (

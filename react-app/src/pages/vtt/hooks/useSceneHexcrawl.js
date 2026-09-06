@@ -8,7 +8,7 @@ import {
   readHexcrawlBoardVersion,
   saveHexCell,
   subscribeHexcrawl,
-} from '../../../shared/cloud/hexcrawl.js';
+} from '../../../shared/cloud/api/hexcrawl.js';
 import { hexCellsByKey } from '../../../shared/hexcrawl/hexCell.js';
 import {
   clockFromState, hexEntrySummary, mergeBoardClock, runHexEntry,

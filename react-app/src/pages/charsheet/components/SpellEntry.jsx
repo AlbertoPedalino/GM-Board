@@ -1,17 +1,17 @@
 import { alpha, Box, Stack, Tooltip, Typography } from '@mui/material';
 import { SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
-import { SpellNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
-import { RichInline } from '../../../shared/character/RichText.jsx';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { SpellMetaGrid, HigherLevelBlock } from '../../../shared/character/SpellReference.jsx';
-import MiniBadge from '../../../shared/character/MiniBadge.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import PipButton from '../../../shared/character/PipButton.jsx';
-import { formatRollTitle } from '../../../shared/character/dice.js';
+import { SpellNameIcon } from '../../../shared/content/FiveEToolsLink.jsx';
+import { RichInline } from '../../../shared/content/RichText.jsx';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { SpellMetaGrid, HigherLevelBlock } from '../../../shared/character/spells/SpellReference.jsx';
+import MiniBadge from '../../../shared/ui/MiniBadge.jsx';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import PipButton from '../../../shared/ui/PipButton.jsx';
+import { formatRollTitle } from '../../../shared/character/dice/dice.js';
 import { getFinal, getMod, getPB } from '../logic/calculations.js';
-import { describeAttackRoll } from '../../../shared/character/conditions.js';
+import { describeAttackRoll } from '../../../shared/character/combat/conditions.js';
 import { getSpellAttackAdvantage } from '../logic/sheetEffects.js';
-import { entriesToTextBlocks } from '../../../shared/character/spellEntries.js';
+import { entriesToTextBlocks } from '../../../shared/character/spells/spellEntries.js';
 import {
   applySpellModifiers,
   computeScaledFormula,
@@ -26,12 +26,12 @@ import {
 } from '../logic/spellsTabLogic.js';
 import { inlineButtonSx, spellBodySx, spellRowSx } from './spellsTabStyles.js';
 import AttackRollButton from './AttackRollButton.jsx';
-import { isConcentrationSpell, isRitualSpell } from '../../../shared/spellTags.js';
-import { ENTITY_COLORS, RICH_TEXT_ACCENT, SPELL_TAG_COLORS } from '../../../shared/entityColors.js';
+import { isConcentrationSpell, isRitualSpell } from '../../../shared/character/spells/spellTags.js';
+import { ENTITY_COLORS, RICH_TEXT_ACCENT, SPELL_TAG_COLORS } from '../../../shared/ui/entityColors.js';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
-import RollerButtons from '../../../shared/character/RollerButtons.jsx';
+import RollerButtons from '../../../shared/character/dice/RollerButtons.jsx';
 import SummonedCreaturePanel from './SummonedCreaturePanel.jsx';
-import CollapsibleNote from '../../../shared/character/CollapsibleNote.jsx';
+import CollapsibleNote from '../../../shared/ui/CollapsibleNote.jsx';
 
 function applyFlatToFormula(formula, flat) {
   if (!formula) return formula;

@@ -1,4 +1,4 @@
-import { normalizeSpellRecord } from '../shared/character/spellNormalization.js';
+import { normalizeSpellRecord } from '../shared/character/spells/spellNormalization.js';
 
 const SCHOOL_FULL = {
   A: 'Abjuration',

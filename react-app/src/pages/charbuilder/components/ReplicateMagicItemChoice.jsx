@@ -12,10 +12,10 @@ import {
 } from '@mui/material';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import SelectionSearch from './SelectionSearch.jsx';
-import { useOptionSearch } from '../../../shared/character/searchText.js';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import { ItemReferenceBody } from '../../../shared/character/ItemReference.jsx';
-import { ItemNameIcon } from '../../../shared/character/FiveEToolsLink.jsx';
+import { useOptionSearch } from '../../../shared/content/searchText.js';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import { ItemReferenceBody } from '../../../shared/character/inventory/ItemReference.jsx';
+import { ItemNameIcon } from '../../../shared/content/FiveEToolsLink.jsx';
 import {
   applyReplicateItemPlan,
   isReplicatePlanChoiceKey,
@@ -24,7 +24,7 @@ import {
   replicateBucketChoiceValue,
   replicateBucketItems,
   replicateItemChoiceValue,
-} from '../../../shared/character/replicateMagicItem.js';
+} from '../../../shared/character/inventory/replicateMagicItem.js';
 
 // Replicate Magic Item (EFA) plan picker. The plan pool mixes concrete named
 // items ("Bag of Holding") with generic "buckets" (e.g. "Common magic item…").

@@ -1,8 +1,8 @@
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
 import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../constants.js';
 import { getPrimaryClassLevel } from '../logic/calculations.js';
-import { getClassSpellLimits } from '../../../shared/character/spellProgression.js';
-import { enumerateEntityGrants, enumerateSpeciesGrants, grantSourceLabel } from '../../../shared/character/autoGrantedSpells.js';
+import { getClassSpellLimits } from '../../../shared/character/spells/spellProgression.js';
+import { enumerateEntityGrants, enumerateSpeciesGrants, grantSourceLabel } from '../../../shared/character/spells/autoGrantedSpells.js';
 
 export function normClassKey(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');

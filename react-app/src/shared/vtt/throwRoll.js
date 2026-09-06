@@ -9,9 +9,9 @@
 // Seeded from the roll's id, so the total published to everyone else is the one
 // their own copy of the throw comes to.
 
-import { faceLabel, faceNumbering } from '../character/dice3d.js';
-import { parseFormula } from '../character/dice.js';
-import { dieGeometry } from '../character/polyhedra.js';
+import { faceLabel, faceNumbering } from '../character/dice/dice3d.js';
+import { parseFormula } from '../character/dice/dice.js';
+import { dieGeometry } from '../character/dice/polyhedra.js';
 import { simulateThrow, thrownDieSize } from './dicePhysics.js';
 
 export function throwFormula(formula, seed, options = {}) {

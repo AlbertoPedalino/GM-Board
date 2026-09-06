@@ -12,16 +12,16 @@ import {
   Typography,
 } from '@mui/material';
 import { PawPrint } from 'lucide-react';
-import { getChoiceValue } from '../../../shared/character/choiceUtils.js';
-import { classLevel } from '../../../shared/character/classLevel.js';
+import { getChoiceValue } from '../../../shared/character/progression/choiceUtils.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
 import {
   findSummonedCreature,
   getSummonedCreatureTypeChoices,
   getSummonedCreatureVersions,
   loadSummonedCreatureRecords,
   normalizeSummonedCreature,
-} from '../../../shared/character/summonedCreatures.js';
-import { buildD20Meta, formatD20Detail, rollD20, rollFormula } from '../../../shared/character/dice.js';
+} from '../../../shared/character/forms/summonedCreatures.js';
+import { buildD20Meta, formatD20Detail, rollD20, rollFormula } from '../../../shared/character/dice/dice.js';
 import { getFinal, getMod, getPB } from '../logic/calculations.js';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
 import {

@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Map, Pencil, Plus, Radio, RadioTower, Trash2 } from 'lucide-react';
-import { useToast } from '../../../shared/ToastProvider.jsx';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
 import {
   clearLiveScene,
   createScene,
@@ -20,7 +20,7 @@ import {
   setLiveScene,
   updateScene,
   uploadMapImage,
-} from '../../../shared/cloud/vtt.js';
+} from '../../../shared/cloud/api/vtt.js';
 import NewSceneDialog from './NewSceneDialog.jsx';
 
 // Scenes belong to a campaign, so the picker is grouped by campaign rather than

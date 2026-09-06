@@ -20,8 +20,8 @@ import { ChevronLeft, ChevronRight, Home, Wand2 } from 'lucide-react';
 import { theme } from '../../theme.js';
 import ChoiceDescriptionDialog from './components/ChoiceDescriptionDialog.jsx';
 import ImportSheetFab from './components/ImportSheetFab.jsx';
-import CloudMenu from '../../shared/cloud/CloudMenu.jsx';
-import { excludeFromSync, includeInSync, isSyncExcluded } from '../../shared/cloud/cloudSyncExclude.js';
+import CloudMenu from '../../shared/cloud/auth/CloudMenu.jsx';
+import { excludeFromSync, includeInSync, isSyncExcluded } from '../../shared/cloud/sync/cloudSyncExclude.js';
 import PreviewPane from './components/PreviewPane.jsx';
 import { STEPS } from './constants.js';
 import { adapterRegistry, loadClassAdapters, loadCoreAdapters } from '../../adapters/index.js';
@@ -30,15 +30,15 @@ import { adaptBuilderData } from '../../adapters/adapterPipeline.js';
 import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, loadOptionalFeatures, loadBeasts, extractSheetData, buildImportedCharacter, saveCharacter, buildSheetCharacter } from './logic/index.js';
 import { builderReducer, initialBuilderState, normalizeCharacterLevels } from './state.js';
 import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, SpeciesStep } from './steps/index.js';
-import { useAuth } from '../../shared/cloud/AuthProvider.jsx';
-import { useToast } from '../../shared/ToastProvider.jsx';
-import { getCloudCharacter, pushCharacterData, updateCloudCharacterData, deleteOwnCloudCharacter } from '../../shared/cloud/cloudCharacters.js';
+import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
+import { useToast } from '../../shared/ui/ToastProvider.jsx';
+import { getCloudCharacter, pushCharacterData, updateCloudCharacterData, deleteOwnCloudCharacter } from '../../shared/cloud/api/cloudCharacters.js';
 import {
   generateCharId,
   getActiveCharId,
   loadCharacter as storeLoadCharacter,
   setActiveCharId,
-} from '../../shared/character/store.js';
+} from '../../shared/character/profile/store.js';
 
 function StepLabel({ step, index }) {
   const Icon = step.icon;

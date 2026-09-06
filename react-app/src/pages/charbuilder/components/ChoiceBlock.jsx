@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Box, Chip, Collapse, IconButton, List, ListItemButton, ListItemText, Paper, Stack, Typography } from '@mui/material';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { findWeaponItemByName } from '../../../shared/character/weaponMastery.js';
-import { WeaponMasteryBlock } from '../../../shared/character/WeaponMasteryBlock.jsx';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { findWeaponItemByName } from '../../../shared/character/combat/weaponMastery.js';
+import { WeaponMasteryBlock } from '../../../shared/character/combat/WeaponMasteryBlock.jsx';
 import ExpandableSelectionList from './ExpandableSelectionList.jsx';
 import SelectionSearch from './SelectionSearch.jsx';
-import { useOptionSearch } from '../../../shared/character/searchText.js';
+import { useOptionSearch } from '../../../shared/content/searchText.js';
 import {
   parseTypedProficiencyValue,
   isChoicePlaceholderValue,
   normalizedKey,
-} from '../../../shared/character/typedProficiencies.js';
+} from '../../../shared/character/progression/typedProficiencies.js';
 
 const CHOICE_KEYS = ['choose', 'any', 'anyTool', 'anyArtisansTool', 'anyMusicalInstrument', 'anyGamingSet', 'anyStandard', 'anyExotic'];
 

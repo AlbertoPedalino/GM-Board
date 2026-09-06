@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useAuth } from '../cloud/AuthProvider.jsx';
+import { useAuth } from '../cloud/auth/AuthProvider.jsx';
 import { supabase } from '../cloud/supabaseClient.js';
-import { listLiveScenes } from '../cloud/vtt.js';
+import { listLiveScenes } from '../cloud/api/vtt.js';
 
 const SESSION_RECONCILE_MS = 30_000;
 

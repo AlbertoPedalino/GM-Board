@@ -1,18 +1,18 @@
 import { FULL_SLOTS, HALF_SLOTS, PACT_SLOTS, THIRD_SLOTS } from '../../charbuilder/constants.js';
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
 import { getFinal as getFinalScore, getMod as getAbilityMod } from './calculations.js';
-import { isRitualSpell } from '../../../shared/spellTags.js';
-import { getClassSpellLimits } from '../../../shared/character/spellProgression.js';
-import { filterByRequiredChoice } from '../../../shared/character/lineageMatch.js';
-import { isGrantUnlocked } from '../../../shared/character/spellGrants.js';
-import { enumerateAutoGrantedSpells, grantSourceLabel } from '../../../shared/character/autoGrantedSpells.js';
-import { featSlotOrigin } from '../../../shared/featChoiceKeys.js';
-import { collectFreeCastsForGrant, mergeFreeCastsById, normalizeFreeCast, getFeatFreeCastTemplate, applyFreeCastRest } from '../../../shared/character/spellFreeCasts.js';
-import { collectItemAttachedSpells } from '../../../shared/character/itemAttachedSpells.js';
-import { isWarlockModifierCantripChoiceKey } from '../../../shared/character/warlockUtils.js';
-import { enumerateFixedAdditionalSpells } from '../../../shared/character/additionalSpellGrants.js';
-import { ENTITY_COLORS, ITEM_ATTUNEMENT, ACTION_COLORS } from '../../../shared/entityColors.js';
-import { primaryClassLevel } from '../../../shared/character/classLevel.js';
+import { isRitualSpell } from '../../../shared/character/spells/spellTags.js';
+import { getClassSpellLimits } from '../../../shared/character/spells/spellProgression.js';
+import { filterByRequiredChoice } from '../../../shared/character/progression/lineageMatch.js';
+import { isGrantUnlocked } from '../../../shared/character/spells/spellGrants.js';
+import { enumerateAutoGrantedSpells, grantSourceLabel } from '../../../shared/character/spells/autoGrantedSpells.js';
+import { featSlotOrigin } from '../../../shared/character/progression/featChoiceKeys.js';
+import { collectFreeCastsForGrant, mergeFreeCastsById, normalizeFreeCast, getFeatFreeCastTemplate, applyFreeCastRest } from '../../../shared/character/spells/spellFreeCasts.js';
+import { collectItemAttachedSpells } from '../../../shared/character/inventory/itemAttachedSpells.js';
+import { isWarlockModifierCantripChoiceKey } from '../../../shared/character/progression/warlockUtils.js';
+import { enumerateFixedAdditionalSpells } from '../../../shared/character/spells/additionalSpellGrants.js';
+import { ENTITY_COLORS, ITEM_ATTUNEMENT, ACTION_COLORS } from '../../../shared/ui/entityColors.js';
+import { primaryClassLevel } from '../../../shared/character/progression/classLevel.js';
 import {
   isGenericSpellSourceLabel,
   mergeSpellSourceDisplay,

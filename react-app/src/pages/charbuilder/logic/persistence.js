@@ -1,5 +1,5 @@
 import { calcMaxHp, getAllFinalScores, getPrimaryClassLevel } from './calculations.js';
-import { collectOwnedFeatNames } from '../../../shared/character/selectedFeats.js';
+import { collectOwnedFeatNames } from '../../../shared/character/progression/selectedFeats.js';
 import { getMod, getFinal } from '../../charsheet/logic/calculations.js';
 import { adapterRegistry as installedRegistry } from '../../../adapters/registry.js';
 import {
@@ -8,15 +8,15 @@ import {
   loadCharacter as storeLoadCharacter,
   saveCharacter as storeSaveCharacter,
   setActiveCharId,
-} from '../../../shared/character/store.js';
+} from '../../../shared/character/profile/store.js';
 import { collectAutoGrantedSpells as collectEntityAutoGrantedSpells } from '../spells/spells.js';
-import { normalizeCurrency } from '../../../shared/character/currency.js';
+import { normalizeCurrency } from '../../../shared/character/inventory/currency.js';
 import {
   splitTypedProficiencies,
   uniqueProficiencyLabels,
-} from '../../../shared/character/typedProficiencies.js';
-import { enumerateFixedAdditionalSpells } from '../../../shared/character/additionalSpellGrants.js';
-import { resolveActionRollers } from '../../../shared/character/rollers.js';
+} from '../../../shared/character/progression/typedProficiencies.js';
+import { enumerateFixedAdditionalSpells } from '../../../shared/character/spells/additionalSpellGrants.js';
+import { resolveActionRollers } from '../../../shared/character/dice/rollers.js';
 
 const FEAT_SNAPSHOT_FIELDS = [
   'name',

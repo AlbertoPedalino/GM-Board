@@ -12,7 +12,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { Dices, Skull } from 'lucide-react';
-import SheetDialog from '../../../shared/character/SheetDialog.jsx';
+import SheetDialog from '../../../shared/ui/SheetDialog.jsx';
 import {
   buildFumbleFormula,
   FUMBLE_CATEGORIES,

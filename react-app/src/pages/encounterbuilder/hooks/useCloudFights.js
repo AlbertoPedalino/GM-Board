@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useAuth } from '../../../shared/cloud/AuthProvider.jsx';
-import { useToast } from '../../../shared/ToastProvider.jsx';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
+import { useToast } from '../../../shared/ui/ToastProvider.jsx';
 import {
   deleteInstanceFight,
   listInstanceFights,
   saveInstanceFight,
   subscribeInstanceFights,
-} from '../../../shared/cloud/encounterFights.js';
+} from '../../../shared/cloud/api/encounterFights.js';
 import { externalDelta } from '../logic/externalSync.js';
 import { fightSignature, missingLibraryCards } from '../logic/fightRecord.js';
 

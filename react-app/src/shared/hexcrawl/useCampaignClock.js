@@ -5,8 +5,8 @@ import {
   readCampaignClock,
   saveCampaignClock,
   subscribeHexcrawl,
-} from '../cloud/hexcrawl.js';
-import { useAuth } from '../cloud/AuthProvider.jsx';
+} from '../cloud/api/hexcrawl.js';
+import { useAuth } from '../cloud/auth/AuthProvider.jsx';
 
 // The campaign's travelling clock, shared by the GM Board and the map.
 //

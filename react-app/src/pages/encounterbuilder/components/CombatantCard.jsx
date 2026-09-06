@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Avatar, Box, Button, Collapse, IconButton, LinearProgress, Paper, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { ChevronDown, ChevronUp, ExternalLink, HeartPulse, Shield, Sparkles, X } from 'lucide-react';
-import HpStepper from '../../../shared/character/HpStepper.jsx';
+import HpStepper from '../../../shared/character/combat/HpStepper.jsx';
 import { campaignSheetUrl } from '../logic/campaignSheetUrl.js';
 import { useEncounterBuilder } from '../state/EncounterBuilderContext.jsx';
 import CombatantConditions from './CombatantConditions.jsx';
 import CombatantEffects from './CombatantEffects.jsx';
 import MonsterToken from './MonsterToken.jsx';
-import PortraitBadge from '../../../shared/character/PortraitBadge.jsx';
+import PortraitBadge from '../../../shared/character/profile/PortraitBadge.jsx';
 
 export default function CombatantCard({ combatant, active }) {
   const { dispatch } = useEncounterBuilder();

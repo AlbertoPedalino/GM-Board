@@ -2,15 +2,15 @@ import { useMemo } from 'react';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { PawPrint } from 'lucide-react';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
-import { findBeast, parseBeastRef } from '../../../shared/character/beasts.js';
+import { findBeast, parseBeastRef } from '../../../shared/character/forms/beasts.js';
 import { BeastNameLink, BeastStatBlock, BeastPickerRow, panelSx, headerSx, subSx, dismissButtonSx } from './BeastStatBlock.jsx';
 import { useBeastsDb } from '../hooks/useBeastsDb.js';
 import {
   getActiveWildShape,
   enterWildShapePatch,
   exitWildShapePatch,
-} from '../../../shared/character/wildShapeForm.js';
-import { classLevel } from '../../../shared/character/classLevel.js';
+} from '../../../shared/character/forms/wildShapeForm.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
 
 // Sheet panel for the Wild Shape action. Lists the player's known beast forms
 // (chosen in the builder), and transforms into / reverts from one. Transform

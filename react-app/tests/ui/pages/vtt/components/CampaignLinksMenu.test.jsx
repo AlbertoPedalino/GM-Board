@@ -6,7 +6,7 @@ import CampaignLinksMenu from '../../../../../src/pages/vtt/components/CampaignL
 
 const mocks = vi.hoisted(() => ({ readCampaignHexcrawlBoard: vi.fn() }));
 
-vi.mock('../../../../../src/shared/cloud/hexcrawl.js', () => ({
+vi.mock('../../../../../src/shared/cloud/api/hexcrawl.js', () => ({
   readCampaignHexcrawlBoard: mocks.readCampaignHexcrawlBoard,
 }));
 

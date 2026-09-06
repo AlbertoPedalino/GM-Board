@@ -14,8 +14,8 @@
 // which face points at the camera once the die stops. The orientation is never
 // replaced afterwards just to make that face or its label look straighter.
 
-import { seededRandom } from '../character/dice3d.js';
-import { dieGeometry } from '../character/polyhedra.js';
+import { seededRandom } from '../character/dice/dice3d.js';
+import { dieGeometry } from '../character/dice/polyhedra.js';
 
 export const THROWN_DIE_SIZE = 76;
 

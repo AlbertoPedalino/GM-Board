@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Chip, Typography } from '@mui/material';
 import { getMod, getFinal, fbonus } from '../logic/calculations.js';
-import { describeAttackRoll } from '../../../shared/character/conditions.js';
+import { describeAttackRoll } from '../../../shared/character/combat/conditions.js';
 import { installedRegistry, loadCoreAdapters, loadClassAdapters } from '../../../adapters/index.js';
 import { PACT_SLOTS, SPELL_LEVEL_LABELS } from '../../charbuilder/constants.js';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { getChoiceValue } from '../../../shared/character/choiceUtils.js';
+import { getChoiceValue } from '../../../shared/character/progression/choiceUtils.js';
 import { getAllResourceDefs } from '../logic/restResources.js';
 import { toggleActiveField } from '../logic/toggleState.js';
 import {
@@ -22,8 +22,8 @@ import {
 } from '../logic/actionsTabLogic.js';
 import { getSheetSlots } from '../logic/spellsTabLogic.js';
 import { loadItems, loadVariantRules } from '../../charbuilder/logic/dataLoaders.js';
-import { loadMasteryEntries } from '../../../shared/character/weaponMastery.js';
-import { WeaponMasteryBlock } from '../../../shared/character/WeaponMasteryBlock.jsx';
+import { loadMasteryEntries } from '../../../shared/character/combat/weaponMastery.js';
+import { WeaponMasteryBlock } from '../../../shared/character/combat/WeaponMasteryBlock.jsx';
 import {
   compactInputSx,
   filterChipSx,
@@ -35,7 +35,7 @@ import {
   spellRowSx,
 } from './spellsTabStyles.js';
 import { Empty } from './SpellsUiParts.jsx';
-import SearchField from '../../../shared/character/SearchField.jsx';
+import SearchField from '../../../shared/ui/SearchField.jsx';
 import ActionDetailPanel from './ActionDetailPanel.jsx';
 import CreatedItemsPanel from './CreatedItemsPanel.jsx';
 import WildShapePanel from './WildShapePanel.jsx';
@@ -47,24 +47,24 @@ import AttackRollButton from './AttackRollButton.jsx';
 import { useProficiencySets } from '../context/ProficiencySetsContext.jsx';
 import { useSheetActions } from '../context/SheetActionsContext.jsx';
 import ResourceBar from './ResourceBar.jsx';
-import { RichInline, RichText } from '../../../shared/character/RichText.jsx';
-import { EntryBlocks } from '../../../shared/character/EntryBlocks.jsx';
-import { ExpandableCard } from '../../../shared/character/ExpandableCard.jsx';
-import CollapsibleNote from '../../../shared/character/CollapsibleNote.jsx';
-import PipButton from '../../../shared/character/PipButton.jsx';
-import MiniBadge from '../../../shared/character/MiniBadge.jsx';
-import SheetDialog from '../../../shared/character/SheetDialog.jsx';
-import { ItemPropertyTable } from '../../../shared/character/ItemPropertyTable.jsx';
-import { formatRollTitle } from '../../../shared/character/dice.js';
-import RollerButtons from '../../../shared/character/RollerButtons.jsx';
-import { CHIP_TONES, chipToneStyle } from '../../../shared/entityColors.js';
-import { classLevel } from '../../../shared/character/classLevel.js';
+import { RichInline, RichText } from '../../../shared/content/RichText.jsx';
+import { EntryBlocks } from '../../../shared/content/EntryBlocks.jsx';
+import { ExpandableCard } from '../../../shared/ui/ExpandableCard.jsx';
+import CollapsibleNote from '../../../shared/ui/CollapsibleNote.jsx';
+import PipButton from '../../../shared/ui/PipButton.jsx';
+import MiniBadge from '../../../shared/ui/MiniBadge.jsx';
+import SheetDialog from '../../../shared/ui/SheetDialog.jsx';
+import { ItemPropertyTable } from '../../../shared/character/inventory/ItemPropertyTable.jsx';
+import { formatRollTitle } from '../../../shared/character/dice/dice.js';
+import RollerButtons from '../../../shared/character/dice/RollerButtons.jsx';
+import { CHIP_TONES, chipToneStyle } from '../../../shared/ui/entityColors.js';
+import { classLevel } from '../../../shared/character/progression/classLevel.js';
 import {
   getPactSlotUsed,
   getPactSlotUsedKey,
   getRegularSlotUsed,
   recoverPactSlots,
-} from '../../../shared/character/spellSlots.js';
+} from '../../../shared/character/spells/spellSlots.js';
 
 const ACTION_DETAIL_RENDERERS = {
   panel: ActionDetailPanel,

@@ -518,7 +518,7 @@ test('confirmDiscard returns true when the injected confirm is accepted', () => 
 
 test('no GM Board source file references the deleted public/tools/gmboard.html or StandaloneHtmlFrame', () => {
   const selfPath = fileURLToPath(import.meta.url);
-  const srcDir = fileURLToPath(new URL('../../../../../src/', import.meta.url));
+  const srcDir = fileURLToPath(new URL('../../../../../src', import.meta.url));
   const needle1 = ['gmboard', '.html'].join('');
   const needle2 = ['Standalone', 'HtmlFrame'].join('');
   const offenders = [];

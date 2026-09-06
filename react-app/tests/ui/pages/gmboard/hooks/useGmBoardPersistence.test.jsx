@@ -23,7 +23,7 @@ vi.mock('../../../../../src/shared/hexcrawl/useCampaignClock.js', () => ({
   }),
 }));
 
-vi.mock('../../../../../src/shared/cloud/hexcrawl.js', () => ({
+vi.mock('../../../../../src/shared/cloud/api/hexcrawl.js', () => ({
   setCampaignHexcrawlBoard: vi.fn(),
 }));
 

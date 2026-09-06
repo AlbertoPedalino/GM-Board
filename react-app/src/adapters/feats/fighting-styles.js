@@ -1,6 +1,6 @@
 import { createAdapterBindings } from '../adapterBindings.js';
-import { WEAPON_FILTERS } from '../../shared/character/weaponFilters.js';
-import { getProficiencyBonus } from '../../shared/character/proficiency.js';
+import { WEAPON_FILTERS } from '../../shared/character/inventory/weaponFilters.js';
+import { getProficiencyBonus } from '../../shared/character/progression/proficiency.js';
 
 // Single source of truth for Fighting Style mechanics.
 //

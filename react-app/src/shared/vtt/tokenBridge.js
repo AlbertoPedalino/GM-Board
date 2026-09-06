@@ -19,8 +19,8 @@
 //
 // Everything here is pure: the callers own the socket and the writes.
 
-import { effectId, normalizeEffects } from '../character/combatEffects.js';
-import { normalizeConditions } from '../character/conditions.js';
+import { effectId, normalizeEffects } from '../character/combat/combatEffects.js';
+import { normalizeConditions } from '../character/combat/conditions.js';
 import { makeSourceRef, parseSourceRef } from './encounterSync.js';
 
 // Which combatants of a fight can have a piece on a map, and what that piece's

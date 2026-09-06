@@ -14,8 +14,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { readRegistry, readPersistedInstance } from '../../../pages/encounterbuilder/logic/storage.js';
-import { restoreFight } from '../../../pages/encounterbuilder/logic/combat.js';
+import { readRegistry, readPersistedInstance } from '../../encounterbuilder/logic/storage.js';
+import { restoreFight } from '../../encounterbuilder/logic/combat.js';
 import { combatantToToken, importableCombatants } from '../../../shared/vtt/encounterImport.js';
 import { useMonsterDb } from '../../encounterbuilder/hooks/useMonsterDb.js';
 import { fullscreenContainer } from '../logic/fullscreenContainer.js';

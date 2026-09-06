@@ -3,7 +3,7 @@ import { ScrollText, Sparkles } from 'lucide-react';
 import BuilderPanel from '../components/BuilderPanel.jsx';
 import ChoiceBlock from '../components/ChoiceBlock.jsx';
 import { FeatCategorySlot } from '../components/FeatSlots.jsx';
-import { EntryAccordion, splitNamedEntries } from '../../../shared/character/EntryAccordion.jsx';
+import { EntryAccordion, splitNamedEntries } from '../../../shared/content/EntryAccordion.jsx';
 import SearchList from '../components/SearchList.jsx';
 import SpellChoiceList from '../components/SpellChoiceList.jsx';
 import { speciesChoiceSpecs } from '../logic/choiceSpecs.js';

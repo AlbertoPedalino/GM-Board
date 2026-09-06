@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useRollChannel } from '../../../shared/cloud/useRollChannel.js';
+import { useRollChannel } from '../../../shared/cloud/sync/useRollChannel.js';
 import { normalizeRoll } from '../../../shared/vtt/rollFeed.js';
 import { buildEncounterDiceToast } from '../components/EncounterDiceToast.jsx';
-import { normalizeRollIdentity } from '../../../shared/character/rollLogPresentation.js';
+import { normalizeRollIdentity } from '../../../shared/character/dice/rollLogPresentation.js';
 
 function readSettings(instanceId) {
   try { return JSON.parse(localStorage.getItem(`gb-enc-rolls:${instanceId}`)) || {}; }
