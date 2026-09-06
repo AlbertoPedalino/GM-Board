@@ -39,7 +39,8 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 - `src/main.jsx`: StrictMode → ThemeProvider → CssBaseline → ToastProvider → BrowserRouter → AuthProvider → App.
 - `src/App.jsx` mounts `CloudAutoSync` and updates `document.title` from the current route via `shared/ui/pageTitle.js`.
-- Routes: `/`, `/charbuilder`, `/charsheet`, `/gmboard`, `/dm-screen`, `/library/:tool`, `/campaigns`, `/campaign-sheet`, `/encounter-builder`.
+- Routes: `/`, `/charbuilder`, `/charsheet`, `/gmboard`, `/dm-screen`, `/library/:tool`, `/campaigns`, `/campaign-sheet`, `/vtt`, `/encounter-builder`.
+- Route strings are relative to `BrowserRouter`'s basename, derived from `import.meta.env.BASE_URL` (`/Nat-1/` in Vite). Native links must include that base; `pages/encounterbuilder/logic/campaignSheetUrl.js` builds `/Nat-1/campaign-sheet?id=<id>&edit=1` with encoded ids.
 - `/gmsheets` redirects to `/library/characters`; legacy builder/sheet routes redirect.
 - Home is eager; tool pages are route-lazy.
 - `AppTopBar` always renders `CloudMenu`.
@@ -115,17 +116,23 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 ## Encounter Builder
 
+- Root/entry: `src/pages/encounterbuilder/EncounterBuilderPage.jsx`; state wiring: `state/EncounterBuilderContext.jsx` and `state/reducer.js`; persistence: `hooks/useEncounterPersistence.js` and `logic/storage.js`.
 - Route: `/encounter-builder?enc=<id>|new`.
+- The library entry is `/library/encounters`; canonical existing/new links come from `shared/instances/sectionRegistry.js`. Optional `linkGroup` links instances. `resolveInstance` normalizes `enc=new` to a generated id or restores a known active id when `enc` is absent; the provider remounts on instance-id changes. `useSeedInstance` saves an unsaved or empty instance when its page opens.
 - Keys: `gb_encounter_registry`, `gb_active_encounter_id`; scoped `party`, `draft`, `library`, `fights`, `fumbles`, `negotiation` v1 keys.
 - Difficulty uses 2024 RAW XP without multipliers.
 - Missing-token fallback: XMM Skeleton.
 - Conditions sync to sheets; encounter-local effects do not.
 - Events: `gb:encounter-saved`, `gb:encounter-deleted`.
+- `useEncounterPersistence` batches all six local payload writes before announcing a save, so listeners never read a half-written library/fight set. `hooks/useExternalFightSync.js` merges externally created fights/library entries and refreshes the active fight from same-tab save events or cross-tab storage events.
+- Cloud fights: `hooks/useCloudFights.js` → `shared/cloud/api/encounterFights.js` → `encounter_fights` rows; `logic/fightRecord.js` defines row/entry conversion and embedded library-card recovery. These per-fight rows complement the instance's local payload and section cloud sync.
 - Tests: `tests/logic/pages/encounterbuilder/logic/encounterbuilder.logic.test.js` plus component tests under `tests/ui/pages/encounterbuilder/`.
 
 ## Battle Map / VTT
 
-- Root: `src/pages/vtt/`; scene orchestration is `components/SceneEditor.jsx` and rendering is `SceneViewport.jsx` / `TokenSprite.jsx`.
+- Root/entry: `src/pages/vtt/VttPage.jsx`; scene orchestration: `components/SceneEditor.jsx`; rendering: `components/SceneViewport.jsx` / `components/TokenSprite.jsx`.
+- `/vtt` shows the scene/table picker; `/vtt?scene=<id>` requests a scene directly; `/vtt?campaign=<id>` follows that campaign's live scene via `shared/vtt/useLiveSession.js`. Campaign-following takes precedence if both parameters exist. VTT requires configured cloud access and authentication; scene permissions still come from Supabase and `shared/vtt/useSceneRole.js`.
+- Projector links are `/vtt?campaign=<id>&spectator=<cameraSource>`, built by `shared/vtt/spectator.js` from the current URL so the deployment base survives. They replace scene/query selection, require both campaign and a valid presenter source, and follow live-scene changes. Scene operations live in `shared/cloud/api/vtt.js`; scene realtime state in `shared/vtt/useSceneLive.js`.
 - Fog strokes sweep a round brush along fractional fog-cell coordinates between pointer events, so fast diagonal motion has no gaps. Each new drag resets its previous point. `FogCanvas` adds a light blur proportional to the fog-cell size, zoom, and device pixel ratio. Saved fog bitsets and resolution remain compatible; regressions cover reveal/hide, fast motion, and separate strokes.
 - Fog rendering covers the entire viewport and erases only revealed cells using a blurred `destination-out` mask. Never blur the outer covered rectangle: that exposes the map perimeter. Grid-offset margins and areas beyond old fog dimensions stay covered; fill the complete rounded-up backing store before applying view transforms so fractional device pixel ratios cannot leave a translucent edge.
 - Atmosphere must remain visible in Player view and on the projector even over unexplored fog. Public fog, atmosphere, then rulers/lasers share z-index 4 in that DOM order; controls stay higher. Atmosphere's WebGL canvas and static fallback use the same layer. Never raise hidden map pieces above fog to fix weather visibility.
@@ -152,6 +159,9 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - The viewport's non-passive wheel listener zooms only the map surface. Events whose pointer target is inside a viewport control, floating sheet, MUI dialog, popover, or popper are left untouched so the scrollable UI directly under the cursor receives the wheel, including while fullscreen portals live inside the map element.
 - The map/sheet divider previews its grid ratio through a CSS custom property at most once per animation frame and commits React state only on release, avoiding full SceneEditor rerenders during drag. Roll Log history never remounts animated 3D dice: each saved result is a static accessible 2D die silhouette with its landed value; only the live map throw uses physics/3D. Rolls originated on the current battle-map screen remain in its log/toast/physical-dice queue but suppress their token speech bubble; remote screens still show that bubble, based on local event origin rather than character ownership (so GM rolls from a PC sheet are also suppressed for the GM).
 - Encounter↔map bridge supports imported monster `sourceRef`s and roster character `sourceId`s in both directions. Character HP/death-save/condition writes go through the sheet source of truth; monster values remain on the token/fight.
+- Local bridge: `pages/vtt/hooks/useEncounterBridge.js` reads/writes `pages/encounterbuilder/logic/storage.js` and listens to save/storage events. Cloud monster bridge: `pages/encounterbuilder/hooks/useMapTokenBridge.js` synchronizes through `map_tokens` using `shared/vtt/tokenBridge.js` and `shared/cloud/api/vtt.js`, including across devices. `shared/vtt/encounterSync.js` owns `instanceId:fightId:combatantId` source references and pure reconciliation; linked PCs match sheet identity instead of monster references.
+- Dungeon→encounter path: `pages/vtt/hooks/useSceneDungeon.js` → `pages/encounterbuilder/logic/handoff.js` → local library/fight persistence and `shared/cloud/api/encounterFights.js`. A room stores the resulting fight link, not another fight snapshot; sending a room preserves the builder's active fight. If the cloud save fails, the local fight remains and the UI reports that only this browser received it. `components/EncounterImportDialog.jsx` reads saved local fights through builder storage/combat helpers and converts combatants using `shared/vtt/encounterImport.js`.
+- Roll sharing: `pages/vtt/hooks/useVttRolls.js` and `pages/encounterbuilder/hooks/useEncounterRolls.js` both use `shared/cloud/sync/useRollChannel.js`; roll identity/presentation lives in `shared/character/dice/` and map feed state in `shared/vtt/rollFeed.js`.
 - Relevant tests: logic under `tests/logic/shared/vtt/`, cloud VTT operations at `tests/ui/shared/cloud/api/vtt.test.jsx`, and map components under `tests/ui/pages/vtt/components/` (including viewport, tokens, pieces, dice, roll log, sheet resize).
 
 ## Combat Sheet Sync
@@ -183,7 +193,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 ## Cloud and Supabase
 
-- Schemas: `schema.sql`, `sections.sql`, `campaigns.sql`, `combat_sync.sql`.
+- Core schemas: `supabase/schema.sql`, `sections.sql`, `campaigns.sql`, `combat_sync.sql`. VTT/encounter integration also uses `supabase/vtt.sql`, `atmosphere.sql`, `encounter_fights.sql`, `dungeon.sql`, and `hexcrawl.sql`.
 - `sections.sql` runs after `schema.sql`; `CLOUD_SETUP.md` documents this step.
 - `boards`, `encounters`, and `dm_screens` match the character-row shape.
 - All three section tables use owner-only RLS with no global-GM escape.
@@ -213,6 +223,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Node suites: `tests/logic/**/*.test.js`; Vitest/jsdom suites: `tests/ui/**/*.test.jsx`; shared UI setup: `tests/setup.js`. Each tree mirrors `src/`.
 - `npm test` runs VTT hygiene, logic and UI; `npm run test:logic` runs `node --test tests/logic`; `npm run test:ui` runs Vitest. Runner instructions: `tests/README.md`.
 - Network tests inject/mock Supabase and never hit a live service.
+- Fog pixel checks run separately in a real browser at `/Nat-1/tests/browser/vtt/fog.html` through the Vite dev server; `tests/browser/vtt/fog.js` checks covered borders, offsets, zoom/pan, old fog dimensions, fractional pixel ratios, reveal softness, disabling fog, and resize.
 
 ## Verification
 
