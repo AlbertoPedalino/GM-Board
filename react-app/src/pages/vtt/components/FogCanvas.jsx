@@ -5,9 +5,9 @@ import { decodeCells } from '../../../shared/vtt/fog.js';
 import { cellSize, worldToScreen } from '../../../shared/vtt/geometry.js';
 
 // The fog is painted at one pixel per cell on an offscreen canvas and then
-// scaled up with smoothing off. Filling ten thousand rectangles on every brush
-// frame is the obvious way to write this and the slow one; this way a stroke
-// costs a few thousand byte writes and one drawImage.
+// scaled up with interpolation and a light edge blur. Filling ten thousand
+// rectangles on every brush frame is the slow option; this way a stroke costs
+// a few thousand byte writes and one drawImage.
 export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
   const canvasRef = useRef(null);
   // Redraw when the box changes: the canvas is measured in its own pixels.
@@ -69,6 +69,10 @@ export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
     // show the staircase a round brush is meant to avoid.
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
+    // A fraction of one fog cell softens diagonal stair steps, including fog
+    // saved at older resolutions. Scale with the map and backing-store ratio
+    // so zooming and HiDPI displays keep the same edge softness in world space.
+    context.filter = `blur(${size * view.zoom * ratio * 0.35}px)`;
     context.drawImage(
       buffer,
       origin.x,
@@ -76,6 +80,7 @@ export default function FogCanvas({ fog, grid, view, opacity, onTop = false }) {
       cols * size * view.zoom,
       rows * size * view.zoom,
     );
+    context.filter = 'none';
   }, [fog, grid, opacity, view, resizeTick]);
 
   return (

@@ -43,17 +43,17 @@ function isMarkdownPackage(pkg) {
 export default defineConfig({
   base: '/Nat-1/',
   plugins: [react()],
-  // Two runners, split by extension so neither sees the other's files:
-  //   *.test.js  -> `node --test`, for logic modules (fast, no DOM, no deps)
-  //   *.test.jsx -> vitest + jsdom, for React components
+  // Two runners, each with a dedicated tree mirroring src/:
+  //   tests/logic/**/*.test.js  -> node, for logic modules without a DOM
+  //   tests/ui/**/*.test.jsx -> vitest + jsdom, for React components
   // Vitest is needed for components because they need a DOM, and it resolves
   // `import.meta.glob` — which plain node cannot, and which the adapter barrel
   // uses. `npm test` runs both.
   test: {
     environment: 'jsdom',
     globals: true,
-    include: ['src/**/*.test.jsx'],
-    setupFiles: ['./vitest.setup.js'],
+    include: ['tests/ui/**/*.test.jsx'],
+    setupFiles: ['./tests/setup.js'],
     restoreMocks: true,
     // The component suites drive real interactions through user-event, which
     // types a character at a time and waits for each render. NoteBoard alone

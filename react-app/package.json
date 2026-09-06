@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
-    "test": "node scripts/check-vtt-hygiene.mjs && node --test && vitest run",
+    "test": "npm run check:vtt && npm run test:logic && npm run test:ui",
     "preview": "vite preview --host 127.0.0.1",
-    "test:logic": "node --test",
+    "test:logic": "node --test tests/logic",
     "test:ui": "vitest run",
     "check:vtt": "node scripts/check-vtt-hygiene.mjs"
   },

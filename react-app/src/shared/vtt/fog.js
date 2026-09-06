@@ -142,6 +142,36 @@ export function brushCells(col, row, size = 1) {
   return cells.length ? cells : [{ col: centreCol, row: centreRow }];
 }
 
+// Sweep a round brush along the whole pointer segment. Positions stay fractional
+// in fog-cell coordinates, so diagonal strokes do not snap from stamp to stamp.
+// Bounds keep painting outside the map from allocating an unbounded cell list.
+export function brushStrokeCells(from, to, size, { cols, rows }) {
+  if (![from?.col, from?.row, to?.col, to?.row, size, cols, rows].every(Number.isFinite)) return [];
+  const radius = Math.max(1, size) / 2;
+  const dx = to.col - from.col;
+  const dy = to.row - from.row;
+  const lengthSquared = dx * dx + dy * dy;
+  const left = Math.max(0, Math.ceil(Math.min(from.col, to.col) - radius - 0.5));
+  const right = Math.min(cols - 1, Math.floor(Math.max(from.col, to.col) + radius - 0.5));
+  const top = Math.max(0, Math.ceil(Math.min(from.row, to.row) - radius - 0.5));
+  const bottom = Math.min(rows - 1, Math.floor(Math.max(from.row, to.row) + radius - 0.5));
+  const cells = [];
+  for (let row = top; row <= bottom; row += 1) {
+    for (let col = left; col <= right; col += 1) {
+      const x = col + 0.5 - from.col;
+      const y = row + 0.5 - from.row;
+      const t = lengthSquared ? Math.max(0, Math.min(1, (x * dx + y * dy) / lengthSquared)) : 0;
+      if ((x - t * dx) ** 2 + (y - t * dy) ** 2 <= radius ** 2) cells.push({ col, row });
+    }
+  }
+  // At legacy resolution a one-cell brush can sit between four cell centres.
+  // A click must still affect the cell under the pointer.
+  if (!cells.length && to.col >= 0 && to.row >= 0 && to.col < cols && to.row < rows) {
+    cells.push({ col: Math.floor(to.col), row: Math.floor(to.row) });
+  }
+  return cells;
+}
+
 // How many fog cells cover an image at the scene's calibration. The offset
 // shifts the first line, so a partially covered square at the edge still counts.
 export function fogSizeForImage({ width, height }, grid, scale = DEFAULT_FOG_SCALE) {

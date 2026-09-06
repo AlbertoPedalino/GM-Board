@@ -3,7 +3,7 @@ import {
 } from 'react';
 import { Box, Button, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { MapPin, Maximize2, Minimize2, ScrollText, Settings2, Trash2, X } from 'lucide-react';
-import { brushCells } from '../../../shared/vtt/fog.js';
+import { brushStrokeCells } from '../../../shared/vtt/fog.js';
 import {
   DEFAULT_VIEW,
   cellSize,
@@ -512,15 +512,20 @@ export default function SceneViewport({
   // The brush works in fog cells, which are finer than grid squares: that is
   // what makes half a doorway possible, and what makes a round brush look round.
   const paintAt = useCallback((point) => {
+    if (!fog) return;
     const scale = Math.max(1, fog?.scale || 1);
     const world = screenToWorld(point, view);
     const unit = cellSize(scene.grid) / scale;
-    const col = Math.floor((world.x - (scene.grid.offsetX || 0)) / unit);
-    const row = Math.floor((world.y - (scene.grid.offsetY || 0)) / unit);
+    const at = {
+      col: (world.x - (scene.grid.offsetX || 0)) / unit,
+      row: (world.y - (scene.grid.offsetY || 0)) / unit,
+    };
+    const stroke = dragRef.current;
     // The brush is set in squares, so it grows with the resolution rather than
     // shrinking to a pinprick when the fog gets finer.
-    onPaint?.(brushCells(col, row, Math.max(1, Math.round(brushSize * scale))), paintMode === 'reveal');
-  }, [brushSize, fog?.scale, onPaint, paintMode, scene.grid, view]);
+    onPaint?.(brushStrokeCells(stroke?.lastFogPoint || at, at, Math.max(1, brushSize * scale), fog), paintMode === 'reveal');
+    if (stroke) stroke.lastFogPoint = at;
+  }, [brushSize, fog, onPaint, paintMode, scene.grid, view]);
 
   // Strokes are stored in cells, fractionally: recalibrating the grid must not
   // slide a drawing off the wall it was traced on.
