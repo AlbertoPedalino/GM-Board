@@ -42,6 +42,44 @@ test('the space around a battlemap is the same black as covered fog', () => {
   expect(viewport).toHaveStyle({ backgroundColor: '#000000' });
 });
 
+test.each([false, true])('public atmosphere stays above fog and below the laser (camera locked: %s)', async (cameraLocked) => {
+  // Exercise the static fallback too: it must have the same stacking behavior
+  // as the WebGL surface on machines without GPU rendering.
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  const { container } = render(
+    <SceneViewport
+      scene={{ grid: { size: 40, offsetX: 0, offsetY: 0, visible: false }, playArea: null }}
+      imageUrl={null}
+      tokens={[]}
+      canMove={() => false}
+      fog={createFog(40, 40)}
+      fogOnTop
+      fogOpacity={1}
+      cameraLocked={cameraLocked}
+      atmosphere={{ type: 'rain', intensity: 0.8 }}
+      drawings={[]}
+      lasers={[{ id: 'gm-laser', x: 1, y: 1, label: 'GM' }]}
+      rollBubbles={[]}
+      diceThrows={[]}
+    />,
+  );
+  const fog = container.querySelector('[data-fog-layer="public"]');
+  const weather = container.querySelector('[data-atmosphere-overlay="rain"]');
+  const laser = container.querySelector('[data-remote-laser="true"]').parentElement;
+  await waitFor(() => expect(weather.tagName).toBe('DIV'));
+
+  const paintsAbove = (front, back) => {
+    const frontLayer = Number(getComputedStyle(front).zIndex) || 0;
+    const backLayer = Number(getComputedStyle(back).zIndex) || 0;
+    return frontLayer > backLayer || (frontLayer === backLayer
+      && Boolean(back.compareDocumentPosition(front) & Node.DOCUMENT_POSITION_FOLLOWING));
+  };
+  expect(paintsAbove(weather, fog)).toBe(true);
+  expect(paintsAbove(laser, weather)).toBe(true);
+  expect(weather).toHaveStyle({ pointerEvents: 'none' });
+  expect(screen.getByRole('button', { name: 'Fullscreen map' })).toBeEnabled();
+});
+
 test.each(['reveal', 'hide'])('the %s brush joins fast diagonal moves and resets between strokes', (paintMode) => {
   const onPaint = vi.fn();
   const onPaintEnd = vi.fn();

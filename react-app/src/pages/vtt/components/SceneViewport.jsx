@@ -1394,11 +1394,6 @@ export default function SceneViewport({
         onContextMenu={onContextMenu}
       />
 
-      {/* Atmosphere belongs in front of the world — including its pieces — but
-          behind rulers, lasers and controls. A single viewport-sized shader is
-          shared by battlemap and establishing-shot modes. */}
-      <AtmosphereOverlay atmosphere={atmosphere} />
-
       {fogOnTop ? (
         <FogCanvas
           fog={backgroundOnly ? null : fog}
@@ -1408,6 +1403,11 @@ export default function SceneViewport({
           onTop
         />
       ) : null}
+
+      {/* Weather stays visible over unexplored fog, while the map and secret
+          pieces remain covered. At the same z-index, mount it after public fog
+          and before rulers/lasers so those tools stay in front. */}
+      <AtmosphereOverlay atmosphere={atmosphere} />
 
       {placementDrag && placementHover && !backgroundOnly ? (() => {
         const token = { ...placementDrag.token, ...placementHover };

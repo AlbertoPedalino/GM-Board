@@ -112,6 +112,6 @@ const canvasSx = {
   height: '100%',
 };
 
-// Public fog sits above persistent map content. Interactive overlays and map
-// controls start at the next layer, so the board remains usable.
+// Public fog sits above persistent map content. Atmosphere and interactive
+// overlays follow at this layer in paint order; controls sit above them.
 const publicFogSx = { zIndex: 4 };

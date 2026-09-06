@@ -227,7 +227,8 @@ const ATMOSPHERE_BLEND_MODES = Object.freeze({
 const overlaySx = {
   position: 'absolute',
   inset: 0,
-  zIndex: 3,
+  // SceneViewport mounts this after public fog and before the map tools.
+  zIndex: 4,
   width: '100%',
   height: '100%',
   pointerEvents: 'none',
