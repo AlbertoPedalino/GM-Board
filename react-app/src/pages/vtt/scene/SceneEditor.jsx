@@ -121,7 +121,6 @@ import {
   sheetLoadingSx,
   sheetViewSx,
   spectatorRootSx,
-  viewportCellStackedSx,
   viewportCellSx,
 } from './sceneEditorStyles.js';
 import {
@@ -2159,7 +2158,7 @@ export default function SceneEditor({
         style={sideSheetOpen ? { '--sheet-grid-columns': sheetGridColumns(sheetSplit) } : undefined}
         sx={[contentLayoutSx, sideSheetOpen && contentLayoutOpenSx]}
       >
-        <Box sx={[viewportCellSx, sideSheetOpen && viewportCellStackedSx]}>
+        <Box sx={viewportCellSx}>
           <SceneViewport
         scene={scene}
         imageUrl={viewportDisplay.url}

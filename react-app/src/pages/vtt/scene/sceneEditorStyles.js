@@ -96,11 +96,13 @@ export const contentLayoutOpenSx = {
   gridTemplateColumns: 'minmax(0, 1fr)',
   columnGap: 1,
   rowGap: 1,
-  // Both rows keep their content height. The workspace scrolls on a phone,
-  // including while the lazy sheet grows beyond its loading placeholder.
+  // Leave part of the actual workspace available for the sheet, even when
+  // browser chrome and wrapped controls leave little height in landscape.
+  // A viewport-only map height can cover the whole scroll area; map gestures
+  // then intercept every touch and the sheet below is unreachable.
   overflowX: 'hidden',
   overflowY: 'auto',
-  gridTemplateRows: 'max-content max-content',
+  gridTemplateRows: 'min(52dvh, 520px, 65%) max-content',
   alignContent: 'start',
   [SHEET_SIDE_BY_SIDE_QUERY]: {
     gridTemplateColumns: 'var(--sheet-grid-columns)',
@@ -117,22 +119,17 @@ export const viewportCellSx = {
   display: 'flex',
 };
 
-// Below the width breakpoint the sheet follows a complete map row. Limit its
-// height on short screens so the map fits instead of being clipped at 320px.
-export const viewportCellStackedSx = {
-  height: 'min(52dvh, 520px)',
-  [SHEET_SIDE_BY_SIDE_QUERY]: { height: 'auto' },
-};
-
 export const sheetViewSx = {
   minWidth: 0,
   minHeight: 'auto',
-  overflow: 'hidden',
-  overscrollBehavior: 'contain',
+  // The workspace owns scrolling while stacked. A hidden overflow container
+  // with overscroll containment traps swipes before they reach that workspace.
+  overflow: 'clip',
   [SHEET_SIDE_BY_SIDE_QUERY]: {
     minHeight: 0,
     height: '100%',
     overflow: 'auto',
+    overscrollBehavior: 'contain',
     contain: 'layout paint',
   },
   border: '1px solid',

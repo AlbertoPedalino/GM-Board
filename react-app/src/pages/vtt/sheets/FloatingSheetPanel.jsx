@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
-import { Box, IconButton, Stack, Typography, useMediaQuery } from '@mui/material';
+import { Box, IconButton, Stack, Typography } from '@mui/material';
 import { GripHorizontal, MoveDiagonal2, X } from 'lucide-react';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import {
@@ -14,7 +14,6 @@ import {
   writeSheetFrame,
 } from '../../../shared/vtt/sheets/sheetFrame.js';
 import { battleMapSurfaceSx } from '../map/battleMapSurface.js';
-import { SHEET_COMPACT_QUERY } from '../../../shared/vtt/sheets/sheetLayout.js';
 
 // One key for the window itself, not one per character: the player is arranging
 // a place on their screen to read a sheet, and it should not move because they
@@ -29,7 +28,6 @@ export default function FloatingSheetPanel({
   containerRef,
   children,
 }) {
-  const compact = useMediaQuery(SHEET_COMPACT_QUERY);
   const panelRef = useRef(null);
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
@@ -115,18 +113,6 @@ export default function FloatingSheetPanel({
   // Before paint, so a reopened sheet does not appear at its default corner and
   // then jump.
   useLayoutEffect(() => {
-    // Desktop gestures write inline geometry. Clear it when rotating into a
-    // compact viewport, but retain the stored frame for a larger screen.
-    if (compact) {
-      cancelAnimationFrame(frameRef.current);
-      dragRef.current = null;
-      resizeRef.current = null;
-      placementRef.current = null;
-      for (const property of ['left', 'right', 'top', 'width', 'height']) {
-        panelRef.current?.style.removeProperty(property);
-      }
-      return undefined;
-    }
     const container = containerRef.current;
     if (!container) return undefined;
     const stored = readSheetFrame(globalThis.sessionStorage, SHEET_FRAME_KEY);
@@ -144,10 +130,9 @@ export default function FloatingSheetPanel({
     const observer = new ResizeObserver(() => fitToContainer());
     observer.observe(container);
     return () => observer.disconnect();
-  }, [compact]);
+  }, []);
 
   const beginDrag = (event) => {
-    if (compact) return;
     if (event.button !== 0 || event.target.closest?.('button, input, select, [role="button"]')) return;
     const offset = seedPlacement();
     if (!offset) return;
@@ -223,15 +208,17 @@ export default function FloatingSheetPanel({
     const container = containerRef.current;
     if (!resize || resize.pointerId !== event.pointerId || !panel || !container) return;
     const bounds = container.getBoundingClientRect();
+    const maxWidth = bounds.width * MAX_SHEET_WIDTH_RATIO;
+    const maxHeight = bounds.height * MAX_SHEET_HEIGHT_RATIO;
     const width = clamp(
       resize.width + event.clientX - resize.startX,
-      MIN_SHEET_WIDTH,
-      Math.max(MIN_SHEET_WIDTH, bounds.width * MAX_SHEET_WIDTH_RATIO),
+      Math.min(MIN_SHEET_WIDTH, maxWidth),
+      maxWidth,
     );
     const height = clamp(
       resize.height + event.clientY - resize.startY,
-      MIN_SHEET_HEIGHT,
-      Math.max(MIN_SHEET_HEIGHT, bounds.height * MAX_SHEET_HEIGHT_RATIO),
+      Math.min(MIN_SHEET_HEIGHT, maxHeight),
+      maxHeight,
     );
     // This is the gesture that gives the frame a size at all.
     placementRef.current = {
@@ -268,7 +255,7 @@ export default function FloatingSheetPanel({
         onPointerCancel={endDrag}
         sx={headerSx}
       >
-        {!compact ? <GripHorizontal size={15} aria-hidden="true" /> : null}
+        <GripHorizontal size={15} aria-hidden="true" />
         <Typography sx={titleSx}>Sheet</Typography>
         <Box sx={{ flex: 1 }} />
         {choices.length > 1 ? (
@@ -291,19 +278,17 @@ export default function FloatingSheetPanel({
         </IconButton>
       </Stack>
       <Box sx={contentSx}>{children}</Box>
-      {!compact ? (
-        <IconButton
-          size="small"
-          aria-label="Resize floating sheet"
-          onPointerDown={beginResize}
-          onPointerMove={moveResize}
-          onPointerUp={endResize}
-          onPointerCancel={endResize}
-          sx={resizeHandleSx}
-        >
-          <MoveDiagonal2 size={15} />
-        </IconButton>
-      ) : null}
+      <IconButton
+        size="small"
+        aria-label="Resize floating sheet"
+        onPointerDown={beginResize}
+        onPointerMove={moveResize}
+        onPointerUp={endResize}
+        onPointerCancel={endResize}
+        sx={resizeHandleSx}
+      >
+        <MoveDiagonal2 size={15} />
+      </IconButton>
     </Box>
   );
 }
@@ -319,11 +304,10 @@ const panelSx = {
   right: 12,
   zIndex: 10,
   width: 'min(620px, calc(100% - 24px))',
-  height: 'min(70vh, calc(100% - 68px))',
-  // The same floor the resize handle and the restore clamp use. A CSS minimum
-  // above theirs would silently overrule the height they worked out.
-  minHeight: MIN_SHEET_HEIGHT,
-  minWidth: MIN_SHEET_WIDTH,
+  height: 'min(70dvh, calc(100% - 68px))',
+  // Keep the window margins on phones even below the desktop size floors.
+  minHeight: `min(${MIN_SHEET_HEIGHT}px, calc(100% - 68px))`,
+  minWidth: `min(${MIN_SHEET_WIDTH}px, calc(100% - 24px))`,
   display: 'grid',
   gridTemplateRows: 'auto minmax(0, 1fr)',
   borderRadius: 1.25,
@@ -335,16 +319,6 @@ const panelSx = {
   cursor: 'default',
   contain: 'layout paint',
   isolation: 'isolate',
-  [`@media ${SHEET_COMPACT_QUERY}`]: {
-    top: 0,
-    right: 0,
-    width: '100%',
-    height: '100%',
-    minWidth: 0,
-    minHeight: 0,
-    border: 0,
-    borderRadius: 0,
-  },
 };
 
 const headerSx = {
@@ -357,7 +331,6 @@ const headerSx = {
   cursor: 'move',
   touchAction: 'none',
   userSelect: 'none',
-  [`@media ${SHEET_COMPACT_QUERY}`]: { cursor: 'default', touchAction: 'auto' },
 };
 
 const titleSx = {

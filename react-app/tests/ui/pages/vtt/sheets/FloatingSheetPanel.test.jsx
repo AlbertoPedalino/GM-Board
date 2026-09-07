@@ -14,20 +14,6 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-function compactScreen(initial) {
-  const listeners = new Set();
-  const media = {
-    matches: initial,
-    addEventListener: (_, listener) => listeners.add(listener),
-    removeEventListener: (_, listener) => listeners.delete(listener),
-  };
-  vi.stubGlobal('matchMedia', () => media);
-  return (matches) => act(() => {
-    media.matches = matches;
-    listeners.forEach((listener) => listener());
-  });
-}
-
 function mapOf(width, height, border = 0) {
   const container = document.createElement('div');
   container.getBoundingClientRect = vi.fn(() => ({
@@ -254,46 +240,48 @@ test('a sheet nobody has moved yet keeps its default corner', () => {
   expect(panel.style.right).toBe('');
 });
 
-test('a compact screen opens the sheet without restoring an off-screen desktop frame', () => {
-  compactScreen(true);
+test('a phone restores a reachable floating window with drag and resize controls', () => {
   const stored = JSON.stringify({ left: 704, top: 560, width: 752, height: 552 });
   window.sessionStorage.setItem('gb-vtt-sheet-frame', stored);
   const { container } = openSheet(mapOf(844, 390));
   const panel = container.querySelector('[data-floating-sheet]');
 
-  expect(panel.style.left).toBe('');
-  expect(panel.style.top).toBe('');
-  expect(panel.style.width).toBe('');
-  expect(panel.style.height).toBe('');
-  expect(screen.queryByRole('button', { name: 'Resize floating sheet' })).not.toBeInTheDocument();
+  expect(panel.style.left).toBe('92px');
+  expect(panel.style.top).toBe('31px');
+  expect(panel.style.width).toBe('752px');
+  expect(panel.style.height).toBe('359px');
+  expect(screen.getByRole('button', { name: 'Resize floating sheet' })).toBeVisible();
   expect(screen.getByRole('button', { name: 'Close floating sheet' })).toBeVisible();
 
+  trackPanelRect(panel, { left: 92, top: 31, width: 752, height: 359 });
   const header = screen.getByText('Sheet').parentElement;
   fireEvent.pointerDown(header, { button: 0, clientX: 200, clientY: 20 });
   fireEvent.pointerMove(header, { clientX: 500, clientY: 200 });
   fireEvent.pointerUp(header, { clientX: 500, clientY: 200 });
-  expect(window.sessionStorage.getItem('gb-vtt-sheet-frame')).toBe(stored);
+  expect(JSON.parse(window.sessionStorage.getItem('gb-vtt-sheet-frame')).left).toBe(392);
 });
 
-test('rotating into a compact viewport clears inline geometry and preserves the desktop preference', () => {
-  const rotate = compactScreen(false);
+test('rotating a floating window keeps it inside the shorter viewport', () => {
+  let resize;
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback) { resize = callback; }
+    observe() {}
+    disconnect() {}
+  });
   const stored = JSON.stringify({ left: 100, top: 70, width: 500, height: 400 });
   window.sessionStorage.setItem('gb-vtt-sheet-frame', stored);
-  const { container } = openSheet(mapOf(1000, 700));
+  const containerRef = mapOf(1000, 700);
+  const { container } = openSheet(containerRef);
   const panel = container.querySelector('[data-floating-sheet]');
   expect(panel.style.width).toBe('500px');
 
-  rotate(true);
-  expect(panel.style.left).toBe('');
-  expect(panel.style.top).toBe('');
-  expect(panel.style.width).toBe('');
-  expect(panel.style.height).toBe('');
+  containerRef.current.getBoundingClientRect.mockReturnValue({ width: 667, height: 375 });
+  act(() => resize());
+  expect(panel.style.left).toBe('100px');
+  expect(panel.style.top).toBe('30px');
+  expect(panel.style.width).toBe('500px');
+  expect(panel.style.height).toBe('345px');
   expect(window.sessionStorage.getItem('gb-vtt-sheet-frame')).toBe(stored);
 
-  rotate(false);
-  expect(panel.style.left).toBe('100px');
-  expect(panel.style.top).toBe('70px');
-  expect(panel.style.width).toBe('500px');
-  expect(panel.style.height).toBe('400px');
   expect(screen.getByRole('button', { name: 'Resize floating sheet' })).toBeVisible();
 });

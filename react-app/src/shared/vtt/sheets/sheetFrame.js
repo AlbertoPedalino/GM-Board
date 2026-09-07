@@ -84,29 +84,34 @@ export function clampSheetFrame(frame, bounds, rendered = null) {
     return null;
   }
 
-  const maxWidth = Math.max(MIN_SHEET_WIDTH, boxWidth * MAX_SHEET_WIDTH_RATIO);
-  const maxHeight = Math.max(MIN_SHEET_HEIGHT, boxHeight * MAX_SHEET_HEIGHT_RATIO);
+  const maxWidth = boxWidth * MAX_SHEET_WIDTH_RATIO;
+  const maxHeight = boxHeight * MAX_SHEET_HEIGHT_RATIO;
   const width = normalized.width === null
     ? null
-    : Math.round(clamp(normalized.width, MIN_SHEET_WIDTH, maxWidth));
+    : Math.round(clamp(normalized.width, Math.min(MIN_SHEET_WIDTH, maxWidth), maxWidth));
   const height = normalized.height === null
     ? null
-    : Math.round(clamp(normalized.height, MIN_SHEET_HEIGHT, maxHeight));
+    : Math.round(clamp(normalized.height, Math.min(MIN_SHEET_HEIGHT, maxHeight), maxHeight));
 
   // Measured against the width the panel ends up with, not the one it was
   // remembered at: a panel that had to shrink would otherwise keep an offset
   // belonging to its old size and sit further off the edge than the grip allows.
   const effectiveWidth = width ?? extent(rendered?.width) ?? MIN_SHEET_WIDTH;
+  const effectiveHeight = height ?? extent(rendered?.height) ?? MIN_SHEET_HEIGHT;
+  // On phones a restored desktop position must reveal the content, not just
+  // the grip. Gestures can still move the window aside to uncover the map.
+  const compact = boxWidth < 768 || boxHeight <= 500;
 
   return {
     width,
     height,
     left: Math.round(clamp(
       normalized.left,
-      -effectiveWidth + SHEET_VISIBLE_GRIP,
-      boxWidth - SHEET_VISIBLE_GRIP,
+      compact ? 0 : -effectiveWidth + SHEET_VISIBLE_GRIP,
+      compact ? Math.max(0, boxWidth - effectiveWidth) : boxWidth - SHEET_VISIBLE_GRIP,
     )),
-    top: Math.round(clamp(normalized.top, 0, boxHeight - SHEET_VISIBLE_HEADER)),
+    top: Math.round(clamp(normalized.top, 0,
+      compact ? Math.max(0, boxHeight - effectiveHeight) : boxHeight - SHEET_VISIBLE_HEADER)),
   };
 }
 

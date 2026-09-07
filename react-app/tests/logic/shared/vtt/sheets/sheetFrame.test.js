@@ -126,13 +126,22 @@ test('the title bar never goes above the map or below its bottom edge', () => {
   assert.equal(clampSheetFrame({ left: 0, top: 9000, ...size }, bounds).top, 860);
 });
 
-test('a container too small to hold the minimum still yields a usable frame', () => {
+test('a container below the desktop minimum keeps the floating window inside it', () => {
   const tiny = clampSheetFrame(
     { left: 0, top: 0, width: 600, height: 400 },
     { width: 200, height: 150 },
   );
-  assert.equal(tiny.width, MIN_SHEET_WIDTH);
-  assert.equal(tiny.height, MIN_SHEET_HEIGHT);
+  assert.equal(tiny.width, 188);
+  assert.equal(tiny.height, 138);
+});
+
+test('a phone restores the whole floating sheet after rotation from a desktop frame', () => {
+  const fitted = clampSheetFrame(
+    { left: 900, top: 650, width: 600, height: 500 },
+    { width: 667, height: 375 },
+  );
+  assert.equal(fitted.left + fitted.width, 667);
+  assert.equal(fitted.top + fitted.height, 375);
 });
 
 test('an unmeasured container restores nothing rather than pinning the corner', () => {
