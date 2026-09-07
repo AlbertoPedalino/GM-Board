@@ -116,6 +116,45 @@ test.each(['reveal', 'hide'])('the %s brush joins fast diagonal moves and resets
   expect(newStroke).not.toContainEqual({ col: 25, row: 10 });
 });
 
+test.each(['reveal', 'hide'])('fractional %s brushes shrink both the preview and the painted area', (paintMode) => {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+  const onPaint = vi.fn();
+  const props = {
+    scene: { grid: { size: 40, offsetX: 0, offsetY: 0, visible: false }, playArea: null },
+    imageUrl: null,
+    tokens: [],
+    canMove: () => false,
+    fog: createFog(40, 40),
+    paintMode,
+    onPaint,
+    drawings: [],
+    lasers: [],
+    rollBubbles: [],
+    diceThrows: [],
+  };
+  const { container, rerender } = render(<SceneViewport {...props} brushSize={1} />);
+  const viewport = screen.getByText('Upload a map image to start building this scene.').parentElement;
+  const painted = [];
+  for (const [brushSize, diameter, cellCount] of [[1, 40, 13], [0.5, 20, 5], [0.25, 10, 1]]) {
+    rerender(<SceneViewport {...props} brushSize={brushSize} />);
+    fireEvent.pointerMove(viewport, { clientX: 25, clientY: 25 });
+    expect(container.querySelector('[data-brush-preview]')).toHaveStyle({ width: `${diameter}px`, height: `${diameter}px` });
+    fireEvent.pointerDown(viewport, { button: 0, clientX: 25, clientY: 25 });
+    const [cells, revealed] = onPaint.mock.calls.at(-1);
+    expect(revealed).toBe(paintMode === 'reveal');
+    expect(cells).toHaveLength(cellCount);
+    expect(cells).toContainEqual({ col: 2, row: 2 });
+    painted.push(cells);
+    fireEvent.pointerUp(viewport, { clientX: 25, clientY: 25 });
+  }
+  expect(painted[0]).toEqual(expect.arrayContaining(painted[1]));
+  expect(painted[1]).toEqual(expect.arrayContaining(painted[2]));
+
+  // Old one-cell-per-square fog cannot paint a fraction of its stored cell.
+  rerender(<SceneViewport {...props} fog={createFog(10, 10, 1)} brushSize={0.5} />);
+  expect(container.querySelector('[data-brush-preview]')).toHaveStyle({ width: '40px', height: '40px' });
+});
+
 test('the square grid stays aligned to cell coordinates at fractional zoom', () => {
   const { container } = render(
     <SquareGrid

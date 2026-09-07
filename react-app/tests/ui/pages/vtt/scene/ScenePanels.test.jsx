@@ -1,7 +1,18 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import { DEFAULT_GRID } from '../../../../../src/shared/vtt/scene/scene.js';
-import { MapPanel } from '../../../../../src/pages/vtt/scene/ScenePanels.jsx';
+import { FogPanel, MapPanel } from '../../../../../src/pages/vtt/scene/ScenePanels.jsx';
+
+test('the fog brush accepts a half-cell diameter as a valid number', () => {
+  const onBrushSizeChange = vi.fn();
+  const { rerender } = render(<FogPanel scene={{ fog: { scale: 4 } }} brushSize={1} onBrushSizeChange={onBrushSizeChange} />);
+  const input = screen.getByRole('spinbutton', { name: 'Brush (cells)' });
+  fireEvent.change(input, { target: { value: '0.5' } });
+  expect(onBrushSizeChange).toHaveBeenCalledWith(0.5);
+  rerender(<FogPanel scene={{ fog: { scale: 4 } }} brushSize={0.5} onBrushSizeChange={onBrushSizeChange} />);
+  expect(input.validity.stepMismatch).toBe(false);
+  expect(input.validity.rangeUnderflow).toBe(false);
+});
 
 test('atmosphere controls update the scene as one description', () => {
   const onAtmosphereChange = vi.fn();

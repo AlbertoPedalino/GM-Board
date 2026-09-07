@@ -76,8 +76,9 @@ function overlandMiles(grid) {
 // On-screen radius of what the tool will affect, in the same units the tool
 // itself uses: fog brushes are measured in squares, ink in tenths of one, and
 // the eraser reaches half a square around the pointer.
-function brushRadiusFor(paintMode, { brushSize, drawWidth, cell }) {
-  if (paintMode === 'reveal' || paintMode === 'hide') return (Math.max(1, brushSize) * cell) / 2;
+function brushRadiusFor(paintMode, { brushSize, drawWidth, cell, fogScale }) {
+  // Painting clamps to one fog cell, which can be smaller than a grid square.
+  if (paintMode === 'reveal' || paintMode === 'hide') return (Math.max(1, brushSize * fogScale) / fogScale * cell) / 2;
   if (paintMode === 'draw') return Math.max(2, ((drawWidth || 3) / 10) * cell) / 2;
   if (paintMode === 'erase') return (0.5 + (drawWidth || 3) / 20) * cell;
   return 0;
@@ -1154,7 +1155,7 @@ export default function SceneViewport({
   const gridColor = gridLineColor(scene.grid);
   const gridLine = normalizeGridLineWidth(scene.grid.lineWidth);
   const measured = measurementBadge(tokens, drag, scene.grid, view, feetPerCell);
-  const brushRadius = brushRadiusFor(paintMode, { brushSize, drawWidth, cell: size });
+  const brushRadius = brushRadiusFor(paintMode, { brushSize, drawWidth, cell: size, fogScale: Math.max(1, fog?.scale || 1) });
   const hexMapBox = isHexGrid(scene.grid) && imageSize ? imageBox(imageSize, view) : null;
   const hexPlayAreaMatchesMap = Boolean(
     hexMapBox
@@ -1649,6 +1650,7 @@ export default function SceneViewport({
           dark. */}
       {hover && brushRadius > 0 ? (
         <Box
+          data-brush-preview={paintMode}
           aria-hidden
           sx={{
             position: 'absolute',

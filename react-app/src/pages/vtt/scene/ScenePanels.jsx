@@ -666,6 +666,7 @@ export function FogPanel({ scene, busy, paintMode, brushSize, onEnableFog, onPai
         type="number"
         value={brushSize}
         onChange={(event) => onBrushSizeChange(Number(event.target.value))}
+        slotProps={{ htmlInput: { min: 1 / Math.max(1, scene.fog.scale || 1), step: 'any' } }}
       />
       <Stack direction="row" spacing={1}>
         <Button size="small" fullWidth onClick={() => onFogAll(true)} disabled={busy}>Reveal all</Button>
