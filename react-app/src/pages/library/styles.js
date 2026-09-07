@@ -1,5 +1,5 @@
 import { alpha } from '@mui/material/styles';
-import { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
+import { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
 
 // Row/panel visuals carried over from the old Home "Continue" section, now
 // serving the full-page instance picker instead of a compact home panel.

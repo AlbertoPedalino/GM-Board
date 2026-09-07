@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Plus } from 'lucide-react';
-import AppTopBar from '../../components/AppTopBar.jsx';
+import AppTopBar from '../../app/navigation/AppTopBar.jsx';
 import NotFoundPage from '../notfound/NotFoundPage.jsx';
 import { createSectionInstance } from '../../shared/instances/sectionInstances.js';
 import { useToast } from '../../shared/ui/ToastProvider.jsx';

@@ -14,9 +14,9 @@ Object.defineProperty(globalThis, 'localStorage', { value: new MemoryStorage(), 
 
 const { createSectionInstance, makeSectionInstanceId } = await import('../../../../src/shared/instances/sectionInstances.js');
 const { SECTION_KEYS, SECTION_REGISTRY } = await import('../../../../src/shared/instances/sectionRegistry.js');
-const gmBoardStorage = await import('../../../../src/pages/gmboard/storage.js');
-const encounterStorage = await import('../../../../src/pages/encounterbuilder/logic/storage.js');
-const dmScreenStorage = await import('../../../../src/pages/dmscreen/storage.js');
+const gmBoardStorage = await import('../../../../src/pages/gmboard/state/storage.js');
+const encounterStorage = await import('../../../../src/pages/encounterbuilder/state/storage.js');
+const dmScreenStorage = await import('../../../../src/pages/dmscreen/state/storage.js');
 
 test('creating an instance registers it locally and makes it the active one', () => {
   for (const sectionKey of SECTION_KEYS) {

@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import FogCanvas from '../../../src/pages/vtt/components/FogCanvas.jsx';
-import { createFog, setCells } from '../../../src/shared/vtt/fog.js';
+import FogCanvas from '../../../src/pages/vtt/map/FogCanvas.jsx';
+import { createFog, setCells } from '../../../src/shared/vtt/map/fog.js';
 
 // jsdom has no raster canvas. Run these checks in a browser through Vite;
 // inspect actual rendered pixels rather than mocking canvas drawing commands.

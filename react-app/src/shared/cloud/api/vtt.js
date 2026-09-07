@@ -6,9 +6,9 @@ import {
   sanitizeNoteText,
   simplifyStroke,
   toDrawing,
-} from '../../vtt/drawing.js';
-import { normalizeFog } from '../../vtt/fog.js';
-import { normalizeAtmosphere } from '../../vtt/atmosphere.js';
+} from '../../vtt/map/drawing.js';
+import { normalizeFog } from '../../vtt/map/fog.js';
+import { normalizeAtmosphere } from '../../vtt/scene/atmosphere.js';
 import {
   mapImageCampaignFolder,
   mapImageFolder,
@@ -20,7 +20,7 @@ import {
   toScene,
   toToken,
   toTokenPatch,
-} from '../../vtt/scene.js';
+} from '../../vtt/scene/scene.js';
 
 // Cloud-only feature: scenes and tokens live in Postgres, with no local copy and
 // no JSON payload. That is why this module does not go through

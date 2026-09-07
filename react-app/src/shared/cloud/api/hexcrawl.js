@@ -1,8 +1,8 @@
 import { requireClient } from '../supabaseClient.js';
 import { toHexCell, toHexCellPatch } from '../../hexcrawl/hexCell.js';
-import { STORAGE_KEYS, sanitizeBoardId, scopeKey } from '../../../pages/gmboard/storage.js';
-import { createDefaultCoreState } from '../../../pages/gmboard/logic/defaultState.js';
-import { createDefaultTables } from '../../../pages/gmboard/logic/defaultTables.js';
+import { STORAGE_KEYS, sanitizeBoardId, scopeKey } from '../../../pages/gmboard/state/storage.js';
+import { createDefaultCoreState } from '../../../pages/gmboard/state/defaultState.js';
+import { createDefaultTables } from '../../../pages/gmboard/tables/defaultTables.js';
 
 // Cloud side of the hexcrawl. Three stores, split by how often each is written
 // (see supabase/hexcrawl.sql): the clock is one row per campaign, the log is

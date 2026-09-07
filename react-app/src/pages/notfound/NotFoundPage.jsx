@@ -1,7 +1,7 @@
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { Box, Button, Paper, Typography } from '@mui/material';
 import { Compass, Home } from 'lucide-react';
-import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
+import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
 import { composeMissingPath } from './notFoundPath.js';
 
 export default function NotFoundPage() {

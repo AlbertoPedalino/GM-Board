@@ -3,7 +3,7 @@ import {
   FIGHT_COLUMNS,
   toFightEntry,
   toFightRow,
-} from '../../../pages/encounterbuilder/logic/fightRecord.js';
+} from '../../../pages/encounterbuilder/library/fightRecord.js';
 
 // Fights, as rows.
 //

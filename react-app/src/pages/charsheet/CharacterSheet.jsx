@@ -1,23 +1,23 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Box, Stack, Button, Typography } from '@mui/material';
 import { Hourglass, Moon } from 'lucide-react';
-import { SHEET_AREAS, SHEET_GRID, SHEET_GRID_ITEM_SX } from './layout.js';
-import TopBar from './components/TopBar.jsx';
-import AbilityScores from './components/AbilityScores.jsx';
-import HPBlock from './components/HPBlock.jsx';
-import SavingThrows from './components/SavingThrows.jsx';
-import Senses from './components/Senses.jsx';
-import Proficiencies from './components/Proficiencies.jsx';
-import HitDiceSpendControl from './components/HitDiceSpendControl.jsx';
+import { SHEET_AREAS, SHEET_GRID, SHEET_GRID_ITEM_SX } from './layout/layout.js';
+import TopBar from './layout/TopBar.jsx';
+import AbilityScores from './stats/AbilityScores.jsx';
+import HPBlock from './resources/HPBlock.jsx';
+import SavingThrows from './stats/SavingThrows.jsx';
+import Senses from './stats/Senses.jsx';
+import Proficiencies from './proficiency/Proficiencies.jsx';
+import HitDiceSpendControl from './resources/HitDiceSpendControl.jsx';
 import SheetDialog from '../../shared/ui/SheetDialog.jsx';
-import Skills from './components/Skills.jsx';
-import Movement from './components/Movement.jsx';
-import RightTop from './components/RightTop.jsx';
-import TabsPanel from './components/TabsPanel.jsx';
+import Skills from './stats/Skills.jsx';
+import Movement from './stats/Movement.jsx';
+import RightTop from './stats/RightTop.jsx';
+import TabsPanel from './layout/TabsPanel.jsx';
 import DiceToast from '../../shared/character/dice/DiceToast.jsx';
-import { deriveSheetState } from './state.js';
-import { ProficiencySetsProvider } from './context/ProficiencySetsContext.jsx';
-import { SheetActionsProvider } from './context/SheetActionsContext.jsx';
+import { deriveSheetState } from './state/state.js';
+import { ProficiencySetsProvider } from './proficiency/ProficiencySetsContext.jsx';
+import { SheetActionsProvider } from './state/SheetActionsContext.jsx';
 import { clearCraftedByFlag, VANISH_ON_LONG_REST_FLAGS } from '../../shared/character/inventory/craftedItems.js';
 import { collectReplicatePlanChoices } from '../../shared/character/inventory/replicateMagicItem.js';
 import { pruneReplicatedItemsForPlans } from '../../shared/character/inventory/magicItemTinker.js';
@@ -25,23 +25,23 @@ import { buildD20Meta, formatD20Detail, rollD20 as rollD20Dice } from '../../sha
 import { aggregateSavingThrowBonus } from '../../shared/character/inventory/itemBonus.js';
 import { itemEffectInventory } from '../../shared/character/forms/wildShapeForm.js';
 import { longRestCharacterPatch } from '../../shared/character/resources/longRest.js';
-import { calcMaxHP, getMod, getFinal, getSaveBonus, clampExhaustion, exhaustionD20Penalty, EXHAUSTION_MAX } from './logic/calculations.js';
+import { calcMaxHP, getMod, getFinal, getSaveBonus, clampExhaustion, exhaustionD20Penalty, EXHAUSTION_MAX } from './state/calculations.js';
 import {
   DEAD_CONDITION_KEY,
   setConditionActive,
   toggleCondition as toggleConditionKey,
 } from '../../shared/character/combat/conditions.js';
-import { normalizeCharacterAttunement } from './logic/attunement.js';
-import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax, resourceFullValue } from './logic/restResources.js';
-import { clearedToggles } from './logic/toggleState.js';
-import { applyFreeCastRest, getFreeCastDefsForCharacter } from './logic/spellsTabLogic.js';
+import { normalizeCharacterAttunement } from './inventory/attunement.js';
+import { applyResourceRest, getAllResourceDefs, getHitDicePools, getUsedHitDiceTotal, normalizeResourceMax, resourceFullValue } from './resources/restResources.js';
+import { clearedToggles } from './state/toggleState.js';
+import { applyFreeCastRest, getFreeCastDefsForCharacter } from './spells/spellsTabLogic.js';
 import { adapterRegistry as installedRegistry } from '../../adapters/registry.js';
-import { ensureSheetRuntimeAdapters } from './logic/sheetRuntimeAdapters.js';
-import { loadItems, loadOptionalFeatures, loadConditions, reconcileInventoryWithItemsDb } from '../charbuilder/logic/dataLoaders.js';
+import { ensureSheetRuntimeAdapters } from './state/sheetRuntimeAdapters.js';
+import { loadItems, loadOptionalFeatures, loadConditions, reconcileInventoryWithItemsDb } from '../charbuilder/data/dataLoaders.js';
 import { fetchCloudMeta, updateCloudCharacterData } from '../../shared/cloud/api/cloudCharacters.js';
 import { isCloudConfigured } from '../../shared/cloud/supabaseClient.js';
 import { useRollChannel } from '../../shared/cloud/sync/useRollChannel.js';
-import { normalizeRoll } from '../../shared/vtt/rollFeed.js';
+import { normalizeRoll } from '../../shared/vtt/rolls/rollFeed.js';
 import { SYNCED_VITALS, clampCharacterVitals } from '../../shared/character/combat/vitals.js';
 import {
   getActiveCharId,

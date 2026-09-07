@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
-import { createNote } from '../logic/notes.js';
-import { makeNoteId } from '../storage.js';
-import { useDmScreenPersistence } from '../hooks/useDmScreenPersistence.js';
+import { createNote } from '../notes/notes.js';
+import { makeNoteId } from './storage.js';
+import { useDmScreenPersistence } from './useDmScreenPersistence.js';
 import { createInitialState, dmScreenReducer } from './reducer.js';
 
 const DmScreenContext = createContext(null);

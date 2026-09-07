@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Stack, Typography } from '@mui/material';
-import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
-import LinkedToolsMenu from '../../components/LinkedToolsMenu.jsx';
+import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
+import LinkedToolsMenu from '../../app/navigation/LinkedToolsMenu.jsx';
 import { useSeedInstance } from '../../shared/instances/useSeedInstance.js';
-import NoteBoard from './components/NoteBoard.jsx';
+import NoteBoard from './notes/NoteBoard.jsx';
 import { DmScreenProvider, useDmScreen } from './state/DmScreenContext.jsx';
-import { resolveInstance } from './storage.js';
+import { resolveInstance } from './state/storage.js';
 
 export default function DmScreenPage() {
   const location = useLocation();

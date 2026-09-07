@@ -2,8 +2,8 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { CssBaseline, ThemeProvider } from '@mui/material';
-import App from './App.jsx';
-import { theme } from './theme.js';
+import App from './app/App.jsx';
+import { theme } from './app/theme.js';
 import { AuthProvider } from './shared/cloud/auth/AuthProvider.jsx';
 import { ToastProvider } from './shared/ui/ToastProvider.jsx';
 

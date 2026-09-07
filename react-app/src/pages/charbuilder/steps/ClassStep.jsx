@@ -1,21 +1,21 @@
 import { useMemo } from 'react';
 import { Stack, Typography } from '@mui/material';
 import { Layers } from 'lucide-react';
-import BuilderPanel from '../components/BuilderPanel.jsx';
-import ChoiceBlock from '../components/ChoiceBlock.jsx';
-import { FeatCategorySlot, FeatFixedSlot } from '../components/FeatSlots.jsx';
-import SpellChoiceList from '../components/SpellChoiceList.jsx';
-import ReplicateMagicItemChoice from '../components/ReplicateMagicItemChoice.jsx';
-import BeastChoice from '../components/BeastChoice.jsx';
-import { classChoiceSpecs } from '../logic/choiceSpecs.js';
+import BuilderPanel from '../layout/BuilderPanel.jsx';
+import ChoiceBlock from '../choices/ChoiceBlock.jsx';
+import { FeatCategorySlot, FeatFixedSlot } from '../choices/FeatSlots.jsx';
+import SpellChoiceList from '../spells/SpellChoiceList.jsx';
+import ReplicateMagicItemChoice from '../choices/ReplicateMagicItemChoice.jsx';
+import BeastChoice from '../choices/BeastChoice.jsx';
+import { classChoiceSpecs } from '../choices/choiceSpecs.js';
 import { buildOptionalFeatureEntryLookup } from '../../../shared/character/progression/optionalFeatures.js';
-import NamePanel from '../components/NamePanel.jsx';
-import XpPanel from '../components/XpPanel.jsx';
-import ClassPanel from '../components/ClassPanel.jsx';
-import LevelPanel from '../components/LevelPanel.jsx';
-import SubclassPanel from '../components/SubclassPanel.jsx';
-import SpellSlotsPanel from '../components/SpellSlotsPanel.jsx';
-import SpellSelectionPanel from '../components/SpellSelectionPanel.jsx';
+import NamePanel from '../layout/NamePanel.jsx';
+import XpPanel from '../progression/XpPanel.jsx';
+import ClassPanel from '../progression/ClassPanel.jsx';
+import LevelPanel from '../progression/LevelPanel.jsx';
+import SubclassPanel from '../progression/SubclassPanel.jsx';
+import SpellSlotsPanel from '../spells/SpellSlotsPanel.jsx';
+import SpellSelectionPanel from '../spells/SpellSelectionPanel.jsx';
 
 export default function ClassStep({ state, dispatch }) {
   const { character } = state;

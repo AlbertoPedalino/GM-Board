@@ -1,12 +1,12 @@
 import { Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
 import { Feather, GraduationCap, ScrollText, SlidersHorizontal } from 'lucide-react';
-import BuilderPanel from '../components/BuilderPanel.jsx';
-import ChoiceBlock from '../components/ChoiceBlock.jsx';
-import { FeatCategorySlot, FeatFixedSlot } from '../components/FeatSlots.jsx';
-import SearchList from '../components/SearchList.jsx';
+import BuilderPanel from '../layout/BuilderPanel.jsx';
+import ChoiceBlock from '../choices/ChoiceBlock.jsx';
+import { FeatCategorySlot, FeatFixedSlot } from '../choices/FeatSlots.jsx';
+import SearchList from '../choices/SearchList.jsx';
 import { STAT_LABELS } from '../constants.js';
-import { getBackgroundPattern, getBackgroundPool } from '../logic/calculations.js';
-import { backgroundChoiceSpecs, fixedKeysFromBlocks } from '../logic/choiceSpecs.js';
+import { getBackgroundPattern, getBackgroundPool } from '../progression/calculations.js';
+import { backgroundChoiceSpecs, fixedKeysFromBlocks } from '../choices/choiceSpecs.js';
 import { NEUTRAL_TONE } from '../../../shared/ui/entityColors.js';
 import { backgroundOriginFeat } from '../../../shared/character/progression/selectedFeats.js';
 import { backgroundFeatOptionLabel } from '../../../shared/character/progression/backgroundFeatOptions.js';

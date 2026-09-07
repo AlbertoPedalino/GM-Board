@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { rollOutcome, rollLogDieColor, normalizeRollIdentity, ROLL_LOG_COLORS, rollLogCalculation } from '../../../../../src/shared/character/dice/rollLogPresentation.js';
-import { normalizeRoll } from '../../../../../src/shared/vtt/rollFeed.js';
-import { addRollLogEntry } from '../../../../../src/pages/encounterbuilder/logic/dice.js';
-import { encounterRollActor } from '../../../../../src/pages/encounterbuilder/logic/rollActor.js';
+import { normalizeRoll } from '../../../../../src/shared/vtt/rolls/rollFeed.js';
+import { addRollLogEntry } from '../../../../../src/pages/encounterbuilder/rolls/dice.js';
+import { encounterRollActor } from '../../../../../src/pages/encounterbuilder/rolls/rollActor.js';
 
 test('only the kept natural d20 decides the result colour, regardless of total or old high/mid classes', () => {
   assert.equal(rollOutcome({ total: 24, rolls: [{ v: 20, faces: 20 }] }).color, ROLL_LOG_COLORS.nat20);

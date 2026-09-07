@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { Map, Castle, ScrollText, Table, BookOpen } from 'lucide-react';
-import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
-import LinkedToolsMenu from '../../components/LinkedToolsMenu.jsx';
+import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
+import LinkedToolsMenu from '../../app/navigation/LinkedToolsMenu.jsx';
 import { useSeedInstance } from '../../shared/instances/useSeedInstance.js';
-import { resolveInstance } from './storage.js';
+import { resolveInstance } from './state/storage.js';
 import { GmBoardProvider, useGmBoard } from './state/GmBoardContext.jsx';
-import HexcrawlView from './components/HexcrawlView.jsx';
-import DungeonView from './components/DungeonView.jsx';
-import QuestView from './components/QuestView.jsx';
-import TablesView from './components/TablesView.jsx';
-import GuideView from './components/GuideView.jsx';
+import HexcrawlView from './hexcrawl/HexcrawlView.jsx';
+import DungeonView from './dungeon/DungeonView.jsx';
+import QuestView from './quests/QuestView.jsx';
+import TablesView from './tables/TablesView.jsx';
+import GuideView from './ui/GuideView.jsx';
 
 const TABS = [
   { value: 'hex', label: 'Hexcrawl', Icon: Map },

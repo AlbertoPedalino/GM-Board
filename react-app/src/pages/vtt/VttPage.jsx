@@ -3,20 +3,20 @@ import {
 } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
+import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
 import { toRoster } from '../../shared/campaign/roster.js';
 import { useGmCampaigns } from '../../shared/campaign/useGmCampaigns.js';
 import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
 import { fetchScene } from '../../shared/cloud/api/vtt.js';
-import { useLiveSession } from '../../shared/vtt/useLiveSession.js';
-import { sessionCameraSource } from '../../shared/vtt/cameraSync.js';
+import { useLiveSession } from '../../shared/vtt/session/useLiveSession.js';
+import { sessionCameraSource } from '../../shared/vtt/session/cameraSync.js';
 import { VTT_COLORS, vttAlpha } from '../../shared/vtt/colors.js';
-import { spectatorRoute } from '../../shared/vtt/spectator.js';
-import CampaignLinksMenu from './components/CampaignLinksMenu.jsx';
-import CampaignSessionPicker from './components/CampaignSessionPicker.jsx';
-import SceneEditor from './components/SceneEditor.jsx';
-import ScenePicker from './components/ScenePicker.jsx';
-import SessionGate from './components/SessionGate.jsx';
+import { spectatorRoute } from '../../shared/vtt/session/spectator.js';
+import CampaignLinksMenu from './session/CampaignLinksMenu.jsx';
+import CampaignSessionPicker from './session/CampaignSessionPicker.jsx';
+import SceneEditor from './scene/SceneEditor.jsx';
+import ScenePicker from './scene/ScenePicker.jsx';
+import SessionGate from './session/SessionGate.jsx';
 import * as s from './styles.js';
 
 // The VTT is cloud-only: without a signed-in account there is no scene to show,

@@ -14,8 +14,8 @@ import {
   TERRAIN_OPTIONS,
   TIER_OPTIONS,
   normalizeMountSpeed,
-} from '../../pages/gmboard/logic/constants.js';
-import { resolveAdvanceOnly, resolveProceed } from '../../pages/gmboard/logic/hex.js';
+} from '../../pages/gmboard/state/constants.js';
+import { resolveAdvanceOnly, resolveProceed } from '../../pages/gmboard/hexcrawl/hex.js';
 
 export const HEX_STATUSES = Object.freeze(['unexplored', 'frontier', 'settled']);
 

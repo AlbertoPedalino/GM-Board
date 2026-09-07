@@ -23,26 +23,26 @@ import {
   toggleCombatantCondition,
   toggleCombatantEffect,
   autoFightName,
-} from '../logic/combat.js';
-import { addRollLogEntry } from '../logic/dice.js';
+} from '../combat/combat.js';
+import { addRollLogEntry } from '../rolls/dice.js';
 import {
   createDefaultFumbleCategory,
   createDefaultFumbleTables,
   normalizeFumbleDice,
   normalizeFumbleTables,
-} from '../logic/fumbles.js';
+} from '../rolls/fumbles.js';
 import {
   createDefaultNegotiation,
   normalizeNegotiation,
   normalizeNegotiationThreshold,
   resolveNegotiation,
-} from '../logic/negotiation.js';
-import { PLAYER_COLORS } from '../logic/constants.js';
-import { makeSavedEncounter, normalizeEncounterQuest } from '../logic/storage.js';
-import { clampInt, hydrateEncounterItems, monsterKey, toEncounterMonster } from '../logic/monsterUtils.js';
-import { combatantToSheetPatch, resolveCombatVitals } from '../logic/sheetSync.js';
+} from '../negotiation/negotiation.js';
+import { PLAYER_COLORS } from './constants.js';
+import { makeSavedEncounter, normalizeEncounterQuest } from './storage.js';
+import { clampInt, hydrateEncounterItems, monsterKey, toEncounterMonster } from '../bestiary/monsterUtils.js';
+import { combatantToSheetPatch, resolveCombatVitals } from '../campaign/sheetSync.js';
 import { SYNCED_VITALS, pickCharacterVitals } from '../../../shared/character/combat/vitals.js';
-import { fightWithTokenVitals } from '../../../shared/vtt/encounterSync.js';
+import { fightWithTokenVitals } from '../../../shared/vtt/tokens/encounterSync.js';
 
 export const DEFAULT_PARTY = Object.freeze({ count: 4, level: 5 });
 

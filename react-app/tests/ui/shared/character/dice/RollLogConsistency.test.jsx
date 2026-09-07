@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { MemoryRouter } from 'react-router-dom';
-import RollLog from '../../../../../src/pages/encounterbuilder/components/RollLog.jsx';
-import RollLogPanel from '../../../../../src/pages/vtt/components/RollLogPanel.jsx';
-import TopBar from '../../../../../src/pages/charsheet/components/TopBar.jsx';
+import RollLog from '../../../../../src/pages/encounterbuilder/rolls/RollLog.jsx';
+import RollLogPanel from '../../../../../src/pages/vtt/rolls/RollLogPanel.jsx';
+import TopBar from '../../../../../src/pages/charsheet/layout/TopBar.jsx';
 
 const context = vi.hoisted(() => ({ state: { rollLog: [] }, dispatch: vi.fn() }));
 vi.mock('../../../../../src/pages/encounterbuilder/state/EncounterBuilderContext.jsx', () => ({ useEncounterBuilder: () => context }));

@@ -5,15 +5,15 @@ import {
   describeNotePosition,
   normalizeNoteSize,
   resolveDropIndex,
-} from '../../../../../src/pages/dmscreen/logic/notes.js';
-import { columnUnitWidth, columnsForWidth, rowSpanForHeight } from '../../../../../src/pages/dmscreen/logic/layout.js';
-import { dragTranslate, flipOffsets, grabOffsetFor } from '../../../../../src/pages/dmscreen/logic/dragMotion.js';
-import { nextAnnouncement } from '../../../../../src/pages/dmscreen/logic/announce.js';
-import { filterNotes, noteMatchesTokens, queryTokens } from '../../../../../src/pages/dmscreen/logic/search.js';
-import { splitHighlights } from '../../../../../src/pages/dmscreen/logic/highlight.js';
-import rehypeMarkMatches from '../../../../../src/pages/dmscreen/logic/rehypeMarkMatches.js';
+} from '../../../../../src/pages/dmscreen/notes/notes.js';
+import { columnUnitWidth, columnsForWidth, rowSpanForHeight } from '../../../../../src/pages/dmscreen/notes/layout.js';
+import { dragTranslate, flipOffsets, grabOffsetFor } from '../../../../../src/pages/dmscreen/drag/dragMotion.js';
+import { nextAnnouncement } from '../../../../../src/pages/dmscreen/notes/announce.js';
+import { filterNotes, noteMatchesTokens, queryTokens } from '../../../../../src/pages/dmscreen/search/search.js';
+import { splitHighlights } from '../../../../../src/pages/dmscreen/search/highlight.js';
+import rehypeMarkMatches from '../../../../../src/pages/dmscreen/search/rehypeMarkMatches.js';
 import { createInitialState, dmScreenReducer } from '../../../../../src/pages/dmscreen/state/reducer.js';
-import * as storage from '../../../../../src/pages/dmscreen/storage.js';
+import * as storage from '../../../../../src/pages/dmscreen/state/storage.js';
 
 class MemoryStorage {
   constructor() { this.store = new Map(); }

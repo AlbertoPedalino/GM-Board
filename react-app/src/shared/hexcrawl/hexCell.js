@@ -2,7 +2,7 @@
 // it. Pure, like scene.js: the cloud module converts rows through here so the
 // editor never sees a raw column name.
 
-import { hexKey } from '../vtt/hexGeometry.js';
+import { hexKey } from '../vtt/map/hexGeometry.js';
 
 // What the GM has marked a hex as. Deliberately about the party's progress
 // through it, not about who lives there — population is its own column, because

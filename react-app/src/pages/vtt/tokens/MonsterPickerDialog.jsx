@@ -1,0 +1,117 @@
+import { useState } from 'react';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useMonsterDb } from '../../encounterbuilder/bestiary/useMonsterDb.js';
+import MonsterBrowser from '../../encounterbuilder/bestiary/MonsterBrowser.jsx';
+import { monsterToToken } from '../../../shared/vtt/tokens/encounterImport.js';
+import { fullscreenContainer } from '../map/fullscreenContainer.js';
+import { beginPiecePointerDrag } from './PiecePreview.jsx';
+import {
+  battleMapDialogActionsSx,
+  battleMapDialogContentSx,
+  battleMapDialogPaperSx,
+  battleMapDialogPlacingPaperSx,
+  battleMapDialogTitleSx,
+  battleMapDropBackdropSx,
+  battleMapDropDialogSx,
+} from '../map/battleMapSurface.js';
+
+const EMPTY_FILTERS = { search: '', cr: '', type: '', sources: [] };
+
+// The encounter builder's own bestiary panel, in a dialog. Same filters, same
+// rows — it is the same component, wired to local state instead of that page's
+// reducer, so the two never drift apart.
+export default function MonsterPickerDialog({
+  open, busy, placing = false, onClose, onPlace, onPlacementDragStart, onPlacementDragEnd,
+}) {
+  const monsterDb = useMonsterDb();
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [count, setCount] = useState(1);
+  const [hidden, setHidden] = useState(false);
+
+  const toggleSource = (source) => setFilters((current) => ({
+    ...current,
+    sources: current.sources.includes(source)
+      ? current.sources.filter((item) => item !== source)
+      : [...current.sources, source],
+  }));
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      container={fullscreenContainer}
+      sx={battleMapDropDialogSx}
+      slotProps={{
+        paper: { sx: [battleMapDialogPaperSx, placing && battleMapDialogPlacingPaperSx] },
+        backdrop: { sx: battleMapDropBackdropSx },
+      }}
+    >
+      <DialogTitle sx={battleMapDialogTitleSx}>Place a creature</DialogTitle>
+      <DialogContent dividers sx={battleMapDialogContentSx}>
+        <Stack spacing={1.5} sx={{ pt: 0.5 }}>
+          {/* Placement options above the list: they apply to whichever creature
+              you then pick, and hunting for them afterwards is worse. */}
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <TextField
+              size="small"
+              type="number"
+              label="How many"
+              value={count}
+              onChange={(event) => setCount(Number(event.target.value))}
+              sx={{ width: 110 }}
+            />
+            <FormControlLabel
+              control={<Switch size="small" checked={hidden} onChange={(event) => setHidden(event.target.checked)} />}
+              label={<Typography variant="body2">GM layer</Typography>}
+            />
+            <Typography variant="caption" color="text.secondary">
+              {hidden ? 'The party will not receive these pieces.' : 'The party sees them as soon as they land.'}
+            </Typography>
+          </Stack>
+
+          <MonsterBrowser
+            monsterDb={monsterDb}
+            filters={filters}
+            onFilterChange={(key, value) => setFilters((current) => ({ ...current, [key]: value }))}
+            onToggleSource={toggleSource}
+            onPick={(monster) => onPlace(monster, count, { layer: hidden ? 'gm' : 'tokens' })}
+            onPointerDragStart={(event, monster) => {
+              const layer = hidden ? 'gm' : 'tokens';
+              const draft = monsterToToken(monster, { layer });
+              beginPiecePointerDrag(event, {
+                kind: 'monster',
+                monster,
+                count,
+                layer,
+                token: { ...draft, imageUrl: draft.image_url || null },
+              }, { onPlacementDragStart, onPlacementDragEnd });
+            }}
+            pickLabel="Place on the map"
+            listSx={{ maxHeight: { xs: 300, md: 420 } }}
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={battleMapDialogActionsSx}>
+        {/* The dialog stays open after a pick: placing a pack one creature at a
+            time is the normal case, and reopening it each time is not. */}
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 'auto', pl: 1 }}>
+          Drag with mouse, touch or pen, or use + to place automatically.
+        </Typography>
+        <Button onClick={onClose} disabled={busy}>Done</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

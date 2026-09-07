@@ -1,5 +1,5 @@
-import { collectSheetEffects } from '../../../pages/charsheet/logic/sheetEffects.js';
-import { getAllResourceDefs } from '../../../pages/charsheet/logic/restResources.js';
+import { collectSheetEffects } from '../../../pages/charsheet/state/sheetEffects.js';
+import { getAllResourceDefs } from '../../../pages/charsheet/resources/restResources.js';
 import { primaryClassLevel } from '../progression/classLevel.js';
 
 function norm(value) {

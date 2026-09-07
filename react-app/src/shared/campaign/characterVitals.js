@@ -23,7 +23,7 @@ export async function readCampaignVitals(rows) {
   const [adapters, summary, players] = await Promise.all([
     import('../../adapters/index.js'),
     import('../../pages/campaigns/sheetSummary.js'),
-    import('../../pages/encounterbuilder/logic/campaignPlayer.js'),
+    import('../../pages/encounterbuilder/campaign/campaignPlayer.js'),
   ]);
 
   // Class effects feed the max-HP calculation, so the adapters have to be

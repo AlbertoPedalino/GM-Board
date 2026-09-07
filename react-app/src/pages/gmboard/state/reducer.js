@@ -1,6 +1,6 @@
-import { createDefaultCoreState, createDefaultResults } from '../logic/defaultState.js';
-import { createDefaultTables } from '../logic/defaultTables.js';
-import { LOG_STORE_LIMIT, normalizeMountSpeed } from '../logic/constants.js';
+import { createDefaultCoreState, createDefaultResults } from './defaultState.js';
+import { createDefaultTables } from '../tables/defaultTables.js';
+import { LOG_STORE_LIMIT, normalizeMountSpeed } from './constants.js';
 
 export const CORE_FIELD_KEYS = Object.freeze(Object.keys(createDefaultCoreState()));
 

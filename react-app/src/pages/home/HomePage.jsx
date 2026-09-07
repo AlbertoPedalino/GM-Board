@@ -4,7 +4,7 @@ import { alpha, Box, Button, Typography, Card, CardContent } from '@mui/material
 import { ScrollText, UserPen, LayoutDashboard, Swords, StickyNote, Flag, Map, Trash2 } from 'lucide-react';
 import { REGISTRY_META } from '../../shared/storage/localStorageRegistries.js';
 import { clearAppLocalStorage, listAppLocalStorageKeys } from '../../shared/storage/storage.js';
-import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
+import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
 
 export const TOOLS = [
   { path: '/library/characters', label: 'Character Sheet', desc: 'View and manage your character in play', icon: ScrollText, color: 'success.main' },

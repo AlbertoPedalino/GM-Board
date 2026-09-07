@@ -2,13 +2,13 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState,
 } from 'react';
 import { gmBoardReducer, createInitialState } from './reducer.js';
-import { useGmBoardPersistence } from '../hooks/useGmBoardPersistence.js';
-import { resolveProceed, resolveAdvanceOnly, resolveManualAdvance } from '../logic/hex.js';
+import { useGmBoardPersistence } from './useGmBoardPersistence.js';
+import { resolveProceed, resolveAdvanceOnly, resolveManualAdvance } from '../hexcrawl/hex.js';
 import { clockFromResult, clockFromState } from '../../../shared/hexcrawl/hexEntry.js';
 import { useCampaignClock } from '../../../shared/hexcrawl/useCampaignClock.js';
 import { setCampaignHexcrawlBoard } from '../../../shared/cloud/api/hexcrawl.js';
-import { createDungeon, isValidRoomCount } from '../logic/dungeon.js';
-import { createQuests } from '../logic/quest.js';
+import { createDungeon, isValidRoomCount } from '../dungeon/dungeon.js';
+import { createQuests } from '../quests/quest.js';
 
 const GmBoardContext = createContext(null);
 

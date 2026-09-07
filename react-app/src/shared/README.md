@@ -1,7 +1,8 @@
 # Shared modules
 
 Code used by multiple pages belongs here, grouped by responsibility. Keep
-page-specific code in `src/pages/` and app-level widgets in `src/components/`.
+page-specific code in `src/pages/` and app navigation in `src/app/navigation/`.
+See the [source map](../README.md) for the page feature folders.
 
 | Folder | Responsibility |
 | --- | --- |
@@ -42,6 +43,18 @@ belongs in `content/`.
 | `sections/` | Generic tool-section adapters and operations |
 | `sync/` | Autosync engine, sync exclusions/ownership, realtime character and roll hooks |
 | `supabaseClient.js` | Shared Supabase client configuration |
+
+## VTT
+
+| Folder/file | Responsibility |
+| --- | --- |
+| `map/` | Geometry, hexes, measurement, fog, drawing, and map objects |
+| `scene/` | Scene data and atmosphere definitions |
+| `session/` | Live sessions/scenes, roles, spectator links, and camera synchronization |
+| `tokens/` | Token bridge and encounter import/synchronization |
+| `sheets/` | Sheet frame, layout, and view state |
+| `rolls/` | Roll feed, thrown rolls, and dice physics |
+| `colors.js` | Palette shared across VTT features |
 
 ## Imports and tests
 

@@ -1,17 +1,17 @@
 import { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
-import { rollDice } from '../logic/dice.js';
-import { makeSavedEncounter } from '../logic/storage.js';
+import { rollDice } from '../rolls/dice.js';
+import { makeSavedEncounter } from './storage.js';
 import { encounterReducer, createInitialState } from './reducer.js';
-import { useEncounterPersistence } from '../hooks/useEncounterPersistence.js';
-import { useMonsterDb } from '../hooks/useMonsterDb.js';
-import { useCampaignPlayers } from '../hooks/useCampaignPlayers.js';
-import { useFightSheetSync } from '../hooks/useFightSheetSync.js';
-import { useSheetRealtime } from '../hooks/useSheetRealtime.js';
-import { useExternalFightSync } from '../hooks/useExternalFightSync.js';
-import { useMapTokenBridge } from '../hooks/useMapTokenBridge.js';
-import { useCloudFights } from '../hooks/useCloudFights.js';
-import { useEncounterRolls } from '../hooks/useEncounterRolls.js';
-import { encounterRollActor } from '../logic/rollActor.js';
+import { useEncounterPersistence } from './useEncounterPersistence.js';
+import { useMonsterDb } from '../bestiary/useMonsterDb.js';
+import { useCampaignPlayers } from '../campaign/useCampaignPlayers.js';
+import { useFightSheetSync } from '../campaign/useFightSheetSync.js';
+import { useSheetRealtime } from '../campaign/useSheetRealtime.js';
+import { useExternalFightSync } from '../sync/useExternalFightSync.js';
+import { useMapTokenBridge } from '../sync/useMapTokenBridge.js';
+import { useCloudFights } from '../sync/useCloudFights.js';
+import { useEncounterRolls } from '../rolls/useEncounterRolls.js';
+import { encounterRollActor } from '../rolls/rollActor.js';
 
 const EncounterBuilderContext = createContext(null);
 

@@ -1,9 +1,9 @@
 import { Alert, Box, Button, Stack, Typography } from '@mui/material';
 import { ClipboardList, CloudUpload, Download, FileText, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import BuilderPanel from '../components/BuilderPanel.jsx';
-import { makeSheetPayload, saveCharacter } from '../logic/persistence.js';
-import { createCharacterExport } from '../logic/characterExport.js';
+import BuilderPanel from '../layout/BuilderPanel.jsx';
+import { makeSheetPayload, saveCharacter } from '../state/persistence.js';
+import { createCharacterExport } from '../state/characterExport.js';
 import { getActiveCharId } from '../../../shared/character/profile/store.js';
 import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 

@@ -18,8 +18,8 @@ npm run test:ui
 Run a single suite:
 
 ```sh
-node --test tests/logic/shared/vtt/fog.test.js
-npm run test:ui -- tests/ui/pages/vtt/components/SceneViewport.test.jsx
+node --test tests/logic/shared/vtt/map/fog.test.js
+npm run test:ui -- tests/ui/pages/vtt/map/SceneViewport.test.jsx
 ```
 
 Imports and mocks refer directly to the corresponding modules in `src/`.

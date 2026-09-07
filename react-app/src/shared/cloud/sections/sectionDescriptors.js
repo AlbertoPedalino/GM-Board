@@ -3,19 +3,19 @@ import {
   readScopedPayload as readBoardPayload,
   sanitizeBoardId,
   writeScopedPayload as writeBoardPayload,
-} from '../../../pages/gmboard/storage.js';
+} from '../../../pages/gmboard/state/storage.js';
 import {
   readRegistry as readEncounterRegistry,
   readScopedPayload as readEncounterPayload,
   sanitizeEncounterId,
   writeScopedPayload as writeEncounterPayload,
-} from '../../../pages/encounterbuilder/logic/storage.js';
+} from '../../../pages/encounterbuilder/state/storage.js';
 import {
   readRegistry as readScreenRegistry,
   readScopedPayload as readScreenPayload,
   sanitizeId as sanitizeScreenId,
   writeScopedPayload as writeScreenPayload,
-} from '../../../pages/dmscreen/storage.js';
+} from '../../../pages/dmscreen/state/storage.js';
 import { SECTION_KEYS, SECTION_REGISTRY } from '../../instances/sectionRegistry.js';
 
 function descriptor(config) {

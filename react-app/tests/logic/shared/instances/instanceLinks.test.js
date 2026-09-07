@@ -19,9 +19,9 @@ const {
   setLocalInstanceLink,
 } = await import('../../../../src/shared/instances/instanceLinks.js');
 const { createSectionInstance } = await import('../../../../src/shared/instances/sectionInstances.js');
-const gmBoardStorage = await import('../../../../src/pages/gmboard/storage.js');
-const encounterStorage = await import('../../../../src/pages/encounterbuilder/logic/storage.js');
-const dmScreenStorage = await import('../../../../src/pages/dmscreen/storage.js');
+const gmBoardStorage = await import('../../../../src/pages/gmboard/state/storage.js');
+const encounterStorage = await import('../../../../src/pages/encounterbuilder/state/storage.js');
+const dmScreenStorage = await import('../../../../src/pages/dmscreen/state/storage.js');
 
 test('link group ids are explicit safe identifiers, never instance names', () => {
   assert.equal(normalizeLinkGroupId('link_abc-123'), 'link_abc-123');

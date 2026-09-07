@@ -17,18 +17,19 @@ import {
   createTheme,
 } from '@mui/material';
 import { ChevronLeft, ChevronRight, Home, Wand2 } from 'lucide-react';
-import { theme } from '../../theme.js';
-import ChoiceDescriptionDialog from './components/ChoiceDescriptionDialog.jsx';
-import ImportSheetFab from './components/ImportSheetFab.jsx';
+import { theme } from '../../app/theme.js';
+import ChoiceDescriptionDialog from './choices/ChoiceDescriptionDialog.jsx';
+import ImportSheetFab from './layout/ImportSheetFab.jsx';
 import CloudMenu from '../../shared/cloud/auth/CloudMenu.jsx';
 import { excludeFromSync, includeInSync, isSyncExcluded } from '../../shared/cloud/sync/cloudSyncExclude.js';
-import PreviewPane from './components/PreviewPane.jsx';
+import PreviewPane from './preview/PreviewPane.jsx';
 import { STEPS } from './constants.js';
 import { adapterRegistry, loadClassAdapters, loadCoreAdapters } from '../../adapters/index.js';
-import { getMod, getFinal } from '../charsheet/logic/calculations.js';
+import { getMod, getFinal } from '../charsheet/state/calculations.js';
 import { adaptBuilderData } from '../../adapters/adapterPipeline.js';
-import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, loadOptionalFeatures, loadBeasts, extractSheetData, buildImportedCharacter, saveCharacter, buildSheetCharacter } from './logic/index.js';
-import { builderReducer, initialBuilderState, normalizeCharacterLevels } from './state.js';
+import { loadBackgrounds, loadClassIndex, loadFeats, loadItems, loadSpecies, loadSpells, loadOptionalFeatures, loadBeasts } from './data/dataLoaders.js';
+import { extractSheetData, buildImportedCharacter, saveCharacter, buildSheetCharacter } from './state/persistence.js';
+import { builderReducer, initialBuilderState, normalizeCharacterLevels } from './state/state.js';
 import { BackgroundStep, ClassStep, EquipmentStep, ScoresStep, SheetStep, SpeciesStep } from './steps/index.js';
 import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
 import { useToast } from '../../shared/ui/ToastProvider.jsx';

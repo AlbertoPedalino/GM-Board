@@ -1,9 +1,9 @@
 import { Alert, Box, Button, Chip, Grid, Paper, Slider, Stack, Tab, Tabs, TextField, Typography } from '@mui/material';
 import { Dice5, Dumbbell } from 'lucide-react';
-import BuilderPanel from '../components/BuilderPanel.jsx';
+import BuilderPanel from '../layout/BuilderPanel.jsx';
 import { PB_COST, STANDARD_ARRAY, STAT_LABELS, STATS } from '../constants.js';
-import { getAbilityScoreBonusBreakdown, getBaseScore, getFinalScore, pointBuySpent } from '../logic/calculations.js';
-import { getActiveScores } from '../state.js';
+import { getAbilityScoreBonusBreakdown, getBaseScore, getFinalScore, pointBuySpent } from '../progression/calculations.js';
+import { getActiveScores } from '../state/state.js';
 
 function scoreMod(value) {
   if (value == null) return '-';

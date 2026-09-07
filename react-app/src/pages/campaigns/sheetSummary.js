@@ -1,5 +1,5 @@
-import { deriveSheetState } from '../charsheet/state.js';
-import { getInitiative, getSkillBonus } from '../charsheet/logic/calculations.js';
+import { deriveSheetState } from '../charsheet/state/state.js';
+import { getInitiative, getSkillBonus } from '../charsheet/state/calculations.js';
 import { computeBestArmorClass } from '../../shared/character/combat/ac.js';
 import { pickCharacterVitals } from '../../shared/character/combat/vitals.js';
 

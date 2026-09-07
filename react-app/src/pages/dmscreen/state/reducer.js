@@ -5,7 +5,7 @@ import {
   removeNote,
   resizeNote,
   updateNote,
-} from '../logic/notes.js';
+} from '../notes/notes.js';
 
 export function createInitialState() {
   return { notes: [], focusNoteId: null };

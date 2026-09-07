@@ -1,12 +1,12 @@
 import { Box, Chip, Divider, Stack, Typography } from '@mui/material';
 import { ScrollText, Sparkles } from 'lucide-react';
-import BuilderPanel from '../components/BuilderPanel.jsx';
-import ChoiceBlock from '../components/ChoiceBlock.jsx';
-import { FeatCategorySlot } from '../components/FeatSlots.jsx';
+import BuilderPanel from '../layout/BuilderPanel.jsx';
+import ChoiceBlock from '../choices/ChoiceBlock.jsx';
+import { FeatCategorySlot } from '../choices/FeatSlots.jsx';
 import { EntryAccordion, splitNamedEntries } from '../../../shared/content/EntryAccordion.jsx';
-import SearchList from '../components/SearchList.jsx';
-import SpellChoiceList from '../components/SpellChoiceList.jsx';
-import { speciesChoiceSpecs } from '../logic/choiceSpecs.js';
+import SearchList from '../choices/SearchList.jsx';
+import SpellChoiceList from '../spells/SpellChoiceList.jsx';
+import { speciesChoiceSpecs } from '../choices/choiceSpecs.js';
 
 function SpeciesDetailCard({ species }) {
   if (!species) return null;

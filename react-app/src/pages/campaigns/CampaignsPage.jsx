@@ -5,7 +5,7 @@ import { Cloud, Flag, Users, Plus, ScrollText, Copy, LogIn, LogOut, X, Trash2, E
 import { useAuth } from '../../shared/cloud/auth/AuthProvider.jsx';
 import AuthDialog from '../../shared/cloud/auth/AuthDialog.jsx';
 import { useToast } from '../../shared/ui/ToastProvider.jsx';
-import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../components/AppTopBar.jsx';
+import AppTopBar, { APP_TOP_BAR_HEIGHT } from '../../app/navigation/AppTopBar.jsx';
 import {
   createCampaign, joinCampaign, listMyCampaigns,
   listCampaignCharacters, listCampaignMembers, setCharacterCampaign, leaveCampaign, deleteCampaign,
@@ -13,7 +13,7 @@ import {
 import { listMyCharacters } from '../../shared/cloud/api/cloudCharacters.js';
 import { summarizeCharacter } from './sheetSummary.js';
 import { resolveCampaignsPageState } from './campaignsPageState.js';
-import { ensureSheetRuntimeAdapters } from '../charsheet/logic/sheetRuntimeAdapters.js';
+import { ensureSheetRuntimeAdapters } from '../charsheet/state/sheetRuntimeAdapters.js';
 
 export default function CampaignsPage() {
   const { cloudEnabled, status, user, isGm } = useAuth();

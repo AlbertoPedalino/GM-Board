@@ -13,34 +13,36 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 ## UI Conventions
 
-- Dark-only fantasy theme: `src/theme.js`.
+- Dark-only fantasy theme: `src/app/theme.js`.
 - Use MUI `sx` and theme tokens; no new CSS, `styled()`, inline `style`, or component color literals.
 - Existing `pages/library/styles.js` contains legacy literals; do not spread them.
 - Icons: `lucide-react`.
 - Entity tinting: `shared/ui/entityColors.js`.
 - Toasts: `ToastProvider` / `AppToast`.
-- App-level widgets: `src/components/`; reusable presentation primitives/hooks: `src/shared/ui/`; page-specific UI: page folder.
+- Application routes/theme: `src/app/`; navigation: `src/app/navigation/`; reusable presentation primitives/hooks: `src/shared/ui/`; page-specific UI: page feature folder.
 - Use responsive `sx`; theme radius is 8.
 - `theme.palette.gmboard.badge.cloud` owns cloud-origin badge color.
 - `react-window` is reserved for new lists expected to render hundreds of rows.
 
-## Shared Code Layout
+## Source Code Layout
 
-- Structure guide: `react-app/src/shared/README.md`. Group shared modules by responsibility; keep imports direct rather than adding compatibility barrels at retired paths.
+- Structure guides: `react-app/src/README.md` and `react-app/src/shared/README.md`. Group shared modules by responsibility; keep imports direct rather than adding compatibility barrels at retired paths.
 - `shared/character/`: `combat`, `dice`, `forms`, `inventory`, `profile`, `progression`, `resources`, `spells`. Domain components stay beside their rules.
 - `shared/content/`: entry rendering, 5etools links, source filtering/priority, text search. These are shared by multiple tools, not specific to character sheets.
 - `shared/ui/`: generic components/hooks, toast provider, entity colors, route titles.
 - `shared/instances/`: section identity, linked tool groups, instance creation. `shared/storage/`: generic localStorage, registry persistence, scoped payloads.
 - `shared/cloud/`: `api` for resource operations, `auth` for authentication/account UI, `sections` for generic tool adapters, `sync` for autosync/realtime. The common `supabaseClient.js` stays at the cloud root.
-- `shared/campaign`, `dungeon`, `hexcrawl`, and `vtt` retain their feature-specific modules.
+- `shared/vtt/`: `map`, `scene`, `session`, `tokens`, `sheets`, `rolls`; palette stays in `colors.js`. `shared/campaign`, `dungeon`, and `hexcrawl` retain their compact domain structure.
+- Large pages group related components, hooks, styles, and logic together by feature. VTT: `scene`, `map`, `tokens`, `objects`, `atmosphere/shaders`, `sheets`, `rolls`, `session`, `dungeon`, `hexcrawl`. Character sheet: `actions`, `spells`, `inventory`, `forms`, `resources`, `stats`, `proficiency`, `details`, `layout`, `state`.
+- Builder, encounter builder, GM Board, and DM Screen follow the same feature grouping; see the source guide for their folder maps. Small pages retain their compact layout. Existing cross-page dependencies and adapter discovery remain unchanged; deleted charbuilder barrels must not be recreated.
 - Keep `src/` free of tests and empty placeholder folders; tests mirror source categories under `tests/logic` and `tests/ui`.
 
 ## Entry Points
 
 - `src/main.jsx`: StrictMode → ThemeProvider → CssBaseline → ToastProvider → BrowserRouter → AuthProvider → App.
-- `src/App.jsx` mounts `CloudAutoSync` and updates `document.title` from the current route via `shared/ui/pageTitle.js`.
+- `src/app/App.jsx` mounts `CloudAutoSync` and updates `document.title` from the current route via `shared/ui/pageTitle.js`.
 - Routes: `/`, `/charbuilder`, `/charsheet`, `/gmboard`, `/dm-screen`, `/library/:tool`, `/campaigns`, `/campaign-sheet`, `/vtt`, `/encounter-builder`.
-- Route strings are relative to `BrowserRouter`'s basename, derived from `import.meta.env.BASE_URL` (`/Nat-1/` in Vite). Native links must include that base; `pages/encounterbuilder/logic/campaignSheetUrl.js` builds `/Nat-1/campaign-sheet?id=<id>&edit=1` with encoded ids.
+- Route strings are relative to `BrowserRouter`'s basename, derived from `import.meta.env.BASE_URL` (`/Nat-1/` in Vite). Native links must include that base; `pages/encounterbuilder/campaign/campaignSheetUrl.js` builds `/Nat-1/campaign-sheet?id=<id>&edit=1` with encoded ids.
 - `/gmsheets` redirects to `/library/characters`; legacy builder/sheet routes redirect.
 - Home is eager; tool pages are route-lazy.
 - `AppTopBar` always renders `CloudMenu`.
@@ -71,7 +73,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 - GM Board, Encounter Builder, and DM Screen instances can share an explicit random `linkGroupId`; names never create links.
 - Local registries store `linkGroupId`; Supabase rows store `link_group_id` with `(owner, link_group_id)` indexes.
-- `components/LinkedToolsMenu.jsx` lists linked instances, links existing saves, creates linked tools, merges groups after confirmation, and unlinks members.
+- `app/navigation/LinkedToolsMenu.jsx` lists linked instances, links existing saves, creates linked tools, merges groups after confirmation, and unlinks members.
 - Groups can contain multiple instances of any supported tool type.
 - Opening a linked instance uses a React Router link with `target="_blank"` and `noopener noreferrer`.
 - Link management is enabled for a locally saved instance or an authenticated cloud-only instance; unsaved drafts remain disabled.
@@ -94,7 +96,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 - Root: `src/pages/gmboard/`.
 - State: `state/GmBoardContext.jsx`, `state/reducer.js`.
-- Persistence: `hooks/useGmBoardPersistence.js`, `storage.js`.
+- Persistence: `state/useGmBoardPersistence.js`, `state/storage.js`.
 - Keys: `gb_board_registry`, `gb_active_board_id`, `gb:board:<id>:state:v1`, `:tables:v1`, `:results:v1`.
 - Unsaved boards write nothing before Save.
 - Core state/results autosave; tables manual-save.
@@ -116,7 +118,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 
 ## Encounter Builder
 
-- Root/entry: `src/pages/encounterbuilder/EncounterBuilderPage.jsx`; state wiring: `state/EncounterBuilderContext.jsx` and `state/reducer.js`; persistence: `hooks/useEncounterPersistence.js` and `logic/storage.js`.
+- Root/entry: `src/pages/encounterbuilder/EncounterBuilderPage.jsx`; state wiring: `state/EncounterBuilderContext.jsx` and `state/reducer.js`; persistence: `state/useEncounterPersistence.js` and `state/storage.js`.
 - Route: `/encounter-builder?enc=<id>|new`.
 - The library entry is `/library/encounters`; canonical existing/new links come from `shared/instances/sectionRegistry.js`. Optional `linkGroup` links instances. `resolveInstance` normalizes `enc=new` to a generated id or restores a known active id when `enc` is absent; the provider remounts on instance-id changes. `useSeedInstance` saves an unsaved or empty instance when its page opens.
 - Keys: `gb_encounter_registry`, `gb_active_encounter_id`; scoped `party`, `draft`, `library`, `fights`, `fumbles`, `negotiation` v1 keys.
@@ -124,15 +126,15 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Missing-token fallback: XMM Skeleton.
 - Conditions sync to sheets; encounter-local effects do not.
 - Events: `gb:encounter-saved`, `gb:encounter-deleted`.
-- `useEncounterPersistence` batches all six local payload writes before announcing a save, so listeners never read a half-written library/fight set. `hooks/useExternalFightSync.js` merges externally created fights/library entries and refreshes the active fight from same-tab save events or cross-tab storage events.
-- Cloud fights: `hooks/useCloudFights.js` → `shared/cloud/api/encounterFights.js` → `encounter_fights` rows; `logic/fightRecord.js` defines row/entry conversion and embedded library-card recovery. These per-fight rows complement the instance's local payload and section cloud sync.
+- `useEncounterPersistence` batches all six local payload writes before announcing a save, so listeners never read a half-written library/fight set. `sync/useExternalFightSync.js` merges externally created fights/library entries and refreshes the active fight from same-tab save events or cross-tab storage events.
+- Cloud fights: `sync/useCloudFights.js` → `shared/cloud/api/encounterFights.js` → `encounter_fights` rows; `library/fightRecord.js` defines row/entry conversion and embedded library-card recovery. These per-fight rows complement the instance's local payload and section cloud sync.
 - Tests: `tests/logic/pages/encounterbuilder/logic/encounterbuilder.logic.test.js` plus component tests under `tests/ui/pages/encounterbuilder/`.
 
 ## Battle Map / VTT
 
-- Root/entry: `src/pages/vtt/VttPage.jsx`; scene orchestration: `components/SceneEditor.jsx`; rendering: `components/SceneViewport.jsx` / `components/TokenSprite.jsx`.
-- `/vtt` shows the scene/table picker; `/vtt?scene=<id>` requests a scene directly; `/vtt?campaign=<id>` follows that campaign's live scene via `shared/vtt/useLiveSession.js`. Campaign-following takes precedence if both parameters exist. VTT requires configured cloud access and authentication; scene permissions still come from Supabase and `shared/vtt/useSceneRole.js`.
-- Projector links are `/vtt?campaign=<id>&spectator=<cameraSource>`, built by `shared/vtt/spectator.js` from the current URL so the deployment base survives. They replace scene/query selection, require both campaign and a valid presenter source, and follow live-scene changes. Scene operations live in `shared/cloud/api/vtt.js`; scene realtime state in `shared/vtt/useSceneLive.js`.
+- Root/entry: `src/pages/vtt/VttPage.jsx`; scene orchestration: `scene/SceneEditor.jsx`; rendering: `map/SceneViewport.jsx` / `tokens/TokenSprite.jsx`.
+- `/vtt` shows the scene/table picker; `/vtt?scene=<id>` requests a scene directly; `/vtt?campaign=<id>` follows that campaign's live scene via `shared/vtt/session/useLiveSession.js`. Campaign-following takes precedence if both parameters exist. VTT requires configured cloud access and authentication; scene permissions still come from Supabase and `shared/vtt/session/useSceneRole.js`.
+- Projector links are `/vtt?campaign=<id>&spectator=<cameraSource>`, built by `shared/vtt/session/spectator.js` from the current URL so the deployment base survives. They replace scene/query selection, require both campaign and a valid presenter source, and follow live-scene changes. Scene operations live in `shared/cloud/api/vtt.js`; scene realtime state in `shared/vtt/session/useSceneLive.js`.
 - Fog strokes sweep a round brush along fractional fog-cell coordinates between pointer events, so fast diagonal motion has no gaps. Each new drag resets its previous point. `FogCanvas` adds a light blur proportional to the fog-cell size, zoom, and device pixel ratio. Saved fog bitsets and resolution remain compatible; regressions cover reveal/hide, fast motion, and separate strokes.
 - Fog rendering covers the entire viewport and erases only revealed cells using a blurred `destination-out` mask. Never blur the outer covered rectangle: that exposes the map perimeter. Grid-offset margins and areas beyond old fog dimensions stay covered; fill the complete rounded-up backing store before applying view transforms so fractional device pixel ratios cannot leave a translucent edge.
 - Atmosphere must remain visible in Player view and on the projector even over unexplored fog. Public fog, atmosphere, then rulers/lasers share z-index 4 in that DOM order; controls stay higher. Atmosphere's WebGL canvas and static fallback use the same layer. Never raise hidden map pieces above fog to fix weather visibility.
@@ -142,7 +144,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Starting a custom roll closes the custom-roll panel so only the physical dice and final toast remain visible.
 - Dice results wait for the physical settle/paint hold; dice and coins are never snapped or forcibly straightened to the chosen face after motion. A d100 uses the shared neutral `D100Orb`: one clipped faceted texture rather than 100 composited face trees. On the battle map its texture follows the physics while its authoritative value fades in separately on the final frame, so no face alignment or snap is required; roll toasts use the same already-settled orb with its result visible.
 - Token condition pills stay mounted across the hover gap and expose rules tooltips. Expanded pills collapse while dragging; the movement-distance badge is centred over the token.
-- Battle-map dialogs share the translucent black/gold surface from `components/battleMapSurface.js`, including Pieces, encounter import, monster placement, token menu, roll log, and embedded sheet dialogs.
+- Battle-map dialogs share the translucent black/gold surface from `map/battleMapSurface.js`, including Pieces, encounter import, monster placement, token menu, roll log, and embedded sheet dialogs.
 - Pieces has a transparent inner surface. Character previews use the sheet portrait, the same 5px player-colour ring as the map, and the shared primary-class icon fallback from `shared/character/profile/classIcon.js` instead of initials.
 - Pieces, monster placement, and encounter import support native drag placement. The viewport shows the actual token preview at grid scale under the pointer and drops at the hovered cell.
 - The token context menu is a compact 360px surface: reduced typography/controls, 19–20px pills, and side-by-side Conditions and Advantage/Disadvantage columns.
@@ -151,7 +153,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - At 0 HP a character token replaces its HP bar with two clickable three-dot tracks: green successes and red failures. Clicking a dot sets/unsets that count through the same sheet/encounter synchronization; the third failure activates the synchronized Dead skull and removes the dot tracks from the token.
 - The right rail has an Objects panel for GM and players. It exposes Lucide's complete dynamic outline-icon catalog with text search, 32-item pagination, a smooth color picker, and a `0.5–4.0` stroke-width slider; an icon can be clicked or dragged onto the currently selected layer (`map`, `tokens`, or GM-only `gm`; players use `tokens`). Lucide has no official filled variant, so do not fake one by filling the SVG paths.
 - Map objects render as dynamic SVG, move like owned markers, resize from the bottom-right handle in 0.1-cell increments, and rotate around their centre from the top-right handle. The Vite build buckets dynamic Lucide modules by initial so the whole catalog is not added to the initial vendor chunk.
-- Map objects show their label below the icon and reuse `map_tokens` geometry, persisting only `icon_key`, `icon_stroke_width`, label, colour, position, dimensions, and normalized `rotation`. No SVG or image bytes are uploaded. `shared/vtt/mapObjects.js` sanitizes names/clamps stroke width and `MapObjectGlyph.jsx` resolves Lucide dynamically. Color inputs stay uncontrolled while the native palette moves; Draw and the placed-object menu debounce propagation to avoid palette stutter and write bursts.
+- Map objects show their label below the icon and reuse `map_tokens` geometry, persisting only `icon_key`, `icon_stroke_width`, label, colour, position, dimensions, and normalized `rotation`. No SVG or image bytes are uploaded. `shared/vtt/map/mapObjects.js` sanitizes names/clamps stroke width and `MapObjectGlyph.jsx` resolves Lucide dynamically. Color inputs stay uncontrolled while the native palette moves; Draw and the placed-object menu debounce propagation to avoid palette stutter and write bursts.
 - Scene-owned uploads use unique `map-images/<campaign>/<scene>/<file>` paths and are cleaned across both Supabase services: replacing map/background deletes the previous file, a failed row write rolls its new upload back, removing an uploaded-image token deletes its exact file, and deleting a scene removes the whole validated scene folder after the database cascade. Storage cleanup failures do not misreport an already-deleted row; the UI removes it and shows a cleanup warning. Character portraits/bestiary URLs are not scene-owned and are never deleted with a token.
 - Mortality invariant: monsters at 0 HP are `Dead`; setting `Dead` puts them at 0 HP; removing it restores 1 HP. Characters at 0 HP are only dying, become `Dead` at three failed death saves or by explicit assignment, and explicit removal restores 1 HP plus resets death saves.
 - The top-right `Sheet` button opens an external side panel without unmounting or covering the battle map. Players can open only campaign sheets they own; the GM can choose any campaign PC from a compact selector. The embedded sheet remains editable/live-synced, uses an independent scroll area, and stacks below the map only on narrower screens. On desktop a keyboard-accessible draggable divider resizes map/sheet within useful bounds; double-click or Home resets 60/40 and the per-user preference is local-only. In browser fullscreen (and its mobile covering fallback), a separate `Sheet` button stays at the viewport's top-right and opens the selected sheet in a draggable, resizable, independently scrolling panel over the map; it may move partly outside the viewport while retaining a reachable header grip, and the side and floating instances are mutually exclusive. The fullscreen GM character picker is a native select, avoiding portalled-menu pointer conflicts while dragging. Global MUI modal/popover/popper portals target the active fullscreen element so sheet menus and dialogs remain visible. Dice rolled from either embedded sheet are handed directly to the local map (realtime broadcasts suppress self-echo) and published with a stable roll ID plus physical-playback flag, so local and remote maps animate the same reported result. The embedded sheet suppresses its own roll toast; both map and sheet rolls use the map's single toast, revealed after physical settling.
@@ -159,10 +161,10 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - The viewport's non-passive wheel listener zooms only the map surface. Events whose pointer target is inside a viewport control, floating sheet, MUI dialog, popover, or popper are left untouched so the scrollable UI directly under the cursor receives the wheel, including while fullscreen portals live inside the map element.
 - The map/sheet divider previews its grid ratio through a CSS custom property at most once per animation frame and commits React state only on release, avoiding full SceneEditor rerenders during drag. Roll Log history never remounts animated 3D dice: each saved result is a static accessible 2D die silhouette with its landed value; only the live map throw uses physics/3D. Rolls originated on the current battle-map screen remain in its log/toast/physical-dice queue but suppress their token speech bubble; remote screens still show that bubble, based on local event origin rather than character ownership (so GM rolls from a PC sheet are also suppressed for the GM).
 - Encounter↔map bridge supports imported monster `sourceRef`s and roster character `sourceId`s in both directions. Character HP/death-save/condition writes go through the sheet source of truth; monster values remain on the token/fight.
-- Local bridge: `pages/vtt/hooks/useEncounterBridge.js` reads/writes `pages/encounterbuilder/logic/storage.js` and listens to save/storage events. Cloud monster bridge: `pages/encounterbuilder/hooks/useMapTokenBridge.js` synchronizes through `map_tokens` using `shared/vtt/tokenBridge.js` and `shared/cloud/api/vtt.js`, including across devices. `shared/vtt/encounterSync.js` owns `instanceId:fightId:combatantId` source references and pure reconciliation; linked PCs match sheet identity instead of monster references.
-- Dungeon→encounter path: `pages/vtt/hooks/useSceneDungeon.js` → `pages/encounterbuilder/logic/handoff.js` → local library/fight persistence and `shared/cloud/api/encounterFights.js`. A room stores the resulting fight link, not another fight snapshot; sending a room preserves the builder's active fight. If the cloud save fails, the local fight remains and the UI reports that only this browser received it. `components/EncounterImportDialog.jsx` reads saved local fights through builder storage/combat helpers and converts combatants using `shared/vtt/encounterImport.js`.
-- Roll sharing: `pages/vtt/hooks/useVttRolls.js` and `pages/encounterbuilder/hooks/useEncounterRolls.js` both use `shared/cloud/sync/useRollChannel.js`; roll identity/presentation lives in `shared/character/dice/` and map feed state in `shared/vtt/rollFeed.js`.
-- Relevant tests: logic under `tests/logic/shared/vtt/`, cloud VTT operations at `tests/ui/shared/cloud/api/vtt.test.jsx`, and map components under `tests/ui/pages/vtt/components/` (including viewport, tokens, pieces, dice, roll log, sheet resize).
+- Local bridge: `pages/vtt/tokens/useEncounterBridge.js` reads/writes `pages/encounterbuilder/state/storage.js` and listens to save/storage events. Cloud monster bridge: `pages/encounterbuilder/sync/useMapTokenBridge.js` synchronizes through `map_tokens` using `shared/vtt/tokens/tokenBridge.js` and `shared/cloud/api/vtt.js`, including across devices. `shared/vtt/tokens/encounterSync.js` owns `instanceId:fightId:combatantId` source references and pure reconciliation; linked PCs match sheet identity instead of monster references.
+- Dungeon→encounter path: `pages/vtt/dungeon/useSceneDungeon.js` → `pages/encounterbuilder/sync/handoff.js` → local library/fight persistence and `shared/cloud/api/encounterFights.js`. A room stores the resulting fight link, not another fight snapshot; sending a room preserves the builder's active fight. If the cloud save fails, the local fight remains and the UI reports that only this browser received it. `tokens/EncounterImportDialog.jsx` reads saved local fights through builder storage/combat helpers and converts combatants using `shared/vtt/tokens/encounterImport.js`.
+- Roll sharing: `pages/vtt/rolls/useVttRolls.js` and `pages/encounterbuilder/rolls/useEncounterRolls.js` both use `shared/cloud/sync/useRollChannel.js`; roll identity/presentation lives in `shared/character/dice/` and map feed state in `shared/vtt/rolls/rollFeed.js`.
+- Relevant tests: logic under `tests/logic/shared/vtt/`, cloud VTT operations at `tests/ui/shared/cloud/api/vtt.test.jsx`, and map components under `tests/ui/pages/vtt/` grouped by the corresponding source feature (including viewport, tokens, pieces, dice, roll log, sheet resize).
 
 ## Combat Sheet Sync
 
@@ -217,7 +219,7 @@ GM-Board is React 19 + Vite + MUI 9 + Supabase SPA under `react-app/`. D&D data 
 - Autosync: `tests/logic/shared/cloud/sync/cloudAutoSyncEngine.test.js`.
 - Picker/freshness/merge: `tests/logic/pages/library/logic/library.logic.test.js`.
 - Authenticated local-origin open regression: `tests/ui/pages/library/SectionPicker.test.jsx`.
-- Linked tools: `tests/logic/shared/instances/instanceLinks.test.js` and `tests/ui/components/LinkedToolsMenu.test.jsx`.
+- Linked tools: `tests/logic/shared/instances/instanceLinks.test.js` and `tests/ui/app/navigation/LinkedToolsMenu.test.jsx`.
 - Route titles: `tests/logic/shared/ui/pageTitle.test.js`.
 - SQL assertions: `tests/logic/shared/cloud/sections/sectionsSql.test.js` and `tests/logic/shared/cloud/api/`.
 - Node suites: `tests/logic/**/*.test.js`; Vitest/jsdom suites: `tests/ui/**/*.test.jsx`; shared UI setup: `tests/setup.js`. Each tree mirrors `src/`.

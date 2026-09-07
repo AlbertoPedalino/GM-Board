@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { calculateDifficulty } from '../../../../../src/pages/encounterbuilder/logic/difficulty.js';
+import { calculateDifficulty } from '../../../../../src/pages/encounterbuilder/builder/difficulty.js';
 import {
   addCombatantEffect,
   applySheetVitals,
@@ -18,27 +18,27 @@ import {
   snapshotFight,
   toggleCombatantCondition,
   toggleCombatantEffect,
-} from '../../../../../src/pages/encounterbuilder/logic/combat.js';
+} from '../../../../../src/pages/encounterbuilder/combat/combat.js';
 import { effectId } from '../../../../../src/shared/character/combat/combatEffects.js';
-import { rollDice, rollDiceFormula } from '../../../../../src/pages/encounterbuilder/logic/dice.js';
+import { rollDice, rollDiceFormula } from '../../../../../src/pages/encounterbuilder/rolls/dice.js';
 import {
   buildFumbleFormula,
   createDefaultFumbleTables,
   fumbleResultValues,
   getFumbleRange,
   normalizeFumbleTables,
-} from '../../../../../src/pages/encounterbuilder/logic/fumbles.js';
+} from '../../../../../src/pages/encounterbuilder/rolls/fumbles.js';
 import {
   createDefaultNegotiation,
   negotiationStatus,
   normalizeNegotiation,
   resolveNegotiation,
-} from '../../../../../src/pages/encounterbuilder/logic/negotiation.js';
+} from '../../../../../src/pages/encounterbuilder/negotiation/negotiation.js';
 import {
   groupLibraryByQuest, isFightResumable, listQuestNames, mergeLibrary,
-} from '../../../../../src/pages/encounterbuilder/logic/library.js';
-import { cleanToText, parseCleanTokens } from '../../../../../src/pages/encounterbuilder/logic/markup.js';
-import { isEncounterMonster, resolveLegendaryGroups } from '../../../../../src/pages/encounterbuilder/logic/bestiary.js';
+} from '../../../../../src/pages/encounterbuilder/library/library.js';
+import { cleanToText, parseCleanTokens } from '../../../../../src/pages/encounterbuilder/bestiary/markup.js';
+import { isEncounterMonster, resolveLegendaryGroups } from '../../../../../src/pages/encounterbuilder/bestiary/bestiary.js';
 import {
   SYNCED_DATA_KEYS,
   combatantToSheetPatch,
@@ -46,10 +46,10 @@ import {
   sheetPatchKey,
   sheetVitalsToCombat,
   sheetVitalsToSheetPatch,
-} from '../../../../../src/pages/encounterbuilder/logic/sheetSync.js';
+} from '../../../../../src/pages/encounterbuilder/campaign/sheetSync.js';
 import { createInitialState, encounterReducer } from '../../../../../src/pages/encounterbuilder/state/reducer.js';
 import { SYNCED_VITALS } from '../../../../../src/shared/character/combat/vitals.js';
-import { toEncounterPlayer } from '../../../../../src/pages/encounterbuilder/logic/campaignPlayer.js';
+import { toEncounterPlayer } from '../../../../../src/pages/encounterbuilder/campaign/campaignPlayer.js';
 
 test('an encounter keeps its selected quest when saved and loaded', () => {
   const quest = 'The Missing Caravan';
