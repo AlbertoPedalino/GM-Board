@@ -1,10 +1,9 @@
 export const DEFAULT_SHEET_SPLIT = 60;
 export const MIN_MAP_SPLIT = 35;
 export const MAX_MAP_SPLIT = 72;
-// A landscape phone can be wide enough for two columns but too short to read
-// either. Compact sheets use the whole workspace in both orientations.
+// Fullscreen floating panels also adapt to a landscape phone's short height.
 export const SHEET_COMPACT_QUERY = '(max-width: 767px), (max-height: 500px)';
-export const SHEET_SIDE_BY_SIDE_QUERY = '@media (min-width: 768px) and (min-height: 501px)';
+export const SHEET_SIDE_BY_SIDE_QUERY = '@media (min-width: 768px)';
 
 export function normalizeSheetSplit(value) {
   if (value === null || value === undefined || value === '') return DEFAULT_SHEET_SPLIT;

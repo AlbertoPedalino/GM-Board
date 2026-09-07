@@ -122,7 +122,7 @@ vi.mock('../../../../../src/pages/campaignsheet/CampaignSheetView.jsx', () => ({
   default: ({ sheetId }) => <div data-testid="campaign-sheet">Sheet {sheetId}</div>,
 }));
 
-test('opening the scene sheet renders the selected character and closing restores the same map', async () => {
+test('opening the scene sheet keeps the map visible alongside the selected character', async () => {
   sheetRoster.current = [{ characterId: 'aria', name: 'Aria', ownerId: 'gm-1' }];
   const scene = {
     id: 'scene-sheet',
@@ -145,9 +145,7 @@ test('opening the scene sheet renders the selected character and closing restore
   fireEvent.click(screen.getByRole('button', { name: 'Show character sheet' }));
   expect(await screen.findByTestId('campaign-sheet')).toHaveTextContent('Sheet aria');
   expect(screen.getByTestId('campaign-sheet')).toBeVisible();
-  // jsdom applies the compact base styles. Browser viewport checks cover the
-  // desktop media override; here the real scene composition must switch views.
-  expect(map).not.toBeVisible();
+  expect(map).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Hide character sheet' }));
   expect(screen.queryByTestId('campaign-sheet')).not.toBeInTheDocument();
   expect(screen.getByTestId('scene-viewport')).toBe(map);

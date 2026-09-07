@@ -96,14 +96,18 @@ export const contentLayoutOpenSx = {
   gridTemplateColumns: 'minmax(0, 1fr)',
   columnGap: 1,
   rowGap: 1,
-  // Compact screens show the sheet in the available map area. Reserving a map
-  // row above it can push the entire sheet below a landscape phone's viewport.
-  overflow: 'hidden',
-  gridTemplateRows: 'minmax(0, 1fr)',
-  alignContent: 'stretch',
+  // Both rows keep their content height. The workspace scrolls on a phone,
+  // including while the lazy sheet grows beyond its loading placeholder.
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  gridTemplateRows: 'max-content max-content',
+  alignContent: 'start',
   [SHEET_SIDE_BY_SIDE_QUERY]: {
     gridTemplateColumns: 'var(--sheet-grid-columns)',
     columnGap: 0,
+    gridTemplateRows: 'minmax(0, 1fr)',
+    alignContent: 'stretch',
+    overflowY: 'hidden',
   },
 };
 
@@ -113,19 +117,24 @@ export const viewportCellSx = {
   display: 'flex',
 };
 
-// Keep the map mounted so closing the sheet restores the same scene and camera.
-export const viewportCellSheetOpenSx = {
-  display: 'none',
-  [SHEET_SIDE_BY_SIDE_QUERY]: { display: 'flex' },
+// Below the width breakpoint the sheet follows a complete map row. Limit its
+// height on short screens so the map fits instead of being clipped at 320px.
+export const viewportCellStackedSx = {
+  height: 'min(52dvh, 520px)',
+  [SHEET_SIDE_BY_SIDE_QUERY]: { height: 'auto' },
 };
 
 export const sheetViewSx = {
   minWidth: 0,
-  minHeight: 0,
-  height: '100%',
-  overflow: 'auto',
+  minHeight: 'auto',
+  overflow: 'hidden',
   overscrollBehavior: 'contain',
-  contain: 'layout paint',
+  [SHEET_SIDE_BY_SIDE_QUERY]: {
+    minHeight: 0,
+    height: '100%',
+    overflow: 'auto',
+    contain: 'layout paint',
+  },
   border: '1px solid',
   borderColor: 'gmboard.vtt.goldBorderStrong',
   borderRadius: 1.5,
