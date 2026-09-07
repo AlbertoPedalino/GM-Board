@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
-import { Box, IconButton, Stack, Typography } from '@mui/material';
+import { Box, IconButton, Stack, Typography, useMediaQuery } from '@mui/material';
 import { GripHorizontal, MoveDiagonal2, X } from 'lucide-react';
 import { VTT_COLORS, vttAlpha } from '../../../shared/vtt/colors.js';
 import {
@@ -14,6 +14,7 @@ import {
   writeSheetFrame,
 } from '../../../shared/vtt/sheets/sheetFrame.js';
 import { battleMapSurfaceSx } from '../map/battleMapSurface.js';
+import { SHEET_COMPACT_QUERY } from '../../../shared/vtt/sheets/sheetLayout.js';
 
 // One key for the window itself, not one per character: the player is arranging
 // a place on their screen to read a sheet, and it should not move because they
@@ -28,6 +29,7 @@ export default function FloatingSheetPanel({
   containerRef,
   children,
 }) {
+  const compact = useMediaQuery(SHEET_COMPACT_QUERY);
   const panelRef = useRef(null);
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
@@ -113,6 +115,18 @@ export default function FloatingSheetPanel({
   // Before paint, so a reopened sheet does not appear at its default corner and
   // then jump.
   useLayoutEffect(() => {
+    // Desktop gestures write inline geometry. Clear it when rotating into a
+    // compact viewport, but retain the stored frame for a larger screen.
+    if (compact) {
+      cancelAnimationFrame(frameRef.current);
+      dragRef.current = null;
+      resizeRef.current = null;
+      placementRef.current = null;
+      for (const property of ['left', 'right', 'top', 'width', 'height']) {
+        panelRef.current?.style.removeProperty(property);
+      }
+      return undefined;
+    }
     const container = containerRef.current;
     if (!container) return undefined;
     const stored = readSheetFrame(globalThis.sessionStorage, SHEET_FRAME_KEY);
@@ -130,9 +144,10 @@ export default function FloatingSheetPanel({
     const observer = new ResizeObserver(() => fitToContainer());
     observer.observe(container);
     return () => observer.disconnect();
-  }, []);
+  }, [compact]);
 
   const beginDrag = (event) => {
+    if (compact) return;
     if (event.button !== 0 || event.target.closest?.('button, input, select, [role="button"]')) return;
     const offset = seedPlacement();
     if (!offset) return;
@@ -253,7 +268,7 @@ export default function FloatingSheetPanel({
         onPointerCancel={endDrag}
         sx={headerSx}
       >
-        <GripHorizontal size={15} aria-hidden="true" />
+        {!compact ? <GripHorizontal size={15} aria-hidden="true" /> : null}
         <Typography sx={titleSx}>Sheet</Typography>
         <Box sx={{ flex: 1 }} />
         {choices.length > 1 ? (
@@ -276,17 +291,19 @@ export default function FloatingSheetPanel({
         </IconButton>
       </Stack>
       <Box sx={contentSx}>{children}</Box>
-      <IconButton
-        size="small"
-        aria-label="Resize floating sheet"
-        onPointerDown={beginResize}
-        onPointerMove={moveResize}
-        onPointerUp={endResize}
-        onPointerCancel={endResize}
-        sx={resizeHandleSx}
-      >
-        <MoveDiagonal2 size={15} />
-      </IconButton>
+      {!compact ? (
+        <IconButton
+          size="small"
+          aria-label="Resize floating sheet"
+          onPointerDown={beginResize}
+          onPointerMove={moveResize}
+          onPointerUp={endResize}
+          onPointerCancel={endResize}
+          sx={resizeHandleSx}
+        >
+          <MoveDiagonal2 size={15} />
+        </IconButton>
+      ) : null}
     </Box>
   );
 }
@@ -318,6 +335,16 @@ const panelSx = {
   cursor: 'default',
   contain: 'layout paint',
   isolation: 'isolate',
+  [`@media ${SHEET_COMPACT_QUERY}`]: {
+    top: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
+    minWidth: 0,
+    minHeight: 0,
+    border: 0,
+    borderRadius: 0,
+  },
 };
 
 const headerSx = {
@@ -330,6 +357,7 @@ const headerSx = {
   cursor: 'move',
   touchAction: 'none',
   userSelect: 'none',
+  [`@media ${SHEET_COMPACT_QUERY}`]: { cursor: 'default', touchAction: 'auto' },
 };
 
 const titleSx = {

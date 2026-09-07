@@ -1777,8 +1777,7 @@ const hostSx = {
   height: '100%',
   // Every ancestor already opts into shrinking. A fixed 320 px floor overflowed
   // the short height of a phone in landscape, so the viewport was clipped before
-  // its bottom-left and bottom-right controls. The stacked sheet layout gives
-  // its map cell an explicit floor of its own.
+  // its bottom-left and bottom-right controls.
   minHeight: 0,
   border: '1px solid',
   borderColor: 'divider',

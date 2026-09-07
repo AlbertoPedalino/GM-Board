@@ -12,6 +12,7 @@ const notifyMock = vi.hoisted(() => vi.fn());
 const sceneRoleMock = vi.hoisted(() => vi.fn());
 const sendPresenterStateMock = vi.hoisted(() => vi.fn());
 const updateSceneMock = vi.hoisted(() => vi.fn());
+const sheetRoster = vi.hoisted(() => ({ current: [] }));
 
 const GM_ROLE = {
   campaignName: 'The Campaign',
@@ -22,6 +23,7 @@ const GM_ROLE = {
 };
 
 beforeEach(() => {
+  sheetRoster.current = [];
   notifyMock.mockClear();
   sendPresenterStateMock.mockClear();
   sceneRoleMock.mockReturnValue(GM_ROLE);
@@ -97,7 +99,7 @@ vi.mock('../../../../../src/pages/vtt/scene/useSceneContent.js', () => ({
     handleDrawingEvent: vi.fn(),
     loading: false,
     refreshVisibleTokens: vi.fn(),
-    roster: [],
+    roster: sheetRoster.current,
     setDrawings: vi.fn(),
     setRoster: vi.fn(),
     setTokens: vi.fn(),
@@ -115,6 +117,42 @@ vi.mock('../../../../../src/pages/vtt/map/SceneViewport.jsx', () => ({
     return <div data-testid="scene-viewport">{props.tokens.map((token) => token.id).join(',')}</div>;
   },
 }));
+
+vi.mock('../../../../../src/pages/campaignsheet/CampaignSheetView.jsx', () => ({
+  default: ({ sheetId }) => <div data-testid="campaign-sheet">Sheet {sheetId}</div>,
+}));
+
+test('opening the scene sheet renders the selected character and closing restores the same map', async () => {
+  sheetRoster.current = [{ characterId: 'aria', name: 'Aria', ownerId: 'gm-1' }];
+  const scene = {
+    id: 'scene-sheet',
+    campaignId: 'campaign-1',
+    shownImage: 'map',
+    imagePath: null,
+    backgroundPath: null,
+    fog: null,
+    isLive: true,
+    playArea: null,
+    grid: { size: 50, offsetX: 0, offsetY: 0, visible: false },
+  };
+  render(
+    <ThemeProvider theme={theme}>
+      <SceneEditor scene={scene} onSceneChange={vi.fn()} />
+    </ThemeProvider>,
+  );
+  const map = screen.getByTestId('scene-viewport');
+  expect(map).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Show character sheet' }));
+  expect(await screen.findByTestId('campaign-sheet')).toHaveTextContent('Sheet aria');
+  expect(screen.getByTestId('campaign-sheet')).toBeVisible();
+  // jsdom applies the compact base styles. Browser viewport checks cover the
+  // desktop media override; here the real scene composition must switch views.
+  expect(map).not.toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Hide character sheet' }));
+  expect(screen.queryByTestId('campaign-sheet')).not.toBeInTheDocument();
+  expect(screen.getByTestId('scene-viewport')).toBe(map);
+  expect(map).toBeVisible();
+});
 
 test('the spectator composition applies the player boundary before rendering the viewport', () => {
   const scene = {

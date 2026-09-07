@@ -96,19 +96,14 @@ export const contentLayoutOpenSx = {
   gridTemplateColumns: 'minmax(0, 1fr)',
   columnGap: 1,
   rowGap: 1,
-  // One column means map above sheet, which cannot both fit a phone: that stack
-  // scrolls. Side by side there is nothing to scroll — each half handles its own.
-  overflowY: 'auto',
-  // Auto rows can shrink the sheet's frame below its overflowing contents.
-  // The stacked layout must reserve the full height even after lazy loading.
-  gridTemplateRows: 'max-content max-content',
-  alignContent: 'start',
+  // Compact screens show the sheet in the available map area. Reserving a map
+  // row above it can push the entire sheet below a landscape phone's viewport.
+  overflow: 'hidden',
+  gridTemplateRows: 'minmax(0, 1fr)',
+  alignContent: 'stretch',
   [SHEET_SIDE_BY_SIDE_QUERY]: {
     gridTemplateColumns: 'var(--sheet-grid-columns)',
     columnGap: 0,
-    overflowY: 'visible',
-    gridTemplateRows: 'minmax(0, 1fr)',
-    alignContent: 'stretch',
   },
 };
 
@@ -118,22 +113,19 @@ export const viewportCellSx = {
   display: 'flex',
 };
 
-// Stacked, the map takes a slice of the screen instead of all of it.
-export const viewportCellStackedSx = {
-  height: 'clamp(320px, 52dvh, 520px)',
-  [SHEET_SIDE_BY_SIDE_QUERY]: { height: 'auto' },
+// Keep the map mounted so closing the sheet restores the same scene and camera.
+export const viewportCellSheetOpenSx = {
+  display: 'none',
+  [SHEET_SIDE_BY_SIDE_QUERY]: { display: 'flex' },
 };
 
 export const sheetViewSx = {
   minWidth: 0,
-  minHeight: 'auto',
-  overflow: 'hidden',
-  [SHEET_SIDE_BY_SIDE_QUERY]: {
-    minHeight: 0,
-    height: '100%',
-    overflow: 'auto',
-    contain: 'layout paint',
-  },
+  minHeight: 0,
+  height: '100%',
+  overflow: 'auto',
+  overscrollBehavior: 'contain',
+  contain: 'layout paint',
   border: '1px solid',
   borderColor: 'gmboard.vtt.goldBorderStrong',
   borderRadius: 1.5,
