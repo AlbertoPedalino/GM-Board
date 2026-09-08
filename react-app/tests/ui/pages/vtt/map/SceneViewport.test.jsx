@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeAll, vi } from 'vitest';
 import SceneViewport from '../../../../../src/pages/vtt/map/SceneViewport.jsx';
 import { PIECE_POINTER_DRAG_EVENT } from '../../../../../src/pages/vtt/tokens/PiecePreview.jsx';
@@ -667,6 +668,8 @@ test('Delete removes the current marquee selection and Escape only clears it', a
 
   selectHero(63);
   fireEvent.keyDown(window, { key: 'Delete' });
+  expect(onDeleteTokens).not.toHaveBeenCalled();
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
   expect(onDeleteTokens).toHaveBeenCalledWith([expect.objectContaining({ id: 'hero-1' })]);
   await waitFor(() => expect(screen.queryByText('1 selected')).not.toBeInTheDocument());
 
@@ -691,6 +694,129 @@ test('Delete removes the current marquee selection and Escape only clears it', a
     />,
   );
   expect(screen.queryByText('1 selected')).not.toBeInTheDocument();
+});
+
+function renderSelectionViewport(onDeleteTokens, extraProps = {}) {
+  const props = {
+    scene: { grid: { size: 50, offsetX: 0, offsetY: 0, visible: false }, playArea: null },
+    imageUrl: null,
+    tokens: [{ id: 'hero-1', label: 'Hero', layer: 'tokens', x: 1, y: 1, w: 1, h: 1 }],
+    canMove: () => true,
+    paintMode: 'marquee',
+    activeLayer: 'tokens',
+    onDeleteTokens,
+    ...extraProps,
+  };
+  const result = render(<SceneViewport {...props} />);
+  const viewport = screen.getByText('Upload a map image to start building this scene.').parentElement;
+  const select = () => {
+    fireEvent.pointerDown(viewport, { button: 0, clientX: 40, clientY: 40 });
+    fireEvent.pointerMove(viewport, { button: 0, clientX: 110, clientY: 110 });
+    fireEvent.pointerUp(viewport, { button: 0, clientX: 110, clientY: 110 });
+  };
+  return { ...result, viewport, select, props };
+}
+
+test('selecting after editing a tool field transfers focus so the first Delete works', async () => {
+  const user = userEvent.setup();
+  const onDeleteTokens = vi.fn(() => true);
+  const { viewport, select } = renderSelectionViewport(onDeleteTokens, {
+    controls: <input data-viewport-control aria-label="Tool value" defaultValue="50" />,
+  });
+  await user.click(screen.getByRole('button', { name: 'Show the tools' }));
+  await user.click(screen.getByRole('textbox', { name: 'Tool value' }));
+  select();
+  expect(viewport).toHaveFocus();
+  await user.keyboard('{Delete}');
+  const dialog = screen.getByRole('dialog', { name: 'Delete selected pieces?' });
+  expect(onDeleteTokens).not.toHaveBeenCalled();
+  await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
+  expect(onDeleteTokens).toHaveBeenCalledOnce();
+});
+
+test('the Delete toolbar works on the first click and cancelling keeps the selection', async () => {
+  const user = userEvent.setup();
+  const onDeleteTokens = vi.fn();
+  const { select, viewport } = renderSelectionViewport(onDeleteTokens);
+  select();
+  await user.click(screen.getByRole('button', { name: 'Delete' }));
+  const dialog = screen.getByRole('dialog');
+  expect(viewport).toContainElement(dialog);
+  expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.getByText('1 selected')).toBeInTheDocument();
+  expect(onDeleteTokens).not.toHaveBeenCalled();
+  await user.keyboard('{Backspace}');
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel' }));
+  expect(screen.getByText('1 selected')).toBeInTheDocument();
+  expect(onDeleteTokens).not.toHaveBeenCalled();
+});
+
+test('deletion stays visibly busy and repeated keys or clicks cannot submit it twice', async () => {
+  const user = userEvent.setup();
+  let finish;
+  const onDeleteTokens = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+  const { select } = renderSelectionViewport(onDeleteTokens);
+  select();
+  await user.keyboard('{Delete}');
+  const dialog = screen.getByRole('dialog');
+  await user.dblClick(within(dialog).getByRole('button', { name: 'Delete' }));
+  await user.keyboard('{Delete}{Backspace}{Escape}');
+  expect(onDeleteTokens).toHaveBeenCalledOnce();
+  expect(within(dialog).getByRole('button', { name: 'Deleting…' })).toBeDisabled();
+  expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeDisabled();
+  expect(dialog).toBeInTheDocument();
+  await act(async () => finish(true));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.queryByText('1 selected')).not.toBeInTheDocument();
+});
+
+test('a failed deletion can be retried without selecting the pieces again', async () => {
+  const user = userEvent.setup();
+  const onDeleteTokens = vi.fn().mockRejectedValueOnce(new Error('Connection lost')).mockResolvedValue(true);
+  const { select } = renderSelectionViewport(onDeleteTokens);
+  select();
+  await user.keyboard('{Delete}');
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Connection lost');
+  expect(screen.getByText('1 selected')).toBeInTheDocument();
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
+  expect(onDeleteTokens).toHaveBeenCalledTimes(2);
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+});
+
+test('partial deletion leaves only the failed pieces selected for retry', async () => {
+  const user = userEvent.setup();
+  let finish;
+  const onDeleteTokens = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+  const hero = { id: 'hero-1', label: 'Hero', layer: 'tokens', x: 1, y: 1, w: 1, h: 1 };
+  const ogre = { ...hero, id: 'ogre-1', label: 'Ogre' };
+  const { select, rerender, props } = renderSelectionViewport(onDeleteTokens, { tokens: [hero, ogre] });
+  select();
+  await user.keyboard('{Delete}');
+  expect(screen.getByText(/Remove 2 selected pieces/)).toBeInTheDocument();
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
+  rerender(<SceneViewport {...props} tokens={[ogre]} />);
+  await act(async () => finish(false));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  expect(screen.getByText('1 selected')).toBeInTheDocument();
+  await user.keyboard('{Backspace}');
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
+  expect(onDeleteTokens).toHaveBeenLastCalledWith([ogre]);
+  await act(async () => finish(true));
+});
+
+test('confirmation rechecks permission changes received while the panel is open', async () => {
+  const user = userEvent.setup();
+  const onDeleteTokens = vi.fn();
+  const { select, props, rerender } = renderSelectionViewport(onDeleteTokens);
+  select();
+  await user.keyboard('{Delete}');
+  rerender(<SceneViewport {...props} canMove={() => false} />);
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
+  expect(onDeleteTokens).not.toHaveBeenCalled();
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 });
 
 const HEX_SCENE = {

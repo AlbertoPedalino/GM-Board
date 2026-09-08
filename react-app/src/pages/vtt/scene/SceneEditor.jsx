@@ -1519,7 +1519,6 @@ export default function SceneEditor({
   const handleDeleteTokens = useCallback(async (selected) => {
     const pieces = (selected || []).filter((token) => token?.id && canMove(token));
     if (!pieces.length) return false;
-    if (!window.confirm(`Delete ${pieces.length} selected piece${pieces.length === 1 ? '' : 's'}?`)) return false;
 
     setBusy(true);
     let allRemoved = false;

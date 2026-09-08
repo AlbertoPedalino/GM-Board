@@ -43,6 +43,7 @@ import LaserOverlay from './LaserOverlay.jsx';
 import TokenSprite from '../tokens/TokenSprite.jsx';
 import TokenLayer from '../tokens/TokenLayer.jsx';
 import AtmosphereOverlay from '../atmosphere/AtmosphereOverlay.jsx';
+import DeletePiecesDialog from '../tokens/DeletePiecesDialog.jsx';
 import { PIECE_POINTER_DRAG_EVENT } from '../tokens/PiecePreview.jsx';
 
 const WHEEL_STEP = 1.12;
@@ -209,6 +210,10 @@ export default function SceneViewport({
   const [rotate, setRotate] = useState(null);
   const [selectedMapObjectId, setSelectedMapObjectId] = useState(null);
   const [selectedTokenIds, setSelectedTokenIds] = useState([]);
+  const [deleteCandidates, setDeleteCandidates] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const deletingRef = useRef(false);
   const [selectionBox, setSelectionBox] = useState(null);
   const [groupDrag, setGroupDrag] = useState(null);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
@@ -267,13 +272,39 @@ export default function SceneViewport({
   }, []);
 
   const deleteSelection = useCallback(() => {
-    if (!onDeleteTokens || !selectedTokenIds.length) return;
-    const selected = (tokens || []).filter((token) => selectedTokenIds.includes(token.id));
+    if (!onDeleteTokens || deleteCandidates || deletingRef.current) return;
+    const selected = (tokens || []).filter((token) => selectedTokenIds.includes(token.id) && canMove(token));
     if (!selected.length) return;
-    Promise.resolve(onDeleteTokens(selected)).then((removed) => {
-      if (removed !== false) clearSelection();
-    });
-  }, [clearSelection, onDeleteTokens, selectedTokenIds, tokens]);
+    setDeleteError(null);
+    setDeleteCandidates(selected);
+  }, [canMove, deleteCandidates, onDeleteTokens, selectedTokenIds, tokens]);
+
+  const cancelDelete = () => {
+    if (!deletingRef.current) setDeleteCandidates(null);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingRef.current || !deleteCandidates || !onDeleteTokens) return;
+    deletingRef.current = true;
+    setDeleting(true);
+    setDeleteError(null);
+    const ids = new Set(deleteCandidates.map((token) => token.id));
+    // Re-read permissions and rows at confirmation: live updates may have
+    // changed them while the panel was open.
+    const pieces = (tokens || []).filter((token) => ids.has(token.id) && canMove(token));
+    try {
+      const removed = pieces.length ? await onDeleteTokens(pieces) : true;
+      if (removed !== false) {
+        setSelectedTokenIds((current) => current.filter((id) => !ids.has(id)));
+      }
+      setDeleteCandidates(null);
+    } catch (cause) {
+      setDeleteError(cause?.message || 'Could not delete the selected pieces. Please try again.');
+    } finally {
+      deletingRef.current = false;
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (paintMode !== 'marquee' || backgroundOnly) clearSelection();
@@ -288,8 +319,9 @@ export default function SceneViewport({
   useEffect(() => {
     if (paintMode !== 'marquee' || !selectedTokenIds.length) return undefined;
     const handleKeyDown = (event) => {
+      if (event.defaultPrevented || event.repeat || deleteCandidates || deletingRef.current) return;
       const target = event.target;
-      if (target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+      if (target?.closest?.('input, textarea, select, [contenteditable="true"], .MuiModal-root')) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         clearSelection();
@@ -300,7 +332,7 @@ export default function SceneViewport({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [clearSelection, deleteSelection, paintMode, selectedTokenIds.length]);
+  }, [clearSelection, deleteCandidates, deleteSelection, paintMode, selectedTokenIds.length]);
 
   const backgroundFrame = useMemo(() => (
     backgroundOnly && imageSize && viewportSize.width > 0 && viewportSize.height > 0
@@ -705,6 +737,9 @@ export default function SceneViewport({
     // selecting the surrounding page text and the next stroke can inherit that
     // selection instead of reaching the tool cleanly.
     event.preventDefault();
+    // preventDefault also suppresses the browser's focus transfer. Leaving a
+    // tool input focused makes Delete edit that input instead of the selection.
+    hostRef.current?.focus({ preventScroll: true });
     globalThis.getSelection?.()?.removeAllRanges?.();
     if (event.button === 0) setSelectedMapObjectId(null);
     const point = screenPoint(event);
@@ -808,6 +843,7 @@ export default function SceneViewport({
   const beginTokenDrag = useCallback((event, token) => {
     event.stopPropagation();
     if (paintMode === 'marquee') {
+      hostRef.current?.focus({ preventScroll: true });
       setSelectedMapObjectId(null);
       if (!canMove(token)) return;
       const ids = selectedTokenIds.includes(token.id) ? selectedTokenIds : [token.id];
@@ -1169,6 +1205,7 @@ export default function SceneViewport({
   return (
     <Box
       ref={hostRef}
+      tabIndex={-1}
       onPointerDownCapture={trackPointer}
       onPointerMoveCapture={trackPointerMove}
       onPointerUpCapture={forgetPointer}
@@ -1478,6 +1515,16 @@ export default function SceneViewport({
           </IconButton>
         </Stack>
       ) : null}
+
+      <DeletePiecesDialog
+        open={Boolean(deleteCandidates)}
+        pieces={deleteCandidates || []}
+        busy={deleting}
+        error={deleteError}
+        container={() => hostRef.current}
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+      />
 
       {controls ? (
         <>
