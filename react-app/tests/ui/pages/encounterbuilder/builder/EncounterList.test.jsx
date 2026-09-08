@@ -32,6 +32,7 @@ function Harness() {
         dispatch({ type: 'setView', view: 'library' });
       }}>Open saved library</button>
       <button onClick={() => dispatch({ type: 'setView', view: 'library' })}>Show library</button>
+      <button onClick={() => dispatch({ type: 'addMonster', monster: { name: 'Ogre', source: 'MM', cr: '2' } })}>Add Ogre</button>
       <output data-testid="state">{JSON.stringify(state)}</output>
       {state.view === 'library' ? <LibraryView /> : <EncounterList />}
     </>
@@ -62,4 +63,37 @@ test('Library Load edits the same encounter, repeated saves update it, and Save 
   expect(copied.library[1].id).toBe(7);
   await user.click(screen.getByRole('button', { name: 'Show library' }));
   expect(screen.getAllByRole('button', { name: 'Load' })).toHaveLength(2);
+});
+
+test('New Encounter starts an empty draft after updating and saves it separately', async () => {
+  const user = userEvent.setup();
+  render(<EncounterBuilderProvider instanceId="test" instanceSaved><Harness /></EncounterBuilderProvider>);
+  await user.click(screen.getByRole('button', { name: 'Open saved library' }));
+  await user.click(screen.getByRole('button', { name: 'Load' }));
+  await user.click(screen.getByRole('button', { name: 'Increase quantity' }));
+  await user.click(screen.getByRole('button', { name: 'Update in Library' }));
+  const readState = () => JSON.parse(screen.getByTestId('state').textContent);
+  const saved = readState();
+
+  await user.click(screen.getByRole('button', { name: 'New Encounter' }));
+  expect(screen.getByRole('textbox', { name: 'Library name' })).toHaveValue('');
+  expect(screen.getByRole('combobox', { name: 'Quest category' })).toHaveValue('');
+  expect(screen.getByText('Add monsters from the bestiary list.')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Save to Library' })).toBeDisabled();
+  expect(screen.queryByRole('button', { name: 'Update in Library' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Save as New' })).not.toBeInTheDocument();
+  expect(readState().currentEncounterId).toBeNull();
+  expect(readState().library).toEqual(saved.library);
+  expect(readState().party).toEqual(saved.party);
+  expect(readState().players).toEqual(saved.players);
+
+  await user.click(screen.getByRole('button', { name: 'Add Ogre' }));
+  fireEvent.change(screen.getByRole('textbox', { name: 'Library name' }), { target: { value: 'Ogre patrol' } });
+  await user.click(screen.getByRole('button', { name: 'Save to Library' }));
+  const next = readState();
+  expect(next.library).toHaveLength(2);
+  expect(next.library[1]).toEqual(saved.library[0]);
+  expect(next.library[0]).toMatchObject({ name: 'Ogre patrol', quest: null });
+  expect(next.library[0].id).not.toBe(original.id);
+  expect(next.library[0].encounter.map((item) => item.name)).toEqual(['Ogre']);
 });

@@ -98,6 +98,16 @@ export function encounterReducer(state, action) {
       return changeMonsterQty(state, action.id, action.delta);
     case 'removeEncounterItem':
       return { ...state, encounter: state.encounter.filter((item) => item.id !== action.id) };
+    case 'newEncounter':
+      return {
+        ...state,
+        view: 'builder',
+        encounter: [],
+        encounterName: '',
+        encounterQuest: null,
+        currentEncounterId: null,
+        selectedStatblock: null,
+      };
     case 'setEncounterName':
       return { ...state, encounterName: action.value };
     case 'setEncounterQuest':

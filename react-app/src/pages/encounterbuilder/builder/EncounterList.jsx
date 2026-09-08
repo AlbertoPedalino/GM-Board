@@ -36,8 +36,16 @@ export default function EncounterList() {
       <Stack spacing={2}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
           <Typography variant="h2">Encounter</Typography>
-          <Typography variant="body2" color="text.secondary">{formatNumber(difficulty.totalXp)} XP</Typography>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<Plus size={15} />}
+            onClick={() => dispatch({ type: 'newEncounter' })}
+          >
+            New Encounter
+          </Button>
         </Stack>
+        <Typography variant="body2" color="text.secondary">{formatNumber(difficulty.totalXp)} XP</Typography>
         <TextField
           size="small"
           label="Library name"
