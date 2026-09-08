@@ -89,12 +89,13 @@ export function EncounterBuilderProvider({ instanceId, instanceSaved, linkGroupI
     return { ...annotated, actor };
   }, [getRollActor, shareRoll]);
 
-  const saveEncounterToLibrary = useCallback((name) => {
+  const saveEncounterToLibrary = useCallback((name, { asNew = false } = {}) => {
     if (!state.encounter.length) return null;
-    const entry = makeSavedEncounter(name, state.encounter, state.party, state.encounterQuest);
+    const existing = asNew ? null : state.library.find((entry) => entry.id === state.currentEncounterId);
+    const entry = makeSavedEncounter(name, state.encounter, state.party, state.encounterQuest, existing);
     dispatch({ type: 'saveEncounterToLibrary', entry });
     return entry;
-  }, [state.encounter, state.encounterQuest, state.party]);
+  }, [state.currentEncounterId, state.encounter, state.encounterQuest, state.library, state.party]);
 
   const value = useMemo(() => ({
     state,

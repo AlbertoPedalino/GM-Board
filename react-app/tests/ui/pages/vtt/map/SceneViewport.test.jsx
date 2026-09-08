@@ -768,6 +768,9 @@ test('deletion stays visibly busy and repeated keys or clicks cannot submit it t
   expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeDisabled();
   expect(dialog).toBeInTheDocument();
   await act(async () => finish(true));
+  // The exit animation still paints this content after the operation settles.
+  expect(dialog).toHaveTextContent('Remove Hero from the map?');
+  expect(dialog).not.toHaveTextContent('Remove 0 selected pieces');
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   expect(screen.queryByText('1 selected')).not.toBeInTheDocument();
 });

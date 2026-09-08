@@ -48,8 +48,69 @@ import {
   sheetVitalsToSheetPatch,
 } from '../../../../../src/pages/encounterbuilder/campaign/sheetSync.js';
 import { createInitialState, encounterReducer } from '../../../../../src/pages/encounterbuilder/state/reducer.js';
+import { makeSavedEncounter } from '../../../../../src/pages/encounterbuilder/state/storage.js';
 import { SYNCED_VITALS } from '../../../../../src/shared/character/combat/vitals.js';
 import { toEncounterPlayer } from '../../../../../src/pages/encounterbuilder/campaign/campaignPlayer.js';
+
+test('editing a loaded encounter updates its identity and keeps its resumable fight', () => {
+  const goblin = { name: 'Goblin', source: 'MM', cr: '1/4' };
+  const ogre = { name: 'Ogre', source: 'MM', cr: '2' };
+  const entry = {
+    id: 7, name: 'Ambush', createdAt: '2025-01-01T00:00:00.000Z', quest: 'Old Road',
+    encounter: [{ id: 'goblin', name: 'Goblin', source: 'MM', qty: 1 }],
+  };
+  const other = { id: 8, name: 'Other encounter' };
+  const fight = { id: 9, encounterId: 7, fight: { round: 3, combatants: [] } };
+  let state = encounterReducer({ ...createInitialState(), library: [entry, other], fights: [fight] }, {
+    type: 'loadLibraryEncounter', entry, monsters: [goblin, ogre],
+  });
+  for (const action of [
+    { type: 'changeMonsterQty', id: 'goblin', delta: 1 },
+    { type: 'addMonster', monster: goblin },
+    { type: 'addMonster', monster: ogre },
+    { type: 'removeEncounterItem', id: 'goblin' },
+    { type: 'setEncounterName', value: 'Ogre ambush' },
+    { type: 'setEncounterQuest', quest: 'New Road' },
+    { type: 'setPartyLevel', value: 8 },
+  ]) {
+    state = encounterReducer(state, action);
+    assert.equal(state.currentEncounterId, entry.id);
+  }
+  const updated = makeSavedEncounter(state.encounterName, state.encounter, state.party, state.encounterQuest, entry);
+  state = encounterReducer(state, { type: 'saveEncounterToLibrary', entry: updated });
+  assert.equal(state.library.length, 2);
+  assert.equal(updated.id, entry.id);
+  assert.equal(updated.createdAt, entry.createdAt);
+  assert.equal(updated.name, 'Ogre ambush');
+  assert.equal(updated.quest, 'New Road');
+  assert.equal(updated.partyLevel, 8);
+  assert.equal(updated.totalXp, 450);
+  assert.deepEqual(updated.encounter.map((item) => item.name), ['Ogre']);
+  assert.equal(state.encounterName, updated.name);
+  assert.equal(state.library[1], other);
+  assert.equal(state.fights[0], fight);
+  state = encounterReducer(state, { type: 'saveEncounterToLibrary', entry: updated });
+  assert.equal(state.library.length, 2);
+});
+
+test('quantity removal and an empty draft keep the loaded encounter identity', () => {
+  let state = {
+    ...createInitialState(), currentEncounterId: 7,
+    encounter: [{ id: 'goblin', qty: 1 }],
+  };
+  state = encounterReducer(state, { type: 'changeMonsterQty', id: 'goblin', delta: -1 });
+  assert.equal(state.encounter.length, 0);
+  assert.equal(state.currentEncounterId, 7);
+  state = encounterReducer(state, { type: 'addMonster', monster: { name: 'Ogre', source: 'MM', cr: '2' } });
+  assert.equal(state.currentEncounterId, 7);
+});
+
+test('deleting the current library encounter or clearing the library detaches the draft', () => {
+  const state = { ...createInitialState(), currentEncounterId: 7, library: [{ id: 7 }, { id: 8 }] };
+  assert.equal(encounterReducer(state, { type: 'deleteLibraryEncounter', id: 8 }).currentEncounterId, 7);
+  assert.equal(encounterReducer(state, { type: 'deleteLibraryEncounter', id: 7 }).currentEncounterId, null);
+  assert.equal(encounterReducer(state, { type: 'clearLibrary' }).currentEncounterId, null);
+});
 
 test('an encounter keeps its selected quest when saved and loaded', () => {
   const quest = 'The Missing Caravan';

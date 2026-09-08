@@ -75,7 +75,7 @@ export default function LibraryView() {
 function LibraryCard({ item, monsters, questOptions, dispatch, notify }) {
   const enc = item.enc;
   const fight = item.fight;
-  const date = fight?.savedAt || enc.createdAt;
+  const date = Math.max(toTime(fight?.savedAt), toTime(enc.updatedAt || enc.createdAt));
   const monsterText = (enc.encounter || [])
     .map((monster) => `${monster.name}${monster.qty > 1 ? ` x${monster.qty}` : ''}`)
     .join(', ');

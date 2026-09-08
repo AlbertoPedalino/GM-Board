@@ -25,7 +25,7 @@ export function mergeLibrary(encounters, fights) {
   return (encounters || [])
     .map((enc) => {
       const linkedFight = fightForEncounter(fights, enc.id);
-      return { enc, fight: linkedFight, sortKey: Math.max(toTime(enc.createdAt), linkedFight?.savedAt || 0) };
+      return { enc, fight: linkedFight, sortKey: Math.max(toTime(enc.updatedAt || enc.createdAt), linkedFight?.savedAt || 0) };
     })
     .sort((a, b) => b.sortKey - a.sortKey);
 }

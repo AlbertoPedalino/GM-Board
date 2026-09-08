@@ -211,6 +211,7 @@ export default function SceneViewport({
   const [selectedMapObjectId, setSelectedMapObjectId] = useState(null);
   const [selectedTokenIds, setSelectedTokenIds] = useState([]);
   const [deleteCandidates, setDeleteCandidates] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const deletingRef = useRef(false);
@@ -272,19 +273,20 @@ export default function SceneViewport({
   }, []);
 
   const deleteSelection = useCallback(() => {
-    if (!onDeleteTokens || deleteCandidates || deletingRef.current) return;
+    if (!onDeleteTokens || deleteDialogOpen || deletingRef.current) return;
     const selected = (tokens || []).filter((token) => selectedTokenIds.includes(token.id) && canMove(token));
     if (!selected.length) return;
     setDeleteError(null);
     setDeleteCandidates(selected);
-  }, [canMove, deleteCandidates, onDeleteTokens, selectedTokenIds, tokens]);
+    setDeleteDialogOpen(true);
+  }, [canMove, deleteDialogOpen, onDeleteTokens, selectedTokenIds, tokens]);
 
   const cancelDelete = () => {
-    if (!deletingRef.current) setDeleteCandidates(null);
+    if (!deletingRef.current) setDeleteDialogOpen(false);
   };
 
   const confirmDelete = async () => {
-    if (deletingRef.current || !deleteCandidates || !onDeleteTokens) return;
+    if (deletingRef.current || !deleteDialogOpen || !deleteCandidates || !onDeleteTokens) return;
     deletingRef.current = true;
     setDeleting(true);
     setDeleteError(null);
@@ -297,7 +299,9 @@ export default function SceneViewport({
       if (removed !== false) {
         setSelectedTokenIds((current) => current.filter((id) => !ids.has(id)));
       }
-      setDeleteCandidates(null);
+      // Keep the confirmed pieces while the dialog animates out. Clearing
+      // them here flashes "Remove 0 selected pieces" before it disappears.
+      setDeleteDialogOpen(false);
     } catch (cause) {
       setDeleteError(cause?.message || 'Could not delete the selected pieces. Please try again.');
     } finally {
@@ -319,7 +323,7 @@ export default function SceneViewport({
   useEffect(() => {
     if (paintMode !== 'marquee' || !selectedTokenIds.length) return undefined;
     const handleKeyDown = (event) => {
-      if (event.defaultPrevented || event.repeat || deleteCandidates || deletingRef.current) return;
+      if (event.defaultPrevented || event.repeat || deleteDialogOpen || deletingRef.current) return;
       const target = event.target;
       if (target?.closest?.('input, textarea, select, [contenteditable="true"], .MuiModal-root')) return;
       if (event.key === 'Escape') {
@@ -332,7 +336,7 @@ export default function SceneViewport({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [clearSelection, deleteCandidates, deleteSelection, paintMode, selectedTokenIds.length]);
+  }, [clearSelection, deleteDialogOpen, deleteSelection, paintMode, selectedTokenIds.length]);
 
   const backgroundFrame = useMemo(() => (
     backgroundOnly && imageSize && viewportSize.width > 0 && viewportSize.height > 0
@@ -1517,7 +1521,7 @@ export default function SceneViewport({
       ) : null}
 
       <DeletePiecesDialog
-        open={Boolean(deleteCandidates)}
+        open={deleteDialogOpen}
         pieces={deleteCandidates || []}
         busy={deleting}
         error={deleteError}

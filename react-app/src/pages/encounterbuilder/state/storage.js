@@ -232,12 +232,14 @@ export function normalizeFightsData(value) {
   };
 }
 
-export function makeSavedEncounter(name, encounter, party, quest = null) {
+export function makeSavedEncounter(name, encounter, party, quest = null, existing = null) {
   const difficulty = calculateDifficulty(encounter, party);
   return {
-    id: Date.now(),
-    name: String(name || '').trim() || defaultEncounterName(),
-    createdAt: new Date().toISOString(),
+    ...existing,
+    id: existing?.id ?? Date.now(),
+    name: String(name || '').trim() || existing?.name || defaultEncounterName(),
+    createdAt: existing?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     partyCount: party.count,
     partyLevel: party.level,
     totalXp: difficulty.totalXp,

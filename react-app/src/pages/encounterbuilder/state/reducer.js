@@ -97,7 +97,7 @@ export function encounterReducer(state, action) {
     case 'changeMonsterQty':
       return changeMonsterQty(state, action.id, action.delta);
     case 'removeEncounterItem':
-      return { ...state, encounter: state.encounter.filter((item) => item.id !== action.id), currentEncounterId: null };
+      return { ...state, encounter: state.encounter.filter((item) => item.id !== action.id) };
     case 'setEncounterName':
       return { ...state, encounterName: action.value };
     case 'setEncounterQuest':
@@ -115,9 +115,9 @@ export function encounterReducer(state, action) {
     case 'saveEncounterToLibrary':
       return {
         ...state,
-        library: [action.entry, ...state.library],
+        library: [action.entry, ...state.library.filter((entry) => entry.id !== action.entry.id)],
         currentEncounterId: action.entry.id,
-        encounterName: '',
+        encounterName: action.entry.name,
         encounterQuest: action.entry.quest || null,
       };
     case 'assignEncounterQuest':
@@ -125,7 +125,7 @@ export function encounterReducer(state, action) {
     case 'deleteLibraryEncounter':
       return deleteLibraryEncounter(state, action.id);
     case 'clearLibrary':
-      return { ...state, library: [], fights: [], activeFightId: null, combat: null };
+      return { ...state, library: [], fights: [], currentEncounterId: null, activeFightId: null, combat: null };
     case 'loadLibraryEncounter':
       return {
         ...state,
@@ -360,7 +360,6 @@ function addMonster(state, monster) {
   if (existing) {
     return {
       ...state,
-      currentEncounterId: null,
       encounter: state.encounter.map((item) => (
         item.id === existing.id ? { ...item, qty: clampInt(item.qty + 1, 1, 99, 1) } : item
       )),
@@ -368,7 +367,6 @@ function addMonster(state, monster) {
   }
   return {
     ...state,
-    currentEncounterId: null,
     encounter: [...state.encounter, toEncounterMonster(monster, `enc-${Date.now()}-${state.encounter.length}`)],
   };
 }
@@ -377,7 +375,7 @@ function changeMonsterQty(state, id, delta) {
   const encounter = state.encounter
     .map((item) => (item.id === id ? { ...item, qty: item.qty + delta } : item))
     .filter((item) => item.qty > 0);
-  return { ...state, encounter, currentEncounterId: null };
+  return { ...state, encounter };
 }
 
 function setPartyCount(state, value) {
@@ -538,7 +536,7 @@ function launchCombat(state, encounter, encounterId, name, quest = null) {
     library,
     encounter,
     currentEncounterId: id,
-    encounterName: '',
+    encounterName: name || library.find((entry) => entry.id === id)?.name || '',
     encounterQuest: quest || library.find((entry) => entry.id === id)?.quest || null,
   }, combat, { view: 'combat' });
 }
@@ -597,12 +595,14 @@ function deleteLibraryEncounter(state, id) {
     return {
       ...state,
       library: state.library.filter((entry) => entry.id !== id),
+      currentEncounterId: state.currentEncounterId === id ? null : state.currentEncounterId,
       fights,
     };
   }
   return {
     ...state,
     library: state.library.filter((entry) => entry.id !== id),
+    currentEncounterId: state.currentEncounterId === id ? null : state.currentEncounterId,
     fights,
     activeFightId: null,
     combat: null,

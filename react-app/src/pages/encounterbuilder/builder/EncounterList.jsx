@@ -15,14 +15,15 @@ export default function EncounterList() {
   const { notify } = useToast();
   const difficulty = calculateDifficulty(state.encounter, state.party);
   const questOptions = useMemo(() => listQuestNames(state.library), [state.library]);
+  const editingExisting = state.library.some((entry) => entry.id === state.currentEncounterId);
 
-  const handleSave = () => {
+  const handleSave = (asNew = false) => {
     if (!instanceSaved) {
       notify('warning', 'Save this encounter-builder instance before saving library entries.');
       return;
     }
-    const entry = saveEncounterToLibrary(state.encounterName);
-    if (entry) notify('success', `"${entry.name}" saved to Library.`);
+    const entry = saveEncounterToLibrary(state.encounterName, { asNew });
+    if (entry) notify('success', `"${entry.name}" ${editingExisting && !asNew ? 'updated in' : 'saved to'} Library.`);
   };
 
   const handleLaunch = () => {
@@ -110,13 +111,18 @@ export default function EncounterList() {
           <Button
             variant="outlined"
             startIcon={<Save size={16} />}
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={!state.encounter.length}
             fullWidth
           >
-            Save to Library
+            {editingExisting ? 'Update in Library' : 'Save to Library'}
           </Button>
         </Stack>
+        {editingExisting ? (
+          <Button onClick={() => handleSave(true)} disabled={!state.encounter.length}>
+            Save as New
+          </Button>
+        ) : null}
       </Stack>
     </Paper>
   );
