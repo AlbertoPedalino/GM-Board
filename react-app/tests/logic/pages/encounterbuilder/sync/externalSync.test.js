@@ -44,6 +44,23 @@ test('ids are compared as text, so a numeric fight id still matches', () => {
   assert.deepEqual(delta.fights, []);
 });
 
+// An encounter saved again keeps its id, so an id-only check left this tab
+// showing — and persisting — the version it first loaded, however many times
+// the encounter was edited in another tab or pulled down from the cloud.
+test('a saved encounter written again is newer, not already known', () => {
+  const held = { fights: [], library: [{ id: 'e1', updatedAt: '2026-08-07T09:00:00.000Z' }], activeFightId: null };
+  const newer = { id: 'e1', updatedAt: '2026-08-07T12:00:00.000Z' };
+  assert.deepEqual(externalDelta(persisted([], [newer]), held).library, [newer]);
+  assert.deepEqual(
+    externalDelta(persisted([], [{ id: 'e1', updatedAt: '2026-08-07T09:00:00.000Z' }]), held).library,
+    [],
+  );
+  assert.deepEqual(
+    externalDelta(persisted([], [{ id: 'e1', updatedAt: '2026-08-06T09:00:00.000Z' }]), held).library,
+    [],
+  );
+});
+
 test('empty storage asks for nothing', () => {
   assert.deepEqual(externalDelta(null, {}), { fights: [], library: [] });
   assert.deepEqual(externalDelta(persisted([]), undefined), { fights: [], library: [] });

@@ -25,7 +25,7 @@ import PiecePreview, { beginPiecePointerDrag } from '../tokens/PiecePreview.jsx'
 // cannot: which part of the picture is room three.
 export default function DungeonPanel({
   dungeonKey, fights, busy, error, partySize, linkHint, title,
-  onRoll, onClear, onSendRoom, monstersForRoom, markersForRoom,
+  onRoll, onClear, monstersForRoom, markersForRoom,
   onPlacementDragStart, onPlacementDragEnd,
 }) {
   const theme = useTheme();
@@ -144,38 +144,39 @@ export default function DungeonPanel({
                   <Typography sx={lineSx}>{describeGroups(chosen.groups, chosen.budget)}</Typography>
                 </Stack>
 
-                {/* Sent to the builder first, dragged onto the map second. The
-                    order matters: a piece dropped from a fight carries that
-                    fight's own reference, so the creature on the board and the
-                    one being tracked are the same creature from round one. */}
-                {sent ? (
-                  <Stack
-                    direction="row"
-                    spacing={0.6}
-                    sx={dragSx}
-                    onPointerDown={(event) => beginPiecePointerDrag(event, {
-                      kind: 'encounter',
-                      layer: 'tokens',
+                {/* A piece dropped from a fight carries that fight's own
+                    reference, so the creature on the board and the one being
+                    tracked are the same creature from round one. The fight has
+                    to exist for that — and it is written by the drop rather
+                    than by a button pressed first: the GM asking for the
+                    creatures on the map is the same GM who wants them tracked,
+                    and the trip through the builder was theirs to make for
+                    nothing. */}
+                <Stack
+                  direction="row"
+                  spacing={0.6}
+                  sx={dragSx}
+                  onPointerDown={busy ? undefined : (event) => beginPiecePointerDrag(event, {
+                    kind: 'encounter',
+                    layer: 'tokens',
+                    // Already sent: its fight is what the pieces on every other
+                    // screen point at, so this drops from that one rather than
+                    // sending the room a second time.
+                    ...(sent ? {
                       instanceId: sent.instanceId,
                       fightId: sent.fightId,
                       combatants: sent.combatants,
-                      token: previewToken(chosen.groups),
-                    }, { onPlacementDragStart, onPlacementDragEnd })}
-                  >
-                    <PiecePreview token={previewToken(chosen.groups)} size={26} />
-                    <Typography sx={lineSx}>Drag onto the map — “{sent.name}”</Typography>
-                  </Stack>
-                ) : (
-                  <Button
-                    size="small"
-                    sx={actionSx}
-                    startIcon={<Swords size={13} />}
-                    disabled={busy}
-                    onClick={() => onSendRoom(number, { title })}
-                  >
-                    Send to the Encounter Builder
-                  </Button>
-                )}
+                    } : { roomNumber: number, roomTitle: title }),
+                    token: previewToken(chosen.groups),
+                  }, { onPlacementDragStart, onPlacementDragEnd })}
+                >
+                  <PiecePreview token={previewToken(chosen.groups)} size={26} />
+                  <Typography sx={lineSx}>
+                    {sent
+                      ? `Drag onto the map — “${sent.name}”`
+                      : 'Drag onto the map — sent to the Encounter Builder as it lands'}
+                  </Typography>
+                </Stack>
               </>
             ) : null}
 
@@ -292,7 +293,6 @@ const numberSx = {
 
 const roomMetaSx = { fontSize: '0.66rem', color: 'text.secondary' };
 
-const actionSx = { px: 0.75, minWidth: 0, fontSize: '0.66rem', textTransform: 'none' };
 
 const dragSx = {
   alignItems: 'center',

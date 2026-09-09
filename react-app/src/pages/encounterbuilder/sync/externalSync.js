@@ -8,6 +8,8 @@
 //
 // Pure, so the rule for "new or newer" is testable without a browser.
 
+import { cardTime } from '../library/library.js';
+
 export function externalDelta(persisted, held = {}) {
   const heldFights = held.fights || [];
   const mine = new Map(heldFights.map((fight) => [String(fight.id), fight]));
@@ -23,9 +25,15 @@ export function externalDelta(persisted, held = {}) {
     return Number(entry.savedAt || 0) > Number(ours.savedAt || 0);
   });
 
-  const knownEncounters = new Set((held.library || []).map((entry) => String(entry.id)));
-  const library = (persisted?.library || [])
-    .filter((entry) => !knownEncounters.has(String(entry.id)));
+  // New, or newer. An encounter saved again keeps its id, so asking only
+  // whether the id is known left every later version of it unread: the card
+  // edited in another tab, or pulled down from the cloud, sat in storage while
+  // this tab kept showing — and persisting — the version it first loaded.
+  const heldEncounters = new Map((held.library || []).map((entry) => [String(entry.id), entry]));
+  const library = (persisted?.library || []).filter((entry) => {
+    const ours = heldEncounters.get(String(entry.id));
+    return !ours || cardTime(entry) > cardTime(ours);
+  });
 
   return { fights, library };
 }

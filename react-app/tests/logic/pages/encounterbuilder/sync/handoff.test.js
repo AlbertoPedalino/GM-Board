@@ -30,8 +30,12 @@ if (!globalThis.CustomEvent) {
   Object.defineProperty(globalThis, 'CustomEvent', { value: class {}, configurable: true });
 }
 
-const { sendEncounterToBuilder, encounterFromGroups, withSheetIdentity } = await import('../../../../../src/pages/encounterbuilder/sync/handoff.js');
-const { readPersistedInstance, persistParty } = await import('../../../../../src/pages/encounterbuilder/state/storage.js');
+const {
+  sendEncounterToBuilder, encounterFromGroups, launchLibraryEncounter, withSheetIdentity,
+} = await import('../../../../../src/pages/encounterbuilder/sync/handoff.js');
+const {
+  makeSavedEncounter, persistLibrary, persistParty, readPersistedInstance,
+} = await import('../../../../../src/pages/encounterbuilder/state/storage.js');
 
 const OGRE = { name: 'Ogre', source: 'MM', cr: '2', xp: 450, hp: { average: 59 } };
 const GOBLIN = { name: 'Goblin', source: 'MM', cr: '1/4', xp: 50, hp: { average: 7 } };
@@ -133,4 +137,56 @@ test('a room with nothing in it is refused rather than written as an empty fight
   assert.deepEqual(encounterFromGroups([{ monster: null, count: 3 }]), []);
   assert.throws(() => sendEncounterToBuilder('enc-test-3', { groups: [] }), /no creatures/);
   assert.throws(() => sendEncounterToBuilder('', { groups: [{ monster: OGRE, count: 1 }] }), /no Encounter Builder/);
+});
+
+// The trip this saves: an encounter prepared in the builder but never launched
+// had no fight, and a piece with no fight behind it is a picture — nothing is
+// tracking its hit points. The GM found that out on the battle map, and had to
+// go to the builder, launch it, and come back.
+test('an encounter that was never launched is launched where it is asked for', () => {
+  localStorage.clear();
+  const instanceId = 'enc-test-launch';
+  const card = makeSavedEncounter('Wolves', [
+    { id: 'i1', name: 'Ogre', source: 'MM', cr: '2', xp: 450, qty: 2, monsterData: OGRE },
+  ], { count: 4, level: 3 }, 'The Long Winter');
+  persistLibrary(instanceId, [card]);
+
+  const link = launchLibraryEncounter(instanceId, card.id, { monsters: [OGRE] });
+  const persisted = readPersistedInstance(instanceId, [OGRE]);
+
+  assert.equal(persisted.fightsData.items.length, 1);
+  assert.equal(persisted.fightsData.items[0].id, link.fightId);
+  assert.equal(persisted.fightsData.items[0].encounterId, card.id);
+  // The card travels with the fight, so another device can open it.
+  assert.equal(persisted.fightsData.items[0].encounter.id, card.id);
+  // Not made active: the GM is placing pieces on a map, not opening a combat
+  // view on some other screen.
+  assert.equal(persisted.fightsData.activeFightId, null);
+  assert.equal(link.combatants.length, 2);
+  assert.ok(link.entry, 'a fight that was written is a row to write');
+});
+
+// A second fight for the same encounter would leave half the table tracking hit
+// points the other half cannot see.
+test('an encounter that already has a fight is handed that fight, not a new one', () => {
+  localStorage.clear();
+  const instanceId = 'enc-test-relaunch';
+  const card = makeSavedEncounter('Wolves', [
+    { id: 'i1', name: 'Goblin', source: 'MM', cr: '1/4', xp: 50, qty: 3, monsterData: GOBLIN },
+  ], { count: 4, level: 1 });
+  persistLibrary(instanceId, [card]);
+
+  const first = launchLibraryEncounter(instanceId, card.id, { monsters: [GOBLIN] });
+  const again = launchLibraryEncounter(instanceId, card.id, { monsters: [GOBLIN] });
+
+  assert.equal(again.fightId, first.fightId);
+  assert.equal(again.entry, null, 'nothing new to write online');
+  assert.equal(again.combatants.length, 3);
+  assert.equal(readPersistedInstance(instanceId, [GOBLIN]).fightsData.items.length, 1);
+});
+
+test('an encounter the builder no longer has is said out loud rather than placed', () => {
+  localStorage.clear();
+  assert.throws(() => launchLibraryEncounter('enc-test-missing', 'gone'), /no longer in the Encounter Builder/);
+  assert.throws(() => launchLibraryEncounter('', 'gone'), /no Encounter Builder/);
 });

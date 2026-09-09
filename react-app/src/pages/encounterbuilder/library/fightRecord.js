@@ -9,6 +9,8 @@
 // written by the battle map too, and a blob cannot hold something two writers
 // touch without one of them losing.
 
+import { cardTime } from './library.js';
+
 export const FIGHT_COLUMNS = 'id, instance_id, name, encounter_id, encounter, fight, updated_at';
 
 // The builder mints both ids with `Date.now()` — numbers — and half the code
@@ -68,16 +70,22 @@ export function fightSignature(entry) {
   }
 }
 
-// The library cards a set of rows carries that this device has not got. Both
-// the first read and every realtime change go through this, so a fight is never
-// added without the card that opens it.
-export function missingLibraryCards(entries, library) {
-  const known = new Set((library || []).map((entry) => String(entry?.id)));
+// The library cards a set of rows carries that this device has not got, or has
+// only in an older version. Both the first read and every realtime change go
+// through this, so a fight is never added without the card that opens it — and
+// an encounter saved again elsewhere is not mistaken for one already held: it
+// keeps its id, so an id-only check would leave this device on the first
+// version of it for good.
+export function libraryCardUpdates(entries, library) {
+  const held = new Map((library || []).map((entry) => [String(entry?.id), entry]));
   const cards = [];
   for (const entry of entries || []) {
     const card = entry?.encounter;
-    if (!card?.id || known.has(String(card.id))) continue;
-    known.add(String(card.id));
+    if (!card?.id) continue;
+    const key = String(card.id);
+    const ours = held.get(key);
+    if (ours && cardTime(card) <= cardTime(ours)) continue;
+    held.set(key, card);
     cards.push(card);
   }
   return cards;

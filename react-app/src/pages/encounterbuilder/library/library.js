@@ -51,3 +51,41 @@ export function groupLibraryByQuest(items) {
       return a.quest.localeCompare(b.quest);
     });
 }
+
+// One fight per encounter, which is the rule the builder already keeps for
+// itself: launching an encounter supersedes the fight of the previous launch.
+// A fight arriving from anywhere else never went through that launch — a row
+// written by another device, a room sent over by the battle map — so without
+// this the fight of an older launch comes back and stands beside the current
+// one, and the same encounter is offered twice over. The newest snapshot wins,
+// and the fight in play is never dropped: the reducer is running it.
+export function dedupeFightsByEncounter(fights, activeFightId = null) {
+  const activeKey = activeFightId == null ? null : String(activeFightId);
+  const encounterKey = (fight) => (fight?.encounterId == null ? null : String(fight.encounterId));
+  const keep = new Map();
+  for (const fight of fights || []) {
+    const key = encounterKey(fight);
+    if (key == null) continue;
+    const held = keep.get(key);
+    if (!held) {
+      keep.set(key, fight);
+      continue;
+    }
+    if (String(held.id) === activeKey) continue;
+    if (String(fight.id) === activeKey || toTime(fight.savedAt) > toTime(held.savedAt)) {
+      keep.set(key, fight);
+    }
+  }
+  // A fight launched from a draft that was never saved has no encounter to be
+  // the second of, so it is always its own.
+  return (fights || []).filter((fight) => {
+    const key = encounterKey(fight);
+    return key == null || keep.get(key) === fight;
+  });
+}
+
+// When a saved encounter was last written, however it was spelled: the builder
+// stamps ISO strings, and a fight stamps a number.
+export function cardTime(card) {
+  return Math.max(toTime(card?.updatedAt), toTime(card?.createdAt));
+}

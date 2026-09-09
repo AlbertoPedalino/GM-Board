@@ -92,6 +92,8 @@ import { useSceneContent } from './useSceneContent.js';
 import { useVttRolls } from '../rolls/useVttRolls.js';
 import DungeonPanel from '../dungeon/DungeonPanel.jsx';
 import { useMonsterDb } from '../../encounterbuilder/bestiary/useMonsterDb.js';
+import { launchLibraryEncounter } from '../../encounterbuilder/sync/handoff.js';
+import { saveInstanceFight } from '../../../shared/cloud/api/encounterFights.js';
 import HexcrawlCorner from '../hexcrawl/HexcrawlCorner.jsx';
 import HexResultDialog from '../hexcrawl/HexResultDialog.jsx';
 import { useConditionEntries } from '../../encounterbuilder/combat/useConditionEntries.js';
@@ -1274,14 +1276,58 @@ export default function SceneEditor({
   }, [activeLayer, addToken, canPlacePiece, nextFreeCell, notify, role.isGm]);
 
   const handleImportEncounter = useCallback(async (
-    combatants, { layer, instanceId, fightId, position } = {},
+    combatants, {
+      layer, instanceId, fightId, encounterId, roomNumber, roomTitle, position,
+    } = {},
   ) => {
     if (!canPlacePiece()) return;
     setBusy(true);
     setImportOpen(false);
     try {
+      // A piece with no fight behind it is a picture: nothing is tracking its
+      // hit points. Both roads to one end here rather than at a button the GM
+      // had to press first — an encounter saved in the builder and never
+      // launched, and a dungeon room rolled on this very panel.
+      let placed = combatants;
+      let ref = fightId;
+      let instance = instanceId;
+      if (!ref && roomNumber != null) {
+        const room = await dungeon.sendRoomToBuilder(roomNumber, { title: roomTitle });
+        // The panel says why in full — a map with no Encounter Builder linked
+        // to it is the usual reason — but a drop that quietly did nothing is
+        // the one thing that must not happen.
+        if (!room) {
+          notify('error', dungeon.linkHint || 'Could not send that room to the Encounter Builder.');
+          return;
+        }
+        placed = room.combatants;
+        ref = room.fightId;
+        instance = room.instanceId;
+      } else if (!ref && encounterId != null) {
+        const launched = launchLibraryEncounter(instanceId, encounterId, {
+          monsters: monsterDb.monsters,
+          roster,
+        });
+        placed = launched.combatants;
+        ref = launched.fightId;
+        // The row is what a second screen reads the fight from. Its own attempt,
+        // and not a fatal one: the fight is already written in this browser, and
+        // the pieces about to land can be run from here whatever the database
+        // says.
+        if (launched.entry) {
+          try {
+            await saveInstanceFight(instanceId, launched.entry);
+          } catch (cause) {
+            notify('warning', `The encounter was launched here, but not online: ${cause?.message || 'the fight could not be saved.'}`);
+          }
+        }
+      }
       const laid = layoutTokens(
-        combatants.map((combatant) => combatantToToken(combatant, { layer, instanceId, fightId })),
+        placed.map((combatant) => combatantToToken(combatant, {
+          layer,
+          instanceId: instance,
+          fightId: ref,
+        })),
         tokens,
         position ? { origin: position } : undefined,
       );
@@ -1300,7 +1346,10 @@ export default function SceneEditor({
     } finally {
       setBusy(false);
     }
-  }, [canPlacePiece, notify, scene.id, tokens]);
+  }, [
+    canPlacePiece, dungeon.linkHint, dungeon.sendRoomToBuilder, monsterDb.monsters, notify,
+    roster, scene.id, tokens,
+  ]);
 
   const handleDropPlacement = useCallback((placement, position) => {
     if (!placement) return;
@@ -1317,6 +1366,9 @@ export default function SceneEditor({
         layer: placement.layer,
         instanceId: placement.instanceId,
         fightId: placement.fightId,
+        encounterId: placement.encounterId,
+        roomNumber: placement.roomNumber,
+        roomTitle: placement.roomTitle,
         position,
       });
     } else if (placement.kind === 'token') {
@@ -1783,7 +1835,6 @@ export default function SceneEditor({
             partySize={Math.max(1, roster.length || 4)}
             onRoll={dungeon.roll}
             onClear={dungeon.clear}
-            onSendRoom={dungeon.sendRoomToBuilder}
             monstersForRoom={dungeon.monstersForRoom}
             markersForRoom={dungeon.markersForRoom}
             onPlacementDragStart={setPlacementDrag}

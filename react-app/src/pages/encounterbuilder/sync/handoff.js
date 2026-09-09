@@ -10,11 +10,12 @@
 // Everything here goes through the builder's own storage functions rather than
 // touching its keys, so a change to how it stores things changes this too.
 
-import { buildCombat, snapshotFight } from '../combat/combat.js';
+import { buildCombat, restoreFight, snapshotFight } from '../combat/combat.js';
 import { importableCombatants } from '../../../shared/vtt/tokens/encounterImport.js';
 import {
   makeSavedEncounter, persistFights, persistLibrary, readPersistedInstance,
 } from '../state/storage.js';
+import { hydrateEncounterItems } from '../bestiary/monsterUtils.js';
 
 // The builder's own shape for a line of an encounter: a creature and how many.
 function encounterItem(monster, count) {
@@ -119,6 +120,75 @@ export function sendEncounterToBuilder(instanceId, {
     // characters is not one. What goes onto the map is the creatures only: the
     // players already have their own pieces there, and a second set of them
     // standing in the room they are about to walk into is nobody's intention.
+    combatants: importableCombatants(combat),
+  };
+}
+
+// A saved encounter launched from outside the builder.
+//
+// A creature is only worth placing once something is tracking its hit points,
+// and that something is a fight: a saved encounter on its own is a shopping
+// list. The battle map's import dialog is where a GM is when they find out the
+// encounter they want was never launched, and sending them to the builder and
+// back to launch it by hand is a trip that ends exactly here — so this does
+// what the builder's own launch does, from wherever it is asked.
+//
+// The fight is not made active. The GM is placing pieces on a map, not opening
+// the builder's combat view on some other screen.
+export function launchLibraryEncounter(instanceId, encounterId, { monsters = [], roster = [] } = {}) {
+  if (!instanceId) throw new Error('There is no Encounter Builder behind this encounter.');
+  const persisted = readPersistedInstance(instanceId, monsters);
+  const card = (persisted.library || [])
+    .find((entry) => String(entry.id) === String(encounterId));
+  if (!card) throw new Error('That encounter is no longer in the Encounter Builder.');
+
+  // An encounter it already has a fight for is not launched again: that fight
+  // is what the pieces on every other screen already point at, and a second one
+  // would leave half the table tracking hit points nobody else can see.
+  const items = persisted.fightsData?.items || [];
+  const existing = items.find((fight) => (
+    fight?.encounterId != null && String(fight.encounterId) === String(card.id)
+  ));
+  if (existing) {
+    return {
+      instanceId,
+      encounterId: card.id,
+      fightId: existing.id,
+      name: existing.name || card.name,
+      // Nothing new to write anywhere: the fight is already a record.
+      entry: null,
+      combatants: importableCombatants(restoreFight(existing, monsters)),
+    };
+  }
+
+  const encounter = hydrateEncounterItems(card.encounter, monsters);
+  const players = withSheetIdentity(persisted.partyData?.players || [], roster);
+  const combat = buildCombat(encounter, players, card.id);
+  if (!combat.combatants.length) throw new Error('That encounter has no creatures to place.');
+  combat.name = card.name;
+  const fightEntry = {
+    id: combat.fightId,
+    name: card.name,
+    savedAt: Date.now(),
+    encounterId: card.id,
+    // The card travels with the fight, as it does for a room sent from the map:
+    // a device that never got this instance's library still has something to
+    // open the fight from.
+    encounter: card,
+    fight: snapshotFight(combat),
+  };
+  persistFights(
+    instanceId,
+    persisted.fightsData?.activeFightId || null,
+    [fightEntry, ...items.filter((fight) => fight.id !== fightEntry.id)],
+  );
+
+  return {
+    instanceId,
+    encounterId: card.id,
+    fightId: combat.fightId,
+    name: card.name,
+    entry: fightEntry,
     combatants: importableCombatants(combat),
   };
 }

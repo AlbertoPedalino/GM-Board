@@ -886,6 +886,41 @@ test('a fight written from outside is merged instead of being persisted away', (
   assert.equal(encounterReducer(applied, { type: 'absorbExternal', fights: [], library: [] }), applied);
 });
 
+// The bug behind "the same encounter three times in the import dialog": a
+// launch supersedes the fight before it, but the rows of those earlier launches
+// come back from the cloud, and a merge that only compared fight ids took each
+// one for a fight this device had never seen.
+test('an older fight of an encounter already held is not a second fight', () => {
+  const state = {
+    ...createInitialState(),
+    fights: [{ id: 'f2', name: 'Wolves', savedAt: 20, encounterId: 'e1', fight: { combatants: [] } }],
+    library: [{ id: 'e1', name: 'Wolves', updatedAt: '2026-08-07T09:00:00.000Z' }],
+    activeFightId: null,
+  };
+
+  const stale = { id: 'f1', name: 'Wolves', savedAt: 10, encounterId: 'e1', fight: { combatants: [] } };
+  const merged = encounterReducer(state, { type: 'absorbExternal', fights: [stale], library: [] });
+  assert.deepEqual(merged.fights.map((fight) => fight.id), ['f2']);
+
+  // The other way round: a newer fight of the same encounter supersedes ours.
+  const newer = { id: 'f3', name: 'Wolves', savedAt: 30, encounterId: 'e1', fight: { combatants: [] } };
+  const applied = encounterReducer(merged, { type: 'absorbExternal', fights: [newer], library: [] });
+  assert.deepEqual(applied.fights.map((fight) => fight.id), ['f3']);
+});
+
+// The other half of the same report: an encounter updated over and over showed
+// its first version here, because a card whose id was known was dropped.
+test('a newer version of a saved encounter replaces the one held', () => {
+  const state = {
+    ...createInitialState(),
+    fights: [],
+    library: [{ id: 'e1', name: 'Wolves', updatedAt: '2026-08-07T09:00:00.000Z' }],
+  };
+  const newer = { id: 'e1', name: 'Wolves (5)', updatedAt: '2026-08-07T12:00:00.000Z' };
+  const applied = encounterReducer(state, { type: 'absorbExternal', fights: [], library: [newer] });
+  assert.deepEqual(applied.library, [newer]);
+});
+
 // A creature wounded on the battle map, arriving over realtime. The same
 // reconciliation the localStorage bridge uses, so it does not matter which road
 // the news took.

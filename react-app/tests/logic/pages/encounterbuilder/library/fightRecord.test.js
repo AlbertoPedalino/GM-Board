@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   fightSignature,
-  missingLibraryCards,
+  libraryCardUpdates,
   toFightEntry,
   toFightRow,
 } from '../../../../../src/pages/encounterbuilder/library/fightRecord.js';
@@ -96,8 +96,23 @@ test('the signature ignores when it was saved', () => {
 test('only the cards this device is missing are handed over', () => {
   const rows = [toFightEntry(ROW), toFightEntry({ ...ROW, id: 'f2' })];
   // Both rows carry the same card: it is offered once.
-  assert.deepEqual(missingLibraryCards(rows, []), [CARD]);
-  assert.deepEqual(missingLibraryCards(rows, [{ id: 1786095432000 }]), []);
-  assert.deepEqual(missingLibraryCards([toFightEntry({ ...ROW, encounter: null })], []), []);
-  assert.deepEqual(missingLibraryCards(null, null), []);
+  assert.deepEqual(libraryCardUpdates(rows, []), [CARD]);
+  assert.deepEqual(libraryCardUpdates(rows, [{ id: 1786095432000 }]), []);
+  assert.deepEqual(libraryCardUpdates([toFightEntry({ ...ROW, encounter: null })], []), []);
+  assert.deepEqual(libraryCardUpdates(null, null), []);
+});
+
+// An encounter saved again keeps its id, so asking only whether the id is known
+// left this device on the first version of it however many times the GM edited
+// it elsewhere — the encounter looked unsynced while its row said otherwise.
+test('a card saved again is a newer card, not a duplicate to ignore', () => {
+  const held = { ...CARD, updatedAt: '2026-08-07T09:00:00.000Z', name: 'Wolves' };
+  const newer = { ...CARD, updatedAt: '2026-08-07T12:00:00.000Z', name: 'Wolves (5)' };
+  const older = { ...CARD, updatedAt: '2026-08-06T12:00:00.000Z', name: 'Wolves (3)' };
+
+  assert.deepEqual(libraryCardUpdates([toFightEntry({ ...ROW, encounter: newer })], [held]), [newer]);
+  assert.deepEqual(libraryCardUpdates([toFightEntry({ ...ROW, encounter: older })], [held]), []);
+  assert.deepEqual(libraryCardUpdates([toFightEntry({ ...ROW, encounter: held })], [held]), []);
+  // A card with no stamp at all cannot claim to be newer than one we hold.
+  assert.deepEqual(libraryCardUpdates([toFightEntry(ROW)], [held]), []);
 });

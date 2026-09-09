@@ -8,7 +8,7 @@ import {
   subscribeInstanceFights,
 } from '../../../shared/cloud/api/encounterFights.js';
 import { externalDelta } from './externalSync.js';
-import { fightSignature, missingLibraryCards } from '../library/fightRecord.js';
+import { fightSignature, libraryCardUpdates } from '../library/fightRecord.js';
 
 // The fights of this instance, with the database as the record.
 //
@@ -142,8 +142,9 @@ export function useCloudFights({
     // A fight is only reachable through the card of its encounter, and the
     // library is still a blob this device may never have been given. The card
     // rides along in the row for exactly this: without it the room would arrive
-    // as a fight with nothing to open it from.
-    const cards = missingLibraryCards(rows, library);
+    // as a fight with nothing to open it from — and when the card is one this
+    // device already has in an older version, the newer one replaces it.
+    const cards = libraryCardUpdates(rows, library);
     if (delta.fights.length || cards.length) {
       dispatchRef.current({ type: 'absorbExternal', fights: delta.fights, library: cards });
     }

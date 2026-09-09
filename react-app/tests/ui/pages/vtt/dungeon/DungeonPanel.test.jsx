@@ -43,7 +43,6 @@ const renderPanel = (props = {}) => render(
       title="Ebonscar"
       onRoll={() => {}}
       onClear={() => {}}
-      onSendRoom={() => {}}
       monstersForRoom={() => null}
       markersForRoom={() => []}
       {...props}
@@ -104,17 +103,28 @@ test('each room shows what was rolled in it', () => {
 });
 
 // The creatures are worth nothing until something is tracking their hit points,
-// so the fight is made first and the pieces come off it.
-test('a room with an encounter is sent to the Encounter Builder before it can be dragged', () => {
-  const onSendRoom = vi.fn();
+// and the fight that does the tracking is written by the drop. The GM used to
+// have to press a button first, then come back and drag the same room.
+test('a room rolled but never sent is dragged as the room itself', () => {
+  const onPlacementDragStart = vi.fn();
   const monstersForRoom = (number) => (number === 1
     ? { budget: 4400, groups: [{ monster: { name: 'Ogre' }, count: 4, xp: 1800 }] }
     : null);
-  renderPanel({ onSendRoom, monstersForRoom });
+  renderPanel({ monstersForRoom, onPlacementDragStart });
 
   expect(screen.getByText(/4 × Ogre/)).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: /send to the encounter builder/i }));
-  expect(onSendRoom).toHaveBeenCalledWith(1, { title: 'Ebonscar' });
+  expect(screen.queryByRole('button', { name: /send to the encounter builder/i })).toBeNull();
+
+  drag(screen.getByText(/drag onto the map/i).closest('div'));
+
+  expect(onPlacementDragStart).toHaveBeenCalledWith(expect.objectContaining({
+    kind: 'encounter',
+    layer: 'tokens',
+    roomNumber: 1,
+    roomTitle: 'Ebonscar',
+  }));
+  // Nothing to point at yet: the fight is made where it lands.
+  expect(onPlacementDragStart.mock.calls[0][0].fightId).toBeUndefined();
 });
 
 test('a room already sent offers its fight to drag, carrying that fight\'s reference', () => {

@@ -15,7 +15,10 @@ import {
   Typography,
 } from '@mui/material';
 import { readRegistry, readPersistedInstance } from '../../encounterbuilder/state/storage.js';
-import { restoreFight } from '../../encounterbuilder/combat/combat.js';
+import { SECTION_REGISTRY } from '../../../shared/instances/sectionRegistry.js';
+import { dedupeFightsByEncounter, mergeLibrary } from '../../encounterbuilder/library/library.js';
+import { buildCombat, restoreFight } from '../../encounterbuilder/combat/combat.js';
+import { hydrateEncounterItems } from '../../encounterbuilder/bestiary/monsterUtils.js';
 import { combatantToToken, importableCombatants } from '../../../shared/vtt/tokens/encounterImport.js';
 import { useMonsterDb } from '../../encounterbuilder/bestiary/useMonsterDb.js';
 import { fullscreenContainer } from '../map/fullscreenContainer.js';
@@ -38,45 +41,134 @@ export default function EncounterImportDialog({
 }) {
   const monsterDb = useMonsterDb();
   const [instanceId, setInstanceId] = useState('');
-  const [fightId, setFightId] = useState('');
+  const [questKey, setQuestKey] = useState(ANY_QUEST);
+  const [entryKey, setEntryKey] = useState('');
   const [hidden, setHidden] = useState(false);
   const [instances, setInstances] = useState([]);
   const [fights, setFights] = useState([]);
+  const [library, setLibrary] = useState([]);
 
   useEffect(() => {
     if (!open) return;
     const list = readRegistry();
     setInstances(list);
-    setInstanceId((current) => current || list[0]?.id || '');
+    setInstanceId((current) => (list.some((entry) => entry.id === current) ? current : list[0]?.id || ''));
   }, [open]);
 
+  // Read every time the dialog is opened, and again whenever the builder writes.
+  //
+  // Read once and held was the bug: this tab and the builder are two tabs of one
+  // browser, and a map left open since before tonight's prep offered whatever
+  // the instance held when it was first opened — an encounter saved since was
+  // simply not on the list. The save event covers the builder in this tab, and
+  // `storage` covers it in any other.
   useEffect(() => {
-    if (!instanceId) {
-      setFights([]);
-      return;
+    if (!open || !instanceId) {
+      if (!instanceId) {
+        setFights([]);
+        setLibrary([]);
+      }
+      return undefined;
     }
-    const persisted = readPersistedInstance(instanceId, []);
-    const items = persisted?.fightsData?.items || [];
-    setFights(items);
-    setFightId((current) => (items.some((fight) => fight.id === current) ? current : items[0]?.id || ''));
-  }, [instanceId]);
+    const read = () => {
+      const persisted = readPersistedInstance(instanceId, []);
+      setFights(persisted?.fightsData?.items || []);
+      setLibrary(persisted?.library || []);
+    };
+    read();
+    window.addEventListener('storage', read);
+    window.addEventListener(ENCOUNTER_SAVED, read);
+    return () => {
+      window.removeEventListener('storage', read);
+      window.removeEventListener(ENCOUNTER_SAVED, read);
+    };
+  }, [instanceId, open]);
 
-  const selected = useMemo(() => fights.find((fight) => fight.id === fightId) || null, [fightId, fights]);
+  // The filter belongs to the save being looked at, not to the dialog: keeping a
+  // quest from the previous instance would hide everything in this one.
+  useEffect(() => { setQuestKey(ANY_QUEST); }, [instanceId]);
+
+  // What there is to import is the library, not the fights: an encounter that
+  // was saved but never launched is still an encounter the GM wants on the
+  // board, and it is launched on the way out. Each card carries at most one
+  // fight — the newest, once the older ones of the same encounter are dropped —
+  // and the quest is written on the card rather than on the fight.
+  const entries = useMemo(() => {
+    const current = dedupeFightsByEncounter(fights);
+    const cards = mergeLibrary(library, current).map(({ enc, fight }) => ({
+      key: `e:${enc.id}`,
+      encounterId: enc.id,
+      fight,
+      name: enc.name || 'Encounter',
+      quest: String(enc.quest || '').trim(),
+      card: enc,
+    }));
+    // A fight whose card this device never got — a room sent over from the map,
+    // and the library is still a blob one browser holds. It is offered under the
+    // copy of the card the fight carries, or under its own name.
+    const known = new Set((library || []).map((enc) => String(enc?.id)));
+    const orphans = current
+      .filter((fight) => fight.encounterId == null || !known.has(String(fight.encounterId)))
+      .map((fight) => ({
+        key: `f:${fight.id}`,
+        encounterId: fight.encounterId ?? null,
+        fight,
+        name: fight.name || fight.encounter?.name || 'Fight',
+        quest: String(fight.encounter?.quest || '').trim(),
+        card: fight.encounter || null,
+      }));
+    return [...cards, ...orphans];
+  }, [fights, library]);
+
+  const quests = useMemo(
+    () => [...new Set(entries.map((entry) => entry.quest).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b)),
+    [entries],
+  );
+  const unquested = entries.some((entry) => !entry.quest);
+  const visible = useMemo(
+    () => entries.filter((entry) => questKey === ANY_QUEST
+      || (questKey === NO_QUEST ? !entry.quest : questKey === questValue(entry.quest))),
+    [entries, questKey],
+  );
+
+  // The quest chosen decides what there is to pick from, so the encounter is
+  // read off the list rather than held beside it: a choice the filter no longer
+  // offers falls back to the first that it does, in the same render as the
+  // filter itself.
+  const currentKey = visible.some((entry) => entry.key === entryKey)
+    ? entryKey
+    : visible[0]?.key || '';
+  const selected = useMemo(
+    () => visible.find((entry) => entry.key === currentKey) || null,
+    [currentKey, visible],
+  );
 
   // Hydrated against the bestiary, not against an empty list. A snapshot stores
   // only a reference to each creature, so without the database `monsterData`
   // comes back null — which meant every imported piece fell back to the default
   // artwork and to a single square.
-  const combatants = useMemo(
-    () => (selected ? importableCombatants(restoreFight(selected, monsterDb.monsters)) : []),
-    [monsterDb.monsters, selected],
-  );
+  //
+  // An encounter with no fight is rolled up here only to be looked at: what
+  // lands on the map comes from the launch itself, so reading down the list
+  // writes nothing into the builder.
+  const combatants = useMemo(() => {
+    if (!selected) return [];
+    if (selected.fight) return importableCombatants(restoreFight(selected.fight, monsterDb.monsters));
+    const encounter = hydrateEncounterItems(selected.card?.encounter, monsterDb.monsters);
+    return importableCombatants(buildCombat(encounter, [], selected.encounterId));
+  }, [monsterDb.monsters, selected]);
+
   const layer = hidden ? 'gm' : 'tokens';
   const previewToken = useMemo(() => {
     if (!combatants.length) return null;
-    const draft = combatantToToken(combatants[0], { layer, instanceId, fightId });
+    const draft = combatantToToken(combatants[0], {
+      layer,
+      instanceId,
+      fightId: selected?.fight?.id,
+    });
     return { ...draft, imageUrl: draft.image_url || null };
-  }, [combatants, fightId, instanceId, layer]);
+  }, [combatants, instanceId, layer, selected]);
 
   return (
     <Dialog
@@ -113,17 +205,37 @@ export default function EncounterImportDialog({
                 ))}
               </TextField>
 
+              {quests.length ? (
+                <TextField
+                  select
+                  size="small"
+                  label="Quest"
+                  value={questKey}
+                  onChange={(event) => setQuestKey(event.target.value)}
+                >
+                  <MenuItem value={ANY_QUEST}>All quests</MenuItem>
+                  {quests.map((quest) => (
+                    <MenuItem key={quest} value={questValue(quest)}>{quest}</MenuItem>
+                  ))}
+                  {unquested ? <MenuItem value={NO_QUEST}>No quest</MenuItem> : null}
+                </TextField>
+              ) : null}
+
               <TextField
                 select
                 size="small"
-                label="Fight"
-                value={fightId}
-                onChange={(event) => setFightId(event.target.value)}
-                disabled={!fights.length}
-                helperText={fights.length ? null : 'This save has no fight to import yet.'}
+                label="Encounter"
+                value={currentKey}
+                onChange={(event) => setEntryKey(event.target.value)}
+                disabled={!visible.length}
+                helperText={visible.length
+                  ? null
+                  : (entries.length
+                    ? 'No encounter in this quest.'
+                    : 'This save has no encounter to import yet.')}
               >
-                {fights.map((fight) => (
-                  <MenuItem key={fight.id} value={fight.id}>{fight.name || 'Fight'}</MenuItem>
+                {visible.map((entry) => (
+                  <MenuItem key={entry.key} value={entry.key}>{entry.name}</MenuItem>
                 ))}
               </TextField>
 
@@ -143,7 +255,11 @@ export default function EncounterImportDialog({
                   combatants,
                   layer,
                   instanceId,
-                  fightId,
+                  fightId: selected?.fight?.id || null,
+                  // An encounter with no fight is launched where it lands, so
+                  // what travels is the encounter rather than a snapshot this
+                  // dialog would have had to write in order to hand one over.
+                  encounterId: selected?.encounterId ?? null,
                   token: previewToken,
                   count: combatants.length,
                 }, { onPlacementDragStart, onPlacementDragEnd }) : undefined}
@@ -160,7 +276,9 @@ export default function EncounterImportDialog({
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {combatants.length
-                      ? 'Drag this group with mouse, touch or pen, or use Place them.'
+                      ? (selected?.fight
+                        ? 'Drag this group with mouse, touch or pen, or use Place them.'
+                        : 'Never launched: placing it starts its fight in the Encounter Builder.')
                       : 'Player characters are skipped: they are already on the map.'}
                   </Typography>
                 </Box>
@@ -177,7 +295,8 @@ export default function EncounterImportDialog({
           onClick={() => onImport(combatants, {
             layer,
             instanceId,
-            fightId,
+            fightId: selected?.fight?.id || null,
+            encounterId: selected?.encounterId ?? null,
           })}
         >
           Place them
@@ -186,6 +305,15 @@ export default function EncounterImportDialog({
     </Dialog>
   );
 }
+
+const ENCOUNTER_SAVED = SECTION_REGISTRY.encounters.saveEvent;
+
+// The two options that are not a quest. A quest of its own goes in prefixed,
+// so one actually named "all" or "none" is still a quest and not the option
+// above it.
+const ANY_QUEST = 'all';
+const NO_QUEST = 'none';
+const questValue = (quest) => `q:${quest}`;
 
 const placementCardSx = {
   display: 'flex',
