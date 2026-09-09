@@ -159,14 +159,12 @@ export default function DungeonPanel({
                   onPointerDown={busy ? undefined : (event) => beginPiecePointerDrag(event, {
                     kind: 'encounter',
                     layer: 'tokens',
-                    // Already sent: its fight is what the pieces on every other
-                    // screen point at, so this drops from that one rather than
-                    // sending the room a second time.
-                    ...(sent ? {
-                      instanceId: sent.instanceId,
-                      fightId: sent.fightId,
-                      combatants: sent.combatants,
-                    } : { roomNumber: number, roomTitle: title }),
+                    // The room, sent or not. Whether it already has a fight to
+                    // drop from is a question for the send itself, which is the
+                    // only place that can tell a fight that exists from one the
+                    // GM has since deleted in the builder.
+                    roomNumber: number,
+                    roomTitle: title,
                     token: previewToken(chosen.groups),
                   }, { onPlacementDragStart, onPlacementDragEnd })}
                 >

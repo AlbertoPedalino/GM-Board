@@ -13,7 +13,8 @@
 import { buildCombat, restoreFight, snapshotFight } from '../combat/combat.js';
 import { importableCombatants } from '../../../shared/vtt/tokens/encounterImport.js';
 import {
-  makeSavedEncounter, persistFights, persistLibrary, readPersistedInstance,
+  isKnownEncounterInstance, makeSavedEncounter, persistFights, persistLibrary,
+  readPersistedInstance,
 } from '../state/storage.js';
 import { hydrateEncounterItems } from '../bestiary/monsterUtils.js';
 
@@ -191,4 +192,21 @@ export function launchLibraryEncounter(instanceId, encounterId, { monsters = [],
     entry: fightEntry,
     combatants: importableCombatants(combat),
   };
+}
+
+// Whether a record that points at a fight still points at anything.
+//
+// A dungeon room remembers the fight it was sent as, and that record lives in
+// the scene — where a GM deleting the encounter in the builder cannot reach it.
+// So the room went on claiming to have been sent, and sending it again did
+// nothing: the answer is this, asked before the room is taken at its word.
+//
+//   'present'  — the fight is in this browser's copy of the instance.
+//   'missing'  — the instance is here and the fight is not: it was deleted.
+//   'unknown'  — this browser has never held that instance, so it cannot say.
+export function localFightPresence(instanceId, fightId) {
+  if (!instanceId || !fightId) return 'missing';
+  if (!isKnownEncounterInstance(instanceId)) return 'unknown';
+  const items = readPersistedInstance(instanceId, [])?.fightsData?.items || [];
+  return items.some((fight) => String(fight.id) === String(fightId)) ? 'present' : 'missing';
 }

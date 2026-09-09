@@ -1,4 +1,5 @@
 import { calculateDifficulty } from '../builder/difficulty.js';
+import { dedupeLibraryById } from '../library/library.js';
 import { normalizeFumbleTables } from '../rolls/fumbles.js';
 import { normalizeNegotiation } from '../negotiation/negotiation.js';
 import { hydrateEncounterItems, serializeEncounterItem } from '../bestiary/monsterUtils.js';
@@ -172,7 +173,7 @@ function markEncounterPersisted(id) {
 export function readPersistedInstance(id, monsters = []) {
   const partyData = readJson(id, STORAGE_KEYS.party, null);
   const draftData = readJson(id, STORAGE_KEYS.draft, null);
-  const library = readJson(id, STORAGE_KEYS.library, []);
+  const library = dedupeLibraryById(readJson(id, STORAGE_KEYS.library, []));
   const fightsData = readJson(id, STORAGE_KEYS.fights, { activeFightId: null, items: [] });
   const fumbleTables = normalizeFumbleTables(readJson(id, STORAGE_KEYS.fumbles, null));
   const negotiation = normalizeNegotiation(readJson(id, STORAGE_KEYS.negotiation, null));

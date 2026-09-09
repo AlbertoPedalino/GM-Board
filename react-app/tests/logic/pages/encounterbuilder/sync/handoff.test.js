@@ -31,7 +31,8 @@ if (!globalThis.CustomEvent) {
 }
 
 const {
-  sendEncounterToBuilder, encounterFromGroups, launchLibraryEncounter, withSheetIdentity,
+  sendEncounterToBuilder, encounterFromGroups, launchLibraryEncounter, localFightPresence,
+  withSheetIdentity,
 } = await import('../../../../../src/pages/encounterbuilder/sync/handoff.js');
 const {
   makeSavedEncounter, persistLibrary, persistParty, readPersistedInstance,
@@ -39,6 +40,22 @@ const {
 
 const OGRE = { name: 'Ogre', source: 'MM', cr: '2', xp: 450, hp: { average: 59 } };
 const GOBLIN = { name: 'Goblin', source: 'MM', cr: '1/4', xp: 50, hp: { average: 7 } };
+
+test('storage readers and map launches use the newest of duplicate library cards', () => {
+  localStorage.clear();
+  const instanceId = 'enc-duplicate-cards';
+  const old = makeSavedEncounter('Wolves', [
+    { id: 'i1', name: 'Goblin', source: 'MM', cr: '1/4', xp: 50, qty: 1, monsterData: GOBLIN },
+  ], { count: 4, level: 1 });
+  const latest = {
+    ...old, updatedAt: '2099-01-01T00:00:00Z',
+    encounter: old.encounter.map((item) => ({ ...item, qty: 5 })),
+  };
+  persistLibrary(instanceId, [latest, old]);
+  assert.deepEqual(readPersistedInstance(instanceId).library, [latest]);
+  const link = launchLibraryEncounter(instanceId, old.id, { monsters: [GOBLIN] });
+  assert.equal(link.combatants.length, 5);
+});
 
 test('a room becomes the two records the builder writes for a fight of its own', () => {
   localStorage.clear();
@@ -189,4 +206,24 @@ test('an encounter the builder no longer has is said out loud rather than placed
   localStorage.clear();
   assert.throws(() => launchLibraryEncounter('enc-test-missing', 'gone'), /no longer in the Encounter Builder/);
   assert.throws(() => launchLibraryEncounter('', 'gone'), /no Encounter Builder/);
+});
+
+// A dungeon room remembers the fight it was sent as, and that record lives in
+// the scene — out of reach of a GM deleting the encounter in the builder. So
+// the room kept claiming a fight that was gone, and importing it again gave
+// them nothing. This is the question asked before the record is believed.
+test('a fight deleted in the builder is missing, and one this browser never had is unknown', () => {
+  localStorage.clear();
+  const instanceId = 'enc-test-presence';
+  const link = sendEncounterToBuilder(instanceId, {
+    name: 'Ebonscar — room 1',
+    groups: [{ monster: OGRE, count: 1 }],
+  });
+
+  assert.equal(localFightPresence(instanceId, link.fightId), 'present');
+  assert.equal(localFightPresence(instanceId, 'never-existed'), 'missing');
+  // An instance this browser has never held cannot be called deleted from here.
+  assert.equal(localFightPresence('enc-test-elsewhere', link.fightId), 'unknown');
+  assert.equal(localFightPresence('', link.fightId), 'missing');
+  assert.equal(localFightPresence(instanceId, null), 'missing');
 });

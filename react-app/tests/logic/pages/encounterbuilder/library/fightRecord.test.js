@@ -116,3 +116,15 @@ test('a card saved again is a newer card, not a duplicate to ignore', () => {
   // A card with no stamp at all cannot claim to be newer than one we hold.
   assert.deepEqual(libraryCardUpdates([toFightEntry(ROW)], [held]), []);
 });
+
+test('a batch emits only the latest card even when its fight was written first', () => {
+  const old = { ...CARD, updatedAt: 10 };
+  const latest = { ...CARD, updatedAt: 20, name: 'Wolves (5)' };
+  const rows = [
+    { encounter: old, savedAt: 40 },
+    { encounter: latest, savedAt: 30 },
+  ];
+  assert.deepEqual(libraryCardUpdates(rows, []), [latest]);
+  assert.deepEqual(libraryCardUpdates([...rows].reverse(), []), [latest]);
+  assert.deepEqual(libraryCardUpdates(rows, [{ ...CARD, updatedAt: 5 }]), [latest]);
+});

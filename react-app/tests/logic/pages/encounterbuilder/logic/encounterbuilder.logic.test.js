@@ -1,5 +1,22 @@
 import test from 'node:test';
+import { libraryCardUpdates } from '../../../../../src/pages/encounterbuilder/library/fightRecord.js';
 import assert from 'node:assert/strict';
+
+test('cloud card versions merge once and hydration repairs existing duplicates', () => {
+  const old = { id: 500, name: 'Wolves', updatedAt: 10 };
+  const latest = { ...old, updatedAt: 20, name: 'Wolves (5)' };
+  const cards = libraryCardUpdates([{ encounter: old }, { encounter: latest }], []);
+  const merged = encounterReducer(createInitialState(), { type: 'absorbExternal', library: cards });
+  assert.deepEqual(merged.library, [latest]);
+  const hydrated = encounterReducer(createInitialState(), {
+    type: 'hydrateStorage', payload: { library: [latest, old] }, monsters: [],
+  });
+  assert.deepEqual(hydrated.library, [latest]);
+  const repaired = encounterReducer({ ...merged, library: [latest, old] }, {
+    type: 'absorbExternal', library: [old],
+  });
+  assert.deepEqual(repaired.library, [latest]);
+});
 import { readFileSync } from 'node:fs';
 import { calculateDifficulty } from '../../../../../src/pages/encounterbuilder/builder/difficulty.js';
 import {

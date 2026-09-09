@@ -1,4 +1,6 @@
+import { useReducer } from 'react';
 import { act, render, waitFor } from '@testing-library/react';
+import { createInitialState, encounterReducer } from '../../../../../src/pages/encounterbuilder/state/reducer.js';
 import { beforeEach, vi } from 'vitest';
 import { useCloudFights } from '../../../../../src/pages/encounterbuilder/sync/useCloudFights.js';
 
@@ -70,6 +72,42 @@ test('a fight from another screen arrives with the card that opens it', async ()
     fights: [FIGHT],
     library: [CARD],
   });
+});
+
+test('keeping an old fight active never deletes a newer launch discovered online', async () => {
+  const newer = { ...FIGHT, id: 901, savedAt: 30 };
+  let rows = [FIGHT];
+  mocks.listInstanceFights.mockImplementation(async () => rows);
+  mocks.deleteInstanceFight.mockImplementation(async (id) => {
+    rows = rows.filter((row) => String(row.id) !== id);
+  });
+  let current;
+  let dispatch;
+  function Builder() {
+    [current, dispatch] = useReducer(encounterReducer, {
+      ...createInitialState(), fights: [FIGHT], library: [CARD], activeFightId: FIGHT.id,
+    });
+    useCloudFights({
+      instanceId: 'enc_a', instanceSaved: true,
+      fights: current.fights, library: current.library, activeFightId: current.activeFightId,
+      dispatch,
+    });
+    return null;
+  }
+  render(<Builder />);
+  await act(async () => { await mocks.fireRemoteChange(); });
+  rows = [newer, FIGHT];
+  await act(async () => { await mocks.fireRemoteChange(); });
+  expect(current.fights.map((fight) => fight.id)).toEqual([900]);
+  expect(mocks.deleteInstanceFight).not.toHaveBeenCalled();
+  // Repeated reads and an explicit deletion of the old fight must still leave
+  // the newer launch intact on the other screen.
+  await act(async () => { await mocks.fireRemoteChange(); });
+  await act(async () => { dispatch({ type: 'deleteFight', id: 900 }); });
+  expect(mocks.deleteInstanceFight).toHaveBeenCalledWith('900');
+  expect(mocks.deleteInstanceFight).not.toHaveBeenCalledWith('901');
+  expect(rows.map((row) => row.id)).toEqual([901]);
+  expect(current.fights.map((fight) => fight.id)).toEqual([901]);
 });
 
 // The bug this exists for: deleting an encounter put it straight back. A read

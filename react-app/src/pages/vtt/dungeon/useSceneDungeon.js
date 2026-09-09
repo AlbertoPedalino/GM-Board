@@ -2,7 +2,7 @@ import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
 import { readSceneDungeon, saveSceneDungeon } from '../../../shared/cloud/api/dungeon.js';
-import { saveInstanceFight } from '../../../shared/cloud/api/encounterFights.js';
+import { listInstanceFights, saveInstanceFight } from '../../../shared/cloud/api/encounterFights.js';
 import {
   readCampaignHexcrawlBoard, readHexcrawlBoard,
 } from '../../../shared/cloud/api/hexcrawl.js';
@@ -15,7 +15,8 @@ import {
   encounterInstanceForBoard, missingLinkReason, pickEncounterInstance,
 } from '../../../shared/dungeon/linkedEncounters.js';
 import { getCloudSection } from '../../../shared/cloud/sections/cloudSections.js';
-import { sendEncounterToBuilder } from '../../encounterbuilder/sync/handoff.js';
+import { localFightPresence, sendEncounterToBuilder } from '../../encounterbuilder/sync/handoff.js';
+import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 
 // The dungeon a map is being played as: how many rooms, what is in them, and
 // what their fights are worth.
@@ -33,6 +34,7 @@ import { sendEncounterToBuilder } from '../../encounterbuilder/sync/handoff.js';
 const EMPTY = Object.freeze({ key: null, fights: {} });
 
 export function useSceneDungeon({ scene, isGm, monsters, partySize, roster }) {
+  const { cloudEnabled, status } = useAuth();
   const sceneId = scene?.id || null;
   const campaignId = scene?.campaignId || null;
   const enabled = Boolean(isGm && sceneId);
@@ -203,6 +205,31 @@ export function useSceneDungeon({ scene, isGm, monsters, partySize, roster }) {
     }
     const chosen = chooseFor(state.key, roomNumber);
     if (!chosen?.groups?.length) return null;
+    const roomId = state.key.rooms[roomNumber - 1]?.id || `room_${roomNumber}`;
+
+    // Sent once is sent — unless the encounter has been deleted in the builder
+    // since. The room's record lives in the scene and knows nothing about that,
+    // which is how deleting an imported room and importing it again gave the GM
+    // nothing at all: the room still claimed a fight that was gone.
+    const existing = state.fights?.[roomId];
+    if (existing?.fightId) {
+      const presence = localFightPresence(existing.instanceId, existing.fightId);
+      if (presence === 'present') return existing;
+      if (cloudEnabled && status === 'authed') {
+        try {
+          const rows = await listInstanceFights(existing.instanceId);
+          if (rows.some((row) => String(row.id) === String(existing.fightId))) return existing;
+        } catch (_) {
+          // Offline or refused: the database has not said the fight is gone, so
+          // it is left standing rather than duplicated on a network blip.
+          return existing;
+        }
+      } else if (presence === 'unknown') {
+        // Without a local copy or a cloud answer there is no evidence of deletion.
+        return existing;
+      }
+    }
+
     setBusy(true);
     try {
       const link = sendEncounterToBuilder(encounterInstance.id, {
@@ -230,7 +257,6 @@ export function useSceneDungeon({ scene, isGm, monsters, partySize, roster }) {
       } catch (cause) {
         reach = `The room was sent, but only to this browser: ${cause?.message || 'the fight could not be saved online.'}`;
       }
-      const roomId = state.key.rooms[roomNumber - 1]?.id || `room_${roomNumber}`;
       const fights = { ...state.fights, [roomId]: roomLink };
       setState((current) => ({ ...current, fights }));
       await saveSceneDungeon(sceneId, { fights });
@@ -242,7 +268,10 @@ export function useSceneDungeon({ scene, isGm, monsters, partySize, roster }) {
     } finally {
       setBusy(false);
     }
-  }, [boardId, chooseFor, enabled, encounterInstance, priced, roster, sceneId, state.fights, state.key]);
+  }, [
+    boardId, chooseFor, cloudEnabled, enabled, encounterInstance, priced, roster, sceneId, status,
+    state.fights, state.key,
+  ]);
 
   return {
     enabled,

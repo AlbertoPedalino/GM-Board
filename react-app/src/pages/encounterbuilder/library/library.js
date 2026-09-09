@@ -89,3 +89,15 @@ export function dedupeFightsByEncounter(fights, activeFightId = null) {
 export function cardTime(card) {
   return Math.max(toTime(card?.updatedAt), toTime(card?.createdAt));
 }
+
+// Repair duplicate cards already in storage as well as incoming batches.
+export function dedupeLibraryById(cards) {
+  const latest = new Map();
+  for (const card of Array.isArray(cards) ? cards : []) {
+    if (card?.id == null) continue;
+    const key = String(card.id);
+    const held = latest.get(key);
+    if (!held || cardTime(card) >= cardTime(held)) latest.set(key, card);
+  }
+  return [...latest.values()];
+}

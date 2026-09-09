@@ -9,7 +9,7 @@
 // written by the battle map too, and a blob cannot hold something two writers
 // touch without one of them losing.
 
-import { cardTime } from './library.js';
+import { cardTime, dedupeLibraryById } from './library.js';
 
 export const FIGHT_COLUMNS = 'id, instance_id, name, encounter_id, encounter, fight, updated_at';
 
@@ -77,8 +77,8 @@ export function fightSignature(entry) {
 // keeps its id, so an id-only check would leave this device on the first
 // version of it for good.
 export function libraryCardUpdates(entries, library) {
-  const held = new Map((library || []).map((entry) => [String(entry?.id), entry]));
-  const cards = [];
+  const held = new Map(dedupeLibraryById(library).map((entry) => [String(entry.id), entry]));
+  const cards = new Map();
   for (const entry of entries || []) {
     const card = entry?.encounter;
     if (!card?.id) continue;
@@ -86,7 +86,7 @@ export function libraryCardUpdates(entries, library) {
     const ours = held.get(key);
     if (ours && cardTime(card) <= cardTime(ours)) continue;
     held.set(key, card);
-    cards.push(card);
+    cards.set(key, card);
   }
-  return cards;
+  return [...cards.values()];
 }

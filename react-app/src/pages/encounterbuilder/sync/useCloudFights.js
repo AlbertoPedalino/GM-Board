@@ -46,6 +46,9 @@ export function useCloudFights({
   // What the database is known to hold, per fight: the last version we wrote or
   // were told about. A fight whose signature still matches has nothing to say.
   const settledRef = useRef(new Map());
+  // Discovering a cloud row is not a local deletion intent. The reducer may
+  // hide it in favour of the fight still running on this screen.
+  const localIdsRef = useRef(new Set());
   const timersRef = useRef(new Map());
   // Nothing is deleted from the cloud until its list has been read once, or a
   // page that opens before the first load would take an empty local list for
@@ -67,6 +70,7 @@ export function useCloudFights({
   useEffect(() => {
     loadedRef.current = false;
     settledRef.current.clear();
+    localIdsRef.current.clear();
     removedRef.current.clear();
     timersRef.current.forEach((timer) => clearTimeout(timer));
     timersRef.current.clear();
@@ -168,6 +172,7 @@ export function useCloudFights({
     for (const entry of fights || []) {
       const key = String(entry.id);
       seen.add(key);
+      localIdsRef.current.add(key);
       // Back from the dead, on purpose: a fight the GM removed and then created
       // again is a fight to write, not one to keep deleting.
       removedRef.current.delete(key);
@@ -189,6 +194,8 @@ export function useCloudFights({
     if (!loadedRef.current) return;
     for (const key of [...settledRef.current.keys()]) {
       if (seen.has(key)) continue;
+      if (!localIdsRef.current.has(key)) continue;
+      localIdsRef.current.delete(key);
       settledRef.current.delete(key);
       // The pending write goes first. A fight saved half a second ago and
       // deleted now would otherwise have its own timer put the row back after

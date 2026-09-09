@@ -43,7 +43,7 @@ import { clampInt, hydrateEncounterItems, monsterKey, toEncounterMonster } from 
 import { combatantToSheetPatch, resolveCombatVitals } from '../campaign/sheetSync.js';
 import { SYNCED_VITALS, pickCharacterVitals } from '../../../shared/character/combat/vitals.js';
 import { fightWithTokenVitals } from '../../../shared/vtt/tokens/encounterSync.js';
-import { dedupeFightsByEncounter } from '../library/library.js';
+import { dedupeFightsByEncounter, dedupeLibraryById } from '../library/library.js';
 
 export const DEFAULT_PARTY = Object.freeze({ count: 4, level: 5 });
 
@@ -289,10 +289,9 @@ function absorbExternal(state, { fights = [], library = [] }) {
   const currentLibrary = state.library || [];
   const known = new Set(currentFights.map((fight) => String(fight.id)));
   const knownEncounters = new Set(currentLibrary.map((entry) => String(entry.id)));
-  const addedFights = fights.filter((fight) => !known.has(String(fight.id)));
   const addedEncounters = library.filter((entry) => !knownEncounters.has(String(entry.id)));
+  const addedFights = fights.filter((fight) => !known.has(String(fight.id)));
   const incoming = new Map(fights.map((fight) => [String(fight.id), fight]));
-  const incomingCards = new Map(library.map((entry) => [String(entry.id), entry]));
   if (!fights.length && !library.length) return state;
   const merged = [
     ...addedFights,
@@ -305,14 +304,7 @@ function absorbExternal(state, { fights = [], library = [] }) {
     // launch comes back and the encounter stands twice in every list that reads
     // this array — the battle map's import dialog among them.
     fights: dedupeFightsByEncounter(merged, state.activeFightId),
-    library: [
-      ...addedEncounters,
-      // A card sent for an encounter already held is the newer version of it —
-      // the caller decides that — so it replaces ours rather than being dropped
-      // as a duplicate, which is what left an encounter edited elsewhere
-      // showing its first version here for good.
-      ...currentLibrary.map((entry) => incomingCards.get(String(entry.id)) || entry),
-    ],
+    library: dedupeLibraryById([...addedEncounters, ...currentLibrary, ...library]),
   };
 }
 
@@ -348,7 +340,7 @@ function hydrateState(state, payload, monsters) {
     encounterName: draftData?.encounterName || '',
     encounterQuest: draftData?.encounterQuest || null,
     currentEncounterId: draftData?.currentEncounterId || null,
-    library: Array.isArray(payload?.library) ? payload.library : state.library,
+    library: dedupeLibraryById(Array.isArray(payload?.library) ? payload.library : state.library),
     // Storage may already hold the duplicates written before they were merged
     // on the way in, so they are collapsed here too rather than being read back
     // for the rest of the instance's life.

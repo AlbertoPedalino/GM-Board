@@ -127,7 +127,7 @@ test('a room rolled but never sent is dragged as the room itself', () => {
   expect(onPlacementDragStart.mock.calls[0][0].fightId).toBeUndefined();
 });
 
-test('a room already sent offers its fight to drag, carrying that fight\'s reference', () => {
+test('a room already sent drags as the room, which is what can tell a live fight from a deleted one', () => {
   const onPlacementDragStart = vi.fn();
   const monstersForRoom = (number) => (number === 1
     ? { budget: 900, groups: [{ monster: { name: 'Ogre' }, count: 2, xp: 900 }] }
@@ -142,16 +142,17 @@ test('a room already sent offers its fight to drag, carrying that fight\'s refer
     },
   });
 
+  // The name of the fight it was sent as is still what the row reads.
+  expect(screen.getByText(/Ebonscar — room 1/)).toBeInTheDocument();
+
   drag(screen.getByText(/drag onto the map/i).closest('div'));
 
   expect(onPlacementDragStart).toHaveBeenCalledWith(expect.objectContaining({
     kind: 'encounter',
     layer: 'tokens',
-    instanceId: 'enc-1',
-    fightId: 'fight-7',
+    roomNumber: 1,
+    roomTitle: 'Ebonscar',
   }));
-  // The button is gone: sending it twice would be two fights for one room.
-  expect(screen.queryByRole('button', { name: /send to the encounter builder/i })).toBeNull();
 });
 
 test('a trap is dragged out as a GM-layer marker with its numbers on it', () => {

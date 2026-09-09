@@ -1291,7 +1291,7 @@ export default function SceneEditor({
       let placed = combatants;
       let ref = fightId;
       let instance = instanceId;
-      if (!ref && roomNumber != null) {
+      if (roomNumber != null) {
         const room = await dungeon.sendRoomToBuilder(roomNumber, { title: roomTitle });
         // The panel says why in full — a map with no Encounter Builder linked
         // to it is the usual reason — but a drop that quietly did nothing is
