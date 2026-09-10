@@ -16,6 +16,9 @@ import {
 } from '../../../shared/dungeon/linkedEncounters.js';
 import { getCloudSection } from '../../../shared/cloud/sections/cloudSections.js';
 import { localFightPresence, sendEncounterToBuilder } from '../../encounterbuilder/sync/handoff.js';
+import { readPersistedInstance } from '../../encounterbuilder/state/storage.js';
+import { restoreFight } from '../../encounterbuilder/combat/combat.js';
+import { importableCombatants } from '../../../shared/vtt/tokens/encounterImport.js';
 import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 
 // The dungeon a map is being played as: how many rooms, what is in them, and
@@ -32,6 +35,11 @@ import { useAuth } from '../../../shared/cloud/auth/AuthProvider.jsx';
 // off the same page.
 
 const EMPTY = Object.freeze({ key: null, fights: {} });
+
+function roomLinkWithFight(link, entry, monsters) {
+  if (!entry) return link;
+  return { ...link, combatants: importableCombatants(restoreFight(entry, monsters)) };
+}
 
 export function useSceneDungeon({ scene, isGm, monsters, partySize, roster }) {
   const { cloudEnabled, status } = useAuth();
@@ -214,11 +222,19 @@ export function useSceneDungeon({ scene, isGm, monsters, partySize, roster }) {
     const existing = state.fights?.[roomId];
     if (existing?.fightId) {
       const presence = localFightPresence(existing.instanceId, existing.fightId);
-      if (presence === 'present') return existing;
+      // The room link contains the creatures as first sent. Reimport from the
+      // saved fight so later conditions, damage and deaths survive token removal.
+      if (presence === 'present') {
+        const persisted = readPersistedInstance(existing.instanceId, priced);
+        const entry = (persisted?.fightsData?.items || [])
+          .find((fight) => String(fight.id) === String(existing.fightId));
+        return roomLinkWithFight(existing, entry, priced);
+      }
       if (cloudEnabled && status === 'authed') {
         try {
           const rows = await listInstanceFights(existing.instanceId);
-          if (rows.some((row) => String(row.id) === String(existing.fightId))) return existing;
+          const entry = rows.find((row) => String(row.id) === String(existing.fightId));
+          if (entry) return roomLinkWithFight(existing, entry, priced);
         } catch (_) {
           // Offline or refused: the database has not said the fight is gone, so
           // it is left standing rather than duplicated on a network blip.

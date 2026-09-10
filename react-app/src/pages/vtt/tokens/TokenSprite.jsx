@@ -94,7 +94,9 @@ export default function TokenSprite({
   // One badge for everything the GM has flagged on this creature: two counters
   // side by side would be read as one number anyway.
   const marks = visibleConditions.length + effects.length;
-  const remotelyExpanded = presentedInspection?.tokenId === token.id;
+  // Placement previews have no id until saved; two missing ids are not a match.
+  const remotelyExpanded = Boolean(presentedInspection?.tokenId)
+    && presentedInspection.tokenId === token.id;
   const marksExpanded = !dragging && (hovered || remotelyExpanded);
   // Opt-in per piece. A scene where every creature wears a bar is unreadable,
   // and which ones do is a call the GM makes at the table, not a default.

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import TokenSprite from '../../../../../src/pages/vtt/tokens/TokenSprite.jsx';
+import { combatantToToken } from '../../../../../src/shared/vtt/tokens/encounterImport.js';
 
 test('a character without a portrait uses the primary class icon', () => {
   const { container } = render(
@@ -235,6 +236,31 @@ test('condition pills collapse while their token is being dragged', () => {
   expect(screen.queryByText('Prone')).not.toBeInTheDocument();
   expect(screen.getByText('1')).toBeInTheDocument();
 });
+
+test.each([null, undefined, {}, { tokenId: 'another-token', conditionKey: 'prone' }])(
+  'an imported preview keeps its condition badge without a matching inspection (%j)',
+  (presentedInspection) => {
+    const token = combatantToToken({
+      id: 7, name: 'Goblin', hpCurrent: 4, hpMax: 7, activeConditions: ['prone'],
+    }, { instanceId: 'encounter-1', fightId: 'fight-1' });
+
+    render(
+      <TokenSprite
+        token={token}
+        size={64}
+        interactive={false}
+        movable={false}
+        conditionEntries={{ prone: ['Prone rules'] }}
+        presentedInspection={presentedInspection}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Goblin' })).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.queryByText('Prone')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  },
+);
 
 test('a projector inspection expands the token and opens the matching condition rules', async () => {
   render(

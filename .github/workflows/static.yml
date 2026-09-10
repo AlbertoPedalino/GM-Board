@@ -42,9 +42,6 @@ jobs:
           VITE_AUTH_EMAIL_DOMAIN: ${{ secrets.VITE_AUTH_EMAIL_DOMAIN || 'players.gmboard.local' }}
         run: npm run build
 
-      - name: Add SPA fallback for GitHub Pages
-        run: cp react-app/dist/index.html react-app/dist/404.html
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
+    "postbuild": "node scripts/build-pages.mjs",
     "test": "npm run check:vtt && npm run test:logic && npm run test:ui",
     "preview": "vite preview --host 127.0.0.1",
     "test:logic": "node --test tests/logic",
